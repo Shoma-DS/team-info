@@ -10,7 +10,7 @@
   "shikoku_metan_whisper": {
     "speaker_name": "四国めたん",
     "style_name": "ささやき",
-    "speed": 1.05,
+    "speed": 0.75,
     "pitch": 0.0,
     "volume": 0.9,
     "language": "ja-JP"

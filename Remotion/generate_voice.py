@@ -2,7 +2,7 @@ import requests
 import json
 import os
 import glob
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import datetime
 
 # VOICEVOXエンジンのAPIエンドポイント
@@ -18,7 +18,7 @@ def load_voice_config() -> Dict[str, Any]:
     """Voicebox設定ファイルを読み込む"""
     if not os.path.exists(CONFIG_FILE):
         print(f"エラー: 設定ファイルが見つかりません: {CONFIG_FILE}")
-        return {{}}
+        return {}
     with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
         return json.load(f)
 
@@ -93,24 +93,52 @@ def get_voicevox_speakers() -> Dict[str, Dict[str, int]]:
         print(f"VOICEVOXスピーカー情報の取得中にエラーが発生しました: {e}")
         return {}
 
-def generate_audio_query(text: str, speaker_id: int, speed: float = 1.0, pitch: float = 0.0) -> Dict[str, Any]:
-    """音声合成クエリを生成する"""
-    params = {
-        "text": text,
-        "speaker": speaker_id,
-    }
+def get_voicevox_presets() -> Dict[int, Dict[str, Any]]:
+    """VOICEVOXエンジンからプリセット一覧を取得する"""
     try:
-        response = requests.post(f"{VOICEVOX_API_BASE_URL}/audio_query", params=params)
+        response = requests.get(f"{VOICEVOX_API_BASE_URL}/presets")
+        response.raise_for_status()
+        presets = response.json()
+        return {preset["id"]: preset for preset in presets}
+    except requests.exceptions.RequestException as e:
+        print(f"VOICEVOXプリセット情報の取得中にエラーが発生しました: {e}")
+        return {}
+
+def generate_audio_query(
+    text: str,
+    speaker_id: int,
+    speed: float = 1.0,
+    pitch: float = 0.0,
+    volume: float = 1.0,
+    preset_id: Optional[int] = None,
+) -> Dict[str, Any]:
+    """音声合成クエリを生成する"""
+    if preset_id is not None:
+        endpoint = "/audio_query_from_preset"
+        params = {
+            "text": text,
+            "preset_id": preset_id,
+        }
+    else:
+        endpoint = "/audio_query"
+        params = {
+            "text": text,
+            "speaker": speaker_id,
+        }
+
+    try:
+        response = requests.post(f"{VOICEVOX_API_BASE_URL}{endpoint}", params=params)
         response.raise_for_status()
         query = response.json()
         
-        # speedとpitchをクエリに適用
+        # 設定ファイル側の値で最終上書き
         query["speedScale"] = speed
         query["pitchScale"] = pitch
+        query["volumeScale"] = volume
         return query
     except requests.exceptions.RequestException as e:
         print(f"音声クエリの生成中にエラーが発生しました: {e}")
-        return {{}}
+        return {}
 
 def synthesize_voice(speaker_id: int, audio_query: Dict[str, Any]) -> bytes:
     """音声を合成する"""
@@ -133,11 +161,6 @@ def synthesize_voice(speaker_id: int, audio_query: Dict[str, Any]) -> bytes:
 
 def main():
     print("VOICEVOX自動音声生成スキルを開始します。")
-
-    # VOICEVOXスピーカー情報を取得し、整形
-    speaker_map = get_voicevox_speakers()
-    if not speaker_map:
-        return
 
     # 音声設定プロファイルを読み込む
     voice_configs = load_voice_config()
@@ -165,34 +188,51 @@ def main():
         print(f"エラー: 台本ファイルの読み込みに失敗しました: {e}")
         return
 
-    # スピーカーIDを決定
-    speaker_name = selected_profile.get("speaker_name")
-    style_name = selected_profile.get("style_name")
+    # スピーカーIDを決定（preset_id があれば優先）
+    preset_id = selected_profile.get("preset_id")
+    if preset_id is not None:
+        presets = get_voicevox_presets()
+        if not presets:
+            return
+        if preset_id not in presets:
+            print(f"エラー: 指定された preset_id '{preset_id}' はVOICEVOXエンジンに存在しません。")
+            print("利用可能な preset_id:", ", ".join(str(k) for k in presets.keys()))
+            return
+        voicevox_speaker_id = presets[preset_id]["style_id"]
+        print(f"選択されたプリセットID: {preset_id}, スタイルID: {voicevox_speaker_id}")
+    else:
+        speaker_map = get_voicevox_speakers()
+        if not speaker_map:
+            return
 
-    if not speaker_name or not style_name:
-        print("エラー: 設定プロファイルに 'speaker_name' または 'style_name' が指定されていません。")
-        return
+        speaker_name = selected_profile.get("speaker_name")
+        style_name = selected_profile.get("style_name")
 
-    if speaker_name not in speaker_map:
-        print(f"エラー: 指定されたスピーカー名 '{speaker_name}' はVOICEVOXエンジンに存在しません。")
-        print("利用可能なスピーカー名:", ", ".join(speaker_map.keys()))
-        return
+        if not speaker_name or not style_name:
+            print("エラー: 設定プロファイルに 'speaker_name' または 'style_name' が指定されていません。")
+            return
 
-    if style_name not in speaker_map[speaker_name]:
-        print(f"エラー: 指定されたスタイル名 '{style_name}' はスピーカー '{speaker_name}' に存在しません。")
-        print(f"利用可能なスタイル名 ({speaker_name}):", ", ".join(speaker_map[speaker_name].keys()))
-        return
+        if speaker_name not in speaker_map:
+            print(f"エラー: 指定されたスピーカー名 '{speaker_name}' はVOICEVOXエンジンに存在しません。")
+            print("利用可能なスピーカー名:", ", ".join(speaker_map.keys()))
+            return
 
-    voicevox_speaker_id = speaker_map[speaker_name][style_name]
+        if style_name not in speaker_map[speaker_name]:
+            print(f"エラー: 指定されたスタイル名 '{style_name}' はスピーカー '{speaker_name}' に存在しません。")
+            print(f"利用可能なスタイル名 ({speaker_name}):", ", ".join(speaker_map[speaker_name].keys()))
+            return
 
-    print(f"選択されたスピーカー: {speaker_name} ({style_name}), ID: {voicevox_speaker_id}")
+        voicevox_speaker_id = speaker_map[speaker_name][style_name]
+        print(f"選択されたスピーカー: {speaker_name} ({style_name}), ID: {voicevox_speaker_id}")
 
     # 音声合成クエリを生成
     audio_query = generate_audio_query(
         script_text,
         voicevox_speaker_id,
         selected_profile.get("speed", 1.0),
-        selected_profile.get("pitch", 0.0)
+        selected_profile.get("pitch", 0.0),
+        selected_profile.get("volume", 1.0),
+        preset_id if preset_id is not None else None,
     )
     if not audio_query:
         return
@@ -222,6 +262,7 @@ def main():
     output_filename = f"{today_date}_{sanitized_theme}.wav"
     output_path = os.path.join(OUTPUT_DIR, output_filename)
     try:
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
         with open(output_path, 'wb') as f:
             f.write(audio_content)
         print(f"\n✅ 音声が正常に生成され、'{output_path}' に保存されました。")
