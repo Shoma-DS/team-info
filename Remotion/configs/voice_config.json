@@ -1,0 +1,42 @@
+{
+  "default": {
+    "speaker_name": "ずんだもん",
+    "style_name": "ノーマル",
+    "speed": 1.0,
+    "pitch": 0.0,
+    "volume": 1.0,
+    "language": "ja-JP"
+  },
+  "shikoku_metan_whisper": {
+    "speaker_name": "四国めたん",
+    "style_name": "ささやき",
+    "speed": 1.05,
+    "pitch": 0.0,
+    "volume": 0.9,
+    "language": "ja-JP"
+  },
+  "zundamon_normal": {
+    "speaker_name": "ずんだもん",
+    "style_name": "ノーマル",
+    "speed": 1.0,
+    "pitch": 0.0,
+    "volume": 1.0,
+    "language": "ja-JP"
+  },
+  "narrator_female": {
+    "speaker_name": "四国めたん",
+    "style_name": "ノーマル",
+    "speed": 1.1,
+    "pitch": 0.1,
+    "volume": 0.9,
+    "language": "ja-JP"
+  },
+  "narrator_male": {
+    "speaker_name": "雨晴はう",
+    "style_name": "ノーマル",
+    "speed": 0.9,
+    "pitch": -0.1,
+    "volume": 1.0,
+    "language": "ja-JP"
+  }
+}
