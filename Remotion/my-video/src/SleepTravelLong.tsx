@@ -22,7 +22,8 @@ type SubtitleSegment = {
 
 const baseTextStyles: CSSProperties = {
 	color: 'rgba(245,245,245,0.96)',
-	textShadow: '0 1px 4px rgba(0,0,0,0.65)',
+	textShadow:
+		'0 0 10px rgba(255,255,255,0.42), 0 0 26px rgba(255,220,170,0.36), 0 2px 10px rgba(0,0,0,0.72)',
 	fontSize: 44,
 	lineHeight: 1.5,
 	fontFamily:
@@ -94,7 +95,7 @@ const useLightweightAudioData = (src: string) => {
 			timeoutInMilliseconds: 180000,
 		});
 
-		getAudioData(src, {sampleRate: 8000})
+		getAudioData(src, {sampleRate: 6000})
 			.then((data) => {
 				setAudioData(data);
 			})
@@ -177,6 +178,20 @@ const Sparkles: React.FC = () => {
 const Spectrum: React.FC = () => {
 	const frame = useCurrentFrame();
 	const {fps, width, height} = useVideoConfig();
+	const dotCount = 72;
+	const spectrumSamples = 120;
+	const dotDirections = useMemo(() => {
+		return new Array(dotCount).fill(null).map((_, i) => {
+			const a = (i / dotCount) * Math.PI * 2;
+			return {cos: Math.cos(a), sin: Math.sin(a)};
+		});
+	}, [dotCount]);
+	const barDirections = useMemo(() => {
+		return new Array(spectrumSamples).fill(null).map((_, i) => {
+			const a = (i / spectrumSamples) * Math.PI * 2;
+			return {cos: Math.cos(a), sin: Math.sin(a)};
+		});
+	}, [spectrumSamples]);
 	const audioData = useLightweightAudioData(staticFile('assets/audio.mp3'));
 	if (!audioData) {
 		return null;
@@ -186,8 +201,8 @@ const Spectrum: React.FC = () => {
 		audioData,
 		frame,
 		fps,
-		numberOfSamples: 88,
-		windowInSeconds: 0.55,
+		numberOfSamples: spectrumSamples,
+		windowInSeconds: 0.48,
 		normalize: true,
 	});
 
@@ -209,8 +224,7 @@ const Spectrum: React.FC = () => {
 	const cx = width / 2;
 	const cy = height / 2;
 	const radius = Math.min(width, height) * 0.24;
-	const spin = frame * 0.0016;
-	const dotCount = 72;
+	const spinDeg = frame * 0.092;
 
 	return (
 		<svg
@@ -219,10 +233,12 @@ const Spectrum: React.FC = () => {
 			style={{position: 'absolute', left: 0, top: 0, pointerEvents: 'none'}}
 		>
 			<defs>
-				<filter id="spectrum-glow" x="-30%" y="-30%" width="160%" height="160%">
-					<feGaussianBlur stdDeviation="2.8" result="blur" />
+				<filter id="spectrum-glow" x="-40%" y="-40%" width="180%" height="180%">
+					<feGaussianBlur in="SourceGraphic" stdDeviation="5.2" result="blur-strong" />
+					<feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="blur-soft" />
 					<feMerge>
-						<feMergeNode in="blur" />
+						<feMergeNode in="blur-strong" />
+						<feMergeNode in="blur-soft" />
 						<feMergeNode in="SourceGraphic" />
 					</feMerge>
 				</filter>
@@ -237,49 +253,48 @@ const Spectrum: React.FC = () => {
 				strokeWidth={2}
 			/>
 
-			{new Array(dotCount).fill(null).map((_, i) => {
-				const a = (i / dotCount) * Math.PI * 2 + spin;
-				const x = cx + Math.cos(a) * radius;
-				const y = cy + Math.sin(a) * radius;
-				const dotR = 2.7 + level * 0.9;
-				return (
-					<circle
-						key={`dot-${i}`}
-						cx={x}
-						cy={y}
-						r={dotR}
-						fill="rgba(255,255,255,0.92)"
-						filter="url(#spectrum-glow)"
-					/>
-				);
-			})}
+			<g filter="url(#spectrum-glow)" transform={`rotate(${spinDeg} ${cx} ${cy})`}>
+				{dotDirections.map((dir, i) => {
+					const x = cx + dir.cos * radius;
+					const y = cy + dir.sin * radius;
+					const dotR = 2.7 + level * 0.9;
+					return (
+						<circle
+							key={`dot-${i}`}
+							cx={x}
+							cy={y}
+							r={dotR}
+							fill="rgba(255,255,255,0.92)"
+						/>
+					);
+				})}
 
-			{smoothed.map((v, i) => {
-				const a = (i / smoothed.length) * Math.PI * 2 + spin;
-				const inner = radius - 8;
-				const length = 10 + v * 74;
-				const outer = radius + length;
-				const x1 = cx + Math.cos(a) * inner;
-				const y1 = cy + Math.sin(a) * inner;
-				const x2 = cx + Math.cos(a) * outer;
-				const y2 = cy + Math.sin(a) * outer;
-				const sw = 3.5 + v * 5.5;
+				{smoothed.map((v, i) => {
+					const dir = barDirections[i];
+					const outer = radius + 8;
+					const length = 16 + v * 78;
+					const inner = outer - length;
+					const x1 = cx + dir.cos * inner;
+					const y1 = cy + dir.sin * inner;
+					const x2 = cx + dir.cos * outer;
+					const y2 = cy + dir.sin * outer;
+					const sw = 6.6 + v * 5.8;
 
-				return (
-					<line
-						key={`bar-${i}`}
-						x1={x1}
-						y1={y1}
-						x2={x2}
-						y2={y2}
-						stroke="rgba(255,255,255,0.88)"
-						strokeWidth={sw}
-						strokeLinecap="round"
-						opacity={0.34 + v * 0.62}
-						filter="url(#spectrum-glow)"
-					/>
-				);
-			})}
+					return (
+						<line
+							key={`bar-${i}`}
+							x1={x1}
+							y1={y1}
+							x2={x2}
+							y2={y2}
+							stroke="rgba(255,255,255,0.88)"
+							strokeWidth={sw}
+							strokeLinecap="round"
+							opacity={0.5 + v * 0.42}
+						/>
+					);
+				})}
+			</g>
 		</svg>
 	);
 };
@@ -398,6 +413,7 @@ export const SleepTravelLong: React.FC = () => {
 						borderRadius: 16,
 						background: 'rgba(0,0,0,0.26)',
 						backdropFilter: 'blur(2px)',
+						filter: 'drop-shadow(0 0 10px rgba(255,245,220,0.45))',
 						opacity: subtitleOpacity,
 						transform: `translateY(${interpolate(
 							subtitleOpacity,
