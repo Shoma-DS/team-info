@@ -159,3 +159,11 @@ python Remotion/generate_voice.py
 
 このスキルは、あなたのフィードバックに基づいて継続的に改善されます。
 スクリプトの使用感、生成される音声の品質、エラーメッセージの分かりやすさ、追加してほしい機能など、どんなことでもお気軽にお知らせください。
+
+## 運用ルール（フロー変更時）
+
+音声化フローの質問順、選択肢、入力項目、実行手順を変更した場合は、以下を必ず同時更新してください。
+
+1. `Remotion/generate_voice.py`
+2. `.agent/skills/voice-script-launcher/SKILL.md`
+3. `Remotion/Voicebox_TTS_Skill_Guide.md`（本書）
