@@ -49,6 +49,16 @@ printf '%s\n%s\n%s\n' "<台本番号>" "<プロファイル番号>" "<テーマ>
 - `run.sh` 実行時に `.venv` 不足や依存不足で失敗した場合は、初回扱いとして `setup.sh` 実行を提案し、承認があれば実行する。
 - VOICEVOX接続エラー時は、エンジン起動状態 (`http://127.0.0.1:50021`) の確認を案内する。
 
+## Google Driveへの自動コピー（必須）
+- `run.sh` が成功して `.wav` ファイルが生成された後、以下のコマンドで Google Drive にコピーする。
+- コピー先: `/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/`
+- コマンド例:
+```bash
+cp "Remotion/output/audio/<生成されたファイル名>.wav" "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/"
+```
+- コピー成功後、「Google Driveにもコピーしました」と報告する。
+- コピー失敗時はエラーを報告し、手動コピーのパスを案内する。
+
 ## 出力方針
 - 実行前に「何を実行するか」を1行で伝える。
 - 実行前に「事前確定した入力値」を短く再掲する。
