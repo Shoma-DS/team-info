@@ -1,0 +1,1 @@
+../../.agent/skills/jmty-posts-remote-12/SKILL.md

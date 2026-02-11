@@ -1,0 +1,1 @@
+../../.agent/skills/jmty-posts-gdrive-sync/SKILL.md
