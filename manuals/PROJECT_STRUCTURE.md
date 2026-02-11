@@ -8,6 +8,7 @@
   - 台本作成・音声化・動画制作関連の実作業フォルダ
   - `scripts/voice_scripts/` は音声化で参照する台本置き場
   - `script_resources/` は台本作成時の素材（アカウント情報・見本台本）
+  - `video_resources/channels/` は動画制作用のチャンネル情報・テンプレート定義
 - `manuals/`:
   - マニュアル集約フォルダ（このフォルダ）
   - プロジェクト構造説明と、各スキル説明へのショートカットを配置
@@ -23,6 +24,9 @@ team-info/
 │   └── skills/
 │       ├── git-workflow/
 │       ├── macos-intel-compatibility/
+│       ├── remotion-video-production/
+│       ├── remotion-template-sleep-travel-long-knowledge-relax/
+│       ├── remotion-template-sleep-travel-short-digest/
 │       ├── script-writing-accounts-aware/
 │       └── voice-script-launcher/
 ├── Remotion/
@@ -32,6 +36,8 @@ team-info/
 │   ├── script_resources/
 │   │   ├── account_profiles/
 │   │   └── script_samples/
+│   ├── video_resources/
+│   │   └── channels/
 │   └── output/
 ├── manuals/
 │   ├── README.md
