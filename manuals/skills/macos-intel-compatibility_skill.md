@@ -1,0 +1,1 @@
+../../.agent/skills/macos-intel-compatibility/SKILL.md
