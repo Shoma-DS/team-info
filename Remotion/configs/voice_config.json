@@ -5,6 +5,8 @@
     "speed": 1.0,
     "pitch": 0.0,
     "volume": 1.0,
+    "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
     "language": "ja-JP"
   },
   "shikoku_metan_whisper": {
@@ -13,6 +15,8 @@
     "speed": 0.75,
     "pitch": 0.0,
     "volume": 0.9,
+    "pause_length_scale": 1.25,
+    "post_phoneme_length": 0.25,
     "language": "ja-JP"
   },
   "zundamon_normal": {
@@ -21,6 +25,8 @@
     "speed": 1.0,
     "pitch": 0.0,
     "volume": 1.0,
+    "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
     "language": "ja-JP"
   },
   "narrator_female": {
@@ -29,6 +35,8 @@
     "speed": 1.1,
     "pitch": 0.1,
     "volume": 0.9,
+    "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
     "language": "ja-JP"
   },
   "narrator_male": {
@@ -37,6 +45,8 @@
     "speed": 0.9,
     "pitch": -0.1,
     "volume": 1.0,
+    "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
     "language": "ja-JP"
   }
 }

@@ -59,14 +59,20 @@ Remotion/
 ## 音声設定ファイルの準備 (`voice_config.json`)
 
 `Remotion/configs/voice_config.json` ファイルには、音声生成の各種設定（話者、スタイル、話速など）をプロファイルとして定義します。
+このスクリプトは `POST /audio_query` または `POST /audio_query_from_preset` でクエリを作成し、必要に応じて設定値で上書きしてから `POST /synthesis` へ渡します。
 
 *   **場所**: `Remotion/configs/voice_config.json`
 *   **構造**: 各プロファイルは以下のキーを持ちます。
+    *   `preset_id` (任意): VOICEVOXのプリセットID。指定時は `/audio_query_from_preset` を使用します。
     *   `speaker_name`: VOICEVOXのキャラクター名（例: "ずんだもん", "四国めたん"）
     *   `style_name`: キャラクターのスタイル名（例: "ノーマル", "ささやき", "セクシー"）
     *   `speed`: 話速 (1.0が標準)
     *   `pitch`: ピッチ（音高）(0.0が標準)
     *   `volume`: 音量 (1.0が標準)
+    *   `pause_length_scale` (任意): 句読点などの「間」の長さ倍率 (`pauseLengthScale`)
+    *   `post_phoneme_length` (任意): 発話終了後の無音秒数 (`postPhonemeLength`)
+    *   `pre_phoneme_length` (任意): 発話開始前の無音秒数 (`prePhonemeLength`)
+    *   `pause_length` (任意): ポーズ長 (`pauseLength`) ※エンジンが対応している場合のみ有効
     *   `language`: 言語 (現時点では "ja-JP" を推奨)
 
 **例 (`Remotion/configs/voice_config.json`):**
@@ -78,6 +84,8 @@ Remotion/
     "speed": 1.0,
     "pitch": 0.0,
     "volume": 1.0,
+    "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
     "language": "ja-JP"
   },
   "shikoku_metan_whisper": {
@@ -86,6 +94,8 @@ Remotion/
     "speed": 1.05,
     "pitch": 0.0,
     "volume": 0.9,
+    "pause_length_scale": 1.2,
+    "post_phoneme_length": 0.25,
     "language": "ja-JP"
   },
   "zundamon_normal": {
@@ -94,10 +104,18 @@ Remotion/
     "speed": 1.0,
     "pitch": 0.0,
     "volume": 1.0,
+    "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
     "language": "ja-JP"
   }
 }
 ```
+
+### `audio_query_from_preset` 利用時の挙動
+
+- `preset_id` を指定したプロファイルは、まずプリセット値を使って `audio_query_from_preset` でクエリを生成します。
+- その後、`speed` / `pitch` / `volume` / `pause_length_scale` / `post_phoneme_length` など、`voice_config.json` に指定した値で最終上書きします。
+- 利用中エンジンの `AudioQuery` に存在しないキーは安全にスキップされ、警告メッセージを表示します。
 
 ### 新しいプロファイルの追加方法
 

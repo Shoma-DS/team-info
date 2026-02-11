@@ -48,7 +48,11 @@ def select_script_file(available_scripts: List[str]) -> str:
         except ValueError:
             print("無効な入力です。番号で入力してください。")
 
-def select_voice_profile(voice_configs: Dict[str, Any]) -> str:
+def select_voice_profile(
+    voice_configs: Dict[str, Any],
+    style_id_to_name_map: Optional[Dict[int, Dict[str, str]]] = None,
+    presets_map: Optional[Dict[int, Dict[str, Any]]] = None,
+) -> str:
     """ユーザーに音声設定プロファイルを選択させる"""
     if not voice_configs:
         print("エラー: 音声設定プロファイルがありません。")
@@ -56,8 +60,31 @@ def select_voice_profile(voice_configs: Dict[str, Any]) -> str:
 
     print("\n--- 利用可能な音声設定プロファイル ---")
     profile_names = list(voice_configs.keys())
-    for i, profile_name in enumerate(profile_names):
-        print(f"{i+1}: {profile_name}")
+    profile_labels = []
+    for profile_name in profile_names:
+        profile = voice_configs.get(profile_name, {})
+        speaker_name = profile.get("speaker_name")
+        style_name = profile.get("style_name")
+        preset_id = profile.get("preset_id")
+
+        if speaker_name and style_name:
+            display_label = f"【{style_name}】{speaker_name}"
+        elif preset_id is not None:
+            display_label = f"preset_id={preset_id}"
+            if presets_map and style_id_to_name_map:
+                preset = presets_map.get(preset_id)
+                if preset:
+                    style_id = preset.get("style_id")
+                    if style_id in style_id_to_name_map:
+                        style_info = style_id_to_name_map[style_id]
+                        display_label = f"【{style_info['style_name']}】{style_info['speaker_name']}"
+        else:
+            display_label = profile_name
+
+        profile_labels.append(display_label)
+
+    for i in range(len(profile_names)):
+        print(f"{i+1}: {profile_labels[i]}")
 
     while True:
         try:
@@ -93,6 +120,24 @@ def get_voicevox_speakers() -> Dict[str, Dict[str, int]]:
         print(f"VOICEVOXスピーカー情報の取得中にエラーが発生しました: {e}")
         return {}
 
+def get_style_id_to_name_map() -> Dict[int, Dict[str, str]]:
+    """style_id から speaker_name/style_name を引ける辞書を作る"""
+    try:
+        response = requests.get(f"{VOICEVOX_API_BASE_URL}/speakers")
+        response.raise_for_status()
+        raw_speakers_data = response.json()
+        style_map: Dict[int, Dict[str, str]] = {}
+        for speaker_data in raw_speakers_data:
+            speaker_name = speaker_data["name"]
+            for style in speaker_data["styles"]:
+                style_map[style["id"]] = {
+                    "speaker_name": speaker_name,
+                    "style_name": style["name"],
+                }
+        return style_map
+    except requests.exceptions.RequestException:
+        return {}
+
 def get_voicevox_presets() -> Dict[int, Dict[str, Any]]:
     """VOICEVOXエンジンからプリセット一覧を取得する"""
     try:
@@ -110,6 +155,10 @@ def generate_audio_query(
     speed: float = 1.0,
     pitch: float = 0.0,
     volume: float = 1.0,
+    pause_length_scale: Optional[float] = None,
+    post_phoneme_length: Optional[float] = None,
+    pre_phoneme_length: Optional[float] = None,
+    pause_length: Optional[float] = None,
     preset_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """音声合成クエリを生成する"""
@@ -131,10 +180,28 @@ def generate_audio_query(
         response.raise_for_status()
         query = response.json()
         
-        # 設定ファイル側の値で最終上書き
+        # 設定ファイル側の値で最終上書き（共通パラメータ）
         query["speedScale"] = speed
         query["pitchScale"] = pitch
         query["volumeScale"] = volume
+
+        # 追加の任意パラメータ（エンジン差異を考慮し、存在するキーのみ上書き）
+        optional_overrides = {
+            "pauseLengthScale": pause_length_scale,
+            "postPhonemeLength": post_phoneme_length,
+            "prePhonemeLength": pre_phoneme_length,
+            "pauseLength": pause_length,
+        }
+        for query_key, value in optional_overrides.items():
+            if value is None:
+                continue
+            if query_key in query:
+                query[query_key] = value
+            else:
+                print(
+                    f"警告: このVOICEVOXエンジンのAudioQueryに '{query_key}' がないため、"
+                    "設定値をスキップしました。"
+                )
         return query
     except requests.exceptions.RequestException as e:
         print(f"音声クエリの生成中にエラーが発生しました: {e}")
@@ -175,7 +242,13 @@ def main():
     script_path = os.path.join(SCRIPT_DIR, selected_script_name)
 
     # 音声設定プロファイルを選択させる
-    selected_profile_name = select_voice_profile(voice_configs)
+    style_id_to_name_map = get_style_id_to_name_map()
+    presets_map_for_label = get_voicevox_presets()
+    selected_profile_name = select_voice_profile(
+        voice_configs,
+        style_id_to_name_map=style_id_to_name_map,
+        presets_map=presets_map_for_label,
+    )
     if not selected_profile_name:
         return
     selected_profile = voice_configs[selected_profile_name]
@@ -232,6 +305,10 @@ def main():
         selected_profile.get("speed", 1.0),
         selected_profile.get("pitch", 0.0),
         selected_profile.get("volume", 1.0),
+        selected_profile.get("pause_length_scale"),
+        selected_profile.get("post_phoneme_length"),
+        selected_profile.get("pre_phoneme_length"),
+        selected_profile.get("pause_length"),
         preset_id if preset_id is not None else None,
     )
     if not audio_query:
