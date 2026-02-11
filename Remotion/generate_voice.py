@@ -2,6 +2,8 @@ import requests
 import json
 import os
 import glob
+import wave
+import io
 from typing import Dict, Any, List, Optional
 import datetime
 
@@ -298,26 +300,67 @@ def main():
         voicevox_speaker_id = speaker_map[speaker_name][style_name]
         print(f"選択されたスピーカー: {speaker_name} ({style_name}), ID: {voicevox_speaker_id}")
 
-    # 音声合成クエリを生成
-    audio_query = generate_audio_query(
-        script_text,
-        voicevox_speaker_id,
-        selected_profile.get("speed", 1.0),
-        selected_profile.get("pitch", 0.0),
-        selected_profile.get("volume", 1.0),
-        selected_profile.get("pause_length_scale"),
-        selected_profile.get("post_phoneme_length"),
-        selected_profile.get("pre_phoneme_length"),
-        selected_profile.get("pause_length"),
-        preset_id if preset_id is not None else None,
-    )
-    if not audio_query:
+    # テキストを段落ごとに分割（空行区切り）
+    chunks = [chunk.strip() for chunk in script_text.split("\n\n") if chunk.strip()]
+    if not chunks:
+        print("エラー: 台本テキストが空です。")
         return
 
-    # 音声を合成
-    audio_content = synthesize_voice(voicevox_speaker_id, audio_query)
-    if not audio_content:
+    print(f"\n台本を {len(chunks)} 個の段落に分割して音声生成します。")
+
+    # 共通パラメータ
+    profile_speed = selected_profile.get("speed", 1.0)
+    profile_pitch = selected_profile.get("pitch", 0.0)
+    profile_volume = selected_profile.get("volume", 1.0)
+    profile_pause_length_scale = selected_profile.get("pause_length_scale")
+    profile_post_phoneme_length = selected_profile.get("post_phoneme_length")
+    profile_pre_phoneme_length = selected_profile.get("pre_phoneme_length")
+    profile_pause_length = selected_profile.get("pause_length")
+    effective_preset_id = preset_id if preset_id is not None else None
+
+    # 各段落ごとに音声合成
+    audio_segments: List[bytes] = []
+    for i, chunk in enumerate(chunks):
+        print(f"  [{i+1}/{len(chunks)}] 音声生成中...")
+        audio_query = generate_audio_query(
+            chunk,
+            voicevox_speaker_id,
+            profile_speed,
+            profile_pitch,
+            profile_volume,
+            profile_pause_length_scale,
+            profile_post_phoneme_length,
+            profile_pre_phoneme_length,
+            profile_pause_length,
+            effective_preset_id,
+        )
+        if not audio_query:
+            print(f"  エラー: 段落 {i+1} の音声クエリ生成に失敗しました。スキップします。")
+            continue
+
+        audio_content = synthesize_voice(voicevox_speaker_id, audio_query)
+        if not audio_content:
+            print(f"  エラー: 段落 {i+1} の音声合成に失敗しました。スキップします。")
+            continue
+
+        audio_segments.append(audio_content)
+
+    if not audio_segments:
+        print("エラー: 音声を1つも生成できませんでした。")
         return
+
+    print(f"\n{len(audio_segments)} 個の音声セグメントを結合しています...")
+
+    # WAVファイルを結合
+    combined_audio = io.BytesIO()
+    with wave.open(io.BytesIO(audio_segments[0]), 'rb') as first_wav:
+        params = first_wav.getparams()
+
+    with wave.open(combined_audio, 'wb') as out_wav:
+        out_wav.setparams(params)
+        for segment in audio_segments:
+            with wave.open(io.BytesIO(segment), 'rb') as seg_wav:
+                out_wav.writeframes(seg_wav.readframes(seg_wav.getnframes()))
 
     # 音声ファイルを保存
     # 生成する音声のテーマを入力させる
@@ -327,11 +370,10 @@ def main():
         return
 
     # ファイル名に使えるようにテーマをサニタイズ
-    # 空白、特殊文字などをアンダースコアに置換し、ファイル名として安全な形式にする
     sanitized_theme = "".join(c for c in theme if c.isalnum() or c in (' ', '_', '-')).strip()
     sanitized_theme = sanitized_theme.replace(' ', '_').replace('-', '_')
     if not sanitized_theme:
-        sanitized_theme = "untitled" # サニタイズ後も空になった場合
+        sanitized_theme = "untitled"
 
     # 日付を取得 (YYYY-MM-dd)
     today_date = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -341,7 +383,7 @@ def main():
     try:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         with open(output_path, 'wb') as f:
-            f.write(audio_content)
+            f.write(combined_audio.getvalue())
         print(f"\n✅ 音声が正常に生成され、'{output_path}' に保存されました。")
     except Exception as e:
         print(f"エラー: 音声ファイルの保存に失敗しました: {e}")

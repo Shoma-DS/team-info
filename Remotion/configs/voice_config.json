@@ -15,8 +15,8 @@
     "speed": 0.75,
     "pitch": 0.0,
     "volume": 0.9,
-    "pause_length_scale": 1.25,
-    "post_phoneme_length": 0.25,
+    "pause_length_scale": 2.00,
+    "post_phoneme_length": 2.00,
     "language": "ja-JP"
   },
   "zundamon_normal": {
