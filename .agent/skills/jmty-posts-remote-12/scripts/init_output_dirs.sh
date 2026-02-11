@@ -10,10 +10,9 @@ OUTPUT_ROOT="$1"
 mkdir -p "$OUTPUT_ROOT"
 
 for i in $(seq -w 1 12); do
-  DIR="$OUTPUT_ROOT/${i}_post"
-  mkdir -p "$DIR"
-  if [ ! -f "$DIR/post.md" ]; then
-    cat > "$DIR/post.md" <<'TPL'
+  FILE="$OUTPUT_ROOT/post${i}.md"
+  if [ ! -f "$FILE" ]; then
+    cat > "$FILE" <<'TPL'
 # タイトル
 
 ## 本文
@@ -36,4 +35,4 @@ TPL
   fi
 done
 
-echo "Created 12 post folders under: $OUTPUT_ROOT"
+echo "Created 12 post files under: $OUTPUT_ROOT"
