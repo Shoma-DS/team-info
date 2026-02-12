@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(printf:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(du:*)"
     ]
   }
 }
