@@ -79,12 +79,24 @@ const buildSubtitleSegments = (
 	return segments;
 };
 
-type Sparkle = {
+type AshParticle = {
 	x: number;
-	y: number;
+	baseY: number;
 	size: number;
-	delay: number;
-	cycle: number;
+	speed: number;
+	driftAmp: number;
+	driftFreq: number;
+	phase: number;
+	isEmber: boolean;
+};
+
+type SmokeWisp = {
+	x: number;
+	baseY: number;
+	radius: number;
+	speed: number;
+	driftAmp: number;
+	phase: number;
 };
 
 const useLightweightAudioData = (src: string) => {
@@ -121,52 +133,105 @@ const seedRand = (seed: number): (() => number) => {
 	};
 };
 
-const Sparkles: React.FC = () => {
+const AshAndSmoke: React.FC = () => {
 	const frame = useCurrentFrame();
-	const sparkles = useMemo(() => {
+	const {height} = useVideoConfig();
+
+	const particles = useMemo(() => {
 		const rnd = seedRand(20260212);
-		return new Array(36).fill(null).map((): Sparkle => {
+		return new Array(40).fill(null).map((_, i): AshParticle => {
+			const isEmber = i < 12;
 			return {
-				x: 0.12 + rnd() * 0.76,
-				y: 0.18 + rnd() * 0.66,
-				size: 2 + rnd() * 4.5,
-				delay: Math.floor(rnd() * 240),
-				cycle: 130 + Math.floor(rnd() * 180),
+				x: 0.08 + rnd() * 0.84,
+				baseY: 0.85 + rnd() * 0.25,
+				size: isEmber ? 3 + rnd() * 3 : 2 + rnd() * 2.5,
+				speed: 0.15 + rnd() * 0.2,
+				driftAmp: 0.3 + rnd() * 0.5,
+				driftFreq: 0.008 + rnd() * 0.012,
+				phase: rnd() * Math.PI * 2,
+				isEmber,
 			};
 		});
 	}, []);
 
+	const smokeWisps = useMemo(() => {
+		const rnd = seedRand(99887766);
+		return new Array(6).fill(null).map((): SmokeWisp => ({
+			x: 0.3 + rnd() * 0.4,
+			baseY: 0.9 + rnd() * 0.2,
+			radius: 60 + rnd() * 60,
+			speed: 0.08 + rnd() * 0.07,
+			driftAmp: 0.4 + rnd() * 0.4,
+			phase: rnd() * Math.PI * 2,
+		}));
+	}, []);
+
+	const totalCycle = height * 1.2;
+
 	return (
-		<AbsoluteFill>
-			{sparkles.map((s, i) => {
-				const local = (frame + s.delay) % s.cycle;
-				const fadeIn = 18;
-				const fadeOutStart = s.cycle - 30;
-				let opacity = 0;
-				if (local < fadeIn) {
-					opacity = local / fadeIn;
-				} else if (local > fadeOutStart) {
-					opacity = 1 - (local - fadeOutStart) / (s.cycle - fadeOutStart);
-				} else {
-					opacity = 1;
-				}
-				const shimmer = 0.75 + Math.sin((frame + i * 13) / 22) * 0.25;
-				const finalOpacity = opacity * shimmer * 0.35;
+		<AbsoluteFill style={{pointerEvents: 'none'}}>
+			{smokeWisps.map((w, i) => {
+				const travel = (frame * w.speed) % totalCycle;
+				const yPct = w.baseY - travel / height;
+				const xPct = w.x + Math.sin(frame * 0.005 + w.phase) * w.driftAmp * 0.05;
+
+				const fadeTop = yPct < 0.15 ? yPct / 0.15 : 1;
+				const fadeBottom = yPct > 0.85 ? (1 - yPct) / 0.15 : 1;
+				const opacity = Math.max(0, Math.min(0.08, 0.08 * fadeTop * fadeBottom));
 
 				return (
 					<div
-						key={i}
+						key={`smoke-${i}`}
 						style={{
 							position: 'absolute',
-							left: `${s.x * 100}%`,
-							top: `${s.y * 100}%`,
-							width: s.size,
-							height: s.size,
+							left: `${xPct * 100}%`,
+							top: `${yPct * 100}%`,
+							width: w.radius * 2,
+							height: w.radius * 2,
 							borderRadius: '50%',
-							background: 'rgba(255,235,200,0.9)',
-							boxShadow: '0 0 10px rgba(255,200,120,0.5)',
-							opacity: finalOpacity,
-							transform: `translate(-50%, -50%) scale(${0.7 + shimmer * 0.45})`,
+							background: 'radial-gradient(circle, rgba(200,190,180,0.6) 0%, transparent 70%)',
+							opacity,
+							transform: 'translate(-50%, -50%)',
+							filter: 'blur(12px)',
+						}}
+					/>
+				);
+			})}
+
+			{particles.map((p, i) => {
+				const travel = (frame * p.speed + p.phase * 200) % totalCycle;
+				const yPct = p.baseY - travel / height;
+				const xPct = p.x + Math.sin(frame * p.driftFreq + p.phase) * p.driftAmp * 0.03;
+
+				const fadeTop = yPct < 0.15 ? yPct / 0.15 : 1;
+				const fadeBottom = yPct > 0.85 ? (1 - yPct) / 0.15 : 1;
+				const maxOp = p.isEmber ? 0.5 : 0.3;
+				const flicker = p.isEmber
+					? 0.7 + Math.sin(frame * 0.15 + i * 7) * 0.3
+					: 1;
+				const opacity = Math.max(0, maxOp * fadeTop * fadeBottom * flicker);
+
+				const color = p.isEmber
+					? 'rgba(255,180,80,0.9)'
+					: 'rgba(180,170,160,0.8)';
+				const glow = p.isEmber
+					? '0 0 6px rgba(255,140,40,0.4)'
+					: 'none';
+
+				return (
+					<div
+						key={`ash-${i}`}
+						style={{
+							position: 'absolute',
+							left: `${xPct * 100}%`,
+							top: `${yPct * 100}%`,
+							width: p.size,
+							height: p.size,
+							borderRadius: '50%',
+							background: color,
+							boxShadow: glow,
+							opacity,
+							transform: 'translate(-50%, -50%)',
 						}}
 					/>
 				);
@@ -192,7 +257,7 @@ const Spectrum: React.FC = () => {
 			return {cos: Math.cos(a), sin: Math.sin(a)};
 		});
 	}, [spectrumSamples]);
-	const audioData = useLightweightAudioData(staticFile('assets/audio.mp3'));
+	const audioData = useLightweightAudioData(staticFile('assets/audio.wav'));
 	if (!audioData) {
 		return null;
 	}
@@ -368,9 +433,9 @@ export const SleepTravelLong: React.FC = () => {
 						'radial-gradient(circle at 50% 78%, rgba(255,140,40,0.08), rgba(0,0,0,0.58))',
 				}}
 			/>
-			<Sparkles />
+			<AshAndSmoke />
 
-			<Audio src={staticFile('assets/audio.mp3')} />
+			<Audio src={staticFile('assets/audio.wav')} />
 			{new Array(loopCount).fill(null).map((_, i) => {
 				const from = i * stepFrames;
 				return (

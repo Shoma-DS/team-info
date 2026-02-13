@@ -3,7 +3,10 @@
     "allow": [
       "Bash(printf:*)",
       "Bash(bash:*)",
-      "Bash(du:*)"
+      "Bash(du:*)",
+      "Bash(ffprobe:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }
