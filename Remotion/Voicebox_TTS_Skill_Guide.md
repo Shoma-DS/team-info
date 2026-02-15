@@ -126,22 +126,47 @@ VOICEVOXアプリケーションを起動し、キャラクター選択画面や
 
 ## 音声生成スクリプトの実行 (`generate_voice.py`)
 
-Zsh環境のターミナルで、プロジェクトのルートディレクトリに移動し、以下のコマンドを実行します。
+### 方法1: MCPツール経由（推奨）
+
+VOICEVOX MCPサーバーが設定済みであれば、Claude Codeから直接MCPツールを使って操作できます。
+
+- `voicevox_get_speakers` — スピーカー一覧を確認
+- `voicevox_get_profiles` — voice_config.jsonのプロファイル一覧を確認
+- `voicevox_test_speech` — テスト音声を生成（試し聞き、200文字以内）
+- `voicevox_generate_full` — 台本を指定して一括音声生成（並列処理で高速）
+
+### 方法2: CLI引数モード
 
 ```bash
-python Remotion/generate_voice.py
+cd Remotion
+.venv/bin/python generate_voice.py --script "台本名.md" --profile "shikoku_metan_whisper" --theme "テーマ名"
 ```
 
-実行後、スクリプトは対話形式で以下の情報を求めます。
+| 引数 | 説明 |
+|---|---|
+| `--script` | `voice_scripts/` 内の台本ファイル名 |
+| `--profile` | `voice_config.json` のプロファイル名 |
+| `--theme` | 出力ファイルのテーマ名（ファイル名に使用） |
 
-1.  **利用可能な台本ファイルの一覧**が表示されるので、使用したい台本の番号を入力します。
-2.  **利用可能な音声設定プロファイルの一覧**(`voice_config.json`に定義されているプロファイル名)が表示されるので、使用したい設定の番号を入力します。
-3.  **生成する音声の「テーマ」**を入力します。（例: 「自己紹介」「挨拶」など）
+3つの引数をすべて指定すると対話なしで実行されます。
+
+### 方法3: 対話モード（従来互換）
+
+引数なしで実行すると、従来通りの対話形式で動作します。
+
+```bash
+cd Remotion
+.venv/bin/python generate_voice.py
+```
+
+1. 利用可能な台本ファイルの一覧が表示されるので、番号を入力
+2. 音声設定プロファイルの一覧が表示されるので、番号を入力
+3. テーマを入力
 
 ### スキル運用時の入力ルール
 
-- 台本音声化スキル（`voice-script-launcher`）では、質問を1つずつ行います。
-- テーマはユーザーに質問せず、選択した台本ファイル名から自動決定して入力します。
+- 台本音声化スキル（`voice-script-launcher`）では、MCPツール `voicevox_generate_full` を使用します。
+- テーマはユーザーに質問せず、選択した台本ファイル名から自動決定します。
   - 例: `地政学_世界を動かす地理の読み方_20260211.md` -> `地政学_世界を動かす地理の読み方`
 
 ## 生成される音声ファイル
@@ -166,6 +191,18 @@ python Remotion/generate_voice.py
 このスキルは、あなたのフィードバックに基づいて継続的に改善されます。
 スクリプトの使用感、生成される音声の品質、エラーメッセージの分かりやすさ、追加してほしい機能など、どんなことでもお気軽にお知らせください。
 
+## MCPサーバーのセットアップ
+
+VOICEVOX MCPサーバーは `mcp-servers/voicevox/` にあります。
+
+```bash
+cd mcp-servers/voicevox
+npm install
+npm run build
+```
+
+ビルド後、`.mcp.json` に登録されているため、Claude Code再起動で自動的に認識されます。
+
 ## 運用ルール（フロー変更時）
 
 音声化フローの質問順、選択肢、入力項目、実行手順を変更した場合は、以下を必ず同時更新してください。
@@ -173,3 +210,4 @@ python Remotion/generate_voice.py
 1. `Remotion/generate_voice.py`
 2. `.agent/skills/voice-script-launcher/SKILL.md`
 3. `Remotion/Voicebox_TTS_Skill_Guide.md`（本書）
+4. `mcp-servers/voicevox/src/index.ts`（MCPサーバー側にも影響がある場合）

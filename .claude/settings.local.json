@@ -6,7 +6,40 @@
       "Bash(du:*)",
       "Bash(ffprobe:*)",
       "Bash(npm run lint:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(python3 -c \" import sys, json for line in sys.stdin: obj = json.loads\\(line\\) if obj.get\\(''type''\\) == ''human'': msg = obj.get\\(''message'', {}\\) if isinstance\\(msg, dict\\): content = msg.get\\(''content'', ''''\\) if isinstance\\(content, str\\) and \\(''あゆみ'' in content or ''愛され'' in content\\): print\\(content[:3000]\\) print\\(''---END---''\\) \")",
+      "Bash(python3 -c \" import json with open\\(''/Users/deguchishouma/.claude/projects/-Users-deguchishouma-team-info/fb87c812-50ad-4e7f-8dde-cf9f0ce42c0a.jsonl''\\) as f: for line in f: obj = json.loads\\(line\\) if obj.get\\(''type''\\) == ''human'': msg = obj.get\\(''message'', {}\\) if isinstance\\(msg, dict\\): content = msg.get\\(''content'', ''''\\) if isinstance\\(content, list\\): for item in content: if isinstance\\(item, dict\\) and item.get\\(''type''\\) == ''text'': text = item.get\\(''text'', ''''\\) if ''あゆみ'' in text or ''愛され'' in text or ''ayumi'' in text: print\\(text[:3000]\\) print\\(''===END===''\\) \")",
+      "Bash(python3 -c:*)",
+      "Bash(python3:*)",
+      "Bash(npx skills find:*)",
+      "WebFetch(domain:skills.sh)",
+      "Bash(npx skills add:*)",
+      "Bash(git clone:*)",
+      "Bash(git -C /Users/deguchishouma/team-info/test-website status -uall)",
+      "Bash(npx remotion preview:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm install:*)",
+      "Bash(mdfind:*)",
+      "WebSearch",
+      "WebFetch(domain:www.ffonts.net)",
+      "Bash(curl:*)",
+      "Bash(unzip:*)",
+      "WebFetch(domain:www.dafont.com)",
+      "WebFetch(domain:fontmeme.com)",
+      "Bash(pip3 install:*)",
+      "Bash(pip3 show:*)",
+      "Bash(/Users/deguchishouma/team-info/.venv/bin/python3:*)",
+      "Bash(/Users/deguchishouma/team-info/.venv/bin/pip install:*)",
+      "Bash(/usr/bin/python3:*)",
+      "Bash(/opt/homebrew/bin/python3:*)",
+      "Bash(/usr/local/bin/python3:*)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:booth.pm)",
+      "Bash(ls:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "voicevox"
+  ]
 }

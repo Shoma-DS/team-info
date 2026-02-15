@@ -1,4 +1,10 @@
 output/audio/*
-
 Remotion/my-video/public/assets/*
 outputs/jmty_posts/
+.agent/skills/voice-script-launcher/.setup_completed
+mcp-servers/voicevox/node_modules/
+mcp-servers/voicevox/dist/
+
+# テスト用ウェブサイト
+test-website/
+.agents/

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "voicevox": {
+      "command": "node",
+      "args": ["mcp-servers/voicevox/dist/index.js"]
+    }
+  }
+}

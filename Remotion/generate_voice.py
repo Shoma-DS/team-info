@@ -1,3 +1,4 @@
+import argparse
 import requests
 import json
 import os
@@ -309,7 +310,19 @@ def print_progress(current: int, total: int, label: str = "進捗"):
         print()  # 完了時に改行
 
 
+def parse_args():
+    """コマンドライン引数をパースする。引数なしなら対話モード。"""
+    parser = argparse.ArgumentParser(description="VOICEVOX自動音声生成")
+    parser.add_argument("--script", type=str, help="台本ファイル名（voice_scripts/内のファイル名）")
+    parser.add_argument("--profile", type=str, help="voice_config.jsonのプロファイル名")
+    parser.add_argument("--theme", type=str, help="出力ファイルのテーマ名")
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    cli_mode = bool(args.script and args.profile and args.theme)
+
     print("VOICEVOX自動音声生成スキルを開始します。")
 
     # 過去の実行で残った一時ファイルがあれば削除
@@ -320,22 +333,32 @@ def main():
     if not voice_configs:
         return
 
-    # 台本ファイルを選択させる
-    available_scripts = get_available_scripts()
-    selected_script_name = select_script_file(available_scripts)
-    if not selected_script_name:
-        return
+    if cli_mode:
+        # CLI引数モード
+        selected_script_name = args.script
+        selected_profile_name = args.profile
+    else:
+        # 対話モード（従来互換）
+        available_scripts = get_available_scripts()
+        selected_script_name = select_script_file(available_scripts)
+        if not selected_script_name:
+            return
+
+        style_id_to_name_map = get_style_id_to_name_map()
+        presets_map = get_voicevox_presets()
+        selected_profile_name = select_voice_profile(
+            voice_configs,
+            style_id_to_name_map=style_id_to_name_map,
+            presets_map=presets_map,
+        )
+        if not selected_profile_name:
+            return
+
     script_path = os.path.join(SCRIPT_DIR, selected_script_name)
 
-    # 音声設定プロファイルを選択させる（presets_mapは後でも再利用する）
-    style_id_to_name_map = get_style_id_to_name_map()
-    presets_map = get_voicevox_presets()
-    selected_profile_name = select_voice_profile(
-        voice_configs,
-        style_id_to_name_map=style_id_to_name_map,
-        presets_map=presets_map,
-    )
-    if not selected_profile_name:
+    if selected_profile_name not in voice_configs:
+        print(f"エラー: プロファイル '{selected_profile_name}' が見つかりません。")
+        print("利用可能なプロファイル:", ", ".join(voice_configs.keys()))
         return
     selected_profile = voice_configs[selected_profile_name]
 
@@ -347,9 +370,10 @@ def main():
         print(f"エラー: 台本ファイルの読み込みに失敗しました: {e}")
         return
 
-    # スピーカーIDを決定（preset_id があれば優先、presets_mapを再利用）
+    # スピーカーIDを決定（preset_id があれば優先）
     preset_id = selected_profile.get("preset_id")
     if preset_id is not None:
+        presets_map = get_voicevox_presets() if cli_mode else presets_map
         if not presets_map:
             return
         if preset_id not in presets_map:
@@ -446,10 +470,13 @@ def main():
         print(f"  ({error_count} 個のチャンクでエラーが発生しました)")
 
     # ===== Step 3/3: メモリ内でWAVを結合して出力 =====
-    theme = input("生成する音声のテーマを入力してください (例: 自己紹介、挨拶など): ")
-    if not theme:
-        print("テーマが入力されませんでした。処理を中断します。")
-        return
+    if cli_mode:
+        theme = args.theme
+    else:
+        theme = input("生成する音声のテーマを入力してください (例: 自己紹介、挨拶など): ")
+        if not theme:
+            print("テーマが入力されませんでした。処理を中断します。")
+            return
 
     sanitized_theme = "".join(c for c in theme if c.isalnum() or c in (' ', '_', '-')).strip()
     sanitized_theme = sanitized_theme.replace(' ', '_').replace('-', '_')
