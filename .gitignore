@@ -8,3 +8,6 @@ mcp-servers/voicevox/dist/
 # テスト用ウェブサイト
 test-website/
 .agents/
+
+# Video artifacts
+*.mp4
