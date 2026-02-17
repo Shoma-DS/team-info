@@ -335,8 +335,13 @@ cd Remotion/my-video && npx remotion studio
 ### 3-4. Remotionでレンダリング
 
 ```bash
-cd Remotion/my-video && npx remotion render AcoRielLyricCover output.mp4
+cd Remotion/my-video && npx remotion render src/index.ts AcoRielLyricCover /Users/deguchishouma/team-info/Remotion/renders/<出力ファイル名>.mp4
 ```
+
+**レンダリング出力先ルール（必須）**
+- 出力先は必ず `Remotion/renders/` に統一する。
+- `Remotion/my-video/out/` は保存先として使わない。
+- 既存の `out` 出力がある場合は `Remotion/renders/` へ集約する。
 
 ---
 
@@ -363,4 +368,7 @@ Remotion/my-video/public/assets/
 ├── <歌詞ファイル名>.lrc         # 生成されたLRC（歌詞名と同名）
 ├── lyric_animation_data.json    # カラオケ用JSON
 └── ...
+
+Remotion/renders/
+├── <出力ファイル名>.mp4         # 本番レンダリングの統一出力先
 ```
