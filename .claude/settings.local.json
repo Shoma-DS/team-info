@@ -35,7 +35,14 @@
       "Bash(/usr/local/bin/python3:*)",
       "Bash(npx tsc:*)",
       "WebFetch(domain:booth.pm)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:rdlp.jp)",
+      "WebFetch(domain:jp.pinterest.com)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(/Users/deguchishouma/team-info/Remotion/.venv/bin/python3:*)",
+      "Bash(/Users/deguchishouma/team-info/Remotion/.venv/bin/pip list:*)",
+      "Bash(/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
