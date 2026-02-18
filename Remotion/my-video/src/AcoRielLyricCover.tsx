@@ -25,8 +25,8 @@ yosugaraFontFace.load().then((f) => document.fonts.add(f)).catch(() => { });
 const yosugaraFamily = '"Yosugara", cursive';
 
 // ── Song metadata (manually set per cover) ──────────────────
-const SONG_TITLE = 'LA·LA·LA· LOVE SONG';
-const SONG_ARTIST = '久保田利伸 with ナオミ・キャンベル';
+const SONG_TITLE = 'Tomorrow never knows';
+const SONG_ARTIST = 'Mr.Children';
 
 // ── Typography ──────────────────────────────────────────────
 
@@ -62,67 +62,38 @@ type LyricAnimationEntry = {
 };
 
 const HIRAGANA_FALLBACK_MAP: Record<string, string> = {
-	'街に飛び出そう': 'まちにとびだそう',
-	'心に降る雨に': 'こころにふるあめに',
-	'傘をくれた君と': 'かさをくれたきみと',
-	'本音はウラハラ': 'ほんねはうらはら',
-	'巡り会えた奇跡が': 'めぐりあえたきせきが',
-	'涙の色を変えた': 'なみだのいろをかえた',
-	'息が止まるくらいの': 'いきがとまるくらいの',
-	'甘い口づけをしようよ': 'あまいくちづけをしようよ',
-	'一言もいらないさ': 'ひとこともいらないさ',
-	'勇気をくれた君に': 'ゆうきをくれたきみに',
-	'照れてる場合じゃないから': 'てれてるばあいじゃないから',
-	'言葉よりも本気な': 'ことばよりもほんきな',
-	'知らぬ間に落としてた': 'しらぬまにおとしてた',
-	'小さな欠片を': 'ちいさなかけらを',
-	'隙間なく抱き寄せ': 'すきまなくだきよせ',
-	'肌で確かめ合う': 'はだでたしかめあう',
-	'宇宙の見えない夜': 'そらのみえないよる',
-	'構わない 君が見える': 'かまわない きみがみえる',
-	'止めどなく楽しくて': 'とめどなくたのしくて',
-	'やるせないほど切なくて': 'やるせないほどせつなくて',
-	'そんな朝に生まれる': 'そんなあさにうまれる',
-	'僕なりの LOVE SONG': 'ぼくなりの LOVE SONG',
-	'ため息の前に': 'ためいきのまえに',
-	'ここにおいでよ': 'ここにおいでよ',
-	'君': 'きみ',
+	// Phrase-level fallbacks
+	'面影': 'おもかげ',
+	'無邪気': 'むじゃき',
+	'孤独': 'こどく',
+	'駆け抜ける': 'かけぬける',
+	'駆け抜けるけれど': 'かけぬけるけれど',
+	'眺めていた': 'ながめていた',
+	'すれ違う': 'すれちがう',
+	'伸ばそう': 'のばそう',
+	'遥かなる': 'はるかなる',
+	'避けて': 'さけて',
+	'遅れても': 'おくれても',
+	'哀しさも': 'かなしさも',
+	'僕はゆくのさ': 'ぼくはゆくのさ',
+	'僕らは': 'ぼくらは',
+	'闇の': 'やみの',
+	'為に': 'ために',
+	// Character-level fallbacks
 	'僕': 'ぼく',
-	'街': 'まち',
-	'心': 'こころ',
-	'雨': 'あめ',
-	'傘': 'かさ',
-	'本音': 'ほんね',
-	'涙': 'なみだ',
-	'色': 'いろ',
-	'変': 'か',
-	'息': 'いき',
-	'止': 'と',
-	'甘': 'あま',
-	'口': 'くち',
-	'勇気': 'ゆうき',
-	'照': 'て',
-	'場合': 'ばあい',
-	'言葉': 'ことば',
-	'本気': 'ほんき',
-	'知': 'し',
-	'間': 'ま',
-	'落': 'お',
-	'小': 'ちい',
-	'欠片': 'かけら',
-	'隙間': 'すきま',
-	'抱': 'だ',
-	'寄': 'よ',
-	'肌': 'はだ',
-	'確': 'たし',
-	'宇宙': 'そら',
-	'見': 'み',
-	'夜': 'よる',
-	'楽': 'たの',
-	'切': 'せつ',
-	'朝': 'あさ',
-	'生': 'う',
-	'前': 'まえ',
+	'闇': 'やみ',
+	'伸': 'のば',
+	'哀': 'かな',
+	'孤': 'こ',
+	'影': 'かげ',
+	'抜': 'ぬ',
+	'為': 'ため',
+	'眺': 'なが',
+	'遅': 'おく',
+	'違': 'ちが',
+	'遥': 'はる',
+	'避': 'さ',
+	'邪': 'じゃ',
 };
 
 const isKanji = (char: string): boolean => /[\p{Script=Han}]/u.test(char);
@@ -182,7 +153,7 @@ const semanticSplitChars = new Set([
 
 const particleChars = new Set(['は', 'が', 'を', 'に', 'へ', 'と', 'で', 'も', 'の', 'や', 'か']);
 
-const visibleLength = (value: string): number => value.replace(/[\s　]+/g, '').length;
+const visibleLength = (value: string): number => value.replace(/[\s\u3000]+/g, '').length;
 
 const splitLyricIntoLines = (text: string): string[] => {
 	const source = text.trim();
@@ -269,7 +240,6 @@ const LyricLine: React.FC<{
 	animationOut: string;
 	inDuration: number;
 	outDuration: number;
-	emotion: string;
 	label: string;
 	words?: WordTimestamp[];
 	lineFrame?: number;
@@ -281,7 +251,6 @@ const LyricLine: React.FC<{
 	animationOut,
 	inDuration,
 	outDuration,
-	emotion,
 	label,
 	words,
 	lineFrame,
@@ -313,6 +282,12 @@ const LyricLine: React.FC<{
 		if (displayWords.length === 0) return [];
 		return splitWordsIntoLines(displayWords, lines);
 	}, [displayWords, lines]);
+	const charsByLine = useMemo(() => {
+		let charIndex = 0;
+		return lines.map((line) =>
+			[...line].map((char) => ({ char, index: charIndex++ }))
+		);
+	}, [lines]);
 
 	const outStart = durationInFrames - outDuration;
 
@@ -522,12 +497,6 @@ const LyricLine: React.FC<{
 
 	// ── Staggered / Typewriter rendering ──
 	if (animationIn === 'StaggeredFadeIn' || animationIn === 'Typewriter') {
-		const charsByLine = useMemo(() => {
-			let charIndex = 0;
-			return lines.map((line) =>
-				[...line].map((char) => ({ char, index: charIndex++ }))
-			);
-		}, [lines]);
 		const charDelay = animationIn === 'Typewriter' ? 2 : 3;
 
 		return (
@@ -1120,21 +1089,11 @@ const StrokeOrderTitle: React.FC<{
 	text: string;
 	startFrame: number;
 	writeFrames: number;
-	penSrc: string;
-}> = ({ text, startFrame, writeFrames, penSrc }) => {
+}> = ({ text, startFrame, writeFrames }) => {
 	const frame = useCurrentFrame();
 	const elapsed = frame - startFrame;
 	const chars = [...text];
 	const count = Math.max(1, chars.length);
-	const globalProgress = interpolate(elapsed, [0, writeFrames], [0, 1], {
-		extrapolateLeft: 'clamp',
-		extrapolateRight: 'clamp',
-		easing: Easing.out(Easing.cubic),
-	});
-	const penVisible = globalProgress > 0 && globalProgress < 0.985;
-	const penX = globalProgress * 100;
-	const penFloatY = Math.sin(frame * 0.2) * 2.2;
-	const penTilt = Math.sin(frame * 0.16) * 7;
 
 	return (
 		<div
@@ -1201,43 +1160,6 @@ const StrokeOrderTitle: React.FC<{
 					</span>
 				);
 			})}
-
-			{penVisible && (
-				<>
-					<div
-						style={{
-							position: 'absolute',
-							left: `${penX}%`,
-							top: '58%',
-							width: 6,
-							height: 6,
-							borderRadius: '50%',
-							background: 'rgba(255,255,255,0.72)',
-							boxShadow:
-								'0 0 12px 4px rgba(255,255,255,0.42), 0 0 30px 8px rgba(212,196,144,0.25)',
-							transform: 'translate(-50%, -50%)',
-							pointerEvents: 'none',
-						}}
-					/>
-					<Img
-						src={penSrc}
-						style={{
-							position: 'absolute',
-							left: `${penX}%`,
-							top: '58%',
-							width: 145,
-							height: 'auto',
-							objectFit: 'contain',
-							transform: `translate(-22%, calc(-88% + ${penFloatY}px)) rotate(${penTilt}deg)`,
-							filter:
-								'drop-shadow(0 0 10px rgba(255,255,255,0.45)) drop-shadow(0 0 20px rgba(212,196,144,0.28))',
-							pointerEvents: 'none',
-							opacity: 0.92,
-							marginTop: -34,
-						}}
-					/>
-				</>
-			)}
 		</div>
 	);
 };
@@ -1326,6 +1248,7 @@ const IntroOverlay: React.FC<{
 					<TextReveal
 						startFrame={LINE_SCHEDULE[1].start}
 						writeFrames={LINE_SCHEDULE[1].write}
+						{...penProps(1)}
 					>
 						<div
 							style={{
@@ -1340,7 +1263,6 @@ const IntroOverlay: React.FC<{
 								text={title}
 								startFrame={LINE_SCHEDULE[1].start}
 								writeFrames={LINE_SCHEDULE[1].write}
-								penSrc={featherPen}
 							/>
 						</div>
 					</TextReveal>
@@ -1582,7 +1504,6 @@ const LyricAnimationLayer: React.FC<{
 						animationOut={activeEntry.animation.out}
 						inDuration={activeEntry.animation.props.inDurationFrames}
 						outDuration={activeEntry.animation.props.outDurationFrames}
-						emotion={activeEntry.emotion}
 						label={activeEntry.label}
 						words={activeEntry.words}
 						lineFrame={songFrame - Math.round(activeEntry.time * fps)}

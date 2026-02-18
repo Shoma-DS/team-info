@@ -29,7 +29,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="AcoRielLyricCover"
         component={AcoRielLyricCover}
-        durationInFrames={8082}
+        durationInFrames={8271}
         fps={30}
         width={1920}
         height={1080}
