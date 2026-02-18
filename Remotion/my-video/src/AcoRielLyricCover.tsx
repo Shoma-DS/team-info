@@ -14,24 +14,77 @@ import {
 } from 'remotion';
 import { useMemo, useState, useEffect, type CSSProperties } from 'react';
 import { getAudioData, visualizeAudioWaveform } from '@remotion/media-utils';
+import { loadFont as loadHachiMaruPop } from '@remotion/google-fonts/HachiMaruPop';
 
 // ── Fonts ────────────────────────────────────────────────────
 
+const { fontFamily: hachiMaruPopFamily } = loadHachiMaruPop();
 const yosugaraFontFace = new FontFace(
 	'Yosugara',
 	`url(${staticFile('assets/fonts/yosugaraver1_2.ttf')})`,
 );
 yosugaraFontFace.load().then((f) => document.fonts.add(f)).catch(() => { });
 const yosugaraFamily = '"Yosugara", cursive';
+const playwriteFamily = '"Playwrite NZ", "Playwrite NZ Basic", cursive';
+
+if (typeof document !== 'undefined' && !document.getElementById('playwrite-nz-font-link')) {
+	const link = document.createElement('link');
+	link.id = 'playwrite-nz-font-link';
+	link.rel = 'stylesheet';
+	link.href =
+		'https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@100..400&display=swap';
+	document.head.appendChild(link);
+}
+
+type ScriptType = 'kanji' | 'hiragana' | 'latin';
+
+const classifyChar = (char: string, prevType: ScriptType | null): ScriptType => {
+	if (/[\p{Script=Hiragana}]/u.test(char)) return 'hiragana';
+	if (/[A-Za-z0-9]/.test(char)) return 'latin';
+	if (/[\p{Script=Han}]/u.test(char)) return 'kanji';
+	if (/[\p{Script=Katakana}]/u.test(char)) return 'hiragana';
+	return prevType ?? 'kanji';
+};
+
+const fontByScript = (type: ScriptType): string => {
+	if (type === 'hiragana') return yosugaraFamily;
+	if (type === 'latin') return playwriteFamily;
+	return hachiMaruPopFamily;
+};
+
+const ScriptStyledText: React.FC<{ text: string }> = ({ text }) => {
+	const chars = [...text];
+	const segments: Array<{ type: ScriptType; text: string }> = [];
+	let prevType: ScriptType | null = null;
+	for (const ch of chars) {
+		const type = classifyChar(ch, prevType);
+		const last = segments[segments.length - 1];
+		if (last && last.type === type) {
+			last.text += ch;
+		} else {
+			segments.push({ type, text: ch });
+		}
+		prevType = type;
+	}
+	return (
+		<>
+			{segments.map((seg, i) => (
+				<span key={`${seg.type}-${i}`} style={{ fontFamily: fontByScript(seg.type), whiteSpace: 'pre' }}>
+					{seg.text}
+				</span>
+			))}
+		</>
+	);
+};
 
 // ── Song metadata (manually set per cover) ──────────────────
-const SONG_TITLE = 'Tomorrow never knows';
-const SONG_ARTIST = 'Mr.Children';
+const SONG_TITLE = 'LOVE PHANTOM';
+const SONG_ARTIST = "B'z";
 
 // ── Typography ──────────────────────────────────────────────
 
 const lyricsFont: CSSProperties = {
-	fontFamily: yosugaraFamily,
+	fontFamily: hachiMaruPopFamily,
 	letterSpacing: '0.04em',
 	textAlign: 'center',
 };
@@ -482,9 +535,9 @@ const LyricLine: React.FC<{
 													textShadow: `0 0 16px ${karaokeHighlight}`,
 												}}
 											>
-												{w.word}
+												<ScriptStyledText text={w.word} />
 											</span>
-											{w.word}
+											<ScriptStyledText text={w.word} />
 										</span>
 									);
 								})}
@@ -535,6 +588,7 @@ const LyricLine: React.FC<{
 										<span
 											key={`${lineIndex}-${index}`}
 											style={{
+												fontFamily: fontByScript(classifyChar(char, null)),
 												opacity: charProgress,
 												transform: animationIn === 'StaggeredFadeIn'
 													? `translateY(${(1 - charProgress) * 12}px)`
@@ -599,7 +653,9 @@ const LyricLine: React.FC<{
 					}}
 				>
 						{lines.map((line, i) => (
-							<div key={i}>{line}</div>
+							<div key={i}>
+								<ScriptStyledText text={line} />
+							</div>
 						))}
 					</div>
 			</AbsoluteFill>
@@ -1500,12 +1556,11 @@ const LyricAnimationLayer: React.FC<{
 				{activeEntry ? (
 					<LyricLine
 						text={activeEntry.text}
-						animationIn={activeEntry.animation.in}
-						animationOut={activeEntry.animation.out}
+						animationIn={'FadeInSlow'}
+						animationOut={'FadeOut'}
 						inDuration={activeEntry.animation.props.inDurationFrames}
 						outDuration={activeEntry.animation.props.outDurationFrames}
 						label={activeEntry.label}
-						words={activeEntry.words}
 						lineFrame={songFrame - Math.round(activeEntry.time * fps)}
 						lineDurationInFrames={Math.max(
 							1,
@@ -1536,26 +1591,13 @@ export const AcoRielLyricCover: React.FC = () => {
 
 	// Load lyric animation data
 	const [lyricData, setLyricData] = useState<LyricAnimationEntry[]>([]);
-	const [supportedCodepoints, setSupportedCodepoints] = useState<Set<number> | null>(null);
+	const [supportedCodepoints] = useState<Set<number> | null>(null);
 
 	useEffect(() => {
 		fetch(staticFile('assets/lyric_animation_data.json'))
 			.then((res) => res.json())
 			.then((data) => setLyricData(data))
 			.catch((err) => console.error('Failed to load lyric data:', err));
-	}, []);
-
-	useEffect(() => {
-		fetch(staticFile('assets/fonts/yosugaraver1_2.codepoints.json'))
-			.then((res) => res.json())
-			.then((data: { codepoints?: number[] }) => {
-				const points = Array.isArray(data?.codepoints) ? data.codepoints : [];
-				setSupportedCodepoints(new Set(points));
-			})
-			.catch((err) => {
-				console.warn('Failed to load Yosugara codepoints:', err);
-				setSupportedCodepoints(null);
-			});
 	}, []);
 
 	// Background pan/zoom

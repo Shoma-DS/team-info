@@ -20,7 +20,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="AcoRielCover"
         component={AcoRielCover}
-        durationInFrames={8082}
+        durationInFrames={7524}
         fps={30}
         width={1920}
         height={1080}
@@ -29,7 +29,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="AcoRielLyricCover"
         component={AcoRielLyricCover}
-        durationInFrames={8271}
+        durationInFrames={7524}
         fps={30}
         width={1920}
         height={1080}

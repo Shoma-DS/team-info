@@ -13,23 +13,75 @@ import {
 } from 'remotion';
 import { useMemo, useState, useEffect, type CSSProperties } from 'react';
 import { getAudioData, visualizeAudioWaveform } from '@remotion/media-utils';
+import { loadFont as loadHachiMaruPop } from '@remotion/google-fonts/HachiMaruPop';
 
+const { fontFamily: hachiMaruPopFamily } = loadHachiMaruPop();
 const yosugaraFontFace = new FontFace(
 	'Yosugara',
 	`url(${staticFile('assets/fonts/yosugaraver1_2.ttf')})`,
 );
 yosugaraFontFace.load().then((f) => document.fonts.add(f)).catch(() => { });
 const yosugaraFamily = '"Yosugara", cursive';
+const playwriteFamily = '"Playwrite NZ", "Playwrite NZ Basic", cursive';
+
+if (typeof document !== 'undefined' && !document.getElementById('playwrite-nz-font-link')) {
+	const link = document.createElement('link');
+	link.id = 'playwrite-nz-font-link';
+	link.rel = 'stylesheet';
+	link.href =
+		'https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@100..400&display=swap';
+	document.head.appendChild(link);
+}
+
+type ScriptType = 'kanji' | 'hiragana' | 'latin';
+
+const classifyChar = (char: string, prevType: ScriptType | null): ScriptType => {
+	if (/[\p{Script=Hiragana}]/u.test(char)) return 'hiragana';
+	if (/[A-Za-z0-9]/.test(char)) return 'latin';
+	if (/[\p{Script=Han}]/u.test(char)) return 'kanji';
+	if (/[\p{Script=Katakana}]/u.test(char)) return 'hiragana';
+	return prevType ?? 'kanji';
+};
+
+const fontByScript = (type: ScriptType): string => {
+	if (type === 'hiragana') return yosugaraFamily;
+	if (type === 'latin') return playwriteFamily;
+	return hachiMaruPopFamily;
+};
+
+const ScriptStyledText: React.FC<{ text: string }> = ({ text }) => {
+	const chars = [...text];
+	const segments: Array<{ type: ScriptType; text: string }> = [];
+	let prevType: ScriptType | null = null;
+	for (const ch of chars) {
+		const type = classifyChar(ch, prevType);
+		const last = segments[segments.length - 1];
+		if (last && last.type === type) {
+			last.text += ch;
+		} else {
+			segments.push({ type, text: ch });
+		}
+		prevType = type;
+	}
+	return (
+		<>
+			{segments.map((seg, i) => (
+				<span key={`${seg.type}-${i}`} style={{ fontFamily: fontByScript(seg.type), whiteSpace: 'pre' }}>
+					{seg.text}
+				</span>
+			))}
+		</>
+	);
+};
 
 // ── Song metadata (manually set per cover) ──────────────────
-const SONG_TITLE = 'LA·LA·LA· LOVE SONG';
-const SONG_ARTIST = '久保田利伸 with ナオミ・キャンベル';
+const SONG_TITLE = 'LOVE PHANTOM';
+const SONG_ARTIST = "B'z";
 
 // ── Typography ──────────────────────────────────────────────
 
 const lyricsFont: CSSProperties = {
-	fontFamily:
-		'"Zen Kaku Gothic New","M PLUS Rounded 1c","Noto Sans JP",sans-serif',
+	fontFamily: hachiMaruPopFamily,
 	letterSpacing: '0.04em',
 	textAlign: 'center',
 };
@@ -636,7 +688,7 @@ const IntroOverlay: React.FC<{
 							whiteSpace: 'nowrap',
 						}}
 					>
-						{title}
+						<ScriptStyledText text={title} />
 					</span>
 				</TextReveal>
 
@@ -655,7 +707,7 @@ const IntroOverlay: React.FC<{
 							whiteSpace: 'nowrap',
 						}}
 					>
-						Original by {artist}
+						<ScriptStyledText text={`Original by ${artist}`} />
 					</span>
 				</TextReveal>
 
@@ -815,7 +867,7 @@ const OutroOverlay: React.FC<{ durationFrames: number }> = ({
 						textShadow: '0 0 14px rgba(255,255,255,0.34)',
 					}}
 				>
-					チャンネル登録よろしくお願いします
+					<ScriptStyledText text="チャンネル登録よろしくお願いします" />
 				</span>
 			</div>
 		</AbsoluteFill>
