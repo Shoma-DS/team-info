@@ -2,7 +2,7 @@
   "default": {
     "speaker_name": "ずんだもん",
     "style_name": "ノーマル",
-    "speed": 1.0,
+    "speed": 0.8,
     "pitch": 0.0,
     "volume": 1.0,
     "pause_length_scale": 1.0,
