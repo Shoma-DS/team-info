@@ -44,7 +44,11 @@
       "Bash(/Users/deguchishouma/team-info/Remotion/.venv/bin/pip list:*)",
       "Bash(/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11:*)",
       "Bash(npx remotion studio)",
-      "Bash(xargs git grep -l -i 'key\\\\|secret\\\\|token\\\\|password\\\\|auth\\\\|credential')"
+      "Bash(xargs git grep -l -i 'key\\\\|secret\\\\|token\\\\|password\\\\|auth\\\\|credential')",
+      "Bash(ln:*)",
+      "Bash(kill:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
