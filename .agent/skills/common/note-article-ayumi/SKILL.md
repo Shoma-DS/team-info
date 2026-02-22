@@ -13,8 +13,8 @@ user_invocable: true
 
 ## 参照フォルダ
 
-- **アカウント情報**: `.agent/skills/note-article-ayumi/assets/account_profile.md`
-- **参考記事**: `.agent/skills/note-article-ayumi/references/`（ユーザーが参考にしたい記事を置くフォルダ）
+- **アカウント情報**: `.agent/skills/common/note-article-ayumi/assets/account_profile.md`
+- **参考記事**: `.agent/skills/common/note-article-ayumi/references/`（ユーザーが参考にしたい記事を置くフォルダ）
 - **記事保存先**: `outputs/note_articles/`
 
 ---
@@ -27,7 +27,7 @@ user_invocable: true
 
 スキル起動時に自動で実行する。ユーザーへの確認は不要。
 
-1. `.agent/skills/note-article-ayumi/assets/account_profile.md` を読み込む
+1. `.agent/skills/common/note-article-ayumi/assets/account_profile.md` を読み込む
 2. 以下を内部で把握する:
    - ブランドペルソナ（あゆみのキャラクター）
    - トーン＆マナー（語りの視点・文体）
@@ -37,7 +37,7 @@ user_invocable: true
 
 #### ステップ2: 参考記事の選択
 
-1. `.agent/skills/note-article-ayumi/references/` 内のファイル一覧を取得する
+1. `.agent/skills/common/note-article-ayumi/references/` 内のファイル一覧を取得する
 2. ファイルが存在する場合:
    - 一覧をユーザーに提示する
    - ユーザーに1つ選んでもらう

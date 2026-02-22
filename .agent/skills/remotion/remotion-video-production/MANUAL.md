@@ -13,8 +13,9 @@
 - チャンネル定義: `Remotion/video_resources/channels/`
 - Remotion本体: `Remotion/my-video/`
 - テンプレート専用スキル:
-  - `.agent/skills/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md`
-  - `.agent/skills/remotion-template-sleep-travel-short-digest/SKILL.md`
+  - `.agent/skills/remotion/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md`
+  - `.agent/skills/remotion/remotion-template-sleep-travel-short-digest/SKILL.md`
+  - `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md`
 
 ## 使い方
 1. 「Remotionで動画を作って」などの依頼を出す

@@ -212,7 +212,7 @@ la la la la la love song
 
 ```bash
 /Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
-  /Users/deguchishouma/team-info/.agent/skills/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
+  /Users/deguchishouma/team-info/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
   "<音源ファイルパス>" \
   --lyrics "<歌詞ファイルパス>" \
   --output "Remotion/my-video/public/assets/<歌詞ファイル名と同名>.lrc" \
@@ -247,7 +247,7 @@ la la la la la love song
 
 ```bash
 /Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
-  .agent/skills/lyric-emotion-mapper/scripts/validate_lrc.py \
+  .agent/skills/remotion/lyric-emotion-mapper/scripts/validate_lrc.py \
   <出力LRCパス> \
   <歌詞テキストパス>
 ```

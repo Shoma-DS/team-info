@@ -34,6 +34,20 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={1080}
       />
+
+      <Composition
+        id="AcoRiel-TomorrowNeverKnows-Lyric"
+        component={AcoRielLyricCover}
+        durationInFrames={8100}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          songFolder: 'songs/Tomorrow_never_knows',
+          songTitle: 'Tomorrow never knows',
+          songArtist: 'Mr.Children',
+        }}
+      />
     </>
   );
 };

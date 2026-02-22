@@ -4,8 +4,6 @@ import {
 	Easing,
 	Img,
 	Sequence,
-	continueRender,
-	delayRender,
 	interpolate,
 	spring,
 	staticFile,
@@ -876,18 +874,11 @@ const useSongAudioData = (src: string) => {
 	> | null>(null);
 
 	useEffect(() => {
-		const handle = delayRender(
-			`Waiting for song audio data src="${src}"`,
-			{ timeoutInMilliseconds: 180000 }
-		);
-
 		getAudioData(src, { sampleRate: 6000 })
 			.then((data) => setAudioData(data))
 			.catch((err) => {
 				console.error('Failed to load audio data:', err);
-				setAudioData(null);
-			})
-			.finally(() => continueRender(handle));
+			});
 	}, [src]);
 
 	return audioData;
@@ -940,11 +931,11 @@ const ChannelBrandBadge: React.FC = () => {
 	);
 };
 
-const LinearSpectrum: React.FC = () => {
+const LinearSpectrum: React.FC<{ audioSrc: string }> = ({ audioSrc }) => {
 	const frame = useCurrentFrame();
 	const { fps, width } = useVideoConfig();
 	const barCount = 48;
-	const audioData = useSongAudioData(staticFile('assets/audio.wav'));
+	const audioData = useSongAudioData(audioSrc);
 
 	if (!audioData) return null;
 
@@ -1576,9 +1567,26 @@ const LyricAnimationLayer: React.FC<{
 
 // ── Main Composition ────────────────────────────────────────
 
-export const AcoRielLyricCover: React.FC = () => {
+type AcoRielLyricCoverProps = {
+	songFolder?: string;
+	songTitle?: string;
+	songArtist?: string;
+};
+
+export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
+	songFolder,
+	songTitle,
+	songArtist,
+}) => {
 	const frame = useCurrentFrame();
 	const { durationInFrames, fps } = useVideoConfig();
+
+	const title = songTitle ?? SONG_TITLE;
+	const artist = songArtist ?? SONG_ARTIST;
+	const assetBase = songFolder ? `assets/${songFolder}` : 'assets';
+	const audioSrc = staticFile(`${assetBase}/audio.wav`);
+	const backgroundSrc = staticFile(`${assetBase}/background.png`);
+	const lyricDataPath = staticFile(`${assetBase}/lyric_animation_data.json`);
 
 	// Intro/Outro timing
 	const introFrames = Math.floor(7 * fps);
@@ -1594,11 +1602,11 @@ export const AcoRielLyricCover: React.FC = () => {
 	const [supportedCodepoints] = useState<Set<number> | null>(null);
 
 	useEffect(() => {
-		fetch(staticFile('assets/lyric_animation_data.json'))
+		fetch(lyricDataPath)
 			.then((res) => res.json())
 			.then((data) => setLyricData(data))
 			.catch((err) => console.error('Failed to load lyric data:', err));
-	}, []);
+	}, [lyricDataPath]);
 
 	// Background pan/zoom
 	const panX = Math.sin((frame / fps) * 0.025) * 1.2;
@@ -1609,7 +1617,7 @@ export const AcoRielLyricCover: React.FC = () => {
 		<AbsoluteFill style={{ backgroundColor: '#0a0a12' }}>
 			{/* Background image */}
 			<Img
-				src={staticFile('assets/background.png')}
+				src={backgroundSrc}
 				style={{
 					width: '100%',
 					height: '100%',
@@ -1665,7 +1673,7 @@ export const AcoRielLyricCover: React.FC = () => {
 					durationInFrames={Math.max(1, audioEndFrame - introFrames)}
 				>
 					<Audio
-						src={staticFile('assets/audio.wav')}
+						src={audioSrc}
 						volume={(f) => {
 							const audioDurationFrames = Math.max(1, audioEndFrame - introFrames);
 							const fadeStart = Math.max(0, audioDurationFrames - audioFadeOutFrames);
@@ -1679,13 +1687,13 @@ export const AcoRielLyricCover: React.FC = () => {
 				</Sequence>
 
 			{/* Spectrum */}
-			<LinearSpectrum />
+			<LinearSpectrum audioSrc={audioSrc} />
 
 			{/* Intro */}
 			<Sequence durationInFrames={introFrames}>
 				<IntroOverlay
-					title={SONG_TITLE}
-					artist={SONG_ARTIST}
+					title={title}
+					artist={artist}
 					durationFrames={introFrames}
 				/>
 			</Sequence>
