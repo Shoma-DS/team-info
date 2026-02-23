@@ -53,7 +53,8 @@ Remotion/my-video/
 
 ## 素材参照先
 - カバー曲音源: `Remotion/video_resources/channels/acoriel/assets/songs/`
-- 歌詞（LRC）: `Remotion/scripts/lyrics/`
+- 歌詞TXT: `Remotion/video_resources/channels/acoriel/assets/lyrics/`
+- 歌詞LRC（既存/生成先）: `Remotion/scripts/lyrics/`
 - 背景画像: `Remotion/video_resources/channels/acoriel/assets/backgrounds/`
 - エフェクトテンプレート: `Remotion/video_resources/channels/acoriel/effects/templates/`
 
@@ -62,12 +63,20 @@ Remotion/my-video/
 - 前回選択の自動流用は禁止し、背景画像とエフェクトは毎回選び直す。
 - 以下を1項目ずつ順番に確定する:
 1. カバー曲音源（`.wav` `.mp3`）
-2. 歌詞LRC（`.lrc`）— **任意**。歌詞字幕は後で手動編集するため、スキップ可能。
+2. 歌詞TXT（`.txt`）— **任意**。歌詞字幕を使わない場合はスキップ可能。
 3. 背景画像（`.png` `.jpg` `.jpeg`）
 4. エフェクト設定（既存テンプレート or 新規作成）
 - 候補0件の**必須**項目（曲・背景）があれば編集を止め、不足素材を報告する。
 - カスタムエフェクトを新規作成した場合は、都度日本語名を付けて保存する。
 - 保存先: `Remotion/video_resources/channels/acoriel/effects/templates/`
+
+### LRC解決ルール（必須）
+- 歌詞TXTを選択した場合は、以下の順で `lyrics.lrc` を確定する:
+1. `Remotion/scripts/lyrics/` に該当曲のLRCがあればそれを採用する。
+2. 該当LRCが無ければ、選択した音源から **Whisper** で文字起こししてLRCを新規作成する。
+- Whisperで生成したLRCは、曲名とアーティストが分かるファイル名で `Remotion/scripts/lyrics/` に保存する。
+- LRC確定後は、**必ず**歌詞TXTと行単位で照合し、誤字脱字・欠落・不要行がないことを確認する。
+- 照合で問題があればLRCを修正し、問題が解消するまで次工程に進まない。
 
 ### AIカバー時の追加ルール（必須）
 - AIカバーの場合は、以下を毎回この順で確定する:
@@ -76,7 +85,7 @@ Remotion/my-video/
 3. 音源
 4. 背景画像
 5. エフェクト
-6. 歌詞ファイル（カラオケ版を作る場合のみ）
+6. 歌詞TXT（カラオケ版を作る場合のみ）
 7. **概要欄を生成する**（スキル: `acoriel-video-description`）
    - 音源（曲名・アーティスト）が確定した時点（ステップ3の直後）で実行してよい。
    - 一言メモがあれば反映、なければ曲名から連想して生成。
@@ -107,12 +116,16 @@ Remotion/my-video/
 2.5. **概要欄を生成する**（スキル: `acoriel-video-description`）
    - 曲名・原曲アーティスト名が確定した時点で実行する。
    - ユーザーから一言メモがあれば反映、なければ曲名から連想して生成。
-3. **曲フォルダを作成する**（必須）
+3. **歌詞LRCを確定する**（歌詞字幕を使う場合・必須）
+   - 選択済みTXTに対応するLRCを `Remotion/scripts/lyrics/` から探索する。
+   - 見つからなければWhisperで音源からLRCを生成する。
+   - 生成/採用したLRCを、歌詞TXTと照合して誤字脱字・欠落がないことを確認する。
+4. **曲フォルダを作成する**（必須）
    - フォルダ名のスペースはアンダースコアに変換する（例: `Tomorrow_never_knows`）
    - `Remotion/my-video/public/assets/songs/[曲名_スペースなし]/` を新規作成する。
    - 音源・背景画像・歌詞LRCをこのフォルダにコピーする。
    - 既存の曲フォルダは触らない。
-3.5. **`lyric_animation_data.json` を新規作成する**（歌詞字幕を使う場合・必須）
+4.5. **`lyric_animation_data.json` を新規作成する**（歌詞字幕を使う場合・必須）
    - **絶対に他の曲の `lyric_animation_data.json` をコピーして流用しない**（歌詞が別曲になる）。
    - LRC ファイルのタイムスタンプを秒に変換し、以下のフォーマットで JSON を生成する:
      ```json
@@ -134,15 +147,17 @@ Remotion/my-video/
    - サビ行は `"label": "サビ"` にするとフォントサイズ・グロウが強調される。
    - 最終エントリの `duration` は全体尺 - `time` で埋める。
    - 作成後 `Remotion/my-video/public/assets/songs/[曲名]/lyric_animation_data.json` に保存する。
-4. `AcoRielLyricCover.tsx` が props（`songFolder` など）でアセットパスを切り替えられる構造になっているか確認し、必要なら対応する。
-5. `Root.tsx` に今回の曲のCompositionを**追記**する（既存Compositionは削除しない）。
+5. `AcoRielLyricCover.tsx` が props（`songFolder` など）でアセットパスを切り替えられる構造になっているか確認し、必要なら対応する。
+6. `Root.tsx` に今回の曲のCompositionを**追記**する（既存Compositionは削除しない）。
    - Composition ID は **ハイフン区切り**で命名する（アンダースコア禁止）
    - OK例: `AcoRiel-LOVE-PHANTOM`、`AcoRiel-TomorrowNeverKnows-Lyric`
    - 対応する曲フォルダのパスをpropsで渡す。
-6. `Remotion/my-video/` で `npm run lint` を実行し、エラーを解消する。
-7. **`Remotion/my-video/` ディレクトリから** `npx remotion studio` を起動する。
+7. `Remotion/my-video/` で `npm run lint` を実行し、エラーを解消する。
+8. **`Remotion/my-video/` ディレクトリから** `npx remotion studio` を起動する。
    - 起動コマンド例: `cd /path/to/Remotion/my-video && npx remotion studio`
    - **誤ったディレクトリから起動するとプロジェクトが認識されず黒画面になる。**
-8. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `npx remotion render ...` コマンドを提示する。
+9. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `npx remotion render ...` コマンドを提示する。
+   - レンダリング前の確認文言は必ず `出力しますか？書き出しますか？` を使う。
+   - 過去ターンで承認があっても、レンダリング直前に毎回確認する。
    - レンダリング出力先: `Remotion/renders/[曲名].mp4`
-9. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。
+10. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

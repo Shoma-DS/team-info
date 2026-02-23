@@ -48,6 +48,20 @@ export const RemotionRoot: React.FC = () => {
           songArtist: 'Mr.Children',
         }}
       />
+
+      <Composition
+        id="AcoRiel-SAY-YES-Lyric"
+        component={AcoRielLyricCover}
+        durationInFrames={8966}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          songFolder: 'songs/SAY_YES',
+          songTitle: 'SAY YES',
+          songArtist: 'CHAGE and ASKA',
+        }}
+      />
     </>
   );
 };

@@ -36,7 +36,7 @@ def main():
     parser.add_argument("audio_path", help="Path to the input audio file")
     parser.add_argument("--lyrics", help="Path to text file containing lyrics (for prompting/context)", default=None)
     parser.add_argument("--output", help="Path to output LRC file", default=None)
-    parser.add_argument("--model", help="Whisper model size", default="small")
+    parser.add_argument("--model", help="Whisper model size", default="medium")
     parser.add_argument("--language", help="Language code", default="ja")
     parser.add_argument("--device", help="Device to use (cuda or cpu)", default="cpu") # Default to cpu for mac compat usually, or auto
 

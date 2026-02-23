@@ -49,7 +49,17 @@
       "Bash(kill:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(md5:*)",
+      "Bash(whisper --help:*)",
+      "Bash(pip show:*)",
+      "Bash(pip3 list:*)",
+      "Bash(conda list:*)",
+      "Bash(brew search:*)",
+      "Bash(brew install:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(whisper-cli:*)",
+      "Bash(pkill:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

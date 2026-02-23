@@ -217,7 +217,7 @@ la la la la la love song
   --lyrics "<歌詞ファイルパス>" \
   --output "Remotion/my-video/public/assets/<歌詞ファイル名と同名>.lrc" \
   --json Remotion/my-video/public/assets/lyric_animation_data.json \
-  --model small \
+  --model medium \
   --language ja
 ```
 
@@ -238,7 +238,7 @@ la la la la la love song
 | `--lyrics` | 歌詞テキストファイル（精度向上用プロンプト） | なし |
 | `--output` | 出力LRCファイルパス | 音声と同名.lrc |
 | `--json` | カラオケ用JSONの出力パス | なし（指定時のみ出力） |
-| `--model` | Whisperモデルサイズ (`tiny`/`base`/`small`/`medium`/`large-v3`) | `small` |
+| `--model` | Whisperモデルサイズ (`tiny`/`base`/`small`/`medium`/`large-v3`) | `medium` |
 | `--language` | 言語コード | `ja` |
 
 #### 1-2. 生成ファイルの確認・修正 (自動チェック)
