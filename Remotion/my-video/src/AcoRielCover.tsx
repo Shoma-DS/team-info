@@ -13,9 +13,8 @@ import {
 } from 'remotion';
 import { useMemo, useState, useEffect, type CSSProperties } from 'react';
 import { getAudioData, visualizeAudioWaveform } from '@remotion/media-utils';
-import { loadFont as loadHachiMaruPop } from '@remotion/google-fonts/HachiMaruPop';
 
-const { fontFamily: hachiMaruPopFamily } = loadHachiMaruPop();
+const hachiMaruPopFamily = '"Hachi Maru Pop", cursive';
 const yosugaraFontFace = new FontFace(
 	'Yosugara',
 	`url(${staticFile('assets/fonts/yosugaraver1_2.ttf')})`,
@@ -23,6 +22,14 @@ const yosugaraFontFace = new FontFace(
 yosugaraFontFace.load().then((f) => document.fonts.add(f)).catch(() => { });
 const yosugaraFamily = '"Yosugara", cursive';
 const playwriteFamily = '"Playwrite NZ", "Playwrite NZ Basic", cursive';
+
+if (typeof document !== 'undefined' && !document.getElementById('hachi-maru-pop-font-link')) {
+	const link = document.createElement('link');
+	link.id = 'hachi-maru-pop-font-link';
+	link.rel = 'stylesheet';
+	link.href = 'https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap';
+	document.head.appendChild(link);
+}
 
 if (typeof document !== 'undefined' && !document.getElementById('playwrite-nz-font-link')) {
 	const link = document.createElement('link');
@@ -172,10 +179,6 @@ const MusicParticles: React.FC = () => {
 				const whiteTone = 242 + (i % 3) * 5;
 				const color = `rgba(${whiteTone},${whiteTone},${whiteTone},${opacity})`;
 				const glow = `0 0 ${size * 1.7}px rgba(255,255,255,0.26), 0 0 ${size * 4.9}px rgba(255,255,255,0.18)`;
-				const blurPx = interpolate(size, [8, 58], [2.5, 6.4], {
-					extrapolateLeft: 'clamp',
-					extrapolateRight: 'clamp',
-				});
 
 				return (
 					<div
@@ -189,7 +192,6 @@ const MusicParticles: React.FC = () => {
 							borderRadius: '50%',
 							background: color,
 							boxShadow: glow,
-							filter: `blur(${blurPx}px)`,
 							transform: 'translate(-50%, -50%)',
 						}}
 					/>
@@ -251,10 +253,6 @@ const AngelFeathers: React.FC = () => {
 				const edgeFade =
 					loop < 0.12 ? loop / 0.12 : loop > 0.92 ? (1 - loop) / 0.08 : 1;
 				const scale = f.scale;
-				const blurPx = interpolate(scale, [0.12, 2.3], [0.1, 6.2], {
-					extrapolateLeft: 'clamp',
-					extrapolateRight: 'clamp',
-				});
 				const opacity = Math.max(0.06, f.baseOpacity * edgeFade);
 				const rotate =
 					f.baseAngle + Math.sin(frame * f.spinFreq + f.phase) * f.tiltRange;
@@ -282,7 +280,6 @@ const AngelFeathers: React.FC = () => {
 								width: '100%',
 								height: '100%',
 								objectFit: 'contain',
-								filter: `blur(${blurPx}px)`,
 							}}
 						/>
 					</div>

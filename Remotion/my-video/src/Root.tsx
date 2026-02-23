@@ -60,6 +60,7 @@ export const RemotionRoot: React.FC = () => {
           songFolder: 'songs/SAY_YES',
           songTitle: 'SAY YES',
           songArtist: 'CHAGE and ASKA',
+          audioFileName: 'audio.mp3',
         }}
       />
     </>

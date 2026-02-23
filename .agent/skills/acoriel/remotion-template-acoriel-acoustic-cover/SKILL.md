@@ -58,11 +58,32 @@ Remotion/my-video/
 - 背景画像: `Remotion/video_resources/channels/acoriel/assets/backgrounds/`
 - エフェクトテンプレート: `Remotion/video_resources/channels/acoriel/effects/templates/`
 
+## 音源変換ルール（必須）
+
+Remotion レンダリング中のメモリ枯渇・タイムアウトを防ぐため、**音源は必ず MP3 に変換してから曲フォルダに配置する**。未圧縮 WAV（40〜55MB 程度）をそのまま使うと `getAudioData()` がメモリを大量消費し、数千フレーム後にブラウザがフリーズする。
+
+### 変換コマンド（ffmpeg）
+
+```bash
+ffmpeg -i "<入力ファイル>.wav" -q:a 2 "<出力ファイル>.mp3"
+```
+
+- `-q:a 2`: VBR 品質 2（約190kbps）。音楽カバーに十分な高品質。
+- 出力先は `Remotion/my-video/public/assets/songs/[曲名]/audio.mp3`
+- WAV 原本は `Remotion/video_resources/channels/acoriel/assets/songs/` に残す（削除しない）。
+- コード側（`AcoRielCover.tsx` / `AcoRielLyricCover.tsx`）が `audio.wav` を参照している場合は `audio.mp3` に差し替える。
+
+### 変換後の確認
+
+```bash
+ls -lh public/assets/songs/<曲名>/audio.mp3  # 5MB前後になっていること
+```
+
 ## 素材選択ルール（必須）
 - 素材選択時は対象フォルダを走査し、実在する候補のみ番号付きで提示する。
 - 前回選択の自動流用は禁止し、背景画像とエフェクトは毎回選び直す。
 - 以下を1項目ずつ順番に確定する:
-1. カバー曲音源（`.wav` `.mp3`）
+1. カバー曲音源（`.wav` `.mp3`）— WAV の場合は**必ず MP3 に変換**（上記「音源変換ルール」参照）
 2. 歌詞TXT（`.txt`）— **任意**。歌詞字幕を使わない場合はスキップ可能。
 3. 背景画像（`.png` `.jpg` `.jpeg`）
 4. エフェクト設定（既存テンプレート or 新規作成）
@@ -123,7 +144,8 @@ Remotion/my-video/
 4. **曲フォルダを作成する**（必須）
    - フォルダ名のスペースはアンダースコアに変換する（例: `Tomorrow_never_knows`）
    - `Remotion/my-video/public/assets/songs/[曲名_スペースなし]/` を新規作成する。
-   - 音源・背景画像・歌詞LRCをこのフォルダにコピーする。
+   - 音源は **WAV → MP3 変換してから** `audio.mp3` として配置する（上記「音源変換ルール」参照）。
+   - 背景画像・歌詞LRCはそのままコピーする。
    - 既存の曲フォルダは触らない。
 4.5. **`lyric_animation_data.json` を新規作成する**（歌詞字幕を使う場合・必須）
    - **絶対に他の曲の `lyric_animation_data.json` をコピーして流用しない**（歌詞が別曲になる）。
