@@ -59,7 +59,21 @@
       "Bash(brew install:*)",
       "Bash(ffmpeg:*)",
       "Bash(whisper-cli:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(grep:*)",
+      "Bash(cd /Users/deguchishouma/team-info/test-website && npm run build 2>&1)",
+      "Bash(tail:*)",
+      "Bash(gh auth:*)",
+      "Bash(echo brew not found:*)",
+      "Bash(git init:*)",
+      "Bash(gh repo:*)",
+      "Bash(git config http.postBuffer 524288000 && git push origin master 2>&1)",
+      "Bash(netlify login:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(npm run:*)",
+      "Bash(lsof -ti:3000)",
+      "Bash(lsof -i :3000)"
     ]
   },
   "enableAllProjectMcpServers": true,

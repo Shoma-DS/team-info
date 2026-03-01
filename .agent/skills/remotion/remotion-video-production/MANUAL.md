@@ -10,7 +10,7 @@
 4. Remotion編集
 
 ## 参照先
-- チャンネル定義: `Remotion/video_resources/channels/`
+- チャンネル定義: `Remotion/my-video/public/assets/channels/`
 - Remotion本体: `Remotion/my-video/`
 - テンプレート専用スキル:
   - `.agent/skills/remotion/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md`

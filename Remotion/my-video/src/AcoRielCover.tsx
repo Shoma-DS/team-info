@@ -84,6 +84,7 @@ const ScriptStyledText: React.FC<{ text: string }> = ({ text }) => {
 // ── Song metadata (manually set per cover) ──────────────────
 const SONG_TITLE = 'LOVE PHANTOM';
 const SONG_ARTIST = "B'z";
+const SONG_AUDIO_SRC = staticFile('assets/channels/acoriel/songs/LOVE_PHANTOM.mp3');
 
 // ── Typography ──────────────────────────────────────────────
 
@@ -366,7 +367,7 @@ const LinearSpectrum: React.FC = () => {
 	const frame = useCurrentFrame();
 	const { fps, width } = useVideoConfig();
 	const barCount = 48;
-	const audioData = useSongAudioData(staticFile('assets/audio.wav'));
+	const audioData = useSongAudioData(SONG_AUDIO_SRC);
 
 	if (!audioData) return null;
 
@@ -944,7 +945,7 @@ export const AcoRielCover: React.FC = () => {
 
 			{/* Song audio – starts after intro */}
 			<Sequence from={introFrames}>
-				<Audio src={staticFile('assets/audio.wav')} />
+				<Audio src={SONG_AUDIO_SRC} />
 			</Sequence>
 
 			{/* Spectrum */}

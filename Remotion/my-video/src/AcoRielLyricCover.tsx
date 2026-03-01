@@ -4,6 +4,7 @@ import {
 	Easing,
 	Img,
 	Sequence,
+	Video,
 	interpolate,
 	spring,
 	staticFile,
@@ -1248,17 +1249,17 @@ const IntroOverlay: React.FC<{
 	const penProps = (lineIdx: number) => ({
 		showPen: activeLineIdx === lineIdx,
 		penSrc: featherPen,
-		penWidth: lineIdx === 1 ? 145 : 120,
-		penYOffset: lineIdx === 1 ? -34 : -26,
+		penWidth: lineIdx === 1 ? 85 : 70,
+		penYOffset: lineIdx === 1 ? -20 : -15,
 	});
 
 	return (
 		<AbsoluteFill
 			style={{
-				justifyContent: 'center',
-				alignItems: 'center',
+				justifyContent: 'flex-end',
+				alignItems: 'flex-start',
 				opacity,
-				backgroundColor: 'rgba(5,5,10,0.6)',
+				padding: '0 0 56px 72px',
 			}}
 		>
 			<div
@@ -1266,8 +1267,13 @@ const IntroOverlay: React.FC<{
 					...lyricsFont,
 					display: 'flex',
 					flexDirection: 'column',
-					alignItems: 'center',
-					gap: 20,
+					alignItems: 'flex-start',
+					gap: 10,
+					background: 'rgba(5,5,10,0.58)',
+					backdropFilter: 'blur(6px)',
+					borderRadius: 14,
+					padding: '18px 26px 18px 22px',
+					border: '1px solid rgba(192,200,216,0.08)',
 				}}
 			>
 				<TextReveal
@@ -1278,7 +1284,7 @@ const IntroOverlay: React.FC<{
 					<span
 						style={{
 							fontFamily: yosugaraFamily,
-							fontSize: 48,
+							fontSize: 26,
 							fontWeight: 400,
 							color: 'rgba(192,200,216,0.6)',
 							letterSpacing: '0.06em',
@@ -1289,27 +1295,27 @@ const IntroOverlay: React.FC<{
 					</span>
 				</TextReveal>
 
-					<TextReveal
-						startFrame={LINE_SCHEDULE[1].start}
-						writeFrames={LINE_SCHEDULE[1].write}
-						{...penProps(1)}
+				<TextReveal
+					startFrame={LINE_SCHEDULE[1].start}
+					writeFrames={LINE_SCHEDULE[1].write}
+					{...penProps(1)}
+				>
+					<div
+						style={{
+							fontFamily: yosugaraFamily,
+							fontSize: 72,
+							fontWeight: 400,
+							lineHeight: 1.3,
+							paddingBottom: 4,
+						}}
 					>
-						<div
-							style={{
-								fontFamily: yosugaraFamily,
-								fontSize: 125,
-								fontWeight: 400,
-								lineHeight: 1.45,
-								paddingBottom: 10,
-							}}
-						>
-							<StrokeOrderTitle
-								text={title}
-								startFrame={LINE_SCHEDULE[1].start}
-								writeFrames={LINE_SCHEDULE[1].write}
-							/>
-						</div>
-					</TextReveal>
+						<StrokeOrderTitle
+							text={title}
+							startFrame={LINE_SCHEDULE[1].start}
+							writeFrames={LINE_SCHEDULE[1].write}
+						/>
+					</div>
+				</TextReveal>
 
 				<TextReveal
 					startFrame={LINE_SCHEDULE[2].start}
@@ -1319,7 +1325,7 @@ const IntroOverlay: React.FC<{
 					<span
 						style={{
 							fontFamily: yosugaraFamily,
-							fontSize: 32,
+							fontSize: 20,
 							fontWeight: 400,
 							color: 'rgba(255,255,255,0.5)',
 							whiteSpace: 'nowrap',
@@ -1331,10 +1337,10 @@ const IntroOverlay: React.FC<{
 
 				<div
 					style={{
-						width: 80,
+						width: 60,
 						height: 1,
 						background:
-							'linear-gradient(90deg, transparent, rgba(192,200,216,0.4), transparent)',
+							'linear-gradient(90deg, rgba(192,200,216,0.4), transparent)',
 						opacity: interpolate(
 							frame - LINE_SCHEDULE[3].start,
 							[0, 5],
@@ -1353,21 +1359,21 @@ const IntroOverlay: React.FC<{
 						style={{
 							display: 'flex',
 							alignItems: 'center',
-							gap: 12,
+							gap: 8,
 							whiteSpace: 'nowrap',
-							paddingTop: 110,
-							paddingBottom: 110,
-							marginTop: -110,
-							marginBottom: -110,
+							paddingTop: 60,
+							paddingBottom: 60,
+							marginTop: -60,
+							marginBottom: -60,
 						}}
 					>
 						<span
 							style={{
 								fontFamily: yosugaraFamily,
-								fontSize: 26,
+								fontSize: 18,
 								fontWeight: 400,
 								color: 'rgba(184,160,212,0.7)',
-								letterSpacing: '0.15em',
+								letterSpacing: '0.12em',
 							}}
 						>
 							Covered by
@@ -1375,14 +1381,14 @@ const IntroOverlay: React.FC<{
 						<Img
 							src={wordmark}
 							style={{
-								height: 300,
+								height: 160,
 								objectFit: 'contain',
-								marginTop: -110,
-								marginBottom: -110,
-								marginLeft: -60,
-								marginRight: -20,
+								marginTop: -60,
+								marginBottom: -60,
+								marginLeft: -30,
+								marginRight: -10,
 								filter:
-									'drop-shadow(0 0 12px rgba(255,255,255,0.4)) drop-shadow(0 0 28px rgba(214,197,241,0.3))',
+									'drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 18px rgba(214,197,241,0.3))',
 							}}
 						/>
 					</div>
@@ -1562,6 +1568,76 @@ const LyricAnimationLayer: React.FC<{
 	);
 };
 
+// ── Cross-Dissolve Background ────────────────────────────────
+
+type CrossDissolveBackgroundProps = {
+	videos: string[];
+	segmentSeconds?: number;
+	crossfadeSeconds?: number;
+};
+
+const CrossDissolveBackground: React.FC<CrossDissolveBackgroundProps> = ({
+	videos,
+	segmentSeconds = 10,
+	crossfadeSeconds = 2,
+}) => {
+	const frame = useCurrentFrame();
+	const { fps } = useVideoConfig();
+	const n = videos.length;
+	const segmentFrames = Math.floor(segmentSeconds * fps);
+	const crossfadeFrames = Math.floor(crossfadeSeconds * fps);
+	const cycleFrames = n * segmentFrames;
+	const loopFrame = frame % cycleFrames;
+
+	const panX = Math.sin((frame / fps) * 0.025) * 1.2;
+	const panY = Math.cos((frame / fps) * 0.018) * 0.8;
+	const zoom = 1.05 + Math.sin((frame / fps) * 0.012) * 0.02;
+
+	return (
+		<>
+			{videos.map((src, i) => {
+				const segStart = i * segmentFrames;
+				let rel = loopFrame - segStart;
+
+				// Video 0: also fades in at the very end of each cycle (wrap-around)
+				if (i === 0 && loopFrame > cycleFrames - crossfadeFrames) {
+					rel = loopFrame - cycleFrames;
+				}
+
+				let opacity: number;
+				if (rel < -crossfadeFrames || rel >= segmentFrames) {
+					opacity = 0;
+				} else if (rel < 0) {
+					opacity = (rel + crossfadeFrames) / crossfadeFrames;
+				} else if (rel > segmentFrames - crossfadeFrames) {
+					opacity = (segmentFrames - rel) / crossfadeFrames;
+				} else {
+					opacity = 1;
+				}
+
+				if (opacity <= 0) return null;
+
+				return (
+					<AbsoluteFill key={i} style={{ opacity }}>
+						<Video
+							src={src}
+							loop
+							volume={0}
+							style={{
+								width: '100%',
+								height: '100%',
+								objectFit: 'cover',
+								filter: 'brightness(0.68) saturate(0.72)',
+								transform: `scale(${zoom}) translate(${panX}%, ${panY}%)`,
+							}}
+						/>
+					</AbsoluteFill>
+				);
+			})}
+		</>
+	);
+};
+
 // ── Main Composition ────────────────────────────────────────
 
 type AcoRielLyricCoverProps = {
@@ -1569,13 +1645,15 @@ type AcoRielLyricCoverProps = {
 	songTitle?: string;
 	songArtist?: string;
 	audioFileName?: string;
+	audioAssetPath?: string;
 };
 
 export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 	songFolder,
 	songTitle,
 	songArtist,
-	audioFileName = 'audio.wav',
+	audioFileName = 'audio.mp3',
+	audioAssetPath,
 }) => {
 	const frame = useCurrentFrame();
 	const { durationInFrames, fps } = useVideoConfig();
@@ -1583,16 +1661,16 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 	const title = songTitle ?? SONG_TITLE;
 	const artist = songArtist ?? SONG_ARTIST;
 	const assetBase = songFolder ? `assets/${songFolder}` : 'assets';
-	const audioSrc = staticFile(`${assetBase}/${audioFileName}`);
+	const audioSrc = staticFile(audioAssetPath ?? `${assetBase}/${audioFileName}`);
 	const backgroundSrc = staticFile(`${assetBase}/background.png`);
 	const lyricDataPath = staticFile(`${assetBase}/lyric_animation_data.json`);
 
 	// Intro/Outro timing
-	const introFrames = Math.floor(7 * fps);
+	const introFrames = Math.floor(10 * fps);
 	const tailSilenceFrames = Math.round(2 * fps);
 	const outroLeadFrames = Math.round(0.3 * fps);
 	const audioFadeOutFrames = Math.max(1, Math.round(0.5 * fps));
-	const audioEndFrame = Math.max(introFrames + 1, durationInFrames - tailSilenceFrames);
+	const audioEndFrame = Math.max(1, durationInFrames - tailSilenceFrames);
 	const outroStart = Math.max(introFrames, audioEndFrame - outroLeadFrames);
 	const outroFrames = Math.max(1, durationInFrames - outroStart);
 
@@ -1621,7 +1699,7 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 					width: '100%',
 					height: '100%',
 					objectFit: 'cover',
-					filter: 'brightness(0.35) saturate(0.65)',
+					filter: 'brightness(0.68) saturate(0.72)',
 					transform: `scale(${zoom}) translate(${panX}%, ${panY}%)`,
 				}}
 			/>
@@ -1630,7 +1708,7 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 			<AbsoluteFill
 				style={{
 					background:
-						'radial-gradient(ellipse at 50% 40%, rgba(30,25,50,0.3), rgba(5,5,10,0.75))',
+						'radial-gradient(ellipse at 50% 40%, rgba(30,25,50,0.05), rgba(5,5,10,0.38))',
 				}}
 			/>
 
@@ -1638,7 +1716,7 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 			<AbsoluteFill
 				style={{
 					background:
-						'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%)',
+						'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 100%)',
 				}}
 			/>
 
@@ -1666,15 +1744,15 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 				/>
 			</Sequence>
 
-				{/* Song audio – starts after intro */}
+				{/* Song audio – starts from frame 0 */}
 				<Sequence
-					from={introFrames}
-					durationInFrames={Math.max(1, audioEndFrame - introFrames)}
+					from={0}
+					durationInFrames={Math.max(1, audioEndFrame)}
 				>
 					<Audio
 						src={audioSrc}
 						volume={(f) => {
-							const audioDurationFrames = Math.max(1, audioEndFrame - introFrames);
+							const audioDurationFrames = Math.max(1, audioEndFrame);
 							const fadeStart = Math.max(0, audioDurationFrames - audioFadeOutFrames);
 							if (f < fadeStart) return 1;
 							return interpolate(f, [fadeStart, audioDurationFrames], [1, 0], {
@@ -1697,8 +1775,8 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 				/>
 			</Sequence>
 
-			{/* Angel feathers – after intro */}
-			<Sequence from={introFrames}>
+			{/* Angel feathers */}
+			<Sequence from={0}>
 				<AngelFeathers />
 			</Sequence>
 
@@ -1706,11 +1784,159 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 				{lyricData.length > 0 && (
 					<LyricAnimationLayer
 						data={lyricData}
-						songStartFrame={introFrames}
+						songStartFrame={0}
 						songEndFrame={outroStart}
 						supportedCodepoints={supportedCodepoints}
 					/>
 				)}
+
+			{/* Outro */}
+			<Sequence from={outroStart} durationInFrames={outroFrames}>
+				<OutroOverlay durationFrames={outroFrames} />
+			</Sequence>
+		</AbsoluteFill>
+	);
+};
+
+// ── AcoRiel Lyric Cover – Multi Background Video ─────────────
+
+type AcoRielLyricCoverMultiBGProps = {
+	songFolder?: string;
+	songTitle?: string;
+	songArtist?: string;
+	audioFileName?: string;
+	audioAssetPath?: string;
+	/** 各背景動画のファイル名 (assetBase 内の相対パス) */
+	backgroundVideos?: string[];
+	/** 1本あたりの表示秒数 (default: 10) */
+	bgSegmentSeconds?: number;
+	/** クロスディゾルブの秒数 (default: 2) */
+	bgCrossfadeSeconds?: number;
+};
+
+export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> = ({
+	songFolder,
+	songTitle,
+	songArtist,
+	audioFileName = 'audio.mp3',
+	audioAssetPath,
+	backgroundVideos = ['bg_video_1.mp4'],
+	bgSegmentSeconds = 10,
+	bgCrossfadeSeconds = 2,
+}) => {
+	const frame = useCurrentFrame();
+	const { durationInFrames, fps } = useVideoConfig();
+
+	const title = songTitle ?? SONG_TITLE;
+	const artist = songArtist ?? SONG_ARTIST;
+	const assetBase = songFolder ? `assets/${songFolder}` : 'assets';
+	const audioSrc = staticFile(audioAssetPath ?? `${assetBase}/${audioFileName}`);
+	const lyricDataPath = staticFile(`${assetBase}/lyric_animation_data.json`);
+	const bgVideoSrcs = backgroundVideos.map((v) => staticFile(`${assetBase}/${v}`));
+
+	// Intro/Outro timing
+	const introFrames = Math.floor(10 * fps);
+	const tailSilenceFrames = Math.round(2 * fps);
+	const outroLeadFrames = Math.round(0.3 * fps);
+	const audioFadeOutFrames = Math.max(1, Math.round(0.5 * fps));
+	const audioEndFrame = Math.max(1, durationInFrames - tailSilenceFrames);
+	const outroStart = Math.max(introFrames, audioEndFrame - outroLeadFrames);
+	const outroFrames = Math.max(1, durationInFrames - outroStart);
+
+	const [lyricData, setLyricData] = useState<LyricAnimationEntry[]>([]);
+	const [supportedCodepoints] = useState<Set<number> | null>(null);
+
+	useEffect(() => {
+		fetch(lyricDataPath)
+			.then((res) => res.json())
+			.then((data) => setLyricData(data))
+			.catch((err) => console.error('Failed to load lyric data:', err));
+	}, [lyricDataPath]);
+
+	return (
+		<AbsoluteFill style={{ backgroundColor: '#0a0a12' }}>
+			{/* Cross-dissolve background videos */}
+			<CrossDissolveBackground
+				videos={bgVideoSrcs}
+				segmentSeconds={bgSegmentSeconds}
+				crossfadeSeconds={bgCrossfadeSeconds}
+			/>
+
+			{/* Gradient overlay */}
+			<AbsoluteFill
+				style={{
+					background:
+						'radial-gradient(ellipse at 50% 40%, rgba(30,25,50,0.05), rgba(5,5,10,0.38))',
+				}}
+			/>
+
+			{/* Vignette */}
+			<AbsoluteFill
+				style={{
+					background:
+						'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 100%)',
+				}}
+			/>
+
+			{frame < outroStart && <ChannelBrandBadge />}
+			<MusicParticles />
+
+			{/* Pencil writing sound */}
+			<Sequence durationInFrames={introFrames}>
+				<Audio
+					src={staticFile('assets/write_with_pencil.mp3')}
+					volume={(f) => {
+						const writeEnd = 120;
+						const fadeStart = writeEnd - 20;
+						if (f >= fadeStart) {
+							return interpolate(f, [fadeStart, writeEnd], [0.7, 0], {
+								extrapolateLeft: 'clamp',
+								extrapolateRight: 'clamp',
+							});
+						}
+						if (f >= writeEnd) return 0;
+						return 0.7;
+					}}
+				/>
+			</Sequence>
+
+			{/* Song audio */}
+			<Sequence from={0} durationInFrames={Math.max(1, audioEndFrame)}>
+				<Audio
+					src={audioSrc}
+					volume={(f) => {
+						const audioDurationFrames = Math.max(1, audioEndFrame);
+						const fadeStart = Math.max(0, audioDurationFrames - audioFadeOutFrames);
+						if (f < fadeStart) return 1;
+						return interpolate(f, [fadeStart, audioDurationFrames], [1, 0], {
+							extrapolateLeft: 'clamp',
+							extrapolateRight: 'clamp',
+						});
+					}}
+				/>
+			</Sequence>
+
+			<LinearSpectrum audioSrc={audioSrc} />
+
+			{/* Intro */}
+			<Sequence durationInFrames={introFrames}>
+				<IntroOverlay title={title} artist={artist} durationFrames={introFrames} />
+			</Sequence>
+
+			{/* Angel feathers */}
+			<Sequence from={0}>
+				<AngelFeathers />
+			</Sequence>
+
+			{/* ★ Lyric Animation Layer ★ */}
+			{lyricData.length > 0 && (
+				<LyricAnimationLayer
+					data={lyricData}
+					songStartFrame={0}
+					songEndFrame={outroStart}
+					supportedCodepoints={supportedCodepoints}
+				/>
+			)}
 
 			{/* Outro */}
 			<Sequence from={outroStart} durationInFrames={outroFrames}>

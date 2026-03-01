@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ffmpeg:*)",
+      "Bash(npm run:*)",
+      "Bash(sysctl:*)",
+      "Bash(python3:*)"
+    ]
+  },
+  "disabledMcpjsonServers": [
+    "voicevox"
+  ]
+}

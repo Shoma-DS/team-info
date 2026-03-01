@@ -3,7 +3,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { execSync } from "child_process";
 import { fileURLToPath } from "url";
@@ -16,7 +16,7 @@ const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, "..", "..", "..");
 const CONFIG_FILE = join(PROJECT_ROOT, "Remotion", "configs", "voice_config.json");
 const SCRIPT_DIR = join(PROJECT_ROOT, "Remotion", "scripts", "voice_scripts");
-const OUTPUT_DIR = join(PROJECT_ROOT, "Remotion", "output", "audio");
+const OUTPUT_DIR = join(PROJECT_ROOT, "outputs", "sleep_travel", "audio");
 const GENERATE_SCRIPT = join(PROJECT_ROOT, "Remotion", "generate_voice.py");
 const VENV_PYTHON = join(PROJECT_ROOT, "Remotion", ".venv", "bin", "python");
 
@@ -139,7 +139,7 @@ server.tool(
 // Tool 4: テスト音声生成（短いテキスト1文）
 server.tool(
   "voicevox_test_speech",
-  "短いテキストを音声化してWAVファイルに保存する（試し聞き用）。テキストは200文字以内。",
+  "短いテキストを音声化してMP3ファイルに保存する（試し聞き用）。テキストは200文字以内。",
   {
     text: z.string().max(200).describe("音声化するテキスト（200文字以内）"),
     speaker_id: z.number().optional().describe("スピーカーID（省略時はデフォルトプロファイルを使用）"),
@@ -211,11 +211,17 @@ server.tool(
       );
       const wavBuffer = Buffer.from(await synthRes.arrayBuffer());
 
-      // ファイルに保存
+      // 一時WAVを書き出してからMP3へ変換
       mkdirSync(OUTPUT_DIR, { recursive: true });
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      const outputPath = join(OUTPUT_DIR, `test_${timestamp}.wav`);
-      writeFileSync(outputPath, wavBuffer);
+      const tempWavPath = join(OUTPUT_DIR, `test_${timestamp}.wav`);
+      const outputPath = join(OUTPUT_DIR, `test_${timestamp}.mp3`);
+      writeFileSync(tempWavPath, wavBuffer);
+      execSync(
+        `ffmpeg -y -i "${tempWavPath}" -codec:a libmp3lame -q:a 2 "${outputPath}"`,
+        { stdio: "ignore" }
+      );
+      unlinkSync(tempWavPath);
 
       return {
         content: [{ type: "text" as const, text: `テスト音声を生成しました: ${outputPath}\nスピーカーID: ${speakerId}, テキスト: "${text}"` }],

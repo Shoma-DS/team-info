@@ -8,6 +8,7 @@ import io
 import re
 import shutil
 import sys
+import subprocess
 from typing import Dict, Any, List, Optional, Tuple
 import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -25,7 +26,7 @@ VOICEVOX_API_BASE_URL = "http://127.0.0.1:50021"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Remotionディレクトリ
 SCRIPT_DIR = os.path.join(BASE_DIR, "scripts", "voice_scripts")
 CONFIG_FILE = os.path.join(BASE_DIR, "configs", "voice_config.json")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output", "audio")
+OUTPUT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "outputs", "sleep_travel", "audio"))
 TMP_DIR = os.path.join(OUTPUT_DIR, "_tmp_chunks")
 
 def load_voice_config() -> Dict[str, Any]:
@@ -484,8 +485,9 @@ def main():
         sanitized_theme = "untitled"
 
     today_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    output_filename = f"{today_date}_{sanitized_theme}.wav"
+    output_filename = f"{today_date}_{sanitized_theme}.mp3"
     output_path = os.path.join(OUTPUT_DIR, output_filename)
+    tmp_wav_path = os.path.join(TMP_DIR, f"{today_date}_{sanitized_theme}.wav")
 
     # チャンク番号順にソートして結合
     sorted_indices = sorted(audio_results.keys())
@@ -499,7 +501,8 @@ def main():
             params = first_wav.getparams()
 
         os.makedirs(OUTPUT_DIR, exist_ok=True)
-        with wave.open(output_path, 'wb') as out_wav:
+        os.makedirs(TMP_DIR, exist_ok=True)
+        with wave.open(tmp_wav_path, 'wb') as out_wav:
             out_wav.setparams(params)
             for j, idx in enumerate(sorted_indices):
                 print_progress(j, success_count, "結合中 ")
@@ -510,6 +513,33 @@ def main():
     except Exception as e:
         print(f"\nエラー: 音声ファイルの結合に失敗しました: {e}")
         return
+
+    try:
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                tmp_wav_path,
+                "-codec:a",
+                "libmp3lame",
+                "-q:a",
+                "2",
+                output_path,
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except FileNotFoundError:
+        print("\nエラー: ffmpeg が見つかりません。ffmpegをインストールしてください。")
+        return
+    except subprocess.CalledProcessError:
+        print("\nエラー: mp3 変換に失敗しました。")
+        return
+    finally:
+        if os.path.exists(tmp_wav_path):
+            os.remove(tmp_wav_path)
 
     print(f"\n完了! 音声ファイルが '{output_path}' に保存されました。")
     print(f"   チャンク数: {success_count} / エラー: {error_count}")

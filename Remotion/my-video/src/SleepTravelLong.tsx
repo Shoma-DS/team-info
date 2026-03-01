@@ -14,6 +14,11 @@ import {
 import {useMemo, useState, useEffect, type CSSProperties} from 'react';
 import {getAudioData, useAudioData, visualizeAudioWaveform} from '@remotion/media-utils';
 
+const SLEEP_TRAVEL_AUDIO_SRC = staticFile('assets/channels/sleep_travel/audio.mp3');
+const SLEEP_TRAVEL_BGM_SRC = staticFile(
+	'assets/channels/sleep_travel/bgm/焚き火ループ.mp3'
+);
+
 type SubtitleSegment = {
 	start: number;
 	end: number;
@@ -257,7 +262,7 @@ const Spectrum: React.FC = () => {
 			return {cos: Math.cos(a), sin: Math.sin(a)};
 		});
 	}, [spectrumSamples]);
-	const audioData = useLightweightAudioData(staticFile('assets/audio.wav'));
+	const audioData = useLightweightAudioData(SLEEP_TRAVEL_AUDIO_SRC);
 	if (!audioData) {
 		return null;
 	}
@@ -367,11 +372,11 @@ const Spectrum: React.FC = () => {
 export const SleepTravelLong: React.FC = () => {
 	const frame = useCurrentFrame();
 	const {durationInFrames, fps} = useVideoConfig();
-	const bgmData = useAudioData(staticFile('assets/bgm.mp3'));
+	const bgmData = useAudioData(SLEEP_TRAVEL_BGM_SRC);
 	const [script, setScript] = useState('');
 
 	useEffect(() => {
-		fetch(staticFile('assets/script.md'))
+		fetch(staticFile('assets/channels/sleep_travel/script.md'))
 			.then((res) => res.text())
 			.then((txt) => setScript(txt))
 			.catch(() => {
@@ -435,13 +440,13 @@ export const SleepTravelLong: React.FC = () => {
 			/>
 			<AshAndSmoke />
 
-			<Audio src={staticFile('assets/audio.wav')} />
+			<Audio src={SLEEP_TRAVEL_AUDIO_SRC} />
 			{new Array(loopCount).fill(null).map((_, i) => {
 				const from = i * stepFrames;
 				return (
 					<Sequence key={i} from={from} durationInFrames={bgmSegmentFrames}>
 						<Audio
-							src={staticFile('assets/bgm.mp3')}
+							src={SLEEP_TRAVEL_BGM_SRC}
 							volume={(f) => {
 								if (f < fadeFrames) {
 									return (f / fadeFrames) * 0.11;

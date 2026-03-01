@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SRC_ROOT="outputs/jmty_posts"
+SRC_ROOT="outputs/jmty"
 SRC_FACTORY="$SRC_ROOT/factory"
 SRC_REMOTE="$SRC_ROOT/remote"
 
-DEFAULT_DEST_ROOT="/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/jmty_posts"
+DEFAULT_DEST_ROOT="/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/jmty"
 DEST_ROOT="${1:-$DEFAULT_DEST_ROOT}"
 
 if [ ! -d "$SRC_FACTORY" ]; then

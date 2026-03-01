@@ -10,6 +10,7 @@
 - `git-workflow_skill.md`
 - `macos-intel-compatibility_skill.md`
 - `remotion-video-production_skill.md`
+- `remotion-unified-output-routing_skill.md`
 - `script-writing-accounts-aware_manual.md`
 - `script-writing-accounts-aware_sleep-travel_manual.md`
 - `voice-script-launcher_skill.md`

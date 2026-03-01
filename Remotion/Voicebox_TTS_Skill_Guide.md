@@ -29,17 +29,19 @@ VOICEVOXエンジンが起動していることを確認し、APIがリッスン
 
 ## プロジェクトのフォルダ構造
 
-スキル関連のファイルは、`Remotion` フォルダ内に以下のように配置されています。
+スキル関連のファイルは、`Remotion` と `outputs` に以下のように配置されています。
 
 ```
-Remotion/
-├── generate_voice.py         # 音声生成スクリプト本体
-├── configs/
-│   └── voice_config.json     # 音声設定プロファイル
-├── scripts/
-│   └── voice_scripts/        # 台本ファイル (.txt または .md) を格納
-└── output/
-    └── audio/                # 生成された音声ファイル (.wav) の出力先
+team-info/
+├── Remotion/
+│   ├── generate_voice.py         # 音声生成スクリプト本体
+│   ├── configs/
+│   │   └── voice_config.json     # 音声設定プロファイル
+│   └── scripts/
+│       └── voice_scripts/        # 台本ファイル (.txt または .md) を格納
+└── outputs/
+    └── sleep_travel/
+        └── audio/                # 生成された音声ファイル (.mp3) の出力先
 ```
 
 ## 台本ファイルの準備
@@ -171,8 +173,8 @@ cd Remotion
 
 ## 生成される音声ファイル
 
-*   **出力先**: `Remotion/output/audio/` フォルダに保存されます。
-*   **命名規則**: `YYYY-MM-dd_テーマ.wav` の形式でファイルが保存されます。（例: `2024-02-10_自己紹介.wav`）
+*   **出力先**: `outputs/sleep_travel/audio/` フォルダに保存されます。
+*   **命名規則**: `YYYY-MM-dd_テーマ.mp3` の形式でファイルが保存されます。（例: `2024-02-10_自己紹介.mp3`）
 
 ## トラブルシューティング
 
