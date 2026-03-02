@@ -301,18 +301,31 @@ Phase 4: 確認・レンダリング
    - `LyricCover` の場合: 背景画像・歌詞LRCをそのままコピーする。
    - `MultiBG` の場合: 歌詞LRCのみコピーする。背景動画はユーザーが手動配置するため、この時点では配置しない。
 4.3. **（MultiBG のみ）背景動画を事前合成する**（必須）
-   - 背景動画の配置が完了したら、以下のコマンドで `bg_prerendered.mp4` を生成する:
+   - まず音源の実尺を取得する（これを `--total-sec` に使う）:
+     ```bash
+     ffprobe -v quiet -print_format json -show_format \
+       Remotion/my-video/public/assets/songs/[曲名]/audio.mp3 \
+       | python3 -c "import sys,json; d=json.load(sys.stdin); print(round(float(d['format']['duration']), 3))"
+     ```
+   - 取得した秒数を `[音源の秒数]` に入れて以下を実行する:
      ```bash
      python3 Remotion/scripts/prerender_bg_video.py \
        --output Remotion/my-video/public/assets/songs/[曲名]/bg_prerendered.mp4 \
-       --segment-sec 5 --crossfade-sec 1 \
-       --total-sec [コンポジションのフレーム数÷fps] \
-       --fps 30 --width 1920 --height 1080 --seed 42 \
+       --segment-sec 10 --crossfade-sec 3 \
+       --total-sec [音源の秒数] \
+       --fps 30 --width 1920 --height 1080 \
        Remotion/my-video/public/assets/songs/[曲名]/*.mp4
      ```
-   - `--total-sec` は `durationInFrames ÷ fps`（例: 9630÷30=321）
-   - 生成には数分かかる。完了後 `bg_prerendered.mp4` が曲フォルダに存在することを確認する。
-   - Root.tsx では `prerenderedBgVideo: 'bg_prerendered.mp4'` のみを指定する（`backgroundVideos` 不要）。
+   - **注意**: `--segment-sec` が入力動画の実尺を超えている場合、スクリプトが自動でクランプする（警告が表示される）。正常動作なので無視してよい。
+   - 既存の `bg_prerendered_seed*.mp4` は入力グロブから自動除外される。
+   - `--total-sec` は必ず音源の実尺（ffprobeで取得）を使う。`durationInFrames ÷ fps` は誤差が出る場合があるので使わない。
+   - 出力ファイル名は seed 値込みで自動決定される（例: `bg_prerendered_seed1872634591.mp4`）。
+   - 生成には数分かかる。完了ログに以下が表示されるのでファイル名を控える:
+     ```
+     ▶ Root.tsx に設定するファイル名: 'bg_prerendered_seed1872634591.mp4'
+        prerenderedBgVideo: 'bg_prerendered_seed1872634591.mp4'
+     ```
+   - 生成完了後、Root.tsx の該当 Composition の `prerenderedBgVideo` をログのファイル名に更新する。
    - 既存の曲フォルダは触らない。
 4.25. **（削除）** 背景動画の配置確認は 素材選択ルール の `MultiBG` 手順（素材 3/4）に統合済み。このステップはスキップする。
 4.5. **`lyric_animation_data.json` を新規作成する**（歌詞字幕を使う場合・必須）

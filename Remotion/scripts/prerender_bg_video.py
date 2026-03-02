@@ -264,12 +264,59 @@ def main() -> None:
     parser.add_argument("--fps", type=int, default=30, help="出力フレームレート")
     parser.add_argument("--width", type=int, default=1920, help="出力幅")
     parser.add_argument("--height", type=int, default=1080, help="出力高さ")
-    parser.add_argument("--seed", type=int, default=42, help="シャッフル用シード")
+    parser.add_argument("--seed", type=int, default=None, help="シャッフル用シード（省略時はランダム）")
     parser.add_argument("--brightness", type=float, default=0.68, help="輝度係数（CSS brightness相当）")
     parser.add_argument("--saturation", type=float, default=0.72, help="彩度係数（CSS saturate相当）")
     parser.add_argument("--chunk-size", type=int, default=CHUNK_SIZE, help="チャンクあたりのセグメント数")
     parser.add_argument("videos", nargs="+", help="入力動画ファイル（複数可）")
     args = parser.parse_args()
+
+    # seed が未指定の場合はランダムに決定し、再現できるよう表示する
+    if args.seed is None:
+        args.seed = random.randint(0, 2**31 - 1)
+
+    # 出力ファイル名に seed を埋め込む（例: bg_prerendered.mp4 → bg_prerendered_seed1234567.mp4）
+    base, ext = os.path.splitext(args.output)
+    args.output = f"{base}_seed{args.seed}{ext}"
+
+    # 出力ファイル自身が入力グロブに含まれていた場合は除外する
+    out_abs = os.path.abspath(args.output)
+    # 旧ファイル名パターン（seed なし / 別 seed）も除外する
+    out_dir = os.path.dirname(out_abs)
+    out_basename = os.path.basename(base)  # "bg_prerendered" 部分
+    args.videos = [
+        v for v in args.videos
+        if not (os.path.dirname(os.path.abspath(v)) == out_dir
+                and os.path.basename(v).startswith(out_basename + "_seed"))
+        and os.path.abspath(v) != out_abs
+    ]
+    if not args.videos:
+        print("ERROR: 入力動画が 0 本です（出力ファイルのみ渡されました）", file=sys.stderr)
+        sys.exit(1)
+
+    # 各入力動画の実尺を取得し、segment_sec を自動クランプする
+    print(SEP)
+    print("  背景動画プリレンダラー")
+    print(SEP)
+    print(f"  入力動画の実尺を確認中...")
+    video_durations = []
+    for v in args.videos:
+        try:
+            dur = get_video_duration(v)
+            video_durations.append(dur)
+        except RuntimeError as e:
+            print(f"  WARNING: {e} — スキップします")
+    if not video_durations:
+        print("ERROR: 有効な入力動画がありません", file=sys.stderr)
+        sys.exit(1)
+    min_dur = min(video_durations)
+    if args.segment_sec > min_dur:
+        print(f"  WARNING: --segment-sec {args.segment_sec}s が動画最短尺 {min_dur:.2f}s を超えています。")
+        args.segment_sec = round(min_dur * 0.95, 3)  # 5% マージンを取って安全にクランプ
+        print(f"           --segment-sec を {args.segment_sec}s に自動調整しました。")
+    if args.crossfade_sec >= args.segment_sec:
+        args.crossfade_sec = round(args.segment_sec * 0.4, 3)
+        print(f"  WARNING: --crossfade-sec を {args.crossfade_sec}s に自動調整しました。")
 
     n_videos = len(args.videos)
     net_step = args.segment_sec - args.crossfade_sec
@@ -280,11 +327,8 @@ def main() -> None:
     total_segments = int(args.total_sec / net_step) + 2
     chunk_count = (total_segments + args.chunk_size - 1) // args.chunk_size
 
-    print(SEP)
-    print("  背景動画プリレンダラー")
-    print(SEP)
-    print(f"  入力動画  : {n_videos} 本")
-    print(f"  セグメント: {total_segments} 個 (各 {args.segment_sec}s、net {net_step}s/seg)")
+    print(f"  入力動画  : {n_videos} 本 (最短尺 {min_dur:.2f}s)")
+    print(f"  セグメント: {total_segments} 個 (各 {args.segment_sec}s、net {net_step:.3f}s/seg)")
     print(f"  目標尺    : {args.total_sec}s")
     print(f"  出力      : {args.output}")
     print(f"  解像度    : {args.width}×{args.height} @ {args.fps}fps")
@@ -351,10 +395,14 @@ def main() -> None:
         overall_elapsed = time.monotonic() - overall_start
         final_dur = get_video_duration(args.output)
 
+        output_filename = os.path.basename(args.output)
         print(f"\n{SEP}")
         print(f"  完了  {args.output}")
         print(f"  最終動画: {final_dur:.3f}s  (目標: {args.total_sec}s)")
         print(f"  総処理時間: {format_duration(overall_elapsed)}")
+        print(SEP)
+        print(f"\n  ▶ Root.tsx に設定するファイル名: '{output_filename}'")
+        print(f"    prerenderedBgVideo: '{output_filename}'")
         print(SEP)
 
     finally:
