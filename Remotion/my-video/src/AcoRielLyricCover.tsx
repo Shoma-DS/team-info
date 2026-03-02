@@ -6,6 +6,7 @@ import {
 	Sequence,
 	Video,
 	interpolate,
+	random,
 	spring,
 	staticFile,
 	useCurrentFrame,
@@ -316,181 +317,181 @@ const LyricLine: React.FC<{
 	lineDurationInFrames,
 	supportedCodepoints = null,
 }) => {
-	const currentFrame = useCurrentFrame();
-	const { fps, durationInFrames: compDurationInFrames } = useVideoConfig();
-	const frame = lineFrame ?? currentFrame;
-	const durationInFrames = lineDurationInFrames ?? compDurationInFrames;
-	const useHiraganaFallback = useMemo(
-		() => needsHiraganaFallback(text, supportedCodepoints),
-		[text, supportedCodepoints]
-	);
-	const displayText = useMemo(
-		() => (useHiraganaFallback ? toHiraganaFallback(text, supportedCodepoints) : text),
-		[text, useHiraganaFallback, supportedCodepoints]
-	);
-	const displayWords = useMemo(() => {
-		if (!words || words.length === 0) return [];
-		if (!useHiraganaFallback) return words;
-		return words.map((w) => ({
-			...w,
-			word: toHiraganaFallback(w.word, supportedCodepoints),
-		}));
-	}, [words, useHiraganaFallback, supportedCodepoints]);
-	const lines = useMemo(() => splitLyricIntoLines(displayText), [displayText]);
-	const karaokeWordLines = useMemo(() => {
-		if (displayWords.length === 0) return [];
-		return splitWordsIntoLines(displayWords, lines);
-	}, [displayWords, lines]);
-	const charsByLine = useMemo(() => {
-		let charIndex = 0;
-		return lines.map((line) =>
-			[...line].map((char) => ({ char, index: charIndex++ }))
+		const currentFrame = useCurrentFrame();
+		const { fps, durationInFrames: compDurationInFrames } = useVideoConfig();
+		const frame = lineFrame ?? currentFrame;
+		const durationInFrames = lineDurationInFrames ?? compDurationInFrames;
+		const useHiraganaFallback = useMemo(
+			() => needsHiraganaFallback(text, supportedCodepoints),
+			[text, supportedCodepoints]
 		);
-	}, [lines]);
+		const displayText = useMemo(
+			() => (useHiraganaFallback ? toHiraganaFallback(text, supportedCodepoints) : text),
+			[text, useHiraganaFallback, supportedCodepoints]
+		);
+		const displayWords = useMemo(() => {
+			if (!words || words.length === 0) return [];
+			if (!useHiraganaFallback) return words;
+			return words.map((w) => ({
+				...w,
+				word: toHiraganaFallback(w.word, supportedCodepoints),
+			}));
+		}, [words, useHiraganaFallback, supportedCodepoints]);
+		const lines = useMemo(() => splitLyricIntoLines(displayText), [displayText]);
+		const karaokeWordLines = useMemo(() => {
+			if (displayWords.length === 0) return [];
+			return splitWordsIntoLines(displayWords, lines);
+		}, [displayWords, lines]);
+		const charsByLine = useMemo(() => {
+			let charIndex = 0;
+			return lines.map((line) =>
+				[...line].map((char) => ({ char, index: charIndex++ }))
+			);
+		}, [lines]);
 
-	const outStart = durationInFrames - outDuration;
+		const outStart = durationInFrames - outDuration;
 
-	// ── In animation progress ──
-	const inProgress = interpolate(frame, [0, inDuration], [0, 1], {
-		extrapolateLeft: 'clamp',
-		extrapolateRight: 'clamp',
-		easing: Easing.out(Easing.cubic),
-	});
-
-	// ── Out animation progress ──
-	const outProgress = outDuration > 0
-		? interpolate(frame, [outStart, durationInFrames], [0, 1], {
+		// ── In animation progress ──
+		const inProgress = interpolate(frame, [0, inDuration], [0, 1], {
 			extrapolateLeft: 'clamp',
 			extrapolateRight: 'clamp',
-			easing: Easing.in(Easing.cubic),
-		})
+			easing: Easing.out(Easing.cubic),
+		});
+
+		// ── Out animation progress ──
+		const outProgress = outDuration > 0
+			? interpolate(frame, [outStart, durationInFrames], [0, 1], {
+				extrapolateLeft: 'clamp',
+				extrapolateRight: 'clamp',
+				easing: Easing.in(Easing.cubic),
+			})
 			: 0;
 
-	// ── Cross dissolve (always applied to text appearance) ──
-	const crossDissolveIn = interpolate(frame, [0, Math.max(1, inDuration)], [0, 1], {
-		extrapolateLeft: 'clamp',
-		extrapolateRight: 'clamp',
-		easing: Easing.out(Easing.cubic),
-	});
-	const crossDissolveOut = outDuration > 0
-		? interpolate(frame, [Math.max(0, durationInFrames - outDuration), durationInFrames], [1, 0], {
+		// ── Cross dissolve (always applied to text appearance) ──
+		const crossDissolveIn = interpolate(frame, [0, Math.max(1, inDuration)], [0, 1], {
 			extrapolateLeft: 'clamp',
 			extrapolateRight: 'clamp',
-			easing: Easing.in(Easing.cubic),
-		})
-		: 1;
-	const crossDissolveOpacity = crossDissolveIn * crossDissolveOut;
+			easing: Easing.out(Easing.cubic),
+		});
+		const crossDissolveOut = outDuration > 0
+			? interpolate(frame, [Math.max(0, durationInFrames - outDuration), durationInFrames], [1, 0], {
+				extrapolateLeft: 'clamp',
+				extrapolateRight: 'clamp',
+				easing: Easing.in(Easing.cubic),
+			})
+			: 1;
+		const crossDissolveOpacity = crossDissolveIn * crossDissolveOut;
 
-	// ── Compute In styles ──
-	const computeInStyle = (): CSSProperties => {
-		switch (animationIn) {
-			case 'SlideInLeft':
-				return { transform: `translateX(${(1 - inProgress) * -100}%)` };
-			case 'SlideInRight':
-				return { transform: `translateX(${(1 - inProgress) * 100}%)` };
-			case 'SlideInTop':
-				return { transform: `translateY(${(1 - inProgress) * -80}px)` };
-			case 'SlideInBottom':
-				return { transform: `translateY(${(1 - inProgress) * 80}px)` };
-			case 'FadeInSlow':
-				return {
-					opacity: interpolate(frame, [0, Math.max(inDuration, 20)], [0, 1], {
-						extrapolateLeft: 'clamp',
-						extrapolateRight: 'clamp',
-					}),
-				};
-			case 'FadeInFast':
-				return {
-					opacity: interpolate(frame, [0, Math.min(inDuration, 8)], [0, 1], {
-						extrapolateLeft: 'clamp',
-						extrapolateRight: 'clamp',
-					}),
-				};
-			case 'StaggeredFadeIn':
-				// Handled per-character below
-				return {};
-			case 'PopIn': {
-				const s = spring({ fps, frame, config: { damping: 8, mass: 0.6, stiffness: 180 } });
-				return { transform: `scale(${s})` };
+		// ── Compute In styles ──
+		const computeInStyle = (): CSSProperties => {
+			switch (animationIn) {
+				case 'SlideInLeft':
+					return { transform: `translateX(${(1 - inProgress) * -100}%)` };
+				case 'SlideInRight':
+					return { transform: `translateX(${(1 - inProgress) * 100}%)` };
+				case 'SlideInTop':
+					return { transform: `translateY(${(1 - inProgress) * -80}px)` };
+				case 'SlideInBottom':
+					return { transform: `translateY(${(1 - inProgress) * 80}px)` };
+				case 'FadeInSlow':
+					return {
+						opacity: interpolate(frame, [0, Math.max(inDuration, 20)], [0, 1], {
+							extrapolateLeft: 'clamp',
+							extrapolateRight: 'clamp',
+						}),
+					};
+				case 'FadeInFast':
+					return {
+						opacity: interpolate(frame, [0, Math.min(inDuration, 8)], [0, 1], {
+							extrapolateLeft: 'clamp',
+							extrapolateRight: 'clamp',
+						}),
+					};
+				case 'StaggeredFadeIn':
+					// Handled per-character below
+					return {};
+				case 'PopIn': {
+					const s = spring({ fps, frame, config: { damping: 8, mass: 0.6, stiffness: 180 } });
+					return { transform: `scale(${s})` };
+				}
+				case 'Typewriter':
+					// Handled per-character below
+					return {};
+				case 'ScaleUp':
+					return { transform: `scale(${0.5 + inProgress * 0.5})` };
+				case 'BlurIn':
+					return {
+						filter: `blur(${(1 - inProgress) * 10}px)`,
+						opacity: inProgress,
+					};
+				case 'ZoomIn':
+					return { transform: `scale(${inProgress})` };
+				default:
+					return { opacity: inProgress };
 			}
-			case 'Typewriter':
-				// Handled per-character below
-				return {};
-			case 'ScaleUp':
-				return { transform: `scale(${0.5 + inProgress * 0.5})` };
-			case 'BlurIn':
-				return {
-					filter: `blur(${(1 - inProgress) * 10}px)`,
-					opacity: inProgress,
-				};
-			case 'ZoomIn':
-				return { transform: `scale(${inProgress})` };
-			default:
-				return { opacity: inProgress };
-		}
-	};
+		};
 
-	// ── Compute Out styles ──
-	const computeOutStyle = (): CSSProperties => {
-		if (outDuration <= 0) return {}; // CutOut: handled by Sequence duration
+		// ── Compute Out styles ──
+		const computeOutStyle = (): CSSProperties => {
+			if (outDuration <= 0) return {}; // CutOut: handled by Sequence duration
 
-		switch (animationOut) {
-			case 'BlurOut':
-				return {
-					filter: `blur(${outProgress * 10}px)`,
-					opacity: 1 - outProgress,
-				};
-			case 'FadeOut':
-				return { opacity: 1 - outProgress };
-			case 'CutOut':
-				return {};
-			case 'ScaleDown':
-				return { transform: `scale(${1 - outProgress})` };
-			case 'ZoomOut':
-				return { transform: `scale(${1 - outProgress * 0.5})` };
-			default:
-				return { opacity: 1 - outProgress };
-		}
-	};
+			switch (animationOut) {
+				case 'BlurOut':
+					return {
+						filter: `blur(${outProgress * 10}px)`,
+						opacity: 1 - outProgress,
+					};
+				case 'FadeOut':
+					return { opacity: 1 - outProgress };
+				case 'CutOut':
+					return {};
+				case 'ScaleDown':
+					return { transform: `scale(${1 - outProgress})` };
+				case 'ZoomOut':
+					return { transform: `scale(${1 - outProgress * 0.5})` };
+				default:
+					return { opacity: 1 - outProgress };
+			}
+		};
 
-	// ── Text color: always white ──
-	const textColor = '#ffffff';
+		// ── Text color: always white ──
+		const textColor = '#ffffff';
 
-	// ── Glow: always present, stronger on chorus ──
-	const getGlow = (): string => {
-		if (label === 'Chorus' || label === 'サビ') {
-			return '0 0 14px rgba(255,255,255,0.55), 0 0 28px rgba(186,227,255,0.48), 0 0 56px rgba(160,209,255,0.28)';
-		}
-		return '0 0 10px rgba(255,255,255,0.46), 0 0 22px rgba(184,222,255,0.3), 0 0 44px rgba(145,198,255,0.2)';
-	};
+		// ── Glow: always present, stronger on chorus ──
+		const getGlow = (): string => {
+			if (label === 'Chorus' || label === 'サビ') {
+				return '0 0 14px rgba(255,255,255,0.55), 0 0 28px rgba(186,227,255,0.48), 0 0 56px rgba(160,209,255,0.28)';
+			}
+			return '0 0 10px rgba(255,255,255,0.46), 0 0 22px rgba(184,222,255,0.3), 0 0 44px rgba(145,198,255,0.2)';
+		};
 
-	// ── Font size based on section ──
-	const getFontSize = (): number => {
-		const isChorus = label === 'Chorus' || label === 'サビ';
-		const base = 82;
-		const chorusBoost = isChorus ? 6 : 0;
-		const longPenalty = visibleLength(text) > 28 ? 6 : 0;
-		return Math.max(58, base + chorusBoost - longPenalty);
-	};
+		// ── Font size based on section ──
+		const getFontSize = (): number => {
+			const isChorus = label === 'Chorus' || label === 'サビ';
+			const base = 82;
+			const chorusBoost = isChorus ? 6 : 0;
+			const longPenalty = visibleLength(text) > 28 ? 6 : 0;
+			return Math.max(58, base + chorusBoost - longPenalty);
+		};
 
-	// ── Karaoke highlight color ──
-	const karaokeHighlight = '#66ccff';
+		// ── Karaoke highlight color ──
+		const karaokeHighlight = '#66ccff';
 
-	// ── Karaoke mode: word-level highlighting ──
-	if (animationIn === 'Karaoke' && words && words.length > 0) {
-		// frame is relative to this Sequence (starts at 0)
-		const currentTime = frame / fps;
-		const karaokeTime = currentTime * KARAOKE_PROGRESS_SPEED;
+		// ── Karaoke mode: word-level highlighting ──
+		if (animationIn === 'Karaoke' && words && words.length > 0) {
+			// frame is relative to this Sequence (starts at 0)
+			const currentTime = frame / fps;
+			const karaokeTime = currentTime * KARAOKE_PROGRESS_SPEED;
 
-		return (
-			<AbsoluteFill
-				style={{
-					justifyContent: 'center',
-					alignItems: 'center',
-					opacity: crossDissolveOpacity,
-					...computeOutStyle(),
-				}}
-			>
+			return (
+				<AbsoluteFill
+					style={{
+						justifyContent: 'center',
+						alignItems: 'center',
+						opacity: crossDissolveOpacity,
+						...computeOutStyle(),
+					}}
+				>
 					<div
 						style={{
 							...lyricsFont,
@@ -554,20 +555,20 @@ const LyricLine: React.FC<{
 			);
 		}
 
-	// ── Staggered / Typewriter rendering ──
-	if (animationIn === 'StaggeredFadeIn' || animationIn === 'Typewriter') {
-		const charDelay = animationIn === 'Typewriter' ? 2 : 3;
+		// ── Staggered / Typewriter rendering ──
+		if (animationIn === 'StaggeredFadeIn' || animationIn === 'Typewriter') {
+			const charDelay = animationIn === 'Typewriter' ? 2 : 3;
 
-		return (
-			<AbsoluteFill
-				style={{
-					justifyContent: 'center',
-					alignItems: 'center',
-					opacity: crossDissolveOpacity,
-					...computeOutStyle(),
-				}}
-			>
-				<div
+			return (
+				<AbsoluteFill
+					style={{
+						justifyContent: 'center',
+						alignItems: 'center',
+						opacity: crossDissolveOpacity,
+						...computeOutStyle(),
+					}}
+				>
+					<div
 						style={{
 							...lyricsFont,
 							fontSize: getFontSize(),
@@ -610,39 +611,39 @@ const LyricLine: React.FC<{
 					</div>
 				</AbsoluteFill>
 			);
-	}
+		}
 
-	// ── Standard rendering ──
-	const inStyle = computeInStyle();
-	const outStyle = computeOutStyle();
+		// ── Standard rendering ──
+		const inStyle = computeInStyle();
+		const outStyle = computeOutStyle();
 
-	// Merge transform strings if both in and out have transforms
-	const mergedTransform = [inStyle.transform, outStyle.transform]
-		.filter(Boolean)
-		.join(' ');
+		// Merge transform strings if both in and out have transforms
+		const mergedTransform = [inStyle.transform, outStyle.transform]
+			.filter(Boolean)
+			.join(' ');
 
-	const mergedStyle: CSSProperties = {
-		...inStyle,
-		...outStyle,
-		...(mergedTransform ? { transform: mergedTransform } : {}),
-		// opacity: multiply both if both defined
-		opacity: ((typeof inStyle.opacity === 'number' ? inStyle.opacity : 1) *
-			(typeof outStyle.opacity === 'number' ? outStyle.opacity : 1)) *
-			crossDissolveOpacity,
-	};
+		const mergedStyle: CSSProperties = {
+			...inStyle,
+			...outStyle,
+			...(mergedTransform ? { transform: mergedTransform } : {}),
+			// opacity: multiply both if both defined
+			opacity: ((typeof inStyle.opacity === 'number' ? inStyle.opacity : 1) *
+				(typeof outStyle.opacity === 'number' ? outStyle.opacity : 1)) *
+				crossDissolveOpacity,
+		};
 
-	// Merge filter strings
-	if (inStyle.filter && outStyle.filter) {
-		mergedStyle.filter = `${inStyle.filter} ${outStyle.filter}`;
-	}
+		// Merge filter strings
+		if (inStyle.filter && outStyle.filter) {
+			mergedStyle.filter = `${inStyle.filter} ${outStyle.filter}`;
+		}
 
-	return (
-		<AbsoluteFill
-			style={{
-				justifyContent: 'center',
-				alignItems: 'center',
-			}}
-		>
+		return (
+			<AbsoluteFill
+				style={{
+					justifyContent: 'center',
+					alignItems: 'center',
+				}}
+			>
 				<div
 					style={{
 						...lyricsFont,
@@ -658,15 +659,15 @@ const LyricLine: React.FC<{
 						...mergedStyle,
 					}}
 				>
-						{lines.map((line, i) => (
-							<div key={i}>
-								<ScriptStyledText text={line} />
-							</div>
-						))}
-					</div>
+					{lines.map((line, i) => (
+						<div key={i}>
+							<ScriptStyledText text={line} />
+						</div>
+					))}
+				</div>
 			</AbsoluteFill>
 		);
-};
+	};
 
 // ── Music Particles (from AcoRielCover) ─────────────────────
 
@@ -903,12 +904,11 @@ const ChannelBrandBadge: React.FC = () => {
 						position: 'absolute',
 						left: 0,
 						top: 0,
-						width: 160,
-						height: 160,
+						width: 200,
+						height: 200,
 						objectFit: 'cover',
 						borderRadius: 9999,
-						filter:
-							'drop-shadow(0 0 14px rgba(255,255,255,0.3)) drop-shadow(0 0 30px rgba(209,192,235,0.24))',
+						filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5)) brightness(1.05)',
 					}}
 				/>
 				<Img
@@ -920,8 +920,7 @@ const ChannelBrandBadge: React.FC = () => {
 						width: 1300,
 						height: 620,
 						objectFit: 'contain',
-						filter:
-							'drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))',
+						filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6)) brightness(1.15) contrast(1.1)',
 					}}
 				/>
 			</div>
@@ -1139,6 +1138,14 @@ const StrokeOrderTitle: React.FC<{
 	const elapsed = frame - startFrame;
 	const chars = [...text];
 	const count = Math.max(1, chars.length);
+	const charFonts = (() => {
+		let prevType: ScriptType | null = null;
+		return chars.map((ch) => {
+			const type = classifyChar(ch, prevType);
+			prevType = type;
+			return fontByScript(type);
+		});
+	})();
 
 	return (
 		<div
@@ -1169,7 +1176,8 @@ const StrokeOrderTitle: React.FC<{
 						style={{
 							position: 'relative',
 							display: 'inline-block',
-							color: 'rgba(232,220,192,0.12)',
+							color: 'rgba(0,60,200,0.12)',
+							fontFamily: charFonts[i],
 						}}
 					>
 						<span
@@ -1178,10 +1186,9 @@ const StrokeOrderTitle: React.FC<{
 								left: 0,
 								top: 0,
 								color: 'transparent',
-								WebkitTextStroke: '1.8px rgba(255,236,191,0.92)',
+								WebkitTextStroke: '1.8px rgba(30,80,220,0.92)',
 								clipPath: `inset(0 ${(1 - charProgress) * 100}% 0 0)`,
-								filter:
-									'drop-shadow(0 0 10px rgba(255,228,171,0.58)) drop-shadow(0 0 22px rgba(255,220,145,0.38))',
+								filter: 'none',
 								whiteSpace: 'pre',
 							}}
 						>
@@ -1192,10 +1199,9 @@ const StrokeOrderTitle: React.FC<{
 								position: 'absolute',
 								left: 0,
 								top: 0,
-								color: '#e8dcc0',
+								color: '#1a50dc',
 								opacity: fillOpacity,
-								textShadow:
-									'0 0 24px rgba(212,196,144,0.38), 0 0 54px rgba(212,196,144,0.22)',
+								textShadow: 'none',
 								whiteSpace: 'pre',
 							}}
 						>
@@ -1216,6 +1222,154 @@ const LINE_SCHEDULE = [
 	{ start: 97, write: 18 },
 ] as const;
 
+type IntroLine = {
+	start: number;
+	write: number;
+};
+
+type IntroTimeline = {
+	lines: IntroLine[];
+	topExpandStart: number;
+	topExpandEnd: number;
+	topWriteStart: number;
+	topWriteEnd: number;
+	bottomExpandStart: number;
+	bottomExpandEnd: number;
+	bottomWriteStart: number;
+	bottomWriteEnd: number;
+	fadeStart: number;
+	fadeEnd: number;
+	totalFrames: number;
+};
+
+const buildIntroTimeline = (): IntroTimeline => {
+	const TITLE_HOLD_DUR = 150; // 30fps基準で約5秒
+	const FADE_DUR = 20;
+	const topExpandStart = 0;
+	const topExpandEnd = topExpandStart + 28;
+	const topWriteStart = topExpandEnd + 6;
+	const topLine0: IntroLine = {
+		start: topWriteStart + LINE_SCHEDULE[0].start,
+		write: LINE_SCHEDULE[0].write,
+	};
+	const topLine1: IntroLine = {
+		start: topWriteStart + (LINE_SCHEDULE[1].start - LINE_SCHEDULE[0].start),
+		write: LINE_SCHEDULE[1].write,
+	};
+	const topWriteEnd = topLine1.start + topLine1.write;
+
+	const bottomExpandStart = topWriteEnd + 16;
+	const bottomExpandEnd = bottomExpandStart + 28;
+	const bottomWriteStart = bottomExpandEnd + 10;
+	const bottomLine2: IntroLine = {
+		start: bottomWriteStart,
+		write: LINE_SCHEDULE[2].write,
+	};
+	const bottomLine3: IntroLine = {
+		start: bottomWriteStart + (LINE_SCHEDULE[3].start - LINE_SCHEDULE[2].start),
+		write: LINE_SCHEDULE[3].write,
+	};
+	const bottomWriteEnd = bottomLine3.start + bottomLine3.write;
+
+	const fadeStart = bottomWriteEnd + TITLE_HOLD_DUR;
+	const fadeEnd = fadeStart + FADE_DUR;
+
+	return {
+		lines: [topLine0, topLine1, bottomLine2, bottomLine3],
+		topExpandStart,
+		topExpandEnd,
+		topWriteStart: topLine0.start,
+		topWriteEnd,
+		bottomExpandStart,
+		bottomExpandEnd,
+		bottomWriteStart: bottomLine2.start,
+		bottomWriteEnd,
+		fadeStart,
+		fadeEnd,
+		totalFrames: fadeEnd,
+	};
+};
+
+const INTRO_TIMELINE = buildIntroTimeline();
+const INTRO_HIGHLIGHT_DUR = 14;
+const INTRO_HIGHLIGHT_START =
+	INTRO_TIMELINE.lines[3].start + INTRO_TIMELINE.lines[3].write + 4;
+
+const getPencilWriteVolume = (frame: number, duration: number): number => {
+	const safeDuration = Math.max(1, duration);
+	const peak = 0.7;
+	const fadeInFrames = Math.min(6, safeDuration);
+	const fadeOutFrames = Math.min(10, safeDuration);
+	const fadeOutStart = Math.max(fadeInFrames, safeDuration - fadeOutFrames);
+
+	if (frame <= fadeInFrames) {
+		return interpolate(frame, [0, fadeInFrames], [0, peak], {
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		});
+	}
+
+	if (frame >= fadeOutStart) {
+		return interpolate(frame, [fadeOutStart, safeDuration], [peak, 0], {
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		});
+	}
+
+	return peak;
+};
+
+const getPaperMoveVolume = (frame: number, duration: number): number => {
+	const safeDuration = Math.max(1, duration);
+	const peak = 0.92;
+	const fadeInFrames = Math.min(4, safeDuration);
+	const fadeOutFrames = Math.min(6, safeDuration);
+	const fadeOutStart = Math.max(fadeInFrames, safeDuration - fadeOutFrames);
+
+	if (frame <= fadeInFrames) {
+		return interpolate(frame, [0, fadeInFrames], [0, peak], {
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		});
+	}
+
+	if (frame >= fadeOutStart) {
+		return interpolate(frame, [fadeOutStart, safeDuration], [peak, 0], {
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		});
+	}
+
+	return peak;
+};
+
+const getIntroPencilVolume = (frame: number): number => {
+	const topStart = INTRO_TIMELINE.topWriteStart;
+	const topDuration = Math.max(1, INTRO_TIMELINE.topWriteEnd - topStart);
+	const topEnd = topStart + topDuration;
+	if (frame >= topStart && frame < topEnd) {
+		return getPencilWriteVolume(frame - topStart, topDuration);
+	}
+
+	const bottomStart = INTRO_TIMELINE.bottomWriteStart;
+	const bottomDuration = Math.max(1, INTRO_TIMELINE.bottomWriteEnd - bottomStart);
+	const bottomEnd = bottomStart + bottomDuration;
+	if (frame >= bottomStart && frame < bottomEnd) {
+		return getPencilWriteVolume(frame - bottomStart, bottomDuration);
+	}
+
+	return 0;
+};
+
+const getHighlightMarkerVolume = (frame: number): number => {
+	const local = frame - INTRO_HIGHLIGHT_START;
+	if (local < 0 || local > INTRO_HIGHLIGHT_DUR) return 0;
+	return interpolate(local, [0, 2, INTRO_HIGHLIGHT_DUR - 2, INTRO_HIGHLIGHT_DUR], [0, 1.6, 1.6, 0], {
+		extrapolateLeft: 'clamp',
+		extrapolateRight: 'clamp',
+	});
+};
+
 const IntroOverlay: React.FC<{
 	title: string;
 	artist: string;
@@ -1224,27 +1378,101 @@ const IntroOverlay: React.FC<{
 	const frame = useCurrentFrame();
 	const wordmark = staticFile('assets/channel-wordmark.png');
 	const featherPen = staticFile('assets/feather_pen.png');
+	const wingImg = staticFile('assets/wing.png');
 
-	const fadeIn = interpolate(frame, [0, 15], [0, 1], {
+	const fadeStart = Math.min(INTRO_TIMELINE.fadeStart, Math.max(0, durationFrames - 25));
+	const fadeEnd = Math.min(durationFrames, Math.max(fadeStart + 1, INTRO_TIMELINE.fadeEnd));
+	const opacity = interpolate(frame, [fadeStart, fadeEnd], [1, 0], {
+		extrapolateLeft: 'clamp',
 		extrapolateRight: 'clamp',
-		easing: Easing.out(Easing.cubic),
 	});
-	const fadeOut = interpolate(
+
+	// ── 右上→左下の順で進むイントロタイムライン ─────────────────────
+	const LS = INTRO_TIMELINE.lines;
+	const topExpandProgress = interpolate(
 		frame,
-		[durationFrames - 25, durationFrames],
-		[1, 0],
-		{ extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+		[INTRO_TIMELINE.topExpandStart, INTRO_TIMELINE.topExpandEnd],
+		[0, 1],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+			easing: Easing.out(Easing.cubic),
+		}
 	);
-	const opacity = Math.min(fadeIn, fadeOut);
+	const bottomExpandProgress = interpolate(
+		frame,
+		[INTRO_TIMELINE.bottomExpandStart, INTRO_TIMELINE.bottomExpandEnd],
+		[0, 1],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+			easing: Easing.out(Easing.cubic),
+		}
+	);
+	const topWingDriftPx = interpolate(
+		frame,
+		[INTRO_TIMELINE.topExpandEnd, INTRO_TIMELINE.topWriteStart],
+		[0, 260],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+			easing: Easing.in(Easing.cubic),
+		}
+	);
+	const topWingOpacity = interpolate(
+		frame,
+		[
+			INTRO_TIMELINE.topExpandStart + 2,
+			INTRO_TIMELINE.topExpandEnd + 2,
+			INTRO_TIMELINE.topWriteStart,
+		],
+		[0, 1, 0],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		}
+	);
+	const bottomWingDriftPx = interpolate(
+		frame,
+		[INTRO_TIMELINE.bottomExpandEnd, INTRO_TIMELINE.bottomWriteStart],
+		[0, 940],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+			easing: Easing.in(Easing.cubic),
+		}
+	);
+	const bottomWingOpacity = interpolate(
+		frame,
+		[
+			INTRO_TIMELINE.bottomExpandStart + 2,
+			INTRO_TIMELINE.bottomExpandEnd + 2,
+			INTRO_TIMELINE.bottomWriteStart,
+		],
+		[0, 1, 0],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		}
+	);
+	const bottomWingBlurPx = interpolate(
+		frame,
+		[INTRO_TIMELINE.bottomExpandStart + 2, INTRO_TIMELINE.bottomWriteStart],
+		[0, 4],
+		{
+			extrapolateLeft: 'clamp',
+			extrapolateRight: 'clamp',
+		}
+	);
 
 	const activeLineIdx = useMemo(() => {
-		for (let i = 0; i < LINE_SCHEDULE.length; i++) {
-			const l = LINE_SCHEDULE[i];
+		for (let i = 0; i < LS.length; i++) {
+			const l = LS[i];
 			const elapsed = frame - l.start;
 			if (elapsed >= 0 && elapsed < l.write) return i;
 		}
 		return -1;
-	}, [frame]);
+	}, [frame, LS]);
 
 	const penProps = (lineIdx: number) => ({
 		showPen: activeLineIdx === lineIdx,
@@ -1253,85 +1481,156 @@ const IntroOverlay: React.FC<{
 		penYOffset: lineIdx === 1 ? -20 : -15,
 	});
 
+	// アーティスト名ハイライト: 手書き完了後に黄色筆ペンが走る
+	const hlProgress = interpolate(frame - INTRO_HIGHLIGHT_START, [0, INTRO_HIGHLIGHT_DUR], [0, 1], {
+		extrapolateLeft: 'clamp',
+		extrapolateRight: 'clamp',
+		easing: Easing.out(Easing.cubic),
+	});
+
+	const cardStyle: React.CSSProperties = {
+		...lyricsFont,
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'flex-start',
+		background: 'rgba(255,255,255,0.95)',
+		backdropFilter: 'blur(6px)',
+		borderRadius: 14,
+		border: '1px solid rgba(0,0,0,0.08)',
+	};
+
 	return (
 		<AbsoluteFill
 			style={{
-				justifyContent: 'flex-end',
-				alignItems: 'flex-start',
+				flexDirection: 'column',
+				justifyContent: 'space-between',
+				alignItems: 'flex-end',
 				opacity,
-				padding: '0 0 56px 72px',
+				padding: '56px 72px',
 			}}
 		>
-			<div
-				style={{
-					...lyricsFont,
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'flex-start',
-					gap: 10,
-					background: 'rgba(5,5,10,0.58)',
-					backdropFilter: 'blur(6px)',
-					borderRadius: 14,
-					padding: '18px 26px 18px 22px',
-					border: '1px solid rgba(192,200,216,0.08)',
-				}}
-			>
-				<TextReveal
-					startFrame={LINE_SCHEDULE[0].start}
-					writeFrames={LINE_SCHEDULE[0].write}
-					{...penProps(0)}
-				>
-					<span
-						style={{
-							fontFamily: yosugaraFamily,
-							fontSize: 26,
-							fontWeight: 400,
-							color: 'rgba(192,200,216,0.6)',
-							letterSpacing: '0.06em',
-							whiteSpace: 'nowrap',
-						}}
-					>
-						Acoustic Cover
-					</span>
-				</TextReveal>
+			{/* 右上エリア: カード展開 + 羽演出 */}
+			<div style={{ position: 'relative', marginRight: 24 }}>
+				{/* 羽: カード右端の展開に追従し、さらに右へ抜けながらフェードアウト */}
+				<Img
+					src={wingImg}
+					style={{
+						position: 'absolute',
+						left: `calc(${topExpandProgress * 100}% - 105px + ${topWingDriftPx}px)`,
+						top: '50%',
+						transform: 'translate(-32%, -52%) rotate(18deg)',
+						height: 300,
+						objectFit: 'contain',
+						opacity: topWingOpacity,
+						mixBlendMode: 'normal',
+						pointerEvents: 'none',
+						zIndex: 2,
+					}}
+				/>
 
-				<TextReveal
-					startFrame={LINE_SCHEDULE[1].start}
-					writeFrames={LINE_SCHEDULE[1].write}
-					{...penProps(1)}
-				>
-					<div
-						style={{
-							fontFamily: yosugaraFamily,
-							fontSize: 72,
-							fontWeight: 400,
-							lineHeight: 1.3,
-							paddingBottom: 4,
-						}}
-					>
-						<StrokeOrderTitle
-							text={title}
-							startFrame={LINE_SCHEDULE[1].start}
-							writeFrames={LINE_SCHEDULE[1].write}
-						/>
-					</div>
-				</TextReveal>
+				{/* カード本体 */}
+				<div style={{ ...cardStyle, gap: 4, padding: '18px 26px 18px 22px', clipPath: `inset(0 ${(1 - topExpandProgress) * 100}% 0 0 round 14px)` }}>
 
+
+					<TextReveal
+						startFrame={LS[0].start}
+						writeFrames={LS[0].write}
+						{...penProps(0)}
+					>
+						<span
+							style={{
+								fontFamily: playwriteFamily,
+								fontSize: 64,
+								fontWeight: 400,
+								color: 'rgba(30,30,40,0.65)',
+								letterSpacing: '0.06em',
+								whiteSpace: 'nowrap',
+							}}
+						>
+							Acoustic Cover
+						</span>
+					</TextReveal>
+
+					<TextReveal
+						startFrame={LS[1].start}
+						writeFrames={LS[1].write}
+						{...penProps(1)}
+					>
+						<div
+							style={{
+								fontFamily: yosugaraFamily,
+								fontSize: 120,
+								fontWeight: 400,
+								lineHeight: 1.2,
+								paddingBottom: 4,
+							}}
+						>
+							<StrokeOrderTitle
+								text={title}
+								startFrame={LS[1].start}
+								writeFrames={LS[1].write}
+							/>
+						</div>
+					</TextReveal>
+				</div>
+			</div>{/* /右上エリア */}
+
+			{/* 左下: Original by + Covered by */}
+			<div style={{ alignSelf: 'flex-start', position: 'relative' }}>
+				{/* 左下の羽: カードの外側レイヤーで見切れさせず、羽自体をふわっと消す */}
+				<Img
+					src={wingImg}
+					style={{
+						position: 'absolute',
+						left: `calc(${bottomExpandProgress * 100}% - 98px + ${bottomWingDriftPx}px)`,
+						top: '52%',
+						transform: 'translate(-30%, -50%) rotate(16deg)',
+						height: 260,
+						objectFit: 'contain',
+						opacity: bottomWingOpacity,
+						filter: `blur(${bottomWingBlurPx}px)`,
+						mixBlendMode: 'normal',
+						pointerEvents: 'none',
+						zIndex: 2,
+					}}
+				/>
+				<div style={{ ...cardStyle, gap: 0, padding: '14px 22px 14px 18px', clipPath: `inset(0 ${(1 - bottomExpandProgress) * 100}% 0 0 round 14px)`, position: 'relative', zIndex: 1 }}>
 				<TextReveal
-					startFrame={LINE_SCHEDULE[2].start}
-					writeFrames={LINE_SCHEDULE[2].write}
+					startFrame={LS[2].start}
+					writeFrames={LS[2].write}
 					{...penProps(2)}
 				>
 					<span
 						style={{
-							fontFamily: yosugaraFamily,
-							fontSize: 20,
+							fontSize: 54,
 							fontWeight: 400,
-							color: 'rgba(255,255,255,0.5)',
+							color: 'rgba(30,30,40,0.65)',
 							whiteSpace: 'nowrap',
+							display: 'inline-flex',
+							alignItems: 'center',
 						}}
 					>
-						Original by {artist}
+						<ScriptStyledText text="Original by " />
+						{/* アーティスト名: クッキリ黒 + 黄色ハイライト */}
+						<span style={{ position: 'relative', display: 'inline-block' }}>
+							{/* 筆ペン走り書き風ハイライト */}
+							<span
+								style={{
+									position: 'absolute',
+									top: '18%',
+									left: '-5px',
+									right: '-5px',
+									height: '68%',
+									background: 'rgba(255,215,0,0.78)',
+									borderRadius: '2px 4px 1px 3px / 5px 2px 4px 2px',
+									transform: 'rotate(-1.4deg) skewX(-4deg)',
+									clipPath: `inset(0 ${(1 - hlProgress) * 100}% 0 0)`,
+								}}
+							/>
+							<span style={{ position: 'relative', color: '#0a0a14' }}>
+								<ScriptStyledText text={artist} />
+							</span>
+						</span>
 					</span>
 				</TextReveal>
 
@@ -1339,10 +1638,11 @@ const IntroOverlay: React.FC<{
 					style={{
 						width: 60,
 						height: 1,
-						background:
-							'linear-gradient(90deg, rgba(192,200,216,0.4), transparent)',
+						background: 'linear-gradient(90deg, rgba(0,0,0,0.2), transparent)',
+						marginTop: 4,
+						marginBottom: -2,
 						opacity: interpolate(
-							frame - LINE_SCHEDULE[3].start,
+							frame - LS[3].start,
 							[0, 5],
 							[0, 1],
 							{ extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
@@ -1351,8 +1651,8 @@ const IntroOverlay: React.FC<{
 				/>
 
 				<TextReveal
-					startFrame={LINE_SCHEDULE[3].start}
-					writeFrames={LINE_SCHEDULE[3].write}
+					startFrame={LS[3].start}
+					writeFrames={LS[3].write}
 					{...penProps(3)}
 				>
 					<div
@@ -1361,18 +1661,18 @@ const IntroOverlay: React.FC<{
 							alignItems: 'center',
 							gap: 8,
 							whiteSpace: 'nowrap',
-							paddingTop: 60,
-							paddingBottom: 60,
-							marginTop: -60,
-							marginBottom: -60,
+							paddingTop: 50,
+							paddingBottom: 50,
+							marginTop: -50,
+							marginBottom: -50,
 						}}
 					>
 						<span
 							style={{
-								fontFamily: yosugaraFamily,
-								fontSize: 18,
+								fontFamily: playwriteFamily,
+								fontSize: 48,
 								fontWeight: 400,
-								color: 'rgba(184,160,212,0.7)',
+								color: 'rgba(30,30,40,0.8)',
 								letterSpacing: '0.12em',
 							}}
 						>
@@ -1381,18 +1681,19 @@ const IntroOverlay: React.FC<{
 						<Img
 							src={wordmark}
 							style={{
-								height: 160,
+								height: 280,
 								objectFit: 'contain',
-								marginTop: -60,
-								marginBottom: -60,
+								marginTop: -50,
+								marginBottom: -50,
 								marginLeft: -30,
 								marginRight: -10,
 								filter:
-									'drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 18px rgba(214,197,241,0.3))',
+									'invert(1) drop-shadow(0 0 4px rgba(0,0,0,0.15))',
 							}}
 						/>
 					</div>
-				</TextReveal>
+					</TextReveal>
+				</div>
 			</div>
 		</AbsoluteFill>
 	);
@@ -1582,12 +1883,39 @@ const CrossDissolveBackground: React.FC<CrossDissolveBackgroundProps> = ({
 	crossfadeSeconds = 2,
 }) => {
 	const frame = useCurrentFrame();
-	const { fps } = useVideoConfig();
+	const { fps, durationInFrames } = useVideoConfig();
+
 	const n = videos.length;
 	const segmentFrames = Math.floor(segmentSeconds * fps);
 	const crossfadeFrames = Math.floor(crossfadeSeconds * fps);
-	const cycleFrames = n * segmentFrames;
-	const loopFrame = frame % cycleFrames;
+
+	// Generate a sequence of video picks for the full duration.
+	// Each round shuffles all n videos (each used exactly once per round).
+	// At round boundaries, ensures the first of the next round ≠ last of the previous.
+	const totalSegments = Math.ceil(durationInFrames / segmentFrames) + 2;
+	const pickedIndices = useMemo(() => {
+		if (n === 0) return [];
+		const result: number[] = [];
+		let lastIdx = -1;
+		let round = 0;
+		while (result.length < totalSegments) {
+			// Shuffle all n indices for this round (Fisher-Yates, seeded per round)
+			const arr = Array.from({ length: n }, (_, i) => i);
+			for (let i = arr.length - 1; i > 0; i--) {
+				const j = Math.floor(random(`bg-r${round}-s${i}`) * (i + 1));
+				[arr[i], arr[j]] = [arr[j], arr[i]];
+			}
+			// Ensure first of this round ≠ last of previous round
+			if (n >= 2 && arr[0] === lastIdx) {
+				const swapIdx = 1 + Math.floor(random(`bg-r${round}-fix`) * (n - 1));
+				[arr[0], arr[swapIdx]] = [arr[swapIdx], arr[0]];
+			}
+			result.push(...arr);
+			lastIdx = arr[n - 1];
+			round++;
+		}
+		return result.slice(0, totalSegments);
+	}, [n, totalSegments]);
 
 	const panX = Math.sin((frame / fps) * 0.025) * 1.2;
 	const panY = Math.cos((frame / fps) * 0.018) * 0.8;
@@ -1595,14 +1923,9 @@ const CrossDissolveBackground: React.FC<CrossDissolveBackgroundProps> = ({
 
 	return (
 		<>
-			{videos.map((src, i) => {
-				const segStart = i * segmentFrames;
-				let rel = loopFrame - segStart;
-
-				// Video 0: also fades in at the very end of each cycle (wrap-around)
-				if (i === 0 && loopFrame > cycleFrames - crossfadeFrames) {
-					rel = loopFrame - cycleFrames;
-				}
+			{pickedIndices.map((videoIdx, segIdx) => {
+				const segStart = segIdx * segmentFrames;
+				const rel = frame - segStart;
 
 				let opacity: number;
 				if (rel < -crossfadeFrames || rel >= segmentFrames) {
@@ -1618,9 +1941,9 @@ const CrossDissolveBackground: React.FC<CrossDissolveBackgroundProps> = ({
 				if (opacity <= 0) return null;
 
 				return (
-					<AbsoluteFill key={i} style={{ opacity }}>
+					<AbsoluteFill key={segIdx} style={{ opacity }}>
 						<Video
-							src={src}
+							src={videos[videoIdx]}
 							loop
 							volume={0}
 							style={{
@@ -1666,7 +1989,11 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 	const lyricDataPath = staticFile(`${assetBase}/lyric_animation_data.json`);
 
 	// Intro/Outro timing
-	const introFrames = Math.floor(10 * fps);
+	const introFrames = Math.max(Math.floor(10 * fps), INTRO_TIMELINE.totalFrames + Math.round(0.4 * fps));
+	const introTopExpandStart = INTRO_TIMELINE.topExpandStart;
+	const introTopExpandFrames = Math.max(1, INTRO_TIMELINE.topExpandEnd - introTopExpandStart);
+	const introBottomExpandStart = INTRO_TIMELINE.bottomExpandStart;
+	const introBottomExpandFrames = Math.max(1, INTRO_TIMELINE.bottomExpandEnd - introBottomExpandStart);
 	const tailSilenceFrames = Math.round(2 * fps);
 	const outroLeadFrames = Math.round(0.3 * fps);
 	const audioFadeOutFrames = Math.max(1, Math.round(0.5 * fps));
@@ -1725,49 +2052,30 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 			{/* Music particles */}
 			<MusicParticles />
 
-			{/* Pencil writing sound */}
+			{/* Intro: アニメーションと効果音を1本のSequenceに統合 */}
 			<Sequence durationInFrames={introFrames}>
-				<Audio
-					src={staticFile('assets/write_with_pencil.mp3')}
-					volume={(f) => {
-						const writeEnd = 120;
-						const fadeStart = writeEnd - 20;
-						if (f >= fadeStart) {
-							return interpolate(f, [fadeStart, writeEnd], [0.7, 0], {
-								extrapolateLeft: 'clamp',
-								extrapolateRight: 'clamp',
-							});
-						}
-						if (f >= writeEnd) return 0;
-						return 0.7;
-					}}
-				/>
-			</Sequence>
-
-				{/* Song audio – starts from frame 0 */}
-				<Sequence
-					from={0}
-					durationInFrames={Math.max(1, audioEndFrame)}
-				>
+				<Sequence from={introTopExpandStart} durationInFrames={introTopExpandFrames}>
 					<Audio
-						src={audioSrc}
-						volume={(f) => {
-							const audioDurationFrames = Math.max(1, audioEndFrame);
-							const fadeStart = Math.max(0, audioDurationFrames - audioFadeOutFrames);
-							if (f < fadeStart) return 1;
-							return interpolate(f, [fadeStart, audioDurationFrames], [1, 0], {
-								extrapolateLeft: 'clamp',
-								extrapolateRight: 'clamp',
-							});
-						}}
+						src={staticFile('assets/kamipera.mp3')}
+						volume={(f) => getPaperMoveVolume(f, introTopExpandFrames)}
 					/>
 				</Sequence>
-
-			{/* Spectrum */}
-			<LinearSpectrum audioSrc={audioSrc} />
-
-			{/* Intro */}
-			<Sequence durationInFrames={introFrames}>
+				<Sequence from={introBottomExpandStart} durationInFrames={introBottomExpandFrames}>
+					<Audio
+						src={staticFile('assets/kamipera.mp3')}
+						volume={(f) => getPaperMoveVolume(f, introBottomExpandFrames)}
+					/>
+				</Sequence>
+				<Audio
+					src={staticFile('assets/write_with_pencil.mp3')}
+					volume={(f) => getIntroPencilVolume(f)}
+				/>
+				<Sequence from={INTRO_HIGHLIGHT_START} durationInFrames={INTRO_HIGHLIGHT_DUR}>
+					<Audio
+						src={staticFile('assets/Felt_Tip_Pen01-1(Straight).mp3')}
+						volume={(f) => getHighlightMarkerVolume(f + INTRO_HIGHLIGHT_START)}
+					/>
+				</Sequence>
 				<IntroOverlay
 					title={title}
 					artist={artist}
@@ -1775,20 +2083,42 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 				/>
 			</Sequence>
 
+			{/* Song audio – starts from frame 0 */}
+			<Sequence
+
+				durationInFrames={Math.max(1, audioEndFrame)}
+			>
+				<Audio
+					src={audioSrc}
+					volume={(f) => {
+						const audioDurationFrames = Math.max(1, audioEndFrame);
+						const fadeStart = Math.max(0, audioDurationFrames - audioFadeOutFrames);
+						if (f < fadeStart) return 1;
+						return interpolate(f, [fadeStart, audioDurationFrames], [1, 0], {
+							extrapolateLeft: 'clamp',
+							extrapolateRight: 'clamp',
+						});
+					}}
+				/>
+			</Sequence>
+
+			{/* Spectrum */}
+			<LinearSpectrum audioSrc={audioSrc} />
+
 			{/* Angel feathers */}
-			<Sequence from={0}>
+			<Sequence >
 				<AngelFeathers />
 			</Sequence>
 
 			{/* ★ Lyric Animation Layer ★ */}
-				{lyricData.length > 0 && (
-					<LyricAnimationLayer
-						data={lyricData}
-						songStartFrame={0}
-						songEndFrame={outroStart}
-						supportedCodepoints={supportedCodepoints}
-					/>
-				)}
+			{lyricData.length > 0 && (
+				<LyricAnimationLayer
+					data={lyricData}
+					songStartFrame={0}
+					songEndFrame={outroStart}
+					supportedCodepoints={supportedCodepoints}
+				/>
+			)}
 
 			{/* Outro */}
 			<Sequence from={outroStart} durationInFrames={outroFrames}>
@@ -1806,11 +2136,17 @@ type AcoRielLyricCoverMultiBGProps = {
 	songArtist?: string;
 	audioFileName?: string;
 	audioAssetPath?: string;
-	/** 各背景動画のファイル名 (assetBase 内の相対パス) */
+	/**
+	 * 事前合成済み背景動画のファイル名 (assetBase 内の相対パス)。
+	 * 指定するとこちらを1本のVideoとして読み込む（推奨・カクつき解消）。
+	 * prerender_bg_video.py で生成する。
+	 */
+	prerenderedBgVideo?: string;
+	/** 各背景動画のファイル名 (assetBase 内の相対パス)。prerenderedBgVideo未指定時のみ使用 */
 	backgroundVideos?: string[];
-	/** 1本あたりの表示秒数 (default: 10) */
+	/** 1本あたりの表示秒数 (default: 10)。prerenderedBgVideo未指定時のみ使用 */
 	bgSegmentSeconds?: number;
-	/** クロスディゾルブの秒数 (default: 2) */
+	/** クロスディゾルブの秒数 (default: 2)。prerenderedBgVideo未指定時のみ使用 */
 	bgCrossfadeSeconds?: number;
 };
 
@@ -1820,6 +2156,7 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 	songArtist,
 	audioFileName = 'audio.mp3',
 	audioAssetPath,
+	prerenderedBgVideo,
 	backgroundVideos = ['bg_video_1.mp4'],
 	bgSegmentSeconds = 10,
 	bgCrossfadeSeconds = 2,
@@ -1832,10 +2169,15 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 	const assetBase = songFolder ? `assets/${songFolder}` : 'assets';
 	const audioSrc = staticFile(audioAssetPath ?? `${assetBase}/${audioFileName}`);
 	const lyricDataPath = staticFile(`${assetBase}/lyric_animation_data.json`);
+	const prerenderedBgSrc = prerenderedBgVideo ? staticFile(`${assetBase}/${prerenderedBgVideo}`) : null;
 	const bgVideoSrcs = backgroundVideos.map((v) => staticFile(`${assetBase}/${v}`));
 
 	// Intro/Outro timing
-	const introFrames = Math.floor(10 * fps);
+	const introFrames = Math.max(Math.floor(10 * fps), INTRO_TIMELINE.totalFrames + Math.round(0.4 * fps));
+	const introTopExpandStart = INTRO_TIMELINE.topExpandStart;
+	const introTopExpandFrames = Math.max(1, INTRO_TIMELINE.topExpandEnd - introTopExpandStart);
+	const introBottomExpandStart = INTRO_TIMELINE.bottomExpandStart;
+	const introBottomExpandFrames = Math.max(1, INTRO_TIMELINE.bottomExpandEnd - introBottomExpandStart);
 	const tailSilenceFrames = Math.round(2 * fps);
 	const outroLeadFrames = Math.round(0.3 * fps);
 	const audioFadeOutFrames = Math.max(1, Math.round(0.5 * fps));
@@ -1853,14 +2195,35 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 			.catch((err) => console.error('Failed to load lyric data:', err));
 	}, [lyricDataPath]);
 
+	// パン・ズームアニメーション（事前合成動画使用時）
+	const bgPanX = Math.sin((frame / fps) * 0.025) * 1.2;
+	const bgPanY = Math.cos((frame / fps) * 0.018) * 0.8;
+	const bgZoom = 1.05 + Math.sin((frame / fps) * 0.012) * 0.02;
+
 	return (
 		<AbsoluteFill style={{ backgroundColor: '#0a0a12' }}>
-			{/* Cross-dissolve background videos */}
-			<CrossDissolveBackground
-				videos={bgVideoSrcs}
-				segmentSeconds={bgSegmentSeconds}
-				crossfadeSeconds={bgCrossfadeSeconds}
-			/>
+			{/* 背景動画: 事前合成済み or CrossDissolve */}
+			{prerenderedBgSrc ? (
+				<AbsoluteFill>
+					<Video
+						src={prerenderedBgSrc}
+						volume={0}
+						style={{
+							width: '100%',
+							height: '100%',
+							objectFit: 'cover',
+							// 輝度・彩度は prerender_bg_video.py でベイク済み
+							transform: `scale(${bgZoom}) translate(${bgPanX}%, ${bgPanY}%)`,
+						}}
+					/>
+				</AbsoluteFill>
+			) : (
+				<CrossDissolveBackground
+					videos={bgVideoSrcs}
+					segmentSeconds={bgSegmentSeconds}
+					crossfadeSeconds={bgCrossfadeSeconds}
+				/>
+			)}
 
 			{/* Gradient overlay */}
 			<AbsoluteFill
@@ -1881,27 +2244,35 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 			{frame < outroStart && <ChannelBrandBadge />}
 			<MusicParticles />
 
-			{/* Pencil writing sound */}
+			{/* Intro: アニメーションと効果音を1本のSequenceに統合 */}
 			<Sequence durationInFrames={introFrames}>
+				<Sequence from={introTopExpandStart} durationInFrames={introTopExpandFrames}>
+					<Audio
+						src={staticFile('assets/kamipera.mp3')}
+						volume={(f) => getPaperMoveVolume(f, introTopExpandFrames)}
+					/>
+				</Sequence>
+				<Sequence from={introBottomExpandStart} durationInFrames={introBottomExpandFrames}>
+					<Audio
+						src={staticFile('assets/kamipera.mp3')}
+						volume={(f) => getPaperMoveVolume(f, introBottomExpandFrames)}
+					/>
+				</Sequence>
 				<Audio
 					src={staticFile('assets/write_with_pencil.mp3')}
-					volume={(f) => {
-						const writeEnd = 120;
-						const fadeStart = writeEnd - 20;
-						if (f >= fadeStart) {
-							return interpolate(f, [fadeStart, writeEnd], [0.7, 0], {
-								extrapolateLeft: 'clamp',
-								extrapolateRight: 'clamp',
-							});
-						}
-						if (f >= writeEnd) return 0;
-						return 0.7;
-					}}
+					volume={(f) => getIntroPencilVolume(f)}
 				/>
+				<Sequence from={INTRO_HIGHLIGHT_START} durationInFrames={INTRO_HIGHLIGHT_DUR}>
+					<Audio
+						src={staticFile('assets/Felt_Tip_Pen01-1(Straight).mp3')}
+						volume={(f) => getHighlightMarkerVolume(f + INTRO_HIGHLIGHT_START)}
+					/>
+				</Sequence>
+				<IntroOverlay title={title} artist={artist} durationFrames={introFrames} />
 			</Sequence>
 
 			{/* Song audio */}
-			<Sequence from={0} durationInFrames={Math.max(1, audioEndFrame)}>
+			<Sequence durationInFrames={Math.max(1, audioEndFrame)}>
 				<Audio
 					src={audioSrc}
 					volume={(f) => {
@@ -1918,13 +2289,8 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 
 			<LinearSpectrum audioSrc={audioSrc} />
 
-			{/* Intro */}
-			<Sequence durationInFrames={introFrames}>
-				<IntroOverlay title={title} artist={artist} durationFrames={introFrames} />
-			</Sequence>
-
 			{/* Angel feathers */}
-			<Sequence from={0}>
+			<Sequence >
 				<AngelFeathers />
 			</Sequence>
 
