@@ -73,7 +73,11 @@
       "Bash(netlify deploy:*)",
       "Bash(npm run:*)",
       "Bash(lsof -ti:3000)",
-      "Bash(lsof -i :3000)"
+      "Bash(lsof -i :3000)",
+      "Bash(whisper --version)",
+      "Bash(brew list)",
+      "Bash(whisper-cpp --version)",
+      "Bash(brew reinstall openai-whisper)"
     ]
   },
   "enableAllProjectMcpServers": true,

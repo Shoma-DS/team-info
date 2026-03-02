@@ -54,6 +54,16 @@ Remotion/my-video/
   - NG例: `AcoRiel_LOVE_PHANTOM`（Remotionがエラーを投げて全Compositionが壊れる）
 - 削除はユーザーが明示的に指示した場合のみ行う
 
+### MultiBG の曲フォルダ構成（事前合成動画使用時）
+
+```
+songs/[曲名]/
+├── audio.mp3
+├── lyric_animation_data.json
+├── bg_prerendered.mp4        ← prerender_bg_video.py で生成する（必須）
+└── freepik_*.mp4 など         ← 素材動画（prerender後はRemotionから参照しない）
+```
+
 ## 素材参照先
 - カバー曲音源: `Remotion/my-video/public/assets/channels/acoriel/songs/`
 - 歌詞TXT: `Remotion/my-video/public/assets/channels/acoriel/lyrics/`
@@ -98,7 +108,17 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
 2. 歌詞TXT（`.txt`）— **任意**。歌詞字幕を使わない場合はスキップ可能。
 3. **背景素材**（テンプレートによって異なる）
    - `LyricCover` の場合: 背景画像（`.png` `.jpg` `.jpeg`）を選択する
-   - `MultiBG` の場合: ユーザーが用意する動画ファイルのファイル名・本数を確認する（例: `bg_video_1.mp4`, `bg_video_2.mp4`）。この時点ではファイルの実在確認は不要。
+   - `MultiBG` の場合:
+     1. 曲フォルダ `Remotion/my-video/public/assets/songs/[曲名]/` を即座に作成する。
+     2. ユーザーに以下を表示して待機する:
+        ```
+        背景動画ファイルを以下のフォルダに配置してください。
+        配置先: Remotion/my-video/public/assets/songs/[曲名]/
+        ファイル名は自由（例: bg_video_1.mp4, 夏の海.mp4 など）
+        配置が完了したら「準備できました」と教えてください。
+        ```
+     3. ユーザーから配置完了の応答が得られたら、フォルダを `ls` でスキャンし実在する `.mp4` ファイル一覧を取得する。
+     4. 取得したファイル名をそのまま `backgroundVideos` props に使用する。
 4. エフェクト設定（既存テンプレート or 新規作成）
 - 候補0件の**必須**項目（曲・背景）があれば編集を止め、不足素材を報告する。
 - カスタムエフェクトを新規作成した場合は、都度日本語名を付けて保存する。
@@ -107,10 +127,47 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
 ### LRC解決ルール（必須）
 - 歌詞TXTを選択した場合は、以下の順で `lyrics.lrc` を確定する:
 1. `Remotion/scripts/lyrics/` に該当曲のLRCがあればそれを採用する。
-2. 該当LRCが無ければ、選択した音源から **Whisper** で文字起こししてLRCを新規作成する。
-- Whisperで生成したLRCは、曲名とアーティストが分かるファイル名で `Remotion/scripts/lyrics/` に保存する。
+2. 該当LRCが無ければ、**字幕生成スクリプト** で作成する。以下のコマンドをユーザーに提示し、**プロジェクトルート（`team-info/`）から別ターミナルで実行**するよう案内して待機する:
+   ```bash
+   Remotion/.venv/bin/python3.11 -u .agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py "Remotion/my-video/public/assets/channels/acoriel/songs/[曲名].mp3" --lyrics "Remotion/my-video/public/assets/channels/acoriel/lyrics/[曲名].txt" --output "Remotion/scripts/lyrics/[曲名].lrc" --output-format lrc --intro-label "(イントロ)" --intro-min-seconds 0.30 --model large-v3 --language ja
+   ```
+   - このコマンドは先頭イントロ `(イントロ)` を自動挿入し、最初の歌詞開始時刻を単語単位で合わせる。
+   - `-u` と進捗バーで長時間処理中の進捗が見える。
+   - コマンドは常にプロジェクトルートからの相対パスで提示する（`cd` 不要の1行コマンド）。
+   - 完了したら「終わりました」と伝えるよう案内する。
+   - ユーザーから完了報告が得られるまで次工程に進まない。
+   - 完了後、`Remotion/scripts/lyrics/` をスキャンし、生成された `.lrc` ファイルを確認する。
 - LRC確定後は、**必ず**歌詞TXTと行単位で照合し、誤字脱字・欠落・不要行がないことを確認する。
 - 照合で問題があればLRCを修正し、問題が解消するまで次工程に進まない。
+
+### LRCへの間奏・アウトロ挿入ルール（必須）
+
+LRC照合が完了したら、以下のルールで間奏・アウトロを挿入または確認する:
+
+**間奏（instrumental）の挿入**
+- 連続する2行のLRCエントリを比べたとき、前の行のタイムスタンプから **8秒以上** 後に次の行が来る場合、その空白期間を「間奏」とみなす。
+- 間奏の開始タイムスタンプを決める:
+  - 前の行の歌詞が歌い終わる頃（前の行のタイムスタンプ + 推定歌唱時間、目安は5〜8秒）に `（間奏）` エントリを挿入する。
+  - 不明な場合は前の行タイムスタンプ + 5秒を目安にする。
+- 挿入フォーマット例:
+  ```
+  [01:50.94]抱きしめて
+  [01:55.94]（間奏）          ← 前行の5秒後
+  [02:12.98]辿り着いた
+  ```
+
+**アウトロの挿入**
+- 最後の歌詞行のあと、音源終了まで **5秒以上** 残っている場合、アウトロとみなす。
+- 最後の歌詞が歌い終わる頃（最後の行タイムスタンプ + 推定歌唱時間）に `（アウトロ）` エントリを挿入する。
+- 挿入フォーマット例:
+  ```
+  [04:53.09]抱きしめて
+  [04:57.09]（アウトロ）      ← 最後の歌詞の4秒後、音源終了まで続く
+  ```
+
+**LRCを変更したらJSONにも反映させる（必須）**
+- LRCを変更した場合、`lyric_animation_data.json` も必ず更新する。
+- 間奏・アウトロエントリをJSONに追加し、直前のエントリの `duration` を短縮して間奏開始時刻に合わせる。
 
 ### AIカバー時の追加ルール（必須）
 - AIカバーの場合は、以下を毎回この順で確定する:
@@ -144,6 +201,86 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
 - `Playwrite NZ Basic` が `@remotion/google-fonts` に無い場合は、`<link rel="stylesheet">` で読み込んで使う。
 - 既存コードでフォントを差し替える際、`npm run lint` を必ず通す。
 
+## 事前確認フロー（Phase 0）
+
+スキル起動直後、編集を始める前に以下を順番に実施する。
+
+### Step 0-1: 全体フローを提示
+
+ユーザーに以下の全体フローを表示する：
+
+```
+【制作フロー】
+Phase 0: 事前確認（← いまここ）
+  └ フロー提示 → 素材置き場案内 → 素材チェック → 準備確認
+
+Phase 1: テンプレート＆素材選択
+  └ テンプレート選択 → 音源/歌詞/背景/エフェクト確定
+
+Phase 2: LRC・概要欄生成
+  └ LRC確定（Whisper or 既存）→ 歌詞照合 → 概要欄生成
+
+Phase 3: Remotion実装
+  └ 曲フォルダ作成 → JSON生成 → （MultiBG: 背景動画事前合成） → Root.tsx追記
+
+Phase 4: 確認・レンダリング
+  └ lint → remotion studio → レンダリング（承認後）
+```
+
+### Step 0-2: 素材の置き場所を案内
+
+以下の表をユーザーに提示する：
+
+| 素材の種類 | 置き場所 | ファイル形式 |
+|---|---|---|
+| 音源 | `Remotion/my-video/public/assets/channels/acoriel/songs/` | `.mp3`（WAV不可） |
+| 歌詞TXT | `Remotion/my-video/public/assets/channels/acoriel/lyrics/` | `.txt` |
+| 背景画像 | `Remotion/my-video/public/assets/channels/acoriel/backgrounds/` | `.png` `.jpg` `.jpeg` |
+| 歌詞LRC（既存） | `Remotion/scripts/lyrics/` | `.lrc` |
+| エフェクトテンプレ | `Remotion/my-video/public/assets/channels/acoriel/effects/templates/` | `.md` |
+| 背景動画（MultiBG用） | 後で `Remotion/my-video/public/assets/songs/[曲名]/` に配置 | `.mp4` |
+
+### Step 0-3: 素材チェック（フォルダスキャン）
+
+以下の5つのフォルダを `ls` でスキャンし、現在の素材をユーザーに提示する：
+
+- `Remotion/my-video/public/assets/channels/acoriel/songs/`
+- `Remotion/my-video/public/assets/channels/acoriel/lyrics/`
+- `Remotion/my-video/public/assets/channels/acoriel/backgrounds/`
+- `Remotion/scripts/lyrics/`
+- `Remotion/my-video/public/assets/channels/acoriel/effects/templates/`
+
+提示フォーマット例：
+```
+【現在の素材状況】
+🎵 音源（songs/）: SAY_YES.mp3, LOVE_PHANTOM.mp3 ... （N件）
+📝 歌詞TXT（lyrics/）: SAY YES.txt ... （N件）
+🖼️ 背景画像（backgrounds/）: ギター窓.png ... （N件）
+🎬 LRC（scripts/lyrics/）: SAY_YES_Chage_and_Aska.lrc ... （N件）
+✨ エフェクト（effects/templates/）: 銀粒子_低刺激リリック.md ... （N件）
+
+⚠️ 音源がまだない場合は上記フォルダに MP3 を追加してください。
+```
+
+### Step 0-4: 準備確認（必須ゲート）
+
+以下のメッセージをユーザーに表示し、確認応答を待つ：
+
+```
+制作を始める曲の素材は揃っていますか？
+最低限必要なもの：
+  ✅ 音源（.mp3）
+  ✅ 背景画像（.png/.jpg）— LyricCover の場合
+
+揃っていれば「準備できました」と教えてください。
+追加素材がある場合は素材を配置してから教えてください。
+```
+
+- ユーザーの確認応答を受けて初めて以下の `## 編集フロー` の Step 1 に進む。
+- 確認前に Step 1 以降を実行してはならない。
+
+---
+
 ## 編集フロー
 1. チャンネル情報とテンプレート仕様を読み、トーン（エレガント・透明感）を固定する。
 1.5. **編集テンプレートを選択する**（必須）
@@ -155,7 +292,7 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
    - ユーザーから一言メモがあれば反映、なければ曲名から連想して生成。
 3. **歌詞LRCを確定する**（歌詞字幕を使う場合・必須）
    - 選択済みTXTに対応するLRCを `Remotion/scripts/lyrics/` から探索する。
-   - 見つからなければWhisperで音源からLRCを生成する。
+   - 見つからなければ `transcribe_to_lrc.py` で音源からLRCを生成する。
    - 生成/採用したLRCを、歌詞TXTと照合して誤字脱字・欠落がないことを確認する。
 4. **曲フォルダを作成する**（必須）
    - フォルダ名のスペースはアンダースコアに変換する（例: `Tomorrow_never_knows`）
@@ -163,17 +300,21 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
    - 音源は **WAV → MP3 変換してから** `audio.mp3` として配置する（上記「音源変換ルール」参照）。
    - `LyricCover` の場合: 背景画像・歌詞LRCをそのままコピーする。
    - `MultiBG` の場合: 歌詞LRCのみコピーする。背景動画はユーザーが手動配置するため、この時点では配置しない。
+4.3. **（MultiBG のみ）背景動画を事前合成する**（必須）
+   - 背景動画の配置が完了したら、以下のコマンドで `bg_prerendered.mp4` を生成する:
+     ```bash
+     python3 Remotion/scripts/prerender_bg_video.py \
+       --output Remotion/my-video/public/assets/songs/[曲名]/bg_prerendered.mp4 \
+       --segment-sec 5 --crossfade-sec 1 \
+       --total-sec [コンポジションのフレーム数÷fps] \
+       --fps 30 --width 1920 --height 1080 --seed 42 \
+       Remotion/my-video/public/assets/songs/[曲名]/*.mp4
+     ```
+   - `--total-sec` は `durationInFrames ÷ fps`（例: 9630÷30=321）
+   - 生成には数分かかる。完了後 `bg_prerendered.mp4` が曲フォルダに存在することを確認する。
+   - Root.tsx では `prerenderedBgVideo: 'bg_prerendered.mp4'` のみを指定する（`backgroundVideos` 不要）。
    - 既存の曲フォルダは触らない。
-4.25. **背景動画ファイルの配置確認**（`MultiBG` テンプレートの場合のみ・必須ゲート）
-   - 以下のメッセージをユーザーに表示して確認を待つ:
-     ```
-     背景動画ファイルを以下のフォルダに配置してください。
-     配置先: Remotion/my-video/public/assets/songs/[曲名]/
-     ファイル名（確定済み）: bg_video_1.mp4, bg_video_2.mp4, ...
-     配置が完了したら「配置しました」と教えてください。
-     ```
-   - ユーザーから配置完了の応答が得られるまで、次工程（4.5 以降）には進まない。
-   - 配置完了後、`ls` でファイルの実在を確認してから次工程に進む。
+4.25. **（削除）** 背景動画の配置確認は 素材選択ルール の `MultiBG` 手順（素材 3/4）に統合済み。このステップはスキップする。
 4.5. **`lyric_animation_data.json` を新規作成する**（歌詞字幕を使う場合・必須）
    - **絶対に他の曲の `lyric_animation_data.json` をコピーして流用しない**（歌詞が別曲になる）。
    - LRC ファイルのタイムスタンプを秒に変換し、以下のフォーマットで JSON を生成する:
@@ -194,21 +335,31 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
      ```
    - `words` の `start`/`end` はそのエントリの `time` からの相対秒数（0始まり）。
    - サビ行は `"label": "サビ"` にするとフォントサイズ・グロウが強調される。
-   - 最終エントリの `duration` は全体尺 - `time` で埋める。
+   - **間奏・アウトロエントリの扱い:**
+     - LRCに `（間奏）` があれば JSON にもそのままエントリを追加する。直前エントリの `duration` は `（間奏）` の開始時刻 - 直前エントリの `time` に短縮する。
+     - LRCに `（アウトロ）` があれば JSON に追加する。直前エントリの `duration` を短縮し、アウトロエントリの `duration` は `音源終了秒 - アウトロ開始時刻` にする。
+     - 間奏・アウトロエントリは `"label": "Verse"` で、`animation.in` は `"Karaoke"`、`inDurationFrames: 15, outDurationFrames: 15` を使う。
+     - `words` は `[{"word": "（間奏）", "start": 0, "end": min(duration, 3.0)}]` のように1フレーズで収める。
+   - 最終エントリ（アウトロがある場合はアウトロ）の `duration` は `音源終了秒 - time` で埋める。
    - 作成後 `Remotion/my-video/public/assets/songs/[曲名]/lyric_animation_data.json` に保存する。
 5. `AcoRielLyricCover.tsx` が props（`songFolder` など）でアセットパスを切り替えられる構造になっているか確認し、必要なら対応する。
 6. `Root.tsx` に今回の曲のCompositionを**追記**する（既存Compositionは削除しない）。
    - Composition ID は **ハイフン区切り**で命名する（アンダースコア禁止）
    - `LyricCover` の場合: `AcoRiel-[曲名]-Lyric`（例: `AcoRiel-TomorrowNeverKnows-Lyric`）
    - `MultiBG` の場合: `AcoRiel-[曲名]-MultiBG`（例: `AcoRiel-SAY-YES-MultiBG`）
-   - `MultiBG` の場合は `backgroundVideos`・`bgSegmentSeconds`・`bgCrossfadeSeconds` も props に含める。
+   - `MultiBG` の場合は `prerenderedBgVideo: 'bg_prerendered.mp4'` を props に含める（`backgroundVideos` などは不要）。
    - 対応する曲フォルダのパスをpropsで渡す。
 7. `Remotion/my-video/` で `npm run lint` を実行し、エラーを解消する。
-8. **`Remotion/my-video/` ディレクトリから** `npx remotion studio` を起動する。
-   - 起動コマンド例: `cd /path/to/Remotion/my-video && npx remotion studio`
-   - **誤ったディレクトリから起動するとプロジェクトが認識されず黒画面になる。**
-9. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `npx remotion render ...` コマンドを提示する。
-   - レンダリング前の確認文言は必ず `出力しますか？書き出しますか？` を使う。
-   - 過去ターンで承認があっても、レンダリング直前に毎回確認する。
-   - レンダリング出力先: `outputs/acoriel/renders/[曲名].mp4`
+8. lint 通過後、以下のコマンドをユーザーに提示してプレビューを依頼する（自分では起動しない）：
+   ```bash
+   npx remotion studio
+   ```
+   - プロジェクトルート（`team-info/`）から実行してください、と案内する。
+   - サイドバーで対象 Composition を選んで確認するよう伝える。
+   - プレビュー確認後、問題があれば報告するよう伝える。
+9. レンダリングは実行しない。以下のコピペ可能なコマンドをユーザーに提示するだけにする：
+   ```bash
+   cd Remotion/my-video && npx remotion render --composition=AcoRiel-[曲名]-MultiBG --output=../../outputs/acoriel/renders/[曲名].mp4
+   ```
+   - 出力先: `outputs/acoriel/renders/[曲名].mp4`
 10. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

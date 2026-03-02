@@ -211,15 +211,35 @@ la la la la la love song
 #### 1-1. スクリプトの実行
 
 ```bash
-/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
+/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 -u \
   /Users/deguchishouma/team-info/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
   "<音源ファイルパス>" \
   --lyrics "<歌詞ファイルパス>" \
   --output "Remotion/my-video/public/assets/<歌詞ファイル名と同名>.lrc" \
+  --output-format lrc \
   --json Remotion/my-video/public/assets/lyric_animation_data.json \
+  --intro-label "(イントロ)" \
+  --intro-min-seconds 0.30 \
   --model medium \
   --language ja
 ```
+
+**SRTも同じスクリプトで生成する（推奨）**
+```bash
+/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 -u \
+  /Users/deguchishouma/team-info/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
+  "<音源ファイルパス>" \
+  --lyrics "<歌詞ファイルパス>" \
+  --output "Remotion/scripts/lyrics/<曲名>.srt" \
+  --output-format srt \
+  --intro-label "(イントロ)" \
+  --intro-min-seconds 0.30 \
+  --model medium \
+  --language ja
+```
+
+※ `whisper ... --output_format srt` の直接実行では、先頭イントロ補助字幕が入らないため非推奨。  
+このスクリプトは `LRC/SRT` の両方で「先頭イントロ + 歌い出し時刻合わせ」を行う。
 
 **出力ファイル:**
 | ファイル | 説明 |
@@ -237,9 +257,26 @@ la la la la la love song
 |------|------|-----------|
 | `--lyrics` | 歌詞テキストファイル（精度向上用プロンプト） | なし |
 | `--output` | 出力LRCファイルパス | 音声と同名.lrc |
+| `--output-format` (`--output_format`) | 出力形式 | `lrc` |
 | `--json` | カラオケ用JSONの出力パス | なし（指定時のみ出力） |
 | `--model` | Whisperモデルサイズ (`tiny`/`base`/`small`/`medium`/`large-v3`) | `medium` |
 | `--language` | 言語コード | `ja` |
+| `--intro-label` | イントロ表示テキスト | `(イントロ)` |
+| `--intro-min-seconds` | この秒数以上の無歌唱区間があると先頭にイントロを自動挿入 | `0.30` |
+| `--always-intro` | 先頭に必ずイントロを入れる | オフ |
+| `--disable-intro` | イントロ自動挿入を無効化 | オフ |
+| `--no-progress` | 進捗バーを無効化 | オフ |
+
+**先頭表示ルール（必須）**
+- `transcribe_to_lrc.py` は単語タイムスタンプを優先して、最初の歌詞開始時刻を検出する。
+- 最初の歌詞開始が `--intro-min-seconds` 以上なら、`[00:00.00](イントロ)` を自動で入れる。
+- これにより「最初はイントロ表示」「最初の歌詞は歌い出し時刻から表示」を標準化する。
+- 誤判定時のみ手動でLRC先頭を調整する。
+
+**進捗表示ルール（必須）**
+- 実行コマンドは `python -u` を使い、進捗表示をリアルタイムで流す。
+- スクリプトは `tqdm` で進捗バーを表示する（長時間処理でも止まって見えにくくする）。
+- 進捗バーを消したい場合のみ `--no-progress` を使う。
 
 #### 1-2. 生成ファイルの確認・修正 (自動チェック)
 
@@ -258,7 +295,7 @@ la la la la la love song
 #### 1-3. 手動修正とJSON確認
 - 自動チェックで問題がなければ、念のためLRCファイルのタイムスタンプを確認
 - JSONの `label` フィールドに歌詞テキストのセクションラベルを反映
-- 前奏/後奏など歌詞外区間がある場合は、`(イントロ)` / `(アウトロ)` の補助字幕を LRC と JSON に追加
+- 前奏/後奏など歌詞外区間がある場合は、`(イントロ)` / `(アウトロ)` の補助字幕を LRC と JSON に追加（先頭イントロは自動挿入が基本）
 
 ---
 
