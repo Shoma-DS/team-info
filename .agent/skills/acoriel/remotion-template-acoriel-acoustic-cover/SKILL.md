@@ -49,9 +49,10 @@ Remotion/my-video/
 
 ### Root.tsx への登録ルール
 - 新曲追加時は既存のCompositionを消さず、末尾に追記する
-- **Composition ID に使えるのは `a-z A-Z 0-9 CJK文字 -` のみ**。アンダースコア `_` は使用禁止。
-  - OK例: `AcoRiel-LOVE-PHANTOM`、`AcoRiel-TomorrowNeverKnows-Lyric`
-  - NG例: `AcoRiel_LOVE_PHANTOM`（Remotionがエラーを投げて全Compositionが壊れる）
+- **Composition ID に使えるのは `a-z A-Z 0-9 漢字（Han）-` のみ**。アンダースコア `_`、ひらがな、カタカナは使用禁止。
+  - OK例: `AcoRiel-LOVE-PHANTOM`、`AcoRiel-TomorrowNeverKnows-Lyric`、`AcoRiel-Seishun-Amigo-MultiBG`
+  - NG例: `AcoRiel_LOVE_PHANTOM`（アンダースコア）、`AcoRiel-拝啓十五の君へ-MultiBG`（ひらがな「へ」を含む）
+  - 日本語曲名はローマ字表記にする（例: 青春アミーゴ→`Seishun-Amigo`、手紙→`Tegami`）
 - 削除はユーザーが明示的に指示した場合のみ行う
 
 ### MultiBG の曲フォルダ構成（事前合成動画使用時）
@@ -307,25 +308,29 @@ Phase 4: 確認・レンダリング
        Remotion/my-video/public/assets/songs/[曲名]/audio.mp3 \
        | python3 -c "import sys,json; d=json.load(sys.stdin); print(round(float(d['format']['duration']), 3))"
      ```
-   - 取得した秒数を `[音源の秒数]` に入れて以下を実行する:
+   - 取得した秒数を確認したら、**自分では実行せず**、以下のコマンドをユーザーに提示して**プロジェクトルート（`team-info/`）から別ターミナルで実行**するよう案内して待機する:
      ```bash
      python3 Remotion/scripts/prerender_bg_video.py \
        --output Remotion/my-video/public/assets/songs/[曲名]/bg_prerendered.mp4 \
-       --segment-sec 10 --crossfade-sec 3 \
+       --crossfade-sec 1.5 \
        --total-sec [音源の秒数] \
        --fps 30 --width 1920 --height 1080 \
-       Remotion/my-video/public/assets/songs/[曲名]/*.mp4
+       --ping-pong \
+       "Remotion/my-video/public/assets/songs/[曲名]/"*.mp4
      ```
-   - **注意**: `--segment-sec` が入力動画の実尺を超えている場合、スクリプトが自動でクランプする（警告が表示される）。正常動作なので無視してよい。
+   - 完了したら「終わりました」と伝えるよう案内する。
+   - ユーザーから完了報告が得られるまで次工程に進まない。
+   - `--ping-pong`: 各クリップを順再生→逆再生（計 min_dur×2 秒）で繋ぐ。ループ感が出ず、2往復で自然に次の素材へ切り替わる。`--segment-sec` は自動計算されるので不要。
+   - `--crossfade-sec 1.5`: クリップ切り替え時に1.5秒フェード。
    - 既存の `bg_prerendered_seed*.mp4` は入力グロブから自動除外される。
    - `--total-sec` は必ず音源の実尺（ffprobeで取得）を使う。`durationInFrames ÷ fps` は誤差が出る場合があるので使わない。
    - 出力ファイル名は seed 値込みで自動決定される（例: `bg_prerendered_seed1872634591.mp4`）。
-   - 生成には数分かかる。完了ログに以下が表示されるのでファイル名を控える:
+   - 完了ログに以下が表示されるのでファイル名を控える:
      ```
      ▶ Root.tsx に設定するファイル名: 'bg_prerendered_seed1872634591.mp4'
         prerenderedBgVideo: 'bg_prerendered_seed1872634591.mp4'
      ```
-   - 生成完了後、Root.tsx の該当 Composition の `prerenderedBgVideo` をログのファイル名に更新する。
+   - 完了後、Root.tsx の該当 Composition の `prerenderedBgVideo` をログのファイル名に更新する。
    - 既存の曲フォルダは触らない。
 4.25. **（削除）** 背景動画の配置確認は 素材選択ルール の `MultiBG` 手順（素材 3/4）に統合済み。このステップはスキップする。
 4.5. **`lyric_animation_data.json` を新規作成する**（歌詞字幕を使う場合・必須）
@@ -360,14 +365,14 @@ Phase 4: 確認・レンダリング
    - Composition ID は **ハイフン区切り**で命名する（アンダースコア禁止）
    - `LyricCover` の場合: `AcoRiel-[曲名]-Lyric`（例: `AcoRiel-TomorrowNeverKnows-Lyric`）
    - `MultiBG` の場合: `AcoRiel-[曲名]-MultiBG`（例: `AcoRiel-SAY-YES-MultiBG`）
-   - `MultiBG` の場合は `prerenderedBgVideo: 'bg_prerendered.mp4'` を props に含める（`backgroundVideos` などは不要）。
+   - `MultiBG` の場合は、Step 4.3 の完了ログに表示された `prerenderedBgVideo: 'bg_prerendered_seed[N].mp4'` の値を props に設定する（`backgroundVideos` などは不要）。
    - 対応する曲フォルダのパスをpropsで渡す。
 7. `Remotion/my-video/` で `npm run lint` を実行し、エラーを解消する。
 8. lint 通過後、以下のコマンドをユーザーに提示してプレビューを依頼する（自分では起動しない）：
    ```bash
-   npx remotion studio
+   cd Remotion/my-video && npx remotion studio
    ```
-   - プロジェクトルート（`team-info/`）から実行してください、と案内する。
+   - `Remotion/my-video/` ディレクトリから実行してください、と案内する。
    - サイドバーで対象 Composition を選んで確認するよう伝える。
    - プレビュー確認後、問題があれば報告するよう伝える。
 9. レンダリングは実行しない。以下のコピペ可能なコマンドをユーザーに提示するだけにする：

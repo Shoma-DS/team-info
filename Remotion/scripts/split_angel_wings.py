@@ -9,9 +9,11 @@
 
 from PIL import Image, ImageFilter
 import numpy as np
+from pathlib import Path
 
-SRC = "/Users/deguchishouma/team-info/Remotion/my-video/public/assets/angel-wings.png"
-OUT = "/Users/deguchishouma/team-info/Remotion/my-video/public/assets/"
+ASSET_DIR = Path(__file__).resolve().parents[1] / "my-video/public/assets/channels/acoriel/common"
+SRC = ASSET_DIR / "angel-wings.png"
+OUT = ASSET_DIR
 
 
 def remove_bg(img: Image.Image) -> Image.Image:
@@ -68,7 +70,7 @@ def main():
 
     for filename, box in parts.items():
         part = rgba.crop(box)
-        out_path = OUT + filename
+        out_path = OUT / filename
         part.save(out_path, "PNG")
         # 確認用に非透過版も保存
         checker = Image.new("RGB", part.size, (200, 200, 200))
