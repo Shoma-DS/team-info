@@ -220,7 +220,7 @@ type FeatherSprite = {
 
 const AngelFeathers: React.FC = () => {
 	const frame = useCurrentFrame();
-	const featherImage = staticFile('assets/angel_feather_sheet.png');
+	const featherImage = staticFile('assets/channels/acoriel/common/angel_feather_sheet.png');
 
 	const feathers = useMemo(() => {
 		const rnd = seedRand(20260214);
@@ -316,8 +316,8 @@ const useSongAudioData = (src: string) => {
 };
 
 const ChannelBrandBadge: React.FC = () => {
-	const icon = staticFile('assets/channel-icon.png');
-	const wordmark = staticFile('assets/channel-wordmark.png');
+	const icon = staticFile('assets/channels/acoriel/common/channel-icon.png');
+	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	return (
 		<AbsoluteFill style={{ pointerEvents: 'none' }}>
@@ -595,8 +595,8 @@ const IntroOverlay: React.FC<{
 	durationFrames: number;
 }> = ({ title, artist, durationFrames }) => {
 	const frame = useCurrentFrame();
-	const wordmark = staticFile('assets/channel-wordmark.png');
-	const featherPen = staticFile('assets/feather_pen.png');
+	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
+	const featherPen = staticFile('assets/channels/acoriel/common/feather_pen.png');
 
 	// Overall fade in / fade out
 	const fadeIn = interpolate(frame, [0, 15], [0, 1], {
@@ -780,8 +780,8 @@ const OutroOverlay: React.FC<{ durationFrames: number }> = ({
 	durationFrames,
 }) => {
 	const frame = useCurrentFrame();
-	const channelIcon = staticFile('assets/channel-icon.png');
-	const channelWordmark = staticFile('assets/channel-wordmark.png');
+	const channelIcon = staticFile('assets/channels/acoriel/common/channel-icon.png');
+	const channelWordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	const fadeIn = interpolate(frame, [0, 30], [0, 1], {
 		extrapolateRight: 'clamp',
@@ -926,7 +926,7 @@ export const AcoRielCover: React.FC = () => {
 			{/* Pencil writing sound – fades out when text finishes writing (~115f) */}
 			<Sequence durationInFrames={introFrames}>
 				<Audio
-					src={staticFile('assets/write_with_pencil.mp3')}
+					src={staticFile('assets/channels/acoriel/common/write_with_pencil.mp3')}
 					volume={(f) => {
 						// Fade out around frame 100-120 (when last line finishes)
 						const writeEnd = 120;

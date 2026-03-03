@@ -149,6 +149,7 @@ def build_chunk_cmd(
     height: int,
     brightness: float,
     saturation: float,
+    ping_pong: bool = False,
 ) -> tuple[list[str], float]:
     """チャンクレンダリング用 ffmpeg コマンドと期待出力秒数を返す。"""
     n = len(chunk_paths)
@@ -156,12 +157,18 @@ def build_chunk_cmd(
     expected_sec = n * segment_sec - (n - 1) * crossfade_sec
 
     cmd = ["ffmpeg", "-y"]
-    for path in chunk_paths:
-        cmd += ["-t", str(segment_sec), "-i", path]
+    if ping_pong:
+        # ping-pong: クリップ自然尺で読み込む（reverse フィルタが全フレームをバッファ）
+        for path in chunk_paths:
+            cmd += ["-i", path]
+    else:
+        for path in chunk_paths:
+            # -stream_loop -1 で短い素材でも segment_sec まで無限ループして埋める
+            cmd += ["-stream_loop", "-1", "-t", str(segment_sec), "-i", path]
 
     filters = []
     for i in range(n):
-        filters.append(
+        base = (
             f"[{i}:v]"
             f"scale={width}:{height}:force_original_aspect_ratio=increase,"
             f"crop={width}:{height},"
@@ -170,8 +177,15 @@ def build_chunk_cmd(
             f"colorchannelmixer=rr={brightness}:gg={brightness}:bb={brightness},"
             f"hue=s={saturation},"
             f"setpts=PTS-STARTPTS"
-            f"[nv{i}]"
         )
+        if ping_pong:
+            # 順再生 → 逆再生 を concat して ping-pong 効果
+            filters.append(f"{base}[pre{i}]")
+            filters.append(f"[pre{i}]split=2[fwd{i}][revin{i}]")
+            filters.append(f"[revin{i}]reverse[rev{i}]")
+            filters.append(f"[fwd{i}][rev{i}]concat=n=2:v=1[nv{i}]")
+        else:
+            filters.append(f"{base}[nv{i}]")
 
     if n == 1:
         filters.append("[nv0]setpts=PTS-STARTPTS[out]")
@@ -268,6 +282,10 @@ def main() -> None:
     parser.add_argument("--brightness", type=float, default=0.68, help="輝度係数（CSS brightness相当）")
     parser.add_argument("--saturation", type=float, default=0.72, help="彩度係数（CSS saturate相当）")
     parser.add_argument("--chunk-size", type=int, default=CHUNK_SIZE, help="チャンクあたりのセグメント数")
+    parser.add_argument(
+        "--ping-pong", action="store_true",
+        help="各クリップを順再生→逆再生でループ（segment-sec は min_dur×2 に自動設定）"
+    )
     parser.add_argument("videos", nargs="+", help="入力動画ファイル（複数可）")
     args = parser.parse_args()
 
@@ -310,25 +328,33 @@ def main() -> None:
         print("ERROR: 有効な入力動画がありません", file=sys.stderr)
         sys.exit(1)
     min_dur = min(video_durations)
-    if args.segment_sec > min_dur:
-        print(f"  WARNING: --segment-sec {args.segment_sec}s が動画最短尺 {min_dur:.2f}s を超えています。")
-        args.segment_sec = round(min_dur * 0.95, 3)  # 5% マージンを取って安全にクランプ
-        print(f"           --segment-sec を {args.segment_sec}s に自動調整しました。")
-    if args.crossfade_sec >= args.segment_sec:
-        args.crossfade_sec = round(args.segment_sec * 0.4, 3)
+
+    # ping-pong モードではセグメント長を min_dur × 2 に自動設定
+    if args.ping_pong:
+        effective_segment_sec = round(min_dur * 2, 3)
+        print(f"  INFO: --ping-pong 有効 → セグメント長 = {min_dur:.2f}s × 2 = {effective_segment_sec:.2f}s（--segment-sec 無視）")
+    else:
+        effective_segment_sec = args.segment_sec
+        if effective_segment_sec > min_dur:
+            # -stream_loop -1 で素材をループするので segment_sec はクランプしない。情報表示のみ。
+            print(f"  INFO: 動画最短尺 {min_dur:.2f}s < --segment-sec {effective_segment_sec}s → ループ再生で補完します。")
+
+    if args.crossfade_sec >= effective_segment_sec:
+        args.crossfade_sec = round(effective_segment_sec * 0.4, 3)
         print(f"  WARNING: --crossfade-sec を {args.crossfade_sec}s に自動調整しました。")
 
     n_videos = len(args.videos)
-    net_step = args.segment_sec - args.crossfade_sec
+    net_step = effective_segment_sec - args.crossfade_sec
     if net_step <= 0:
-        print("ERROR: --segment-sec > --crossfade-sec が必要です", file=sys.stderr)
+        print("ERROR: segment_sec > --crossfade-sec が必要です", file=sys.stderr)
         sys.exit(1)
 
     total_segments = int(args.total_sec / net_step) + 2
     chunk_count = (total_segments + args.chunk_size - 1) // args.chunk_size
 
     print(f"  入力動画  : {n_videos} 本 (最短尺 {min_dur:.2f}s)")
-    print(f"  セグメント: {total_segments} 個 (各 {args.segment_sec}s、net {net_step:.3f}s/seg)")
+    mode_str = f"ping-pong ({min_dur:.2f}s×2)" if args.ping_pong else f"{effective_segment_sec}s (ループ)"
+    print(f"  セグメント: {total_segments} 個 (各 {mode_str}、net {net_step:.3f}s/seg)")
     print(f"  目標尺    : {args.total_sec}s")
     print(f"  出力      : {args.output}")
     print(f"  解像度    : {args.width}×{args.height} @ {args.fps}fps")
@@ -354,15 +380,16 @@ def main() -> None:
             chunk_files.append(chunk_file)
 
             n_in_chunk = len(chunk_paths)
-            expected = n_in_chunk * args.segment_sec - (n_in_chunk - 1) * args.crossfade_sec
+            expected = n_in_chunk * effective_segment_sec - (n_in_chunk - 1) * args.crossfade_sec
 
             print(f"\n  [{ci + 1}/{chunk_count}] セグメント {chunk_start}–{chunk_end - 1}"
                   f"  ({n_in_chunk} 本入力, 期待 {expected:.1f}s)")
             cmd, _ = build_chunk_cmd(
                 chunk_paths, chunk_file,
-                args.segment_sec, args.crossfade_sec,
+                effective_segment_sec, args.crossfade_sec,
                 args.fps, args.width, args.height,
                 args.brightness, args.saturation,
+                ping_pong=args.ping_pong,
             )
             run_ffmpeg_with_progress(cmd, f"チャンク {ci + 1}/{chunk_count}", expected)
 

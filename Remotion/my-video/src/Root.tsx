@@ -43,7 +43,22 @@ export const RemotionRoot: React.FC = () => {
           songTitle: '青春アミーゴ',
           songArtist: '修二と彰',
           // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
-          prerenderedBgVideo: 'bg_prerendered.mp4',
+          prerenderedBgVideo: 'bg_prerendered_seed342550349.mp4',
+        }}
+      />
+      <Composition
+        id="AcoRiel-Tegami-MultiBG"
+        component={AcoRielLyricCoverMultiBG}
+        durationInFrames={8192}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          songFolder: 'songs/拝啓_十五の君へ',
+          songTitle: '手紙 ～拝啓 十五の君へ～',
+          songArtist: 'アンジェラ・アキ',
+          // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
+          prerenderedBgVideo: 'bg_prerendered_seed1854400619.mp4',
         }}
       />
     </>

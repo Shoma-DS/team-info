@@ -3,6 +3,7 @@ import {
 	Audio,
 	Easing,
 	Img,
+	OffthreadVideo,
 	Sequence,
 	Video,
 	interpolate,
@@ -795,7 +796,7 @@ type FeatherSprite = {
 
 const AngelFeathers: React.FC = () => {
 	const frame = useCurrentFrame();
-	const featherImage = staticFile('assets/angel_feather_sheet.png');
+	const featherImage = staticFile('assets/channels/acoriel/common/angel_feather_sheet.png');
 
 	const feathers = useMemo(() => {
 		const rnd = seedRand(20260214);
@@ -884,8 +885,8 @@ const useSongAudioData = (src: string) => {
 };
 
 const ChannelBrandBadge: React.FC = () => {
-	const icon = staticFile('assets/channel-icon.png');
-	const wordmark = staticFile('assets/channel-wordmark.png');
+	const icon = staticFile('assets/channels/acoriel/common/channel-icon.png');
+	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	return (
 		<AbsoluteFill style={{ pointerEvents: 'none' }}>
@@ -1176,7 +1177,7 @@ const StrokeOrderTitle: React.FC<{
 						style={{
 							position: 'relative',
 							display: 'inline-block',
-							color: 'rgba(0,60,200,0.12)',
+							color: 'rgba(255,253,235,0.12)',
 							fontFamily: charFonts[i],
 						}}
 					>
@@ -1186,7 +1187,7 @@ const StrokeOrderTitle: React.FC<{
 								left: 0,
 								top: 0,
 								color: 'transparent',
-								WebkitTextStroke: '1.8px rgba(30,80,220,0.92)',
+								WebkitTextStroke: '1.8px rgba(255,252,225,0.65)',
 								clipPath: `inset(0 ${(1 - charProgress) * 100}% 0 0)`,
 								filter: 'none',
 								whiteSpace: 'pre',
@@ -1199,9 +1200,9 @@ const StrokeOrderTitle: React.FC<{
 								position: 'absolute',
 								left: 0,
 								top: 0,
-								color: '#1a50dc',
+								color: '#FFFDF0',
 								opacity: fillOpacity,
-								textShadow: 'none',
+								textShadow: '0 0 10px rgba(255,255,245,1), 0 0 24px rgba(255,240,170,0.4), 0 0 48px rgba(255,215,80,0.15)',
 								whiteSpace: 'pre',
 							}}
 						>
@@ -1294,6 +1295,8 @@ const INTRO_TIMELINE = buildIntroTimeline();
 const INTRO_HIGHLIGHT_DUR = 14;
 const INTRO_HIGHLIGHT_START =
 	INTRO_TIMELINE.lines[3].start + INTRO_TIMELINE.lines[3].write + 4;
+const INTRO_LOGO_HIGHLIGHT_DUR = 18;
+const INTRO_LOGO_HIGHLIGHT_START = INTRO_HIGHLIGHT_START + 6;
 
 const getPencilWriteVolume = (frame: number, duration: number): number => {
 	const safeDuration = Math.max(1, duration);
@@ -1376,9 +1379,9 @@ const IntroOverlay: React.FC<{
 	durationFrames: number;
 }> = ({ title, artist, durationFrames }) => {
 	const frame = useCurrentFrame();
-	const wordmark = staticFile('assets/channel-wordmark.png');
-	const featherPen = staticFile('assets/feather_pen.png');
-	const wingImg = staticFile('assets/wing.png');
+	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
+	const featherPen = staticFile('assets/channels/acoriel/common/feather_pen.png');
+	const wingImg = staticFile('assets/channels/acoriel/common/wing.png');
 
 	const fadeStart = Math.min(INTRO_TIMELINE.fadeStart, Math.max(0, durationFrames - 25));
 	const fadeEnd = Math.min(durationFrames, Math.max(fadeStart + 1, INTRO_TIMELINE.fadeEnd));
@@ -1487,16 +1490,21 @@ const IntroOverlay: React.FC<{
 		extrapolateRight: 'clamp',
 		easing: Easing.out(Easing.cubic),
 	});
+	const logoHlProgress = interpolate(frame - INTRO_LOGO_HIGHLIGHT_START, [0, INTRO_LOGO_HIGHLIGHT_DUR], [0, 1], {
+		extrapolateLeft: 'clamp',
+		extrapolateRight: 'clamp',
+		easing: Easing.out(Easing.cubic),
+	});
 
 	const cardStyle: React.CSSProperties = {
 		...lyricsFont,
 		display: 'flex',
 		flexDirection: 'column',
 		alignItems: 'flex-start',
-		background: 'rgba(255,255,255,0.95)',
-		backdropFilter: 'blur(6px)',
+		background: 'rgba(255,255,255,0.50)',
+		backdropFilter: 'blur(12px)',
 		borderRadius: 14,
-		border: '1px solid rgba(0,0,0,0.08)',
+		border: '1px solid rgba(255,255,255,0.4)',
 	};
 
 	return (
@@ -1529,7 +1537,7 @@ const IntroOverlay: React.FC<{
 				/>
 
 				{/* カード本体 */}
-				<div style={{ ...cardStyle, gap: 4, padding: '18px 26px 18px 22px', clipPath: `inset(0 ${(1 - topExpandProgress) * 100}% 0 0 round 14px)` }}>
+				<div style={{ ...cardStyle, background: 'transparent', backdropFilter: 'none', border: 'none', gap: 4, padding: '18px 26px 18px 22px', clipPath: `inset(0 ${(1 - topExpandProgress) * 100}% 0 0 round 14px)` }}>
 
 
 					<TextReveal
@@ -1542,7 +1550,8 @@ const IntroOverlay: React.FC<{
 								fontFamily: playwriteFamily,
 								fontSize: 64,
 								fontWeight: 400,
-								color: 'rgba(30,30,40,0.65)',
+								color: 'white',
+								textShadow: '0 0 8px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.7)',
 								letterSpacing: '0.06em',
 								whiteSpace: 'nowrap',
 							}}
@@ -1594,7 +1603,7 @@ const IntroOverlay: React.FC<{
 						zIndex: 2,
 					}}
 				/>
-				<div style={{ ...cardStyle, gap: 0, padding: '14px 22px 14px 18px', clipPath: `inset(0 ${(1 - bottomExpandProgress) * 100}% 0 0 round 14px)`, position: 'relative', zIndex: 1 }}>
+				<div style={{ ...cardStyle, background: 'transparent', backdropFilter: 'none', border: 'none', gap: 0, padding: '14px 22px 14px 18px', clipPath: `inset(0 ${(1 - bottomExpandProgress) * 100}% 0 0 round 14px)`, position: 'relative', zIndex: 1 }}>
 				<TextReveal
 					startFrame={LS[2].start}
 					writeFrames={LS[2].write}
@@ -1604,7 +1613,8 @@ const IntroOverlay: React.FC<{
 						style={{
 							fontSize: 54,
 							fontWeight: 400,
-							color: 'rgba(30,30,40,0.65)',
+							color: 'white',
+							textShadow: '0 0 8px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.7)',
 							whiteSpace: 'nowrap',
 							display: 'inline-flex',
 							alignItems: 'center',
@@ -1638,7 +1648,7 @@ const IntroOverlay: React.FC<{
 					style={{
 						width: 60,
 						height: 1,
-						background: 'linear-gradient(90deg, rgba(0,0,0,0.2), transparent)',
+						background: 'linear-gradient(90deg, rgba(255,255,255,0.5), transparent)',
 						marginTop: 4,
 						marginBottom: -2,
 						opacity: interpolate(
@@ -1672,25 +1682,42 @@ const IntroOverlay: React.FC<{
 								fontFamily: playwriteFamily,
 								fontSize: 48,
 								fontWeight: 400,
-								color: 'rgba(30,30,40,0.8)',
+								color: 'white',
+								textShadow: '0 0 8px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.7)',
 								letterSpacing: '0.12em',
 							}}
 						>
 							Covered by
 						</span>
-						<Img
-							src={wordmark}
-							style={{
-								height: 280,
-								objectFit: 'contain',
-								marginTop: -50,
-								marginBottom: -50,
-								marginLeft: -30,
-								marginRight: -10,
-								filter:
-									'invert(1) drop-shadow(0 0 4px rgba(0,0,0,0.15))',
-							}}
-						/>
+						<span style={{ position: 'relative', display: 'inline-block' }}>
+							{/* ロゴマーカー */}
+							<span
+								style={{
+									position: 'absolute',
+									top: '28%',
+									left: '-6px',
+									right: '-4px',
+									height: '44%',
+									background: 'rgba(15,15,20,0.82)',
+									borderRadius: '2px 3px 1px 3px / 4px 2px 3px 2px',
+									transform: 'rotate(-0.8deg) skewX(-3deg)',
+									clipPath: `inset(0 ${(1 - logoHlProgress) * 100}% 0 0)`,
+								}}
+							/>
+							<Img
+								src={wordmark}
+								style={{
+									height: 280,
+									objectFit: 'contain',
+									marginTop: -50,
+									marginBottom: -50,
+									marginLeft: -30,
+									marginRight: -10,
+									filter: 'invert(1)',
+									position: 'relative',
+								}}
+							/>
+						</span>
 					</div>
 					</TextReveal>
 				</div>
@@ -1701,34 +1728,36 @@ const IntroOverlay: React.FC<{
 
 // ── Outro Overlay ───────────────────────────────────────────
 
-const OutroOverlay: React.FC<{ durationFrames: number }> = ({
-	durationFrames,
-}) => {
+const OutroOverlay: React.FC<{ durationFrames: number }> = () => {
 	const frame = useCurrentFrame();
-	const channelIcon = staticFile('assets/channel-icon.png');
-	const channelWordmark = staticFile('assets/channel-wordmark.png');
+	const channelIcon = staticFile('assets/channels/acoriel/common/channel-icon.png');
+	const channelWordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
-	const fadeIn = interpolate(frame, [0, 30], [0, 1], {
+	// 背景を徐々に真っ黒へ
+	const bgOpacity = interpolate(frame, [0, 60], [0, 1], {
 		extrapolateRight: 'clamp',
 		easing: Easing.out(Easing.cubic),
 	});
-	const fadeOut = interpolate(
-		frame,
-		[durationFrames - 45, durationFrames],
-		[1, 0],
-		{ extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-	);
-	const opacity = Math.min(fadeIn, fadeOut);
+
+	// コンテンツ（アイコン・テキスト）のフェードイン
+	const contentOpacity = interpolate(frame, [0, 30], [0, 1], {
+		extrapolateRight: 'clamp',
+		easing: Easing.out(Easing.cubic),
+	});
 
 	return (
-		<AbsoluteFill
-			style={{
-				justifyContent: 'center',
-				alignItems: 'center',
-				opacity,
-				backgroundColor: 'rgba(5,5,10,0.7)',
-			}}
-		>
+		<AbsoluteFill>
+			{/* 背景を真っ黒にするオーバーレイ */}
+			<AbsoluteFill style={{ backgroundColor: '#05050a', opacity: bgOpacity }} />
+
+			{/* チャンネル登録コンテンツ */}
+			<AbsoluteFill
+				style={{
+					justifyContent: 'center',
+					alignItems: 'center',
+					opacity: contentOpacity,
+				}}
+			>
 			<div
 				style={{
 					...lyricsFont,
@@ -1793,6 +1822,7 @@ const OutroOverlay: React.FC<{ durationFrames: number }> = ({
 					チャンネル登録よろしくお願いします
 				</span>
 			</div>
+			</AbsoluteFill>
 		</AbsoluteFill>
 	);
 };
@@ -2056,23 +2086,23 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 			<Sequence durationInFrames={introFrames}>
 				<Sequence from={introTopExpandStart} durationInFrames={introTopExpandFrames}>
 					<Audio
-						src={staticFile('assets/kamipera.mp3')}
+						src={staticFile('assets/channels/acoriel/common/kamipera.mp3')}
 						volume={(f) => getPaperMoveVolume(f, introTopExpandFrames)}
 					/>
 				</Sequence>
 				<Sequence from={introBottomExpandStart} durationInFrames={introBottomExpandFrames}>
 					<Audio
-						src={staticFile('assets/kamipera.mp3')}
+						src={staticFile('assets/channels/acoriel/common/kamipera.mp3')}
 						volume={(f) => getPaperMoveVolume(f, introBottomExpandFrames)}
 					/>
 				</Sequence>
 				<Audio
-					src={staticFile('assets/write_with_pencil.mp3')}
+					src={staticFile('assets/channels/acoriel/common/write_with_pencil.mp3')}
 					volume={(f) => getIntroPencilVolume(f)}
 				/>
 				<Sequence from={INTRO_HIGHLIGHT_START} durationInFrames={INTRO_HIGHLIGHT_DUR}>
 					<Audio
-						src={staticFile('assets/Felt_Tip_Pen01-1(Straight).mp3')}
+						src={staticFile('assets/channels/acoriel/common/Felt_Tip_Pen01-1(Straight).mp3')}
 						volume={(f) => getHighlightMarkerVolume(f + INTRO_HIGHLIGHT_START)}
 					/>
 				</Sequence>
@@ -2205,7 +2235,7 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 			{/* 背景動画: 事前合成済み or CrossDissolve */}
 			{prerenderedBgSrc ? (
 				<AbsoluteFill>
-					<Video
+					<OffthreadVideo
 						src={prerenderedBgSrc}
 						volume={0}
 						style={{
@@ -2248,23 +2278,23 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 			<Sequence durationInFrames={introFrames}>
 				<Sequence from={introTopExpandStart} durationInFrames={introTopExpandFrames}>
 					<Audio
-						src={staticFile('assets/kamipera.mp3')}
+						src={staticFile('assets/channels/acoriel/common/kamipera.mp3')}
 						volume={(f) => getPaperMoveVolume(f, introTopExpandFrames)}
 					/>
 				</Sequence>
 				<Sequence from={introBottomExpandStart} durationInFrames={introBottomExpandFrames}>
 					<Audio
-						src={staticFile('assets/kamipera.mp3')}
+						src={staticFile('assets/channels/acoriel/common/kamipera.mp3')}
 						volume={(f) => getPaperMoveVolume(f, introBottomExpandFrames)}
 					/>
 				</Sequence>
 				<Audio
-					src={staticFile('assets/write_with_pencil.mp3')}
+					src={staticFile('assets/channels/acoriel/common/write_with_pencil.mp3')}
 					volume={(f) => getIntroPencilVolume(f)}
 				/>
 				<Sequence from={INTRO_HIGHLIGHT_START} durationInFrames={INTRO_HIGHLIGHT_DUR}>
 					<Audio
-						src={staticFile('assets/Felt_Tip_Pen01-1(Straight).mp3')}
+						src={staticFile('assets/channels/acoriel/common/Felt_Tip_Pen01-1(Straight).mp3')}
 						volume={(f) => getHighlightMarkerVolume(f + INTRO_HIGHLIGHT_START)}
 					/>
 				</Sequence>
