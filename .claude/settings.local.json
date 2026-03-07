@@ -77,7 +77,11 @@
       "Bash(whisper --version)",
       "Bash(brew list)",
       "Bash(whisper-cpp --version)",
-      "Bash(brew reinstall openai-whisper)"
+      "Bash(brew reinstall openai-whisper)",
+      "Bash(mkdir -p /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/layers)",
+      "Bash(mkdir -p /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/template/src/components)",
+      "Bash(mkdir -p /Users/deguchishouma/team-info/inputs/viral-analysis)",
+      "Bash(touch /Users/deguchishouma/team-info/inputs/viral-analysis/.gitkeep)"
     ]
   },
   "enableAllProjectMcpServers": true,
