@@ -211,8 +211,8 @@ la la la la la love song
 #### 1-1. スクリプトの実行
 
 ```bash
-/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 -u \
-  /Users/deguchishouma/team-info/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
+python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -u \
+  .agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
   "<音源ファイルパス>" \
   --lyrics "<歌詞ファイルパス>" \
   --output "Remotion/my-video/public/assets/<歌詞ファイル名と同名>.lrc" \
@@ -226,8 +226,8 @@ la la la la la love song
 
 **SRTも同じスクリプトで生成する（推奨）**
 ```bash
-/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 -u \
-  /Users/deguchishouma/team-info/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
+python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -u \
+  .agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py \
   "<音源ファイルパス>" \
   --lyrics "<歌詞ファイルパス>" \
   --output "Remotion/scripts/lyrics/<曲名>.srt" \
@@ -283,7 +283,7 @@ la la la la la love song
 生成されたLRCファイルが元の歌詞と一致しているか、スクリプトで自動検証する。
 
 ```bash
-/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
+python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
   .agent/skills/remotion/lyric-emotion-mapper/scripts/validate_lrc.py \
   <出力LRCパス> \
   <歌詞テキストパス>

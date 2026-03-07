@@ -130,11 +130,11 @@ ls -lh Remotion/my-video/public/assets/channels/acoriel/songs/<曲名>.mp3  # 5M
 1. `Remotion/scripts/lyrics/` に該当曲のLRCがあればそれを採用する。
 2. 該当LRCが無ければ、**字幕生成スクリプト** で作成する。以下のコマンドをユーザーに提示し、**任意のターミナルから実行**するよう案内して待機する:
    ```bash
-   /Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 -u /Users/deguchishouma/team-info/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py "/Users/deguchishouma/team-info/Remotion/my-video/public/assets/channels/acoriel/songs/[曲名].mp3" --lyrics "/Users/deguchishouma/team-info/Remotion/my-video/public/assets/channels/acoriel/lyrics/[曲名].txt" --output "/Users/deguchishouma/team-info/Remotion/scripts/lyrics/[曲名].lrc" --output-format lrc --intro-label "(イントロ)" --intro-min-seconds 0.30 --model large-v3 --language ja
+   python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -u .agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py "Remotion/my-video/public/assets/channels/acoriel/songs/[曲名].mp3" --lyrics "Remotion/my-video/public/assets/channels/acoriel/lyrics/[曲名].txt" --output "Remotion/scripts/lyrics/[曲名].lrc" --output-format lrc --intro-label "(イントロ)" --intro-min-seconds 0.30 --model large-v3 --language ja
    ```
    - このコマンドは先頭イントロ `(イントロ)` を自動挿入し、最初の歌詞開始時刻を単語単位で合わせる。
    - `-u` と進捗バーで長時間処理中の進捗が見える。
-   - コマンドは常に絶対パスで提示する（どのフォルダからでも実行可能）。
+   - 共通ランタイムがリポジトリルートと `Remotion/.venv` を自動解決するため、Windows / macOS / Linux で同じ形式を使える。
    - 完了したら「終わりました」と伝えるよう案内する。
    - ユーザーから完了報告が得られるまで次工程に進まない。
    - 完了後、`Remotion/scripts/lyrics/` をスキャンし、生成された `.lrc` ファイルを確認する。
@@ -306,17 +306,17 @@ Phase 4: 確認・レンダリング
      ```bash
      ffprobe -v quiet -print_format json -show_format \
        Remotion/my-video/public/assets/songs/[曲名]/audio.mp3 \
-       | python3 -c "import sys,json; d=json.load(sys.stdin); print(round(float(d['format']['duration']), 3))"
+       | python -c "import sys,json; d=json.load(sys.stdin); print(round(float(d['format']['duration']), 3))"
      ```
    - 取得した秒数を確認したら、**自分では実行せず**、以下のコマンドをユーザーに提示して**任意のターミナルから実行**するよう案内して待機する:
      ```bash
-     python3 /Users/deguchishouma/team-info/Remotion/scripts/prerender_bg_video.py \
-       --output /Users/deguchishouma/team-info/Remotion/my-video/public/assets/songs/[曲名]/bg_prerendered.mp4 \
+     python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- Remotion/scripts/prerender_bg_video.py \
+       --output Remotion/my-video/public/assets/songs/[曲名]/bg_prerendered.mp4 \
        --crossfade-sec 1.5 \
        --total-sec [音源の秒数] \
        --fps 30 --width 1920 --height 1080 \
        --ping-pong \
-       "/Users/deguchishouma/team-info/Remotion/my-video/public/assets/songs/[曲名]/"*.mp4
+       "Remotion/my-video/public/assets/songs/[曲名]/*.mp4"
      ```
    - 完了したら「終わりました」と伝えるよう案内する。
    - ユーザーから完了報告が得られるまで次工程に進まない。
@@ -370,13 +370,13 @@ Phase 4: 確認・レンダリング
 7. `Remotion/my-video/` で `npm run lint` を実行し、エラーを解消する。
 8. lint 通過後、以下のコマンドをユーザーに提示してプレビューを依頼する（自分では起動しない）：
    ```bash
-   cd /Users/deguchishouma/team-info/Remotion/my-video && npx remotion studio
+   cd Remotion/my-video && npx remotion studio
    ```
    - サイドバーで対象 Composition を選んで確認するよう伝える。
    - プレビュー確認後、問題があれば報告するよう伝える。
 9. レンダリングは実行しない。以下のコピペ可能なコマンドをユーザーに提示するだけにする：
    ```bash
-   cd /Users/deguchishouma/team-info/Remotion/my-video && npx remotion render --composition=AcoRiel-[曲名]-MultiBG --output=/Users/deguchishouma/team-info/outputs/acoriel/renders/[曲名].mp4
+   cd Remotion/my-video && npx remotion render --composition=AcoRiel-[曲名]-MultiBG --output=../../outputs/acoriel/renders/[曲名].mp4
    ```
-   - 出力先: `/Users/deguchishouma/team-info/outputs/acoriel/renders/[曲名].mp4`
+   - 出力先: `outputs/acoriel/renders/[曲名].mp4`
 10. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

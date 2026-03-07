@@ -15,6 +15,7 @@ Usage (team-info/ から実行):
 """
 
 import argparse
+import glob
 import json
 import os
 import random
@@ -288,6 +289,15 @@ def main() -> None:
     )
     parser.add_argument("videos", nargs="+", help="入力動画ファイル（複数可）")
     args = parser.parse_args()
+
+    expanded_videos = []
+    for video_arg in args.videos:
+        matches = sorted(glob.glob(video_arg))
+        if matches:
+            expanded_videos.extend(matches)
+        else:
+            expanded_videos.append(video_arg)
+    args.videos = expanded_videos
 
     # seed が未指定の場合はランダムに決定し、再現できるよう表示する
     if args.seed is None:

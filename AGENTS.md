@@ -2,6 +2,21 @@
 A skill is a set of local instructions stored in a `SKILL.md` file.
 From now on, this repository uses only `.agent/skills` as the skills source.
 
+## Canonical Agent File
+- このリポジトリのエージェント向け指示の正本は `AGENTS.md` とする。
+- `Agent.md` は互換用の案内ファイルとして扱い、内容の更新は原則 `AGENTS.md` のみで行う。
+
+## Behavior Principles
+- ユーザーの意図と目的を正確に理解する。不明点が重要なら確認する。
+- 安全性を優先しつつ、タスクは効率的に遂行する。
+- 既存のコード規約、アーキテクチャ、スタイルを尊重する。
+- 要求タスクだけでなく、必要な付随作業や品質改善も実施または提案する。
+- 重要な変更やコマンド実行の前には、目的と影響を簡潔に説明する。
+- 明確な範囲を超える変更や影響の大きい変更は、必ずユーザー確認を取る。
+- ユーザーとの対話は原則日本語で行う。
+- ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
+- Git関連操作を行う場合は、必ず `.agent/skills/common/git-workflow/SKILL.md` を使う。
+
 ### Available skills
 - acoriel-video-description: Acoriel（アコリエル）チャンネルのYouTube動画概要欄を生成する。 (file: /Users/deguchishouma/team-info/.agent/skills/acoriel/acoriel-video-description/SKILL.md)
 - remotion-template-acoriel-acoustic-cover: acoriel向けのアコースティックカバー用Remotion編集。 (file: /Users/deguchishouma/team-info/.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md)
@@ -31,3 +46,8 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - Reuse first: Prefer scripts/templates/assets inside the skill over recreating artifacts.
 - Coordination: If multiple skills apply, use the minimal set and state the order briefly.
 - Fallback: If a skill is missing or unclear, state the issue briefly and continue with the best practical approach.
+
+### Approval and Selection Rules
+- 承認が必要な操作は、必ずこのチャット上でユーザーに承認を求めてから進める。
+- ユーザーに選択肢や確認応答を求める場合は、質問を出す直前に必ず通知を鳴らす。
+- 通知付きの選択フローをスクリプト化する場合も、通知を先に鳴らしてから入力待ちに入る。

@@ -10,12 +10,9 @@
 
 1.  **Python 3.x のインストール**:
     *   Pythonがインストールされていることを確認してください。
-    *   必要なライブラリ `requests` をインストールしてください。
+    *   必要なライブラリ `requests` は次のコマンドでインストールしてください。`Remotion/.venv` がなければ自動作成されます。
         ```bash
-        # uv がインストールされている場合（推奨）
-        uv pip install requests
-        # pip を使用する場合
-        pip install requests
+        python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -m pip install requests
         ```
 2.  **VOICEVOXエンジンのインストールと起動**:
     *   VOICEVOX公式サイト ([https://voicevox.hiroshiba.jp/](https://voicevox.hiroshiba.jp/)) から、お使いのOSに合ったVOICEVOXアプリケーションをダウンロードし、インストールしてください。
@@ -140,8 +137,8 @@ VOICEVOX MCPサーバーが設定済みであれば、Claude Codeから直接MCP
 ### 方法2: CLI引数モード
 
 ```bash
-cd Remotion
-.venv/bin/python generate_voice.py --script "台本名.md" --profile "shikoku_metan_whisper" --theme "テーマ名"
+python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
+  Remotion/generate_voice.py --script "台本名.md" --profile "shikoku_metan_whisper" --theme "テーマ名"
 ```
 
 | 引数 | 説明 |
@@ -157,8 +154,7 @@ cd Remotion
 引数なしで実行すると、従来通りの対話形式で動作します。
 
 ```bash
-cd Remotion
-.venv/bin/python generate_voice.py
+python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- Remotion/generate_voice.py
 ```
 
 1. 利用可能な台本ファイルの一覧が表示されるので、番号を入力
@@ -175,6 +171,15 @@ cd Remotion
 
 *   **出力先**: `outputs/sleep_travel/audio/` フォルダに保存されます。
 *   **命名規則**: `YYYY-MM-dd_テーマ.mp3` の形式でファイルが保存されます。（例: `2024-02-10_自己紹介.mp3`）
+
+## 共有ストレージへのコピー
+
+`voice-script-launcher` スキルでは、生成後に共有ストレージへコピーできます。  
+`TEAM_INFO_SHARED_ROOT` を設定するとその配下の `team-info/` を優先し、未設定時は一般的な Google Drive / OneDrive 配下の `team-info/` を自動検出します。
+
+```bash
+python .agent/skills/common/scripts/team_info_runtime.py copy-to-shared "outputs/sleep_travel/audio/<生成されたファイル名>.mp3"
+```
 
 ## トラブルシューティング
 
@@ -210,6 +215,6 @@ npm run build
 音声化フローの質問順、選択肢、入力項目、実行手順を変更した場合は、以下を必ず同時更新してください。
 
 1. `Remotion/generate_voice.py`
-2. `.agent/skills/voice-script-launcher/SKILL.md`
+2. `.agent/skills/remotion/voice-script-launcher/SKILL.md`
 3. `Remotion/Voicebox_TTS_Skill_Guide.md`（本書）
 4. `mcp-servers/voicevox/src/index.ts`（MCPサーバー側にも影響がある場合）
