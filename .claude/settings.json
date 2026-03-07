@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/deguchishouma/team-info/Remotion/my-video/node_modules/.bin/tsc --noEmit --project /Users/deguchishouma/team-info/Remotion/my-video/tsconfig.json)",
+      "Bash(lsof -p 82668 -i)",
+      "Bash(lsof -a -p 82668 -i TCP)",
+      "Bash(ps -p 82668 -o pid,ppid,stat,command)",
+      "Bash(lsof -n -P -p 82668)"
+    ]
+  }
+}

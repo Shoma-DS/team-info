@@ -1177,7 +1177,7 @@ const StrokeOrderTitle: React.FC<{
 						style={{
 							position: 'relative',
 							display: 'inline-block',
-							color: 'rgba(255,253,235,0.12)',
+							color: 'rgba(208,169,0,0.1)',
 							fontFamily: charFonts[i],
 						}}
 					>
@@ -1187,7 +1187,7 @@ const StrokeOrderTitle: React.FC<{
 								left: 0,
 								top: 0,
 								color: 'transparent',
-								WebkitTextStroke: '1.8px rgba(255,252,225,0.65)',
+								WebkitTextStroke: '1.8px rgba(160,110,0,0.65)',
 								clipPath: `inset(0 ${(1 - charProgress) * 100}% 0 0)`,
 								filter: 'none',
 								whiteSpace: 'pre',
@@ -1200,9 +1200,12 @@ const StrokeOrderTitle: React.FC<{
 								position: 'absolute',
 								left: 0,
 								top: 0,
-								color: '#FFFDF0',
+								background: 'linear-gradient(180deg, #FFFACD 0%, #F0C832 18%, #C89010 45%, #E8C040 68%, #8B6200 100%)',
+								WebkitBackgroundClip: 'text',
+								WebkitTextFillColor: 'transparent',
+								color: 'transparent',
 								opacity: fillOpacity,
-								textShadow: '0 0 10px rgba(255,255,245,1), 0 0 24px rgba(255,240,170,0.4), 0 0 48px rgba(255,215,80,0.15)',
+								filter: 'drop-shadow(0 0 4px rgba(200,144,16,0.8)) drop-shadow(0 0 14px rgba(240,200,50,0.3))',
 								whiteSpace: 'pre',
 							}}
 						>
