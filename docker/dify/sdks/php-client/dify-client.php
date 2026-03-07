@@ -1,13 +1,18 @@
 <?php
 
+// Composerが生成するオートローダーを読み込む（GuzzleHttp\Client などを使えるようにする）
+require_once __DIR__ . '/vendor/autoload.php';
+
 use GuzzleHttp\Client;
 
-class DifyClient {
+class DifyClient
+{
     protected $api_key;
     protected $base_url;
     protected $client;
 
-    public function __construct($api_key, $base_url = null) {
+    public function __construct($api_key, $base_url = null)
+    {
         $this->api_key = $api_key;
         $this->base_url = $base_url ?? 'https://api.dify.ai/v1/';
         $this->client = new Client([
@@ -19,7 +24,8 @@ class DifyClient {
         ]);
     }
 
-    protected function send_request($method, $endpoint, $data = null, $params = null, $stream = false) {
+    protected function send_request($method, $endpoint, $data = null, $params = null, $stream = false)
+    {
         $options = [
             'json' => $data,
             'query' => $params,
@@ -30,7 +36,8 @@ class DifyClient {
         return $response;
     }
 
-    public function message_feedback($message_id, $rating, $user) {
+    public function message_feedback($message_id, $rating, $user)
+    {
         $data = [
             'rating' => $rating,
             'user' => $user,
@@ -38,12 +45,14 @@ class DifyClient {
         return $this->send_request('POST', "messages/{$message_id}/feedbacks", $data);
     }
 
-    public function get_application_parameters($user) {
+    public function get_application_parameters($user)
+    {
         $params = ['user' => $user];
         return $this->send_request('GET', 'parameters', null, $params);
     }
 
-    public function file_upload($user, $files) {
+    public function file_upload($user, $files)
+    {
         $data = ['user' => $user];
         $options = [
             'multipart' => $this->prepareMultipart($data, $files)
@@ -52,7 +61,8 @@ class DifyClient {
         return $this->client->request('POST', 'files/upload', $options);
     }
 
-    protected function prepareMultipart($data, $files) {
+    protected function prepareMultipart($data, $files)
+    {
         $multipart = [];
         foreach ($data as $key => $value) {
             $multipart[] = [
@@ -73,7 +83,8 @@ class DifyClient {
     }
 
 
-    public function text_to_audio($text, $user, $streaming = false) {
+    public function text_to_audio($text, $user, $streaming = false)
+    {
         $data = [
             'text' => $text,
             'user' => $user,
@@ -83,17 +94,20 @@ class DifyClient {
         return $this->send_request('POST', 'text-to-audio', $data);
     }
 
-    public function get_meta($user) {
+    public function get_meta($user)
+    {
         $params = [
             'user' => $user
         ];
 
-        return $this->send_request('GET', 'meta',null, $params);
+        return $this->send_request('GET', 'meta', null, $params);
     }
 }
 
-class CompletionClient extends DifyClient {
-    public function create_completion_message($inputs, $response_mode, $user, $files = null) {
+class CompletionClient extends DifyClient
+{
+    public function create_completion_message($inputs, $response_mode, $user, $files = null)
+    {
         $data = [
             'inputs' => $inputs,
             'response_mode' => $response_mode,
@@ -104,8 +118,10 @@ class CompletionClient extends DifyClient {
     }
 }
 
-class ChatClient extends DifyClient {
-    public function create_chat_message($inputs, $query, $user, $response_mode = 'blocking', $conversation_id = null, $files = null) {
+class ChatClient extends DifyClient
+{
+    public function create_chat_message($inputs, $query, $user, $response_mode = 'blocking', $conversation_id = null, $files = null)
+    {
         $data = [
             'inputs' => $inputs,
             'query' => $query,
@@ -120,29 +136,33 @@ class ChatClient extends DifyClient {
         return $this->send_request('POST', 'chat-messages', $data, null, $response_mode === 'streaming');
     }
 
-    public function get_suggestions($message_id, $user) {
+    public function get_suggestions($message_id, $user)
+    {
         $params = [
             'user' => $user
         ];
         return $this->send_request('GET', "messages/{$message_id}/suggested", null, $params);
     }
 
-    public function stop_message($task_id, $user) {
+    public function stop_message($task_id, $user)
+    {
         $data = ['user' => $user];
         return $this->send_request('POST', "chat-messages/{$task_id}/stop", $data);
     }
 
-    public function get_conversations($user, $first_id = null, $limit = null, $pinned = null) {
+    public function get_conversations($user, $first_id = null, $limit = null, $pinned = null)
+    {
         $params = [
             'user' => $user,
             'first_id' => $first_id,
             'limit' => $limit,
-            'pinned'=> $pinned,
+            'pinned' => $pinned,
         ];
         return $this->send_request('GET', 'conversations', null, $params);
     }
 
-    public function get_conversation_messages($user, $conversation_id = null, $first_id = null, $limit = null) {
+    public function get_conversation_messages($user, $conversation_id = null, $first_id = null, $limit = null)
+    {
         $params = ['user' => $user];
 
         if ($conversation_id) {
@@ -158,7 +178,8 @@ class ChatClient extends DifyClient {
         return $this->send_request('GET', 'messages', null, $params);
     }
 
-    public function rename_conversation($conversation_id, $name,$auto_generate, $user) {
+    public function rename_conversation($conversation_id, $name, $auto_generate, $user)
+    {
         $data = [
             'name' => $name,
             'user' => $user,
@@ -167,14 +188,16 @@ class ChatClient extends DifyClient {
         return $this->send_request('PATCH', "conversations/{$conversation_id}", $data);
     }
 
-    public function delete_conversation($conversation_id, $user) {
+    public function delete_conversation($conversation_id, $user)
+    {
         $data = [
             'user' => $user,
         ];
         return $this->send_request('DELETE', "conversations/{$conversation_id}", $data);
     }
 
-    public function audio_to_text($audio_file, $user) {
+    public function audio_to_text($audio_file, $user)
+    {
         $data = [
             'user' => $user,
         ];
@@ -186,8 +209,10 @@ class ChatClient extends DifyClient {
 
 }
 
-class WorkflowClient extends DifyClient{
-    public function run($inputs, $response_mode, $user) {
+class WorkflowClient extends DifyClient
+{
+    public function run($inputs, $response_mode, $user)
+    {
         $data = [
             'inputs' => $inputs,
             'response_mode' => $response_mode,
@@ -196,11 +221,12 @@ class WorkflowClient extends DifyClient{
         return $this->send_request('POST', 'workflows/run', $data);
     }
 
-    public function stop($task_id, $user) {
+    public function stop($task_id, $user)
+    {
         $data = [
             'user' => $user,
         ];
-        return $this->send_request('POST', "workflows/tasks/{$task_id}/stop",$data);
+        return $this->send_request('POST', "workflows/tasks/{$task_id}/stop", $data);
     }
 
 }
