@@ -18,6 +18,9 @@ const SLEEP_TRAVEL_AUDIO_SRC = staticFile('assets/channels/sleep_travel/audio.mp
 const SLEEP_TRAVEL_BGM_SRC = staticFile(
 	'assets/channels/sleep_travel/bgm/焚き火ループ.mp3'
 );
+const SLEEP_TRAVEL_BACKGROUND_SRC = staticFile(
+	'assets/channels/sleep_travel/backgrounds/夜のキャンプファイヤーと火花.png'
+);
 
 type SubtitleSegment = {
 	start: number;
@@ -423,7 +426,7 @@ export const SleepTravelLong: React.FC = () => {
 	return (
 		<AbsoluteFill style={{backgroundColor: '#080808'}}>
 			<Img
-				src={staticFile('assets/background.png')}
+				src={SLEEP_TRAVEL_BACKGROUND_SRC}
 				style={{
 					width: '100%',
 					height: '100%',

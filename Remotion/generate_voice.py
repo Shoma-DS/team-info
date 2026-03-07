@@ -1,5 +1,5 @@
 import argparse
-import requests
+import requests  # type: ignore[import-untyped]
 import json
 import os
 import glob
@@ -62,6 +62,7 @@ def select_script_file(available_scripts: List[str]) -> str:
                 print("無効な番号です。再度入力してください。")
         except ValueError:
             print("無効な入力です。番号で入力してください。")
+    return ""  # ループを抜けた場合のフォールバック（型チェッカー向け）
 
 def select_voice_profile(
     voice_configs: Dict[str, Any],
@@ -87,11 +88,14 @@ def select_voice_profile(
         elif preset_id is not None:
             display_label = f"preset_id={preset_id}"
             if presets_map and style_id_to_name_map:
-                preset = presets_map.get(preset_id)
-                if preset:
-                    style_id = preset.get("style_id")
-                    if style_id in style_id_to_name_map:
-                        style_info = style_id_to_name_map[style_id]
+                # 型を明示してPyre2の型推論エラーを回避
+                _presets: Dict[int, Dict[str, Any]] = presets_map  # type: ignore[assignment]
+                _style_map: Dict[int, Dict[str, str]] = style_id_to_name_map  # type: ignore[assignment]
+                preset: Optional[Dict[str, Any]] = _presets.get(preset_id)
+                if preset is not None:
+                    style_id: Optional[int] = preset.get("style_id")
+                    style_info: Optional[Dict[str, str]] = _style_map.get(style_id) if style_id is not None else None
+                    if style_info is not None:
                         display_label = f"【{style_info['style_name']}】{style_info['speaker_name']}"
         else:
             display_label = profile_name
@@ -110,6 +114,7 @@ def select_voice_profile(
                 print("無効な番号です。再度入力してください。")
         except ValueError:
             print("無効な入力です。番号で入力してください。")
+    return ""  # ループを抜けた場合のフォールバック（型チェッカー向け）
 
 def get_voicevox_speakers() -> Dict[str, Dict[str, int]]:
     """VOICEVOXエンジンから利用可能なスピーカー情報を取得し、整形する"""
@@ -429,27 +434,26 @@ def main():
     effective_preset_id = preset_id if preset_id is not None else None
 
     # 結果を格納する辞書 (index -> wav_bytes)、スレッドセーフにカウンタを管理
+    # nonlocalをPyre2が正しく解釈しないため、ミュータブルリストでカウンタを共有する
     import threading
     audio_results: Dict[int, bytes] = {}
-    error_count = 0
-    completed = 0
+    _counters = [0, 0]  # [completed, error_count]
     progress_lock = threading.Lock()
 
     def on_chunk_done(future):
-        nonlocal completed, error_count
         chunk_idx, wav_data = future.result()
         with progress_lock:
-            completed += 1
+            _counters[0] += 1  # completed
             if wav_data:
                 audio_results[chunk_idx] = wav_data
             else:
-                error_count += 1
-            print_progress(completed, total_chunks, "音声生成")
+                _counters[1] += 1  # error_count
+            print_progress(_counters[0], total_chunks, "音声生成")
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = []
         for i, chunk in enumerate(chunks):
-            future = executor.submit(
+            future = executor.submit(  # type: ignore[arg-type]
                 generate_chunk_audio,
                 i, chunk, voicevox_speaker_id,
                 profile_speed, profile_pitch, profile_volume,
@@ -467,8 +471,8 @@ def main():
         print("\nエラー: 音声を1つも生成できませんでした。")
         return
 
-    if error_count > 0:
-        print(f"  ({error_count} 個のチャンクでエラーが発生しました)")
+    if _counters[1] > 0:
+        print(f"  ({_counters[1]} 個のチャンクでエラーが発生しました)")
 
     # ===== Step 3/3: メモリ内でWAVを結合して出力 =====
     if cli_mode:
@@ -542,7 +546,7 @@ def main():
             os.remove(tmp_wav_path)
 
     print(f"\n完了! 音声ファイルが '{output_path}' に保存されました。")
-    print(f"   チャンク数: {success_count} / エラー: {error_count}")
+    print(f"   チャンク数: {success_count} / エラー: {_counters[1]}")
 
 if __name__ == "__main__":
     main()

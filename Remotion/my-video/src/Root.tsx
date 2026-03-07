@@ -61,6 +61,21 @@ export const RemotionRoot: React.FC = () => {
           prerenderedBgVideo: 'bg_prerendered_seed1854400619.mp4',
         }}
       />
+      <Composition
+        id="AcoRiel-Diamond-Princess-MultiBG"
+        component={AcoRielLyricCoverMultiBG}
+        durationInFrames={8313}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          songFolder: 'songs/Diamond_プリンセス',
+          songTitle: 'Diamonds',
+          songArtist: 'プリンセス プリンセス',
+          // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
+          prerenderedBgVideo: 'bg_prerendered_seed2045534336.mp4',
+        }}
+      />
     </>
   );
 };
