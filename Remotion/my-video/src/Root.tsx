@@ -44,6 +44,7 @@ export const RemotionRoot: React.FC = () => {
           songArtist: '修二と彰',
           // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
           prerenderedBgVideo: 'bg_prerendered_seed342550349.mp4',
+          legacyDimmedPrerender: true,
         }}
       />
       <Composition
@@ -59,6 +60,7 @@ export const RemotionRoot: React.FC = () => {
           songArtist: 'アンジェラ・アキ',
           // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
           prerenderedBgVideo: 'bg_prerendered_seed1854400619.mp4',
+          legacyDimmedPrerender: true,
         }}
       />
       <Composition
@@ -74,6 +76,7 @@ export const RemotionRoot: React.FC = () => {
           songArtist: 'プリンセス プリンセス',
           // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
           prerenderedBgVideo: 'bg_prerendered_seed2045534336.mp4',
+          legacyDimmedPrerender: true,
         }}
       />
     </>

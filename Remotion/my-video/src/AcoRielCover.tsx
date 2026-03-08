@@ -13,6 +13,7 @@ import {
 } from 'remotion';
 import { useMemo, useState, useEffect, type CSSProperties } from 'react';
 import { getAudioData, visualizeAudioWaveform } from '@remotion/media-utils';
+import { AcoRielWordmark } from './AcoRielWordmark';
 
 const hachiMaruPopFamily = '"Hachi Maru Pop", cursive';
 const yosugaraFontFace = new FontFace(
@@ -317,7 +318,6 @@ const useSongAudioData = (src: string) => {
 
 const ChannelBrandBadge: React.FC = () => {
 	const icon = staticFile('assets/channels/acoriel/common/channel-icon.png');
-	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	return (
 		<AbsoluteFill style={{ pointerEvents: 'none' }}>
@@ -342,21 +342,20 @@ const ChannelBrandBadge: React.FC = () => {
 						borderRadius: 9999,
 						filter:
 							'drop-shadow(0 0 14px rgba(255,255,255,0.3)) drop-shadow(0 0 30px rgba(209,192,235,0.24))',
+						zIndex: 2,
 					}}
 				/>
-				<Img
-					src={wordmark}
+				<AcoRielWordmark
+					tone="light"
 					style={{
 						position: 'absolute',
 						left: -240,
 						top: -220,
 						width: 1300,
 						height: 620,
-						objectFit: 'contain',
-						// drop-shadow follows the PNG alpha (text contour), not the image rectangle
-						filter:
-							'drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))',
+						zIndex: 1,
 					}}
+					detailFilter='drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))'
 				/>
 			</div>
 		</AbsoluteFill>
@@ -595,7 +594,6 @@ const IntroOverlay: React.FC<{
 	durationFrames: number;
 }> = ({ title, artist, durationFrames }) => {
 	const frame = useCurrentFrame();
-	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 	const featherPen = staticFile('assets/channels/acoriel/common/feather_pen.png');
 
 	// Overall fade in / fade out
@@ -754,18 +752,16 @@ const IntroOverlay: React.FC<{
 						>
 							Covered by
 						</span>
-						<Img
-							src={wordmark}
+						<AcoRielWordmark
+							tone="light"
 							style={{
 								height: 300,
-								objectFit: 'contain',
 								marginTop: -110,
 								marginBottom: -110,
 								marginLeft: -60,
 								marginRight: -20,
-								filter:
-									'drop-shadow(0 0 12px rgba(255,255,255,0.4)) drop-shadow(0 0 28px rgba(214,197,241,0.3))',
 							}}
+							detailFilter='drop-shadow(0 0 12px rgba(255,255,255,0.4)) drop-shadow(0 0 28px rgba(214,197,241,0.3))'
 						/>
 					</div>
 				</TextReveal>
@@ -781,7 +777,6 @@ const OutroOverlay: React.FC<{ durationFrames: number }> = ({
 }) => {
 	const frame = useCurrentFrame();
 	const channelIcon = staticFile('assets/channels/acoriel/common/channel-icon.png');
-	const channelWordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	const fadeIn = interpolate(frame, [0, 30], [0, 1], {
 		extrapolateRight: 'clamp',
@@ -824,16 +819,14 @@ const OutroOverlay: React.FC<{ durationFrames: number }> = ({
 							'drop-shadow(0 0 24px rgba(255,255,255,0.36)) drop-shadow(0 0 48px rgba(207,188,236,0.28))',
 					}}
 				/>
-				<Img
-					src={channelWordmark}
+				<AcoRielWordmark
+					tone="light"
 					style={{
 						width: 940,
 						height: 980,
-						objectFit: 'contain',
 						marginTop: -360,
-						filter:
-							'drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))',
 					}}
+					detailFilter='drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))'
 				/>
 				<span
 					style={{

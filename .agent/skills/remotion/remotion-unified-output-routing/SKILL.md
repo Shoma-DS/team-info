@@ -5,6 +5,10 @@ description: 出力先を `outputs/` 配下に統一し、sleep_travel・acoriel
 
 # Remotion出力先統一スキル
 
+## 絶対パスルール（必須）
+- ユーザーにコマンドを渡すときは、必ず `/Users/deguchishouma/team-info` から始まる絶対パスで書く。
+- `cd Remotion/...` や `../../outputs/...` のような相対パスは、ユーザー向けコマンドでは使わない。
+
 ## 統一ルール（必須）
 - 出力先は常に `outputs/` 配下を使う。
 - カテゴリごとに保存先を固定する。
@@ -19,11 +23,11 @@ description: 出力先を `outputs/` 配下に統一し、sleep_travel・acoriel
 ## コマンド提示ルール（必須）
 - Remotionレンダリングの提示は次を優先する。
 ```bash
-cd Remotion && ./scripts/render_to_outputs.sh <CompositionId> <output-file>.mp4
+bash /Users/deguchishouma/team-info/Remotion/scripts/render_to_outputs.sh <CompositionId> <output-file>.mp4
 ```
-- `npx remotion render` を直接提示する場合も、出力先は必ず `../../outputs/<channel>/renders/` にする。
+- `npx remotion render` を直接提示する場合も、出力先は必ず `/Users/deguchishouma/team-info/outputs/<channel>/renders/` にする。
 ```bash
-cd Remotion/my-video && npx remotion render src/index.ts <CompositionId> ../../outputs/<channel>/renders/<output-file>.mp4
+cd /Users/deguchishouma/team-info/Remotion/my-video && npx remotion render /Users/deguchishouma/team-info/Remotion/my-video/src/index.ts <CompositionId> /Users/deguchishouma/team-info/outputs/<channel>/renders/<output-file>.mp4
 ```
 - VOICEVOX音声生成は `generate_voice.py` を使い、生成結果が `outputs/sleep_travel/audio/` に保存される前提で案内する。
 

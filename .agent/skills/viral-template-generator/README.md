@@ -50,11 +50,13 @@ Claude Code → Remotionテンプレート生成
 
 ## 使い方
 
+コマンドをそのままユーザーへ渡すときは、必ず絶対パスで書く。
+
 ### Step 1: セットアップ（初回のみ）
 
 ```bash
-python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
-  .agent/skills/viral-template-generator/scripts/setup.py
+python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
+  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/setup.py
 ```
 
 インストールされるもの:
@@ -68,10 +70,10 @@ python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- 
 ### Step 2: 動画解析
 
 ```bash
-python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
-  .agent/skills/viral-template-generator/scripts/analyze_video.py \
-  /path/to/input.mp4 \
-  --output-dir /path/to/output \
+python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
+  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/analyze_video.py \
+  /absolute/path/to/input.mp4 \
+  --output-dir /absolute/path/to/output \
   --platform tiktok
 ```
 
@@ -87,21 +89,21 @@ python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- 
 Claude Code に以下を伝える:
 
 ```
-/path/to/output/analysis.json からRemotionテンプレートを生成して
+/absolute/path/to/output/analysis.json からRemotionテンプレートを生成して
 ```
 
-Claude が `analysis.json` を読み、`/path/to/output/remotion/` にカスタマイズされたテンプレートを生成する。
+Claude が `analysis.json` を読み、`/absolute/path/to/output/remotion/` にカスタマイズされたテンプレートを生成する。
 
 ### Step 4: プレビュー・レンダリング
 
 ```bash
 # プレビュー
-cd /path/to/output/remotion && npx remotion studio
+cd /absolute/path/to/output/remotion && npx remotion studio
 
 # レンダリング
-cd /path/to/output/remotion && npx remotion render \
+cd /absolute/path/to/output/remotion && npx remotion render \
   --composition=Viral-tiktok-20260308 \
-  --output=/path/to/output/output.mp4
+  --output=/absolute/path/to/output/output.mp4
 ```
 
 ---
@@ -172,7 +174,7 @@ cd /path/to/output/remotion && npx remotion render \
 
 **`mediapipe` インポートエラー**
 ```bash
-python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -m pip install mediapipe
+python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -m pip install mediapipe
 ```
 
 **OCR が動かない**

@@ -4,6 +4,8 @@
 
 このガイドでは、VOICEVOXエンジンとPythonスクリプトを使用して、台本から音声を自動生成するスキル (`generate_voice.py`) の利用方法を説明します。このスキルを使うことで、指定した台本の内容を、選択したVOICEVOXのキャラクターとスタイルで音声ファイルとして出力できます。
 
+ユーザーへコマンドを渡すときは、必ず絶対パスで案内します。
+
 ## 前提条件
 
 このスキルを利用する前に、以下の準備が必要です。
@@ -12,7 +14,7 @@
     *   Pythonがインストールされていることを確認してください。
     *   必要なライブラリ `requests` は次のコマンドでインストールしてください。`Remotion/.venv` がなければ自動作成されます。
         ```bash
-        python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -m pip install requests
+        python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -m pip install requests
         ```
 2.  **VOICEVOXエンジンのインストールと起動**:
     *   VOICEVOX公式サイト ([https://voicevox.hiroshiba.jp/](https://voicevox.hiroshiba.jp/)) から、お使いのOSに合ったVOICEVOXアプリケーションをダウンロードし、インストールしてください。
@@ -137,8 +139,8 @@ VOICEVOX MCPサーバーが設定済みであれば、Claude Codeから直接MCP
 ### 方法2: CLI引数モード
 
 ```bash
-python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
-  Remotion/generate_voice.py --script "台本名.md" --profile "shikoku_metan_whisper" --theme "テーマ名"
+python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
+  /Users/deguchishouma/team-info/Remotion/generate_voice.py --script "台本名.md" --profile "shikoku_metan_whisper" --theme "テーマ名"
 ```
 
 | 引数 | 説明 |
@@ -154,7 +156,7 @@ python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- 
 引数なしで実行すると、従来通りの対話形式で動作します。
 
 ```bash
-python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- Remotion/generate_voice.py
+python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- /Users/deguchishouma/team-info/Remotion/generate_voice.py
 ```
 
 1. 利用可能な台本ファイルの一覧が表示されるので、番号を入力
@@ -178,7 +180,7 @@ python .agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- 
 `TEAM_INFO_SHARED_ROOT` を設定するとその配下の `team-info/` を優先し、未設定時は一般的な Google Drive / OneDrive 配下の `team-info/` を自動検出します。
 
 ```bash
-python .agent/skills/common/scripts/team_info_runtime.py copy-to-shared "outputs/sleep_travel/audio/<生成されたファイル名>.mp3"
+python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py copy-to-shared "/Users/deguchishouma/team-info/outputs/sleep_travel/audio/<生成されたファイル名>.mp3"
 ```
 
 ## トラブルシューティング
@@ -203,7 +205,7 @@ python .agent/skills/common/scripts/team_info_runtime.py copy-to-shared "outputs
 VOICEVOX MCPサーバーは `mcp-servers/voicevox/` にあります。
 
 ```bash
-cd mcp-servers/voicevox
+cd /Users/deguchishouma/team-info/mcp-servers/voicevox
 npm install
 npm run build
 ```

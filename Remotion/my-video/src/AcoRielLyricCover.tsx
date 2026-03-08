@@ -15,6 +15,7 @@ import {
 } from 'remotion';
 import { useMemo, useState, useEffect, type CSSProperties } from 'react';
 import { getAudioData, visualizeAudioWaveform } from '@remotion/media-utils';
+import { AcoRielWordmark } from './AcoRielWordmark';
 
 // ── Fonts ────────────────────────────────────────────────────
 
@@ -458,6 +459,14 @@ const LyricLine: React.FC<{
 		// ── Text color: always white ──
 		const textColor = '#ffffff';
 
+		// ── Readability shadow: keep the airy glow, add only a soft depth shadow ──
+		const getReadableShadow = (): string => {
+			if (label === 'Chorus' || label === 'サビ') {
+				return '0 2px 8px rgba(4,8,16,0.52), 0 6px 18px rgba(4,8,16,0.28)';
+			}
+			return '0 2px 7px rgba(4,8,16,0.46), 0 5px 14px rgba(4,8,16,0.22)';
+		};
+
 		// ── Glow: always present, stronger on chorus ──
 		const getGlow = (): string => {
 			if (label === 'Chorus' || label === 'サビ') {
@@ -465,6 +474,8 @@ const LyricLine: React.FC<{
 			}
 			return '0 0 10px rgba(255,255,255,0.46), 0 0 22px rgba(184,222,255,0.3), 0 0 44px rgba(145,198,255,0.2)';
 		};
+
+		const getLyricTextShadow = (): string => `${getReadableShadow()}, ${getGlow()}`;
 
 		// ── Font size based on section ──
 		const getFontSize = (): number => {
@@ -498,7 +509,7 @@ const LyricLine: React.FC<{
 							...lyricsFont,
 							fontSize: getFontSize(),
 							fontWeight: 600,
-							textShadow: getGlow(),
+							textShadow: getLyricTextShadow(),
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
@@ -540,7 +551,7 @@ const LyricLine: React.FC<{
 													top: 0,
 													color: karaokeHighlight,
 													clipPath: `inset(0 ${(1 - wordProgress) * 100}% 0 0)`,
-													textShadow: `0 0 16px ${karaokeHighlight}`,
+													textShadow: `0 2px 8px rgba(4,8,16,0.42), 0 0 16px ${karaokeHighlight}`,
 												}}
 											>
 												<ScriptStyledText text={w.word} />
@@ -575,7 +586,7 @@ const LyricLine: React.FC<{
 							fontSize: getFontSize(),
 							fontWeight: 600,
 							color: textColor,
-							textShadow: getGlow(),
+							textShadow: getLyricTextShadow(),
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'center',
@@ -651,7 +662,7 @@ const LyricLine: React.FC<{
 						fontSize: getFontSize(),
 						fontWeight: 600,
 						color: textColor,
-						textShadow: getGlow(),
+						textShadow: getLyricTextShadow(),
 						display: 'flex',
 						flexDirection: 'column',
 						alignItems: 'center',
@@ -886,7 +897,6 @@ const useSongAudioData = (src: string) => {
 
 const ChannelBrandBadge: React.FC = () => {
 	const icon = staticFile('assets/channels/acoriel/common/channel-icon.png');
-	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	return (
 		<AbsoluteFill style={{ pointerEvents: 'none' }}>
@@ -910,19 +920,20 @@ const ChannelBrandBadge: React.FC = () => {
 						objectFit: 'cover',
 						borderRadius: 9999,
 						filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5)) brightness(1.05)',
+						zIndex: 2,
 					}}
 				/>
-				<Img
-					src={wordmark}
+				<AcoRielWordmark
+					tone="neutral"
 					style={{
 						position: 'absolute',
-						left: -240,
-						top: -220,
+						left: -220,
+						top: -190,
 						width: 1300,
 						height: 620,
-						objectFit: 'contain',
-						filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6)) brightness(1.15) contrast(1.1)',
+						zIndex: 1,
 					}}
+					detailFilter='drop-shadow(0 1px 3px rgba(0,0,0,0.6)) brightness(1.15) contrast(1.1)'
 				/>
 			</div>
 		</AbsoluteFill>
@@ -1382,7 +1393,6 @@ const IntroOverlay: React.FC<{
 	durationFrames: number;
 }> = ({ title, artist, durationFrames }) => {
 	const frame = useCurrentFrame();
-	const wordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 	const featherPen = staticFile('assets/channels/acoriel/common/feather_pen.png');
 	const wingImg = staticFile('assets/channels/acoriel/common/wing.png');
 
@@ -1607,121 +1617,120 @@ const IntroOverlay: React.FC<{
 					}}
 				/>
 				<div style={{ ...cardStyle, background: 'transparent', backdropFilter: 'none', border: 'none', gap: 0, padding: '14px 22px 14px 18px', clipPath: `inset(0 ${(1 - bottomExpandProgress) * 100}% 0 0 round 14px)`, position: 'relative', zIndex: 1 }}>
-				<TextReveal
-					startFrame={LS[2].start}
-					writeFrames={LS[2].write}
-					{...penProps(2)}
-				>
-					<span
-						style={{
-							fontSize: 54,
-							fontWeight: 400,
-							color: 'white',
-							textShadow: '0 0 8px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.7)',
-							whiteSpace: 'nowrap',
-							display: 'inline-flex',
-							alignItems: 'center',
-						}}
-					>
-						<ScriptStyledText text="Original by " />
-						{/* アーティスト名: クッキリ黒 + 黄色ハイライト */}
-						<span style={{ position: 'relative', display: 'inline-block' }}>
-							{/* 筆ペン走り書き風ハイライト */}
-							<span
-								style={{
-									position: 'absolute',
-									top: '18%',
-									left: '-5px',
-									right: '-5px',
-									height: '68%',
-									background: 'rgba(255,215,0,0.78)',
-									borderRadius: '2px 4px 1px 3px / 5px 2px 4px 2px',
-									transform: 'rotate(-1.4deg) skewX(-4deg)',
-									clipPath: `inset(0 ${(1 - hlProgress) * 100}% 0 0)`,
-								}}
-							/>
-							<span style={{ position: 'relative', color: '#0a0a14' }}>
-								<ScriptStyledText text={artist} />
-							</span>
-						</span>
-					</span>
-				</TextReveal>
-
-				<div
-					style={{
-						width: 60,
-						height: 1,
-						background: 'linear-gradient(90deg, rgba(255,255,255,0.5), transparent)',
-						marginTop: 4,
-						marginBottom: -2,
-						opacity: interpolate(
-							frame - LS[3].start,
-							[0, 5],
-							[0, 1],
-							{ extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-						),
-					}}
-				/>
-
-				<TextReveal
-					startFrame={LS[3].start}
-					writeFrames={LS[3].write}
-					{...penProps(3)}
-				>
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-							whiteSpace: 'nowrap',
-							paddingTop: 50,
-							paddingBottom: 50,
-							marginTop: -50,
-							marginBottom: -50,
-						}}
+					<TextReveal
+						startFrame={LS[2].start}
+						writeFrames={LS[2].write}
+						{...penProps(2)}
 					>
 						<span
 							style={{
-								fontFamily: playwriteFamily,
-								fontSize: 48,
+								fontSize: 54,
 								fontWeight: 400,
 								color: 'white',
 								textShadow: '0 0 8px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.7)',
-								letterSpacing: '0.12em',
+								whiteSpace: 'nowrap',
+								display: 'inline-flex',
+								alignItems: 'center',
 							}}
 						>
-							Covered by
+							<ScriptStyledText text="Original by " />
+							{/* アーティスト名: クッキリ黒 + 黄色ハイライト */}
+							<span style={{ position: 'relative', display: 'inline-block' }}>
+								{/* 筆ペン走り書き風ハイライト */}
+								<span
+									style={{
+										position: 'absolute',
+										top: '18%',
+										left: '-5px',
+										right: '-5px',
+										height: '68%',
+										background: 'rgba(255,215,0,0.78)',
+										borderRadius: '2px 4px 1px 3px / 5px 2px 4px 2px',
+										transform: 'rotate(-1.4deg) skewX(-4deg)',
+										clipPath: `inset(0 ${(1 - hlProgress) * 100}% 0 0)`,
+									}}
+								/>
+								<span style={{ position: 'relative', color: '#0a0a14' }}>
+									<ScriptStyledText text={artist} />
+								</span>
+							</span>
 						</span>
-						<span style={{ position: 'relative', display: 'inline-block' }}>
-							{/* ロゴマーカー */}
+					</TextReveal>
+
+					<div
+						style={{
+							width: 60,
+							height: 1,
+							background: 'linear-gradient(90deg, rgba(255,255,255,0.5), transparent)',
+							marginTop: 4,
+							marginBottom: -2,
+							opacity: interpolate(
+								frame - LS[3].start,
+								[0, 5],
+								[0, 1],
+								{ extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+							),
+						}}
+					/>
+
+					<TextReveal
+						startFrame={LS[3].start}
+						writeFrames={LS[3].write}
+						{...penProps(3)}
+					>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: 8,
+								whiteSpace: 'nowrap',
+								paddingTop: 50,
+								paddingBottom: 50,
+								marginTop: -50,
+								marginBottom: -50,
+							}}
+						>
 							<span
 								style={{
-									position: 'absolute',
-									top: '28%',
-									left: '-6px',
-									right: '-4px',
-									height: '44%',
-									background: 'rgba(15,15,20,0.82)',
-									borderRadius: '2px 3px 1px 3px / 4px 2px 3px 2px',
-									transform: 'rotate(-0.8deg) skewX(-3deg)',
-									clipPath: `inset(0 ${(1 - logoHlProgress) * 100}% 0 0)`,
+									fontFamily: playwriteFamily,
+									fontSize: 48,
+									fontWeight: 400,
+									color: 'white',
+									textShadow: '0 0 8px rgba(255,255,255,1), 0 0 20px rgba(255,255,255,0.7)',
+									letterSpacing: '0.12em',
 								}}
-							/>
-							<Img
-								src={wordmark}
-								style={{
-									height: 280,
-									objectFit: 'contain',
-									marginTop: -50,
-									marginBottom: -50,
-									marginLeft: -30,
-									marginRight: -10,
-									filter: 'invert(1)',
-									position: 'relative',
-								}}
-							/>
-						</span>
-					</div>
+							>
+								Covered by
+							</span>
+							<span style={{ position: 'relative', display: 'inline-block' }}>
+								{/* ロゴマーカー */}
+								<span
+									style={{
+										position: 'absolute',
+										top: '28%',
+										left: '-6px',
+										right: '-4px',
+										height: '44%',
+										background: 'rgba(15,15,20,0.82)',
+										borderRadius: '2px 3px 1px 3px / 4px 2px 3px 2px',
+										transform: 'rotate(-0.8deg) skewX(-3deg)',
+										clipPath: `inset(0 ${(1 - logoHlProgress) * 100}% 0 0)`,
+									}}
+								/>
+								<AcoRielWordmark
+									tone="light"
+									style={{
+										height: 280,
+										marginTop: -50,
+										marginBottom: -50,
+										marginLeft: -30,
+										marginRight: -10,
+										position: 'relative',
+									}}
+									detailFilter='invert(1) brightness(1.06)'
+								/>
+							</span>
+						</div>
 					</TextReveal>
 				</div>
 			</div>
@@ -1734,7 +1743,6 @@ const IntroOverlay: React.FC<{
 const OutroOverlay: React.FC<{ durationFrames: number }> = () => {
 	const frame = useCurrentFrame();
 	const channelIcon = staticFile('assets/channels/acoriel/common/channel-icon.png');
-	const channelWordmark = staticFile('assets/channels/acoriel/common/channel-wordmark.png');
 
 	// 背景を徐々に真っ黒へ
 	const bgOpacity = interpolate(frame, [0, 60], [0, 1], {
@@ -1761,70 +1769,68 @@ const OutroOverlay: React.FC<{ durationFrames: number }> = () => {
 					opacity: contentOpacity,
 				}}
 			>
-			<div
-				style={{
-					...lyricsFont,
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					gap: 18,
-				}}
-			>
-				<Img
-					src={channelIcon}
-					style={{
-						width: 420,
-						height: 420,
-						objectFit: 'cover',
-						borderRadius: 9999,
-						filter:
-							'drop-shadow(0 0 24px rgba(255,255,255,0.36)) drop-shadow(0 0 48px rgba(207,188,236,0.28))',
-					}}
-				/>
-				<Img
-					src={channelWordmark}
-					style={{
-						width: 940,
-						height: 980,
-						objectFit: 'contain',
-						marginTop: -360,
-						filter:
-							'drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))',
-					}}
-				/>
-				<span
-					style={{
-						fontSize: 16,
-						fontWeight: 400,
-						color: 'rgba(255,255,255,0.4)',
-						letterSpacing: '0.3em',
-						marginTop: -360,
-					}}
-				>
-					ACOUSTIC COVER BAND
-				</span>
 				<div
 					style={{
-						width: 40,
-						height: 1,
-						background:
-							'linear-gradient(90deg, transparent, rgba(192,200,216,0.3), transparent)',
-						marginTop: -20,
-					}}
-				/>
-				<span
-					style={{
-						fontFamily: yosugaraFamily,
-						fontSize: 30,
-						fontWeight: 600,
-						color: 'rgba(255,255,255,0.86)',
-						marginTop: 8,
-						textShadow: '0 0 14px rgba(255,255,255,0.34)',
+						...lyricsFont,
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: 18,
 					}}
 				>
-					チャンネル登録よろしくお願いします
-				</span>
-			</div>
+					<Img
+						src={channelIcon}
+						style={{
+							width: 420,
+							height: 420,
+							objectFit: 'cover',
+							borderRadius: 9999,
+							filter:
+								'drop-shadow(0 0 24px rgba(255,255,255,0.36)) drop-shadow(0 0 48px rgba(207,188,236,0.28))',
+						}}
+					/>
+					<AcoRielWordmark
+						tone="light"
+						style={{
+							width: 940,
+							height: 980,
+							marginTop: -360,
+						}}
+						detailFilter='drop-shadow(0 0 24px rgba(255,255,255,0.5)) drop-shadow(0 0 54px rgba(214,197,241,0.36)) drop-shadow(0 0 92px rgba(255,255,255,0.22))'
+					/>
+					<span
+						style={{
+							fontSize: 16,
+							fontWeight: 400,
+							color: 'rgba(255,255,255,0.4)',
+							letterSpacing: '0.3em',
+							marginTop: -360,
+						}}
+					>
+						ACOUSTIC COVER BAND
+					</span>
+					<div
+						style={{
+							width: 40,
+							height: 1,
+							background:
+								'linear-gradient(90deg, transparent, rgba(192,200,216,0.3), transparent)',
+							marginTop: -20,
+						}}
+					/>
+					<span
+						style={{
+							fontFamily: yosugaraFamily,
+							fontSize: 30,
+							fontWeight: 600,
+							color: 'rgba(255,255,255,0.86)',
+							marginTop: 8,
+							textShadow: '0 0 14px rgba(255,255,255,0.34)',
+						}}
+					>
+						チャンネル登録よろしくお願いします
+					</span>
+				</div>
 			</AbsoluteFill>
 		</AbsoluteFill>
 	);
@@ -1910,6 +1916,13 @@ type CrossDissolveBackgroundProps = {
 	crossfadeSeconds?: number;
 };
 
+const ACORIEL_BACKGROUND_FILTER = 'none';
+const ACORIEL_BACKGROUND_LIGHT_OVERLAY =
+	'radial-gradient(ellipse at 50% 35%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0) 72%)';
+const ACORIEL_BACKGROUND_EDGE_VIGNETTE =
+	'radial-gradient(ellipse at center, transparent 68%, rgba(0,0,0,0.12) 100%)';
+const LEGACY_DIMMED_PRERENDER_FILTER = 'brightness(1.47) saturate(1.39)';
+
 const CrossDissolveBackground: React.FC<CrossDissolveBackgroundProps> = ({
 	videos,
 	segmentSeconds = 10,
@@ -1983,7 +1996,7 @@ const CrossDissolveBackground: React.FC<CrossDissolveBackgroundProps> = ({
 								width: '100%',
 								height: '100%',
 								objectFit: 'cover',
-								filter: 'brightness(0.68) saturate(0.72)',
+								filter: ACORIEL_BACKGROUND_FILTER,
 								transform: `scale(${zoom}) translate(${panX}%, ${panY}%)`,
 							}}
 						/>
@@ -2059,7 +2072,7 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 					width: '100%',
 					height: '100%',
 					objectFit: 'cover',
-					filter: 'brightness(0.68) saturate(0.72)',
+					filter: ACORIEL_BACKGROUND_FILTER,
 					transform: `scale(${zoom}) translate(${panX}%, ${panY}%)`,
 				}}
 			/>
@@ -2067,16 +2080,14 @@ export const AcoRielLyricCover: React.FC<AcoRielLyricCoverProps> = ({
 			{/* Gradient overlay */}
 			<AbsoluteFill
 				style={{
-					background:
-						'radial-gradient(ellipse at 50% 40%, rgba(30,25,50,0.05), rgba(5,5,10,0.38))',
+					background: ACORIEL_BACKGROUND_LIGHT_OVERLAY,
 				}}
 			/>
 
 			{/* Vignette */}
 			<AbsoluteFill
 				style={{
-					background:
-						'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 100%)',
+					background: ACORIEL_BACKGROUND_EDGE_VIGNETTE,
 				}}
 			/>
 
@@ -2181,6 +2192,8 @@ type AcoRielLyricCoverMultiBGProps = {
 	bgSegmentSeconds?: number;
 	/** クロスディゾルブの秒数 (default: 2)。prerenderedBgVideo未指定時のみ使用 */
 	bgCrossfadeSeconds?: number;
+	/** 以前の暗め設定で作った事前合成動画を持ち上げる */
+	legacyDimmedPrerender?: boolean;
 };
 
 export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> = ({
@@ -2193,6 +2206,7 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 	backgroundVideos = ['bg_video_1.mp4'],
 	bgSegmentSeconds = 10,
 	bgCrossfadeSeconds = 2,
+	legacyDimmedPrerender = false,
 }) => {
 	const frame = useCurrentFrame();
 	const { durationInFrames, fps } = useVideoConfig();
@@ -2245,7 +2259,9 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 							width: '100%',
 							height: '100%',
 							objectFit: 'cover',
-							// 輝度・彩度は prerender_bg_video.py でベイク済み
+							filter: legacyDimmedPrerender
+								? LEGACY_DIMMED_PRERENDER_FILTER
+								: ACORIEL_BACKGROUND_FILTER,
 							transform: `scale(${bgZoom}) translate(${bgPanX}%, ${bgPanY}%)`,
 						}}
 					/>
@@ -2261,16 +2277,14 @@ export const AcoRielLyricCoverMultiBG: React.FC<AcoRielLyricCoverMultiBGProps> =
 			{/* Gradient overlay */}
 			<AbsoluteFill
 				style={{
-					background:
-						'radial-gradient(ellipse at 50% 40%, rgba(30,25,50,0.05), rgba(5,5,10,0.38))',
+					background: ACORIEL_BACKGROUND_LIGHT_OVERLAY,
 				}}
 			/>
 
 			{/* Vignette */}
 			<AbsoluteFill
 				style={{
-					background:
-						'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 100%)',
+					background: ACORIEL_BACKGROUND_EDGE_VIGNETTE,
 				}}
 			/>
 

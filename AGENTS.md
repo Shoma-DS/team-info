@@ -17,6 +17,16 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
 - Git関連操作を行う場合は、必ず `.agent/skills/common/git-workflow/SKILL.md` を使う。
 
+## Command Path Rules
+- ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
+- このリポジトリの基準パスは `/Users/deguchishouma/team-info` とする。
+- `cd Remotion/...` や `python .agent/...` のような相対パスのコマンドは、ユーザー向けには渡さない。
+- リポジトリ内コマンドは、できるだけ次の形で渡す。
+  - Git: `git -C /Users/deguchishouma/team-info ...`
+  - npm: `npm --prefix /Users/deguchishouma/team-info/Remotion/my-video ...`
+  - リポジトリ内Python: `python /Users/deguchishouma/team-info/...`
+- ユーザー指定の入力/出力パスが入る場合も、`[出力先]` ではなく `"[出力先の絶対パス]"` のように絶対パス前提で案内する。
+
 ### Available skills
 - acoriel-video-description: Acoriel（アコリエル）チャンネルのYouTube動画概要欄を生成する。 (file: /Users/deguchishouma/team-info/.agent/skills/acoriel/acoriel-video-description/SKILL.md)
 - remotion-template-acoriel-acoustic-cover: acoriel向けのアコースティックカバー用Remotion編集。 (file: /Users/deguchishouma/team-info/.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md)

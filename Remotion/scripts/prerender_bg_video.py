@@ -280,8 +280,8 @@ def main() -> None:
     parser.add_argument("--width", type=int, default=1920, help="出力幅")
     parser.add_argument("--height", type=int, default=1080, help="出力高さ")
     parser.add_argument("--seed", type=int, default=None, help="シャッフル用シード（省略時はランダム）")
-    parser.add_argument("--brightness", type=float, default=0.68, help="輝度係数（CSS brightness相当）")
-    parser.add_argument("--saturation", type=float, default=0.72, help="彩度係数（CSS saturate相当）")
+    parser.add_argument("--brightness", type=float, default=1.0, help="輝度係数（1.0 でそのまま）")
+    parser.add_argument("--saturation", type=float, default=1.0, help="彩度係数（1.0 でそのまま）")
     parser.add_argument("--chunk-size", type=int, default=CHUNK_SIZE, help="チャンクあたりのセグメント数")
     parser.add_argument(
         "--ping-pong", action="store_true",

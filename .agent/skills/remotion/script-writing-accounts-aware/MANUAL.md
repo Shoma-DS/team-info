@@ -549,7 +549,7 @@ account_name: my_account
 
 **コマンド例:**
 ```bash
-rm -rf .agent/skills/remotion/script-writing-accounts-aware/.sessions/20260211_143000_norse_mythology
+rm -rf /Users/deguchishouma/team-info/.agent/skills/remotion/script-writing-accounts-aware/.sessions/20260211_143000_norse_mythology
 ```
 
 ### Q9: 台本の文字数を指定できる？
@@ -699,7 +699,7 @@ rm -rf .agent/skills/remotion/script-writing-accounts-aware/.sessions/20260211_1
 
 **コマンド例:**
 ```bash
-find . -name "*egypt_mythology*"
+find /Users/deguchishouma/team-info -name "*egypt_mythology*"
 ```
 
 ### 問題: 長尺が短く感じる
