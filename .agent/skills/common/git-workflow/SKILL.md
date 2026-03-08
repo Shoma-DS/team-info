@@ -6,12 +6,14 @@ description: 変更内容をリモートリポジトリに反映するためのG
 # Git ワークフロースキル
 
 ## 絶対パスルール（必須）
-- ユーザーに Git コマンドを見せるときは、必ず `/Users/deguchishouma/team-info` を明記する。
-- `git status` のように短く書かず、`git -C /Users/deguchishouma/team-info status` の形で渡す。
-- `cd` を使う場合も、移動先は必ず絶対パスにする。
+- ユーザーに Git コマンドを見せるときは、固定の `/Users/...` ではなく `TEAM_INFO_ROOT` を使って絶対パスを組み立てる。
+- `git status` のように短く書かず、`git -C "$TEAM_INFO_ROOT" status` の形で渡す。
+- 新しいパソコンでは、リポジトリルートで `python .agent/skills/common/scripts/team_info_runtime.py setup-local-machine --repo-root .` を 1 回実行して `TEAM_INFO_ROOT` を決める。
+- オーナー機として使うパソコンだけ、上のコマンドに `--owner` を付ける。
+- `cd` を使う場合も、移動先は `"$TEAM_INFO_ROOT/..."` の形にする。
 
 ## 事前確認 (Pre-flight Check)
-スキル実行前に必ず `git -C /Users/deguchishouma/team-info status` を確認し、未コミットの変更があるか把握すること。
+スキル実行前に必ず `git -C "$TEAM_INFO_ROOT" status` を確認し、未コミットの変更があるか把握すること。
 
 ## コミットメッセージのルール (厳守)
 
@@ -82,37 +84,36 @@ description: 変更内容をリモートリポジトリに反映するためのG
 
 ### 1. 変更のステージング (`git add`)
 - ユーザーへの確認は**不要**。
-- `git -C /Users/deguchishouma/team-info add ...` の形でステージングする。
+- `git -C "$TEAM_INFO_ROOT" add ...` の形でステージングする。
 
-### 2. ユーザーの立場を確認する
-- push の前に、必ずユーザーへ「あなたは誰ですか？」と聞く。
-- 選択肢は次の2つだけにする。
-  - `オーナー（出口）`
-  - `その他`
-- ユーザーに選んでもらう前には、必ず通知を鳴らす。
-- ここで聞いた結果は、その turn の push 方法を決めるために使う。
+### 2. オーナー機かを確認する
+- push の前に、`python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" owner-status` を実行する。
+- 結果が `owner` なら、このパソコンをオーナー機として扱う。
+- 結果が `other` なら、オーナー機ではないとして扱う。
+- ユーザーに「あなたは誰ですか？」とは聞かない。
+- オーナー判定が取れない場合も、安全側で `other` として扱う。
 
 ### 3. コミット前の説明と承認 (`git commit`)
 - **コミットを実行する前に**、以下の手順を踏むこと。
-  1. `git -C /Users/deguchishouma/team-info diff --staged` 等で変更内容を確認する。
+  1. `git -C "$TEAM_INFO_ROOT" diff --staged` 等で変更内容を確認する。
   2. ユーザーに対して、今回の変更内容を**「小学生にもわかるように」**噛み砕いて説明する。専門用語を避け、何が変わって何が良くなるのかを伝える。
   3. 作成したコミットメッセージ案（要約＋詳細）を提示する。詳細は**3〜5行**で、短い文に分ける。
   4. 「この内容でコミットして良いですか？」と承認を求める。
 - 承認が得られた場合のみ、コミットを実行する。
 
 ```bash
-git -C /Users/deguchishouma/team-info commit -m "<1行要約>
+git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 
 <詳細>"
 ```
 
 ### 4. リモートへの反映 (`git push`)
 - push の前に、手元とリモートの差を確認する。
-- 必要なら `git -C /Users/deguchishouma/team-info fetch` や `git -C /Users/deguchishouma/team-info pull --rebase` を使って、コンフリクトがあるか確かめる。
-- **ユーザーが `オーナー（出口）` の場合**:
-  - `git -C /Users/deguchishouma/team-info push`（または `git -C /Users/deguchishouma/team-info push -u ...`）を実行して良いか確認し、承認を得てから実行する。
-- **ユーザーが `その他` の場合**:
-  - コンフリクトがなければ、`git -C /Users/deguchishouma/team-info push` を実行して良いか確認し、承認を得てから実行する。
+- 必要なら `git -C "$TEAM_INFO_ROOT" fetch` や `git -C "$TEAM_INFO_ROOT" pull --rebase` を使って、コンフリクトがあるか確かめる。
+- **オーナー機のとき**:
+  - `git -C "$TEAM_INFO_ROOT" push`（または `git -C "$TEAM_INFO_ROOT" push -u ...`）を実行して良いか確認し、承認を得てから実行する。
+- **オーナー機ではないとき**:
+  - コンフリクトがなければ、`git -C "$TEAM_INFO_ROOT" push` を実行して良いか確認し、承認を得てから実行する。
   - コンフリクトがある場合は、push を止めて **プルリクエスト (Pull Request)** を作成する流れに切り替える。
   - 「ぶつかる変更があるので、プルリクエストを作ります」と小学生でもわかる言葉で伝える。
 

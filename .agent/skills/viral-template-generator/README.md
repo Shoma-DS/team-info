@@ -55,8 +55,8 @@ Claude Code → Remotionテンプレート生成
 ### Step 1: セットアップ（初回のみ）
 
 ```bash
-python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
-  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/setup.py
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/setup.py"
 ```
 
 インストールされるもの:
@@ -70,8 +70,8 @@ python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_run
 ### Step 2: 動画解析
 
 ```bash
-python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- \
-  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/analyze_video.py \
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py" \
   /absolute/path/to/input.mp4 \
   --output-dir /absolute/path/to/output \
   --platform tiktok
@@ -174,7 +174,7 @@ cd /absolute/path/to/output/remotion && npx remotion render \
 
 **`mediapipe` インポートエラー**
 ```bash
-python /Users/deguchishouma/team-info/.agent/skills/common/scripts/team_info_runtime.py run-remotion-python -- -m pip install mediapipe
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -m pip install mediapipe
 ```
 
 **OCR が動かない**

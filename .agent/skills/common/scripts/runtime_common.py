@@ -1,15 +1,176 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
+import platform
+import re
 import shutil
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 from typing import Iterable
 
 
+TEAM_INFO_ROOT_ENV = "TEAM_INFO_ROOT"
+LOCAL_STATE_FILENAME = "local_state.json"
+LOCAL_STATE_APP_NAME = "team-info"
+
+
+def get_config_dir(app_name: str) -> Path:
+    if sys.platform == "win32":
+        base = Path(
+            os.environ.get(
+                "APPDATA",
+                str(Path.home() / "AppData" / "Roaming"),
+            )
+        )
+    else:
+        base = Path(
+            os.environ.get(
+                "XDG_CONFIG_HOME",
+                str(Path.home() / ".config"),
+            )
+        )
+    return base / app_name
+
+
+def get_local_state_path() -> Path:
+    return get_config_dir(LOCAL_STATE_APP_NAME) / LOCAL_STATE_FILENAME
+
+
+def _load_local_state() -> dict[str, str]:
+    state_path = get_local_state_path()
+    if not state_path.exists():
+        return {}
+
+    try:
+        loaded = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    if not isinstance(loaded, dict):
+        return {}
+
+    state: dict[str, str] = {}
+    for key, value in loaded.items():
+        if isinstance(key, str) and isinstance(value, str):
+            state[key] = value
+    return state
+
+
+def _save_local_state(state: dict[str, str]) -> Path:
+    state_path = get_local_state_path()
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(
+        json.dumps(state, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return state_path
+
+
+def _normalize_path(path: Path) -> Path:
+    expanded = path.expanduser()
+    try:
+        return expanded.resolve(strict=False)
+    except OSError:
+        return expanded.absolute()
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (path / ".agent" / "skills").is_dir() and (path / "AGENTS.md").is_file()
+
+
+def _search_repo_root(start: Path) -> Path | None:
+    candidate = _normalize_path(start)
+    if candidate.is_file():
+        candidate = candidate.parent
+
+    for current in (candidate, *candidate.parents):
+        if _looks_like_repo_root(current):
+            return current
+    return None
+
+
+def _git_reported_repo_root(start: Path) -> Path | None:
+    search_base = _normalize_path(start)
+    if search_base.is_file():
+        search_base = search_base.parent
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(search_base), "rev-parse", "--show-toplevel"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+
+    if completed.returncode != 0:
+        return None
+
+    candidate = _normalize_path(Path(completed.stdout.strip()))
+    if _looks_like_repo_root(candidate):
+        return candidate
+    return None
+
+
+def get_saved_repo_root() -> Path | None:
+    saved = _load_local_state().get("repo_root")
+    if not saved:
+        return None
+
+    candidate = _normalize_path(Path(saved))
+    if _looks_like_repo_root(candidate):
+        return candidate
+    return None
+
+
+def save_repo_root(repo_root: str | Path | None = None) -> Path:
+    if repo_root is None:
+        candidate = get_repo_root()
+    else:
+        raw_path = Path(repo_root)
+        if not raw_path.is_absolute():
+            raw_path = Path.cwd() / raw_path
+        candidate = _normalize_path(raw_path)
+
+    if not _looks_like_repo_root(candidate):
+        raise RuntimeError(f"Repository root was not found at: {candidate}")
+
+    state = _load_local_state()
+    state["repo_root"] = str(candidate)
+    _save_local_state(state)
+    return candidate
+
+
 def get_repo_root() -> Path:
-    return Path(__file__).resolve().parents[4]
+    env_override = os.environ.get(TEAM_INFO_ROOT_ENV)
+    if env_override:
+        env_path = _normalize_path(Path(env_override))
+        if _looks_like_repo_root(env_path):
+            return env_path
+
+    saved_root = get_saved_repo_root()
+    if saved_root is not None:
+        return saved_root
+
+    for resolver in (
+        lambda: _search_repo_root(Path.cwd()),
+        lambda: _git_reported_repo_root(Path.cwd()),
+        lambda: _search_repo_root(Path(__file__)),
+        lambda: _git_reported_repo_root(Path(__file__)),
+    ):
+        candidate = resolver()
+        if candidate is not None:
+            return candidate
+
+    raise RuntimeError(
+        "team-info repository root could not be detected. "
+        f"Set {TEAM_INFO_ROOT_ENV} or run setup-local-machine once."
+    )
 
 
 def resolve_input_path(path_str: str) -> Path:
@@ -80,22 +241,112 @@ def ensure_remotion_venv() -> Path:
     return created
 
 
-def get_config_dir(app_name: str) -> Path:
-    if sys.platform == "win32":
-        base = Path(
-            os.environ.get(
-                "APPDATA",
-                str(Path.home() / "AppData" / "Roaming"),
-            )
+def _run_command(command: list[str]) -> str | None:
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
         )
-    else:
-        base = Path(
-            os.environ.get(
-                "XDG_CONFIG_HOME",
-                str(Path.home() / ".config"),
-            )
-        )
-    return base / app_name
+    except OSError:
+        return None
+
+    if completed.returncode != 0:
+        return None
+
+    stdout = completed.stdout.strip()
+    return stdout or None
+
+
+def _macos_machine_marker() -> str | None:
+    ioreg_output = _run_command(["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"])
+    if ioreg_output:
+        match = re.search(r'"IOPlatformUUID"\s*=\s*"([^"]+)"', ioreg_output)
+        if match:
+            return match.group(1)
+
+    system_profiler = _run_command(["system_profiler", "SPHardwareDataType"])
+    if system_profiler:
+        match = re.search(r"Hardware UUID:\s*([A-F0-9-]+)", system_profiler, re.I)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _linux_machine_marker() -> str | None:
+    for candidate in (Path("/etc/machine-id"), Path("/var/lib/dbus/machine-id")):
+        if not candidate.exists():
+            continue
+        try:
+            value = candidate.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if value:
+            return value
+    return None
+
+
+def _windows_machine_marker() -> str | None:
+    reg_output = _run_command(
+        [
+            "reg",
+            "query",
+            r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography",
+            "/v",
+            "MachineGuid",
+        ]
+    )
+    if not reg_output:
+        return None
+
+    match = re.search(r"MachineGuid\s+REG_\w+\s+([^\s]+)", reg_output)
+    if match:
+        return match.group(1)
+    return None
+
+
+def get_machine_fingerprint() -> str:
+    marker = os.environ.get("TEAM_INFO_MACHINE_ID")
+
+    if not marker:
+        if sys.platform == "darwin":
+            marker = _macos_machine_marker()
+        elif sys.platform == "win32":
+            marker = _windows_machine_marker()
+        else:
+            marker = _linux_machine_marker()
+
+    if not marker:
+        marker = f"{platform.system()}|{platform.node()}|{uuid.getnode():012x}"
+
+    return hashlib.sha256(marker.encode("utf-8")).hexdigest()
+
+
+def get_saved_owner_machine_id() -> str | None:
+    return _load_local_state().get("owner_machine_id")
+
+
+def save_owner_machine(machine_id: str | None = None) -> str:
+    owner_machine_id = machine_id or get_machine_fingerprint()
+    state = _load_local_state()
+    state["owner_machine_id"] = owner_machine_id
+    _save_local_state(state)
+    return owner_machine_id
+
+
+def clear_owner_machine() -> None:
+    state = _load_local_state()
+    if "owner_machine_id" in state:
+        del state["owner_machine_id"]
+        _save_local_state(state)
+
+
+def is_owner_machine() -> bool:
+    expected = get_saved_owner_machine_id()
+    if not expected:
+        return False
+    return expected == get_machine_fingerprint()
 
 
 def _shared_root_candidates() -> Iterable[Path]:
