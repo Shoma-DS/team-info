@@ -17,7 +17,7 @@ description: 出力先を `outputs/` 配下に統一し、sleep_travel・acoriel
   - AcoRiel レンダー: `outputs/acoriel/renders/`
   - AcoRiel説明文: `outputs/acoriel/descriptions/`
   - ジモティー: `outputs/jmty/factory/` `outputs/jmty/remote/`
-- 旧出力先 `Remotion/output/` `Remotion/renders/` `Remotion/my-video/out/` は使わない。
+- 旧出力先 `Remotion/output/` `Remotion/renders/` `Remotion/my-video/out/` `Remotion/my-video/outputs/` `outputs/acoriel_descriptions/` は使わない。
 - ユーザーが明示的に別パスを指定しない限り、出力コマンドは必ずカテゴリ付き `outputs/...` を指定する。
 
 ## コマンド提示ルール（必須）

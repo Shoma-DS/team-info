@@ -5,6 +5,8 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 ## Canonical Agent File
 - このリポジトリのエージェント向け指示の正本は `AGENTS.md` とする。
 - `Agent.md` は互換用の案内ファイルとして扱い、内容の更新は原則 `AGENTS.md` のみで行う。
+- フォルダ命名規則・禁止事項・用途マップは `RULES.md` を参照すること。
+- 各サブフォルダの `CLAUDE.md` にそのフォルダの詳細文脈が記載されている。
 
 ## Behavior Principles
 - ユーザーの意図と目的を正確に理解する。不明点が重要なら確認する。
@@ -51,6 +53,7 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - frontend-design: 高品質なフロントエンドUIを制作する。 (file: .agent/skills/web-design/frontend-design/SKILL.md)
 - gsap-awwwards-website: GSAPスクロール演出付きLPを開発/保守する。 (file: .agent/skills/web-design/gsap-awwwards-website/SKILL.md)
 - skill-finder: タスクに合うスキルを一覧から特定する。 (file: .agent/skills/skill-finder/SKILL.md)
+- viral-template-generator: ショート動画を3層解析しRemotionバズ動画テンプレートを自動生成する。 (file: .agent/skills/viral-template-generator/SKILL.md)
 
 ### How to use skills
 - Discovery: Open the relevant `SKILL.md` and read only what is needed for the current task.

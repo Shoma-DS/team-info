@@ -1,1 +1,0 @@
-../../.agent/skills/script-writing-accounts-aware/MANUAL.md

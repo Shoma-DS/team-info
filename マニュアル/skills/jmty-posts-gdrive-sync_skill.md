@@ -1,1 +1,1 @@
-../../.agent/skills/jmty-posts-gdrive-sync/SKILL.md
+../../.agent/skills/jmty/jmty-posts-gdrive-sync/SKILL.md

@@ -1,1 +1,1 @@
-../../.agent/skills/jmty-posts/SKILL.md
+../../.agent/skills/jmty/jmty-posts/SKILL.md
