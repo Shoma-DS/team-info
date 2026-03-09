@@ -11,3 +11,10 @@ test-website/
 
 # Video artifacts
 *.mp4
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Node modules
+node_modules/
