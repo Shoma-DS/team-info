@@ -448,12 +448,12 @@ export const SleepTravelLong: React.FC = () => {
 					src={SLEEP_TRAVEL_BGM_SRC}
 					volume={(f) => {
 						if (f < fadeFrames) {
-							return (f / fadeFrames) * 0.11;
+							return (f / fadeFrames) * 0.35;
 						}
 						if (f > bgmSegmentFrames - fadeFrames) {
-							return ((bgmSegmentFrames - f) / fadeFrames) * 0.11;
+							return ((bgmSegmentFrames - f) / fadeFrames) * 0.35;
 						}
-						return 0.11;
+						return 0.35;
 					}}
 				/>
 			</Loop>
