@@ -113,6 +113,13 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 
 `analysis.json` を読み込み、以下の手順でテンプレートを生成する。
 
+### メディアトラック統合ルール（必須）
+
+- 背景画像、動画クリップ、字幕、効果音など、同じ種類で時系列が重ならない素材は、種類ごとに `<Sequence>` を1本へ統合して生成する。
+- `map(...<Sequence>...)` で非重複な同種素材を並べるテンプレートは生成しない。
+- テンプレートコードは「1本の `<Sequence>` + タイムライン配列 + 現在フレームからアクティブ素材を選ぶ」構造を優先する。
+- 複数 `<Sequence>` を出力してよいのは、クロスフェードや同時表示など、同種素材の時間重複が必要な場合だけとする。
+
 ### Step 2-1: analysis.json を読む
 
 `analysis.json` を Read ツールで読み込み、以下を把握する:
@@ -144,6 +151,7 @@ durationInFrames = Math.ceil(duration * fps)
 **字幕生成ルール:**
 - `speech_structure.transcript` の各エントリを `<Subtitle>` コンポーネントに変換する
 - `start` (秒) を `frame = Math.round(start * fps)` に変換する
+- 字幕トラックは `<Sequence>` 1本に統合し、現在フレームでアクティブな字幕を選ぶ
 
 **フック演出ルール:**
 - `viral_structure.hook_time` から `hook_type` に応じて `<Hook>` コンポーネントを配置する

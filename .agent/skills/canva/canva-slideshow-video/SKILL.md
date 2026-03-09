@@ -60,6 +60,14 @@ Step 6: Remotion で動画レンダリング
 
 ## 制作フロー
 
+### Remotion実装ルール（必須）
+
+- 画像スライド、差し替えBGM、補助効果音など、同じ種類で時系列が重ならない素材は、種類ごとに `<Sequence>` を1本へ統合する。
+- `CanvaSlideshow.tsx` では `slides.map(...<Sequence>...)` のように画像スライドごとに `<Sequence>` を量産しない。
+- スライドは「画像用 `<Sequence>` 1本 + タイムライン配列 + 現在フレームからアクティブな1枚を選択して描画」を標準実装にする。
+- 音声も複数クリップが非重複なら同様に1トラック化を優先し、BGMループだけは `<Loop>` で管理してよい。
+- 複数 `<Sequence>` を分けるのは、クロスフェードなど同種素材の時間重複が必要な場合だけに限定する。
+
 ### Step 1: 音声プロファイルを選択（必須・最初に確認）
 
 `Remotion/configs/voice_config.json` に登録済みのプロファイル一覧をユーザーに提示し、
@@ -128,6 +136,9 @@ import slidesData from "../public/assets/slide_images/{テーマ}/manifest.json"
   }}
 />
 ```
+
+- `CanvaSlideshow.tsx` の画像トラックは `<Sequence>` 1本で管理し、現在フレームに応じて表示するスライドを切り替える。
+- スライドごとに sibling の `<Sequence>` を増やしてタイムラインを分断しない。
 
 lint チェック後、レンダリング（**必ず「出力しますか？書き出しますか？」を確認してから実行**）:
 
