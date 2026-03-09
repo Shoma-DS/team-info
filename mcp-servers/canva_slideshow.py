@@ -136,8 +136,8 @@ def split_script_to_slides(script_text: str) -> list[str]:
 
 # ===== Canva API 操作 =====
 
-def create_design(token: str, title: str) -> str:
-    """新規デザイン（プレゼンテーション）を作成して design_id を返す"""
+def create_design(token: str, title: str) -> tuple[str, str]:
+    """新規デザイン（プレゼンテーション）を作成して (design_id, edit_url) を返す"""
     resp = requests.post(
         f"{API_BASE}/designs",
         headers={
@@ -145,24 +145,17 @@ def create_design(token: str, title: str) -> str:
             "Content-Type": "application/json",
         },
         json={
-            "design_type": {"type": "presentation"},
+            "design_type": {"type": "preset", "name": "presentation"},
             "title": title,
         },
     )
     resp.raise_for_status()
     data = resp.json()
-    design_id = data["design"]["id"]
+    design = data["design"]
+    design_id = design["id"]
+    edit_url = design.get("urls", {}).get("edit_url", "")
     print(f"  デザイン作成: {design_id}")
-    return design_id
-
-def get_design_url(token: str, design_id: str) -> str:
-    """デザインの編集URLを取得"""
-    resp = requests.get(
-        f"{API_BASE}/designs/{design_id}",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    resp.raise_for_status()
-    return resp.json()["design"].get("urls", {}).get("edit_url", "")
+    return design_id, edit_url
 
 def export_design_as_images(token: str, design_id: str) -> list[str]:
     """デザインを PNG でエクスポートし、ダウンロード URL リストを返す"""
@@ -175,8 +168,10 @@ def export_design_as_images(token: str, design_id: str) -> list[str]:
         },
         json={
             "design_id": design_id,
-            "format": "png",
-            "export_quality": "pro",
+            "format": {
+                "type": "png",
+                "export_quality": "regular",
+            },
         },
     )
     resp.raise_for_status()
@@ -195,11 +190,12 @@ def export_design_as_images(token: str, design_id: str) -> list[str]:
         status_data = status_resp.json()
         status = status_data["job"]["status"]
         if status == "success":
-            urls = [u["url"] for u in status_data["job"].get("urls", [])]
+            urls = status_data["job"].get("urls", [])  # string[]
             print(f"  エクスポート完了: {len(urls)} ページ")
             return urls
         elif status == "failed":
-            print(f"エラー: エクスポートに失敗しました")
+            err = status_data["job"].get("error", {})
+            print(f"エラー: エクスポートに失敗しました: {err.get('message', '')}")
             return []
         print(f"  エクスポート待機中... ({status})")
 
@@ -244,6 +240,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Canva スライドショー生成")
     parser.add_argument("--script", required=True, help="台本ファイル名（voice_scripts/内）")
     parser.add_argument("--theme",  required=True, help="テーマ名（出力フォルダ名になる）")
+    parser.add_argument("--skip-pause", action="store_true", help="Canva編集の確認待ちをスキップ")
     return parser.parse_args()
 
 
@@ -272,8 +269,7 @@ def main():
 
     # Step 3: Canva でデザイン作成
     print("\n[3/4] Canva でデザインを作成中...")
-    design_id = create_design(token, args.theme)
-    edit_url = get_design_url(token, design_id)
+    design_id, edit_url = create_design(token, args.theme)
     if edit_url:
         print(f"\n  ★ Canva でスライドを編集できます:")
         print(f"    {edit_url}\n")
@@ -283,7 +279,8 @@ def main():
         if len(slides) > 5:
             print(f"    ... 他 {len(slides)-5} スライド")
         print()
-        input("  Canvaでスライドを編集・確認したら Enter を押してください > ")
+        if not args.skip_pause and sys.stdin.isatty():
+            input("  Canvaでスライドを編集・確認したら Enter を押してください > ")
 
     # Step 4: PNG エクスポート
     print("\n[4/4] PNG エクスポート中...")
