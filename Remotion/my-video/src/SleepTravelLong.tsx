@@ -416,6 +416,7 @@ export const SleepTravelLong: React.FC = () => {
 		Math.floor(20 * fps)
 	);
 	const fadeFrames = Math.floor(2.5 * fps);
+	const loopCount = Math.ceil(durationInFrames / bgmSegmentFrames) + 1;
 
 	const panX = Math.sin((frame / fps) * 0.03) * 1.5;
 	const panY = Math.cos((frame / fps) * 0.02) * 1.2;
@@ -442,7 +443,7 @@ export const SleepTravelLong: React.FC = () => {
 			<AshAndSmoke />
 
 			<Audio src={SLEEP_TRAVEL_AUDIO_SRC} />
-			<Loop durationInFrames={bgmSegmentFrames}>
+			<Loop durationInFrames={bgmSegmentFrames} times={loopCount}>
 				<Audio
 					src={SLEEP_TRAVEL_BGM_SRC}
 					volume={(f) => {
