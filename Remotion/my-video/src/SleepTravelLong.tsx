@@ -3,7 +3,7 @@ import {
 	Audio,
 	Easing,
 	Img,
-	Sequence,
+	Loop,
 	continueRender,
 	delayRender,
 	interpolate,
@@ -416,8 +416,6 @@ export const SleepTravelLong: React.FC = () => {
 		Math.floor(20 * fps)
 	);
 	const fadeFrames = Math.floor(2.5 * fps);
-	const stepFrames = Math.max(1, bgmSegmentFrames - fadeFrames);
-	const loopCount = Math.ceil(durationInFrames / stepFrames) + 1;
 
 	const panX = Math.sin((frame / fps) * 0.03) * 1.5;
 	const panY = Math.cos((frame / fps) * 0.02) * 1.2;
@@ -444,28 +442,20 @@ export const SleepTravelLong: React.FC = () => {
 			<AshAndSmoke />
 
 			<Audio src={SLEEP_TRAVEL_AUDIO_SRC} />
-			{new Array(loopCount).fill(null).map((_, i) => {
-				const from = i * stepFrames;
-				return (
-					<Sequence key={i} from={from} durationInFrames={bgmSegmentFrames}>
-						<Audio
-							src={SLEEP_TRAVEL_BGM_SRC}
-							volume={(f) => {
-								if (f < fadeFrames) {
-									return (f / fadeFrames) * 0.11;
-								}
-								if (f > bgmSegmentFrames - fadeFrames) {
-									return (
-										((bgmSegmentFrames - f) / fadeFrames) *
-										0.11
-									);
-								}
-								return 0.11;
-							}}
-						/>
-					</Sequence>
-				);
-			})}
+			<Loop durationInFrames={bgmSegmentFrames}>
+				<Audio
+					src={SLEEP_TRAVEL_BGM_SRC}
+					volume={(f) => {
+						if (f < fadeFrames) {
+							return (f / fadeFrames) * 0.11;
+						}
+						if (f > bgmSegmentFrames - fadeFrames) {
+							return ((bgmSegmentFrames - f) / fadeFrames) * 0.11;
+						}
+						return 0.11;
+					}}
+				/>
+			</Loop>
 
 			<Spectrum />
 
