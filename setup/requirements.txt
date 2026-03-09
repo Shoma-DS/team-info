@@ -1,0 +1,50 @@
+# team-info Python requirements
+# Python 3.11 推奨（ML ライブラリの互換性のため）
+
+# Audio / Speech
+faster-whisper==1.2.1
+sounddevice==0.5.5
+
+# Computer Vision / ML
+opencv-contrib-python==4.11.0.86
+opencv-python-headless==4.13.0.92
+mediapipe==0.10.21
+pytesseract==0.3.13
+onnxruntime==1.23.2
+ctranslate2==4.7.1
+
+# Deep Learning (jax は platform 依存のため setup スクリプト側でインストール)
+# jax==0.4.38
+# jaxlib==0.4.38
+numpy==1.26.4
+scipy==1.17.1
+ml_dtypes==0.5.4
+
+# Image / Audio
+pillow==12.1.1
+matplotlib==3.10.8
+av==16.1.0
+
+# AI / HuggingFace
+huggingface_hub==1.4.1
+tokenizers==0.22.2
+sentencepiece==0.2.1
+
+# HTTP / Networking
+httpx==0.28.1
+requests
+
+# CLI / Utilities
+typer==0.24.0
+click==8.3.1
+rich==14.3.2
+Pygments==2.19.2
+markdown-it-py==4.0.0
+tqdm==4.67.3
+
+# Data
+PyYAML==6.0.3
+python-dateutil==2.9.0.post0
+pydantic
+typing_extensions==4.15.0
+protobuf==4.25.8
