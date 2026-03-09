@@ -362,15 +362,27 @@ def main():
 
     script_path = os.path.join(SCRIPT_DIR, selected_script_name)
 
+    # _kana.md が存在すればそちらを音源化に使用する
+    base_name = os.path.splitext(selected_script_name)[0]
+    kana_script_name = base_name + "_kana.md"
+    kana_script_path = os.path.join(SCRIPT_DIR, kana_script_name)
+    use_kana = os.path.exists(kana_script_path)
+    if use_kana:
+        print(f"  → かな版台本を検出しました: {kana_script_name}")
+        print("     読み間違い防止のため、かな版を使用して音源化します。")
+        tts_script_path = kana_script_path
+    else:
+        tts_script_path = script_path
+
     if selected_profile_name not in voice_configs:
         print(f"エラー: プロファイル '{selected_profile_name}' が見つかりません。")
         print("利用可能なプロファイル:", ", ".join(voice_configs.keys()))
         return
     selected_profile = voice_configs[selected_profile_name]
 
-    # 選択された台本ファイルを読み込む
+    # 台本ファイルを読み込む（かな版があればそちらを優先）
     try:
-        with open(script_path, 'r', encoding='utf-8') as f:
+        with open(tts_script_path, 'r', encoding='utf-8') as f:
             script_text = f.read()
     except Exception as e:
         print(f"エラー: 台本ファイルの読み込みに失敗しました: {e}")
@@ -547,6 +559,11 @@ def main():
 
     print(f"\n完了! 音声ファイルが '{output_path}' に保存されました。")
     print(f"   チャンク数: {success_count} / エラー: {_counters[1]}")
+
+    # かな版台本を削除（元の漢字台本のみ残す）
+    if use_kana and os.path.exists(kana_script_path):
+        os.remove(kana_script_path)
+        print(f"   かな版台本を削除しました: {kana_script_name}")
 
 if __name__ == "__main__":
     main()
