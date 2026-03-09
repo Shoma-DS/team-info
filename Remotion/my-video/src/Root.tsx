@@ -1,6 +1,6 @@
 import { Composition } from "remotion";
 import { SleepTravelLong } from "./SleepTravelLong";
-import { AcoRielLyricCover, AcoRielLyricCoverMultiBG } from "./AcoRielLyricCover";
+import { AcoRielLyricCover } from "./AcoRielLyricCover";
 
 // Each <Composition> is an entry in the sidebar!
 
@@ -31,54 +31,6 @@ export const RemotionRoot: React.FC = () => {
         }}
       />
 
-      <Composition
-        id="AcoRiel-Seishun-Amigo-MultiBG"
-        component={AcoRielLyricCoverMultiBG}
-        durationInFrames={9630}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          songFolder: 'songs/青春アミーゴ',
-          songTitle: '青春アミーゴ',
-          songArtist: '修二と彰',
-          // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
-          prerenderedBgVideo: 'bg_prerendered_seed342550349.mp4',
-          legacyDimmedPrerender: true,
-        }}
-      />
-      <Composition
-        id="AcoRiel-Tegami-MultiBG"
-        component={AcoRielLyricCoverMultiBG}
-        durationInFrames={8192}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          songFolder: 'songs/拝啓_十五の君へ',
-          songTitle: '手紙 ～拝啓 十五の君へ～',
-          songArtist: 'アンジェラ・アキ',
-          // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
-          prerenderedBgVideo: 'bg_prerendered_seed1854400619.mp4',
-          legacyDimmedPrerender: true,
-        }}
-      />
-      <Composition
-        id="AcoRiel-Diamond-Princess-MultiBG"
-        component={AcoRielLyricCoverMultiBG}
-        durationInFrames={8313}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          songFolder: 'songs/Diamond_プリンセス',
-          songTitle: 'Diamonds',
-          songArtist: 'プリンセス プリンセス',
-          // 事前合成済み背景動画を使用（prerender_bg_video.py で生成）
-          prerenderedBgVideo: 'bg_prerendered_seed2045534336.mp4',
-          legacyDimmedPrerender: true,
-        }}
-      />
     </>
   );
 };
