@@ -15,8 +15,8 @@
     "speed": 0.75,
     "pitch": 0.0,
     "volume": 0.9,
-    "pause_length_scale": 2.00,
-    "post_phoneme_length": 2.00,
+    "pause_length_scale": 2.0,
+    "post_phoneme_length": 2.0,
     "language": "ja-JP"
   },
   "zundamon_normal": {
@@ -46,6 +46,16 @@
     "pitch": -0.1,
     "volume": 1.0,
     "pause_length_scale": 1.0,
+    "post_phoneme_length": 0.1,
+    "language": "ja-JP"
+  },
+  "aoyama_ryuusei_normal": {
+    "speaker_name": "青山龍星",
+    "style_name": "ノーマル",
+    "speed": 0.85,
+    "pitch": 0.0,
+    "volume": 1.0,
+    "pause_length_scale": 1.2,
     "post_phoneme_length": 0.1,
     "language": "ja-JP"
   }
