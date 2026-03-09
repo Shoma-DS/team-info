@@ -3,6 +3,7 @@ import {
 	Audio,
 	Img,
 	interpolate,
+	Loop,
 	Sequence,
 	staticFile,
 	useCurrentFrame,
@@ -10,36 +11,44 @@ import {
 } from 'remotion';
 import {useMemo} from 'react';
 
-// ===== 型定義 =====
 type SlideEntry = {
 	index: number;
 	text: string;
-	image: string; // Remotion/my-video/public/ からの相対パス
+	image: string | null;
 };
 
 type CanvasSlideshowProps = {
-	audioSrc: string;         // 音声ファイルパス (staticFile 用)
-	manifestSrc: string;      // manifest.json パス (staticFile 用)
-	slides: SlideEntry[];     // manifest.json の内容を直接渡す
+	audioSrc: string;
+	bgmSrc?: string;
+	bgmVolume?: number;
+	slides: SlideEntry[];
 };
 
-// ===== テキストスタイル =====
 const baseTextStyle: React.CSSProperties = {
 	fontFamily: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif',
 	color: '#f5f5f0',
 	textAlign: 'center',
-	lineHeight: 1.7,
-	letterSpacing: '0.04em',
+	lineHeight: 1.8,
+	letterSpacing: '0.05em',
+	margin: 0,
 };
 
-// ===== スライド1枚コンポーネント =====
+const FALLBACK_GRADIENTS = [
+	'linear-gradient(135deg, #0d1b2a 0%, #1b2a4a 100%)',
+	'linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 100%)',
+	'linear-gradient(135deg, #0a1a0d 0%, #1a3020 100%)',
+	'linear-gradient(135deg, #2a0d0d 0%, #4a1a1a 100%)',
+	'linear-gradient(135deg, #0d2a2a 0%, #1a4040 100%)',
+];
+
 const Slide: React.FC<{
 	entry: SlideEntry;
 	durationInFrames: number;
-}> = ({entry, durationInFrames}) => {
+	slideIndex: number;
+}> = ({entry, durationInFrames, slideIndex}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
-	const fadeFrames = Math.floor(0.5 * fps); // 0.5秒フェード
+	const fadeFrames = Math.min(Math.floor(0.6 * fps), Math.floor(durationInFrames / 4));
 
 	const opacity = interpolate(
 		frame,
@@ -47,46 +56,55 @@ const Slide: React.FC<{
 		[0, 1, 1, 0],
 		{extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}
 	);
-
-	// ズームイン効果
-	const scale = interpolate(frame, [0, durationInFrames], [1.0, 1.04], {
+	const scale = interpolate(frame, [0, durationInFrames], [1.0, 1.05], {
 		extrapolateLeft: 'clamp',
 		extrapolateRight: 'clamp',
 	});
+	const panX = Math.sin((frame / fps) * 0.05) * 0.8;
+	const panY = Math.cos((frame / fps) * 0.04) * 0.6;
+	const fallbackBg = FALLBACK_GRADIENTS[slideIndex % FALLBACK_GRADIENTS.length];
 
 	return (
 		<AbsoluteFill style={{opacity}}>
-			{/* スライド画像 */}
-			<Img
-				src={staticFile(entry.image)}
-				style={{
-					width: '100%',
-					height: '100%',
-					objectFit: 'cover',
-					transform: `scale(${scale})`,
-				}}
-			/>
-			{/* テキストオーバーレイ */}
+			{entry.image ? (
+				<Img
+					src={staticFile(entry.image)}
+					style={{
+						width: '100%',
+						height: '100%',
+						objectFit: 'cover',
+						filter: 'brightness(0.55) saturate(0.85)',
+						transform: `scale(${scale}) translate(${panX}%, ${panY}%)`,
+					}}
+				/>
+			) : (
+				<AbsoluteFill style={{background: fallbackBg}} />
+			)}
 			<AbsoluteFill
 				style={{
 					background:
-						'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0) 100%)',
+						'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.05) 100%)',
+				}}
+			/>
+			<AbsoluteFill
+				style={{
 					justifyContent: 'flex-end',
 					alignItems: 'center',
-					paddingBottom: 80,
-					paddingLeft: 120,
-					paddingRight: 120,
+					paddingBottom: 100,
+					paddingLeft: 140,
+					paddingRight: 140,
 				}}
 			>
 				<p
 					style={{
 						...baseTextStyle,
-						fontSize: 44,
-						maxWidth: 1600,
-						background: 'rgba(0,0,0,0.3)',
-						borderRadius: 12,
-						padding: '16px 32px',
-						backdropFilter: 'blur(2px)',
+						fontSize: entry.text.length > 60 ? 40 : 48,
+						maxWidth: 1560,
+						background: 'rgba(0,0,0,0.28)',
+						borderRadius: 14,
+						padding: '20px 36px',
+						backdropFilter: 'blur(3px)',
+						boxShadow: '0 0 40px rgba(255,245,220,0.12)',
 					}}
 				>
 					{entry.text}
@@ -96,35 +114,48 @@ const Slide: React.FC<{
 	);
 };
 
-// ===== メインコンポーネント =====
+const BgmLoop: React.FC<{src: string; volume: number}> = ({src, volume}) => {
+	const {durationInFrames, fps} = useVideoConfig();
+	const bgmFrames = Math.floor(180 * fps);
+	const loopCount = Math.ceil(durationInFrames / bgmFrames) + 1;
+	const fadeFrames = Math.floor(2.5 * fps);
+	return (
+		<Loop durationInFrames={bgmFrames} times={loopCount}>
+			<Audio
+				src={staticFile(src)}
+				volume={(f) => {
+					if (f < fadeFrames) return (f / fadeFrames) * volume;
+					if (f > bgmFrames - fadeFrames)
+						return ((bgmFrames - f) / fadeFrames) * volume;
+					return volume;
+				}}
+			/>
+		</Loop>
+	);
+};
+
 export const CanvaSlideshow: React.FC<CanvasSlideshowProps> = ({
 	audioSrc,
+	bgmSrc,
+	bgmVolume = 0.15,
 	slides,
 }) => {
 	const {durationInFrames} = useVideoConfig();
-
-	// 各スライドの表示フレーム数を均等分割
 	const slideDuration = useMemo(
 		() => Math.floor(durationInFrames / Math.max(slides.length, 1)),
 		[durationInFrames, slides.length]
 	);
-
 	return (
-		<AbsoluteFill style={{backgroundColor: '#0d0d0d'}}>
-			{/* 音声 */}
+		<AbsoluteFill style={{backgroundColor: '#0a0a0a'}}>
 			<Audio src={staticFile(audioSrc)} />
-
-			{/* スライド */}
+			{bgmSrc && <BgmLoop src={bgmSrc} volume={bgmVolume} />}
 			{slides.map((entry, i) => {
 				const from = i * slideDuration;
-				// 最後のスライドは残り全フレームを使う
 				const dur =
-					i === slides.length - 1
-						? durationInFrames - from
-						: slideDuration;
+					i === slides.length - 1 ? durationInFrames - from : slideDuration;
 				return (
 					<Sequence key={entry.index} from={from} durationInFrames={dur}>
-						<Slide entry={entry} durationInFrames={dur} />
+						<Slide entry={entry} durationInFrames={dur} slideIndex={i} />
 					</Sequence>
 				);
 			})}
