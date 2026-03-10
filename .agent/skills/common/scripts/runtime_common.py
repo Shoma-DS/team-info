@@ -9,12 +9,14 @@ import shutil
 import subprocess
 import sys
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
 
 TEAM_INFO_ROOT_ENV = "TEAM_INFO_ROOT"
 LOCAL_STATE_FILENAME = "local_state.json"
+WORKED_BEFORE_FILENAME = "worked_before_machines.json"
 LOCAL_STATE_APP_NAME = "team-info"
 
 
@@ -38,6 +40,10 @@ def get_config_dir(app_name: str) -> Path:
 
 def get_local_state_path() -> Path:
     return get_config_dir(LOCAL_STATE_APP_NAME) / LOCAL_STATE_FILENAME
+
+
+def get_worked_before_path() -> Path:
+    return get_config_dir(LOCAL_STATE_APP_NAME) / WORKED_BEFORE_FILENAME
 
 
 def _load_local_state() -> dict[str, str]:
@@ -65,6 +71,47 @@ def _save_local_state(state: dict[str, str]) -> Path:
     state_path.parent.mkdir(parents=True, exist_ok=True)
     state_path.write_text(
         json.dumps(state, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return state_path
+
+
+def _load_worked_before_state() -> dict[str, dict[str, str]]:
+    state_path = get_worked_before_path()
+    if not state_path.exists():
+        return {}
+
+    try:
+        loaded = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    if not isinstance(loaded, dict):
+        return {}
+
+    raw_machines = loaded.get("machines")
+    if not isinstance(raw_machines, dict):
+        return {}
+
+    machines: dict[str, dict[str, str]] = {}
+    for machine_id, entry in raw_machines.items():
+        if not isinstance(machine_id, str):
+            continue
+        normalized: dict[str, str] = {}
+        if isinstance(entry, dict):
+            for key, value in entry.items():
+                if isinstance(key, str) and isinstance(value, str):
+                    normalized[key] = value
+        machines[machine_id] = normalized
+    return machines
+
+
+def _save_worked_before_state(machines: dict[str, dict[str, str]]) -> Path:
+    state_path = get_worked_before_path()
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"machines": machines}
+    state_path.write_text(
+        json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     return state_path
@@ -347,6 +394,47 @@ def is_owner_machine() -> bool:
     if not expected:
         return False
     return expected == get_machine_fingerprint()
+
+
+def has_worked_before(machine_id: str | None = None) -> bool:
+    current_machine_id = machine_id or get_machine_fingerprint()
+    machines = _load_worked_before_state()
+    if current_machine_id in machines:
+        return True
+
+    legacy_state = _load_local_state()
+    saved_repo_root = legacy_state.get("repo_root")
+    saved_owner_machine_id = legacy_state.get("owner_machine_id")
+
+    if saved_repo_root:
+        return True
+
+    if saved_owner_machine_id and saved_owner_machine_id == current_machine_id:
+        return True
+
+    return False
+
+
+def mark_worked_before(machine_id: str | None = None) -> Path:
+    current_machine_id = machine_id or get_machine_fingerprint()
+    machines = _load_worked_before_state()
+    now = datetime.now(timezone.utc).isoformat()
+    entry = machines.get(current_machine_id, {})
+    if "first_marked_at" not in entry:
+        entry["first_marked_at"] = now
+    entry["last_marked_at"] = now
+    machines[current_machine_id] = entry
+    return _save_worked_before_state(machines)
+
+
+def clear_worked_before(machine_id: str | None = None) -> bool:
+    current_machine_id = machine_id or get_machine_fingerprint()
+    machines = _load_worked_before_state()
+    if current_machine_id not in machines:
+        return False
+    del machines[current_machine_id]
+    _save_worked_before_state(machines)
+    return True
 
 
 def _shared_root_candidates() -> Iterable[Path]:

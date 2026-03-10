@@ -23,8 +23,9 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
 - 固定の `/Users/...` は使わず、`TEAM_INFO_ROOT` から絶対パスを組み立てる。
 - `TEAM_INFO_ROOT` は、このリポジトリのチェックアウト先を指す各パソコンごとの環境変数とする。
-- 新しいパソコンでは、リポジトリルートで `python .agent/skills/common/scripts/team_info_runtime.py setup-local-machine --repo-root .` を 1 回実行して保存する。
-- このパソコンをオーナー機として使う場合だけ、上のコマンドに `--owner` を付ける。
+- 新しいパソコンでは、まず `setup/setup_all.cmd` の流れを優先する。
+- `setup-local-machine` は、`TEAM_INFO_ROOT` の保存だけをやり直したいときの手動補助として使う。
+- このパソコンをオーナー機として使う場合だけ、`setup-local-machine` に `--owner` を付ける。
 - `cd Remotion/...` や `python .agent/...` のような相対パスのコマンドは、ユーザー向けには渡さない。
 - リポジトリ内コマンドは、できるだけ次の形で渡す。
   - Git: `git -C "$TEAM_INFO_ROOT" ...`
@@ -32,28 +33,34 @@ From now on, this repository uses only `.agent/skills` as the skills source.
   - リポジトリ内Python: `python "$TEAM_INFO_ROOT/..."`
 - ユーザー指定の入力/出力パスが入る場合も、`"$TEAM_INFO_ROOT/..."` や `"[出力先の絶対パス]"` のように絶対パス前提で案内する。
 
+## New Machine Rule
+- 作業開始時は、まず `team_info_runtime.py worked-before-status` 相当で、そのパソコンが過去に `team-info` で作業したことがあるかを確認する。
+- 判定にはローカル設定ディレクトリの `worked_before_machines.json` を使う。
+- 結果が `known` なら、通常どおり作業を進めてよい。
+- 結果が `new` なら、最初に `マニュアル/まずはこちらをお読みください.md` を読み込み、その流れに沿ってセットアップを始める。
+- `setup-local-machine` や `setup/setup_all.cmd` が終わったら、このパソコンは自動で `worked_before_machines.json` に記録される前提で扱う。
+- 新しいパソコンでのセットアップが終わったら、ユーザーへもう一度 `マニュアル/まずはこちらをお読みください.md` を読むように促す。
+- それでもユーザーがわからない場合は、止まった画面のスクリーンショットを添えて次の Discord へ質問するよう案内する。
+- Discord 案内先: `https://discord.com/channels/1478351976168165511/1479287635535990794`
+
 ### Available skills
-- acoriel-video-description: Acoriel（アコリエル）チャンネルのYouTube動画概要欄を生成する。 (file: .agent/skills/acoriel/acoriel-video-description/SKILL.md)
-- remotion-template-acoriel-acoustic-cover: acoriel向けのアコースティックカバー用Remotion編集。 (file: .agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md)
-- remotion-video-production: Remotion動画制作の親スキル（チャンネル/テンプレ選択）。 (file: .agent/skills/remotion/remotion-video-production/SKILL.md)
-- remotion-template-sleep-travel-long-knowledge-relax: sleep_travel長尺動画テンプレ編集。 (file: .agent/skills/remotion/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md)
-- remotion-template-sleep-travel-short-digest: sleep_travel短尺動画テンプレ編集。 (file: .agent/skills/remotion/remotion-template-sleep-travel-short-digest/SKILL.md)
-- lyric-video-production: 音声と歌詞からLRC生成とリリック演出を行う。 (file: .agent/skills/remotion/lyric-emotion-mapper/SKILL.md)
-- script-writing-accounts-aware: アカウント連動の段階的な台本作成。 (file: .agent/skills/remotion/script-writing-accounts-aware/SKILL.md)
-- voice-script-launcher: 台本をVOICEVOXで音声化する実行フロー。 (file: .agent/skills/remotion/voice-script-launcher/SKILL.md)
-- remotion-unified-output-routing: 出力先を `outputs/` 配下へ統一する運用。 (file: .agent/skills/remotion/remotion-unified-output-routing/SKILL.md)
-- jmty-posts: ジモティー投稿作成の親スキル。 (file: .agent/skills/jmty/jmty-posts/SKILL.md)
-- jmty-posts-factory-12: 工場求人向け投稿文を12本作成する。 (file: .agent/skills/jmty/jmty-posts-factory-12/SKILL.md)
-- jmty-posts-remote-12: 在宅求人向け投稿文を12本作成する。 (file: .agent/skills/jmty/jmty-posts-remote-12/SKILL.md)
-- jmty-posts-12-variants: 案件ファイルから12本の投稿文を作成する。 (file: .agent/skills/jmty/jmty-posts-12-variants/SKILL.md)
-- jmty-posts-gdrive-sync: ジモティー投稿出力をGoogleドライブに同期する。 (file: .agent/skills/jmty/jmty-posts-gdrive-sync/SKILL.md)
-- git-workflow: Gitの安全なブランチ/コミット/プッシュ手順。 (file: .agent/skills/common/git-workflow/SKILL.md)
-- macos-intel-compatibility: Intel MacのPython/PyTorch互換性対応。 (file: .agent/skills/common/macos-intel-compatibility/SKILL.md)
-- note-article-ayumi: 「愛され女子あゆみ」のnote記事を作成する。 (file: .agent/skills/common/note-article-ayumi/SKILL.md)
-- frontend-design: 高品質なフロントエンドUIを制作する。 (file: .agent/skills/web-design/frontend-design/SKILL.md)
-- gsap-awwwards-website: GSAPスクロール演出付きLPを開発/保守する。 (file: .agent/skills/web-design/gsap-awwwards-website/SKILL.md)
-- skill-finder: タスクに合うスキルを一覧から特定する。 (file: .agent/skills/skill-finder/SKILL.md)
-- viral-template-generator: ショート動画を3層解析しRemotionバズ動画テンプレートを自動生成する。 (file: .agent/skills/viral-template-generator/SKILL.md)
+
+スキルは `.agent/skills/` 配下のフォルダで管理しています。
+タスクに該当するスキルが不明な場合は **skill-finder** スキル (`.agent/skills/skill-finder/SKILL.md`) を起動して特定してください。
+
+フォルダ構成:
+- `acoriel/`                   — アコリエルチャンネル（リリックビデオ・概要欄）
+- `remotion/`                  — Remotion動画制作（寝ながらトラベル・台本・音声）
+- `jmty/`                      — ジモティー投稿
+- `common/`                    — 共通ユーティリティ（Git・note記事・macOS互換）
+- `web-design/`                — Webフロントエンド（GSAP・UI制作）
+- `canva/`                     — Canva連携
+- `viral-template-generator/`  — バズ動画テンプレ自動生成
+- `skill-finder/`              — スキル検索（上記から最適スキルを特定）
+
+### Skill maintenance rules
+- 新しいスキルを `.agent/skills/` に追加したときは、**必ず** `.agent/skills/skill-finder/SKILL.md` のスキル一覧とガイドを更新すること。
+- 既存スキルの概要・パスが変わったときも同様に更新すること。
 
 ### How to use skills
 - Discovery: Open the relevant `SKILL.md` and read only what is needed for the current task.
