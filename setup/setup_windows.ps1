@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # team-info セットアップスクリプト (Windows PowerShell)
 # =============================================================================
 # 使い方（管理者として PowerShell を開いて実行）:
@@ -33,7 +33,7 @@ $ScriptDir      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $TeamInfoRoot   = Split-Path -Parent $ScriptDir
 $VenvDir        = Join-Path $TeamInfoRoot "Remotion\.venv"
 $NodeVersion    = "22.17.1"
-$PythonVersion  = "3.11.14"
+$PythonVersion  = "3.11.9"
 $SecretsDir     = Join-Path $env:USERPROFILE ".secrets"
 $CanvaCredentialsFile = Join-Path $SecretsDir "canva_credentials.txt"
 $CanvaAuthDir   = Join-Path $TeamInfoRoot "Remotion\scripts\canva_auth"
@@ -318,12 +318,12 @@ if (-not (Test-Path $VenvDir)) {
     Write-Ok "venv 作成完了"
 }
 
-$Pip    = Join-Path $VenvDir "Scripts\pip.exe"
+
 $Python = Join-Path $VenvDir "Scripts\python.exe"
 
 # pip アップグレード
 Invoke-NativeOrThrow "pip の更新" {
-    & $Pip install --upgrade pip setuptools wheel -q
+    & $Python -m pip install --upgrade pip setuptools wheel -q
 }
 Write-Ok "pip アップグレード完了"
 
@@ -331,7 +331,7 @@ Write-Ok "pip アップグレード完了"
 Write-Step "7. Python パッケージのインストール"
 Write-Info "requirements.txt からインストールします..."
 Invoke-NativeOrThrow "requirements.txt の install" {
-    & $Pip install -r (Join-Path $ScriptDir "requirements.txt")
+    & $Python -m pip install -r (Join-Path $ScriptDir "requirements.txt")
 }
 Write-Ok "requirements.txt インストール完了"
 
@@ -339,7 +339,7 @@ Write-Ok "requirements.txt インストール完了"
 Write-Info "jax[cpu] をインストールします..."
 try {
     Invoke-NativeOrThrow "jax[cpu] の install" {
-        & $Pip install "jax[cpu]==0.4.38"
+        & $Python -m pip install "jax[cpu]==0.4.38"
     }
     Write-Ok "jax インストール完了"
 } catch {
