@@ -1,0 +1,4 @@
+# composer.phar はバイナリファイルとして扱い、PHPとして認識させない
+composer.phar binary
+composer.phar linguist-language=Binary
+composer.phar -diff

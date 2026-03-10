@@ -8,13 +8,17 @@ import sys
 from pathlib import Path
 
 from runtime_common import (
+    clear_worked_before,
     clear_owner_machine,
     detect_shared_root,
     ensure_remotion_venv,
+    get_worked_before_path,
+    has_worked_before,
     get_local_state_path,
     get_machine_fingerprint,
     get_repo_root,
     is_owner_machine,
+    mark_worked_before,
     resolve_input_path,
     save_owner_machine,
     save_repo_root,
@@ -58,8 +62,12 @@ def main() -> int:
     subparsers.add_parser("shared-root")
     subparsers.add_parser("shared-jmty-root")
     subparsers.add_parser("local-state-path")
+    subparsers.add_parser("worked-before-path")
     subparsers.add_parser("machine-id")
     subparsers.add_parser("owner-status")
+    subparsers.add_parser("worked-before-status")
+    subparsers.add_parser("mark-worked-before")
+    subparsers.add_parser("clear-worked-before")
     subparsers.add_parser("mark-owner-machine")
     subparsers.add_parser("clear-owner-machine")
 
@@ -139,12 +147,29 @@ def main() -> int:
         print(get_local_state_path())
         return 0
 
+    if args.command == "worked-before-path":
+        print(get_worked_before_path())
+        return 0
+
     if args.command == "machine-id":
         print(get_machine_fingerprint())
         return 0
 
     if args.command == "owner-status":
         print("owner" if is_owner_machine() else "other")
+        return 0
+
+    if args.command == "worked-before-status":
+        print("known" if has_worked_before() else "new")
+        return 0
+
+    if args.command == "mark-worked-before":
+        print(mark_worked_before())
+        return 0
+
+    if args.command == "clear-worked-before":
+        removed = clear_worked_before()
+        print("cleared" if removed else "not-found")
         return 0
 
     if args.command == "mark-owner-machine":
@@ -160,6 +185,7 @@ def main() -> int:
         repo_root = save_repo_root(args.repo_root)
         print(f"Saved repo root: {repo_root}")
         print(f"Local state: {get_local_state_path()}")
+        print(f"Worked before file: {mark_worked_before()}")
 
         if args.owner:
             save_owner_machine()

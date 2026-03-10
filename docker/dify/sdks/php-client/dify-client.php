@@ -1,42 +1,127 @@
 <?php
 
-// Composerが生成するオートローダーを読み込む（GuzzleHttp\Client などを使えるようにする）
-require_once __DIR__ . '/vendor/autoload.php';
-
-use GuzzleHttp\Client;
+/**
+ * Dify API クライアント（curl版）
+ * 外部ライブラリ不要 - PHP標準のcurl拡張のみを使用
+ */
 
 class DifyClient
 {
-    protected $api_key;
-    protected $base_url;
-    protected $client;
+    protected string $api_key;
+    protected string $base_url;
 
-    public function __construct($api_key, $base_url = null)
+    public function __construct(string $api_key, string $base_url = 'https://api.dify.ai/v1/')
     {
         $this->api_key = $api_key;
-        $this->base_url = $base_url ?? 'https://api.dify.ai/v1/';
-        $this->client = new Client([
-            'base_uri' => $this->base_url,
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->api_key,
-                'Content-Type' => 'application/json',
-            ],
-        ]);
+        $this->base_url = rtrim($base_url, '/') . '/';
     }
 
-    protected function send_request($method, $endpoint, $data = null, $params = null, $stream = false)
+    /**
+     * HTTP リクエストを送信する（JSON形式）
+     *
+     * @param string      $method   HTTPメソッド（GET, POST, PATCH, DELETE）
+     * @param string      $endpoint APIエンドポイント（例: 'chat-messages'）
+     * @param array|null  $data     リクエストボディ（JSON）
+     * @param array|null  $params   クエリパラメータ
+     * @param bool        $stream   レスポンスをストリーミングするか
+     * @return array      ['status' => int, 'body' => string]
+     */
+    protected function send_request(string $method, string $endpoint, ?array $data = null, ?array $params = null, bool $stream = false): array
     {
-        $options = [
-            'json' => $data,
-            'query' => $params,
-            'stream' => $stream,
+        $url = $this->base_url . $endpoint;
+
+        // クエリパラメータを付与（nullの値は除外）
+        if (!empty($params)) {
+            $filteredParams = array_filter($params, fn($v) => $v !== null);
+            if (!empty($filteredParams)) {
+                $url .= '?' . http_build_query($filteredParams);
+            }
+        }
+
+        $headers = [
+            'Authorization: Bearer ' . $this->api_key,
+            'Content-Type: application/json',
         ];
 
-        $response = $this->client->request($method, $endpoint, $options);
-        return $response;
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => !$stream,
+            CURLOPT_CUSTOMREQUEST => strtoupper($method),
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 60,
+        ]);
+
+        // ボディがある場合はJSONでセットする
+        if ($data !== null) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+
+        $body = curl_exec($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            throw new RuntimeException('cURLエラー: ' . $error);
+        }
+
+        return [
+            'status' => $statusCode,
+            'body' => $body,
+        ];
     }
 
-    public function message_feedback($message_id, $rating, $user)
+    /**
+     * マルチパート（ファイルアップロード）リクエストを送信する
+     *
+     * @param string     $endpoint  APIエンドポイント
+     * @param array      $fields    テキストフィールド
+     * @param array|null $files     ファイル情報の配列（'tmp_name', 'name' キーを持つ）
+     * @return array     ['status' => int, 'body' => string]
+     */
+    protected function send_multipart_request(string $endpoint, array $fields, ?array $files = null): array
+    {
+        $url = $this->base_url . $endpoint;
+
+        // CURLFILEを使ってファイルを付与する
+        $postFields = $fields;
+        if (!empty($files)) {
+            foreach ($files as $i => $file) {
+                $postFields['file' . ($i > 0 ? $i : '')] = new CURLFile($file['tmp_name'], '', $file['name']);
+            }
+        }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $postFields,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $this->api_key,
+                // Content-Type はcurlが自動でmultipart/form-dataにする
+            ],
+            CURLOPT_TIMEOUT => 60,
+        ]);
+
+        $body = curl_exec($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            throw new RuntimeException('cURLエラー: ' . $error);
+        }
+
+        return [
+            'status' => $statusCode,
+            'body' => $body,
+        ];
+    }
+
+    /**
+     * メッセージへのフィードバックを送信する
+     */
+    public function message_feedback(string $message_id, string $rating, string $user): array
     {
         $data = [
             'rating' => $rating,
@@ -45,68 +130,56 @@ class DifyClient
         return $this->send_request('POST', "messages/{$message_id}/feedbacks", $data);
     }
 
-    public function get_application_parameters($user)
+    /**
+     * アプリケーションのパラメータを取得する
+     */
+    public function get_application_parameters(string $user): array
     {
-        $params = ['user' => $user];
-        return $this->send_request('GET', 'parameters', null, $params);
+        return $this->send_request('GET', 'parameters', null, ['user' => $user]);
     }
 
-    public function file_upload($user, $files)
+    /**
+     * ファイルをアップロードする
+     *
+     * @param string $user  ユーザーID
+     * @param array  $files ファイル情報の配列（$_FILES形式）
+     */
+    public function file_upload(string $user, array $files): array
     {
-        $data = ['user' => $user];
-        $options = [
-            'multipart' => $this->prepareMultipart($data, $files)
-        ];
-
-        return $this->client->request('POST', 'files/upload', $options);
+        return $this->send_multipart_request('files/upload', ['user' => $user], $files);
     }
 
-    protected function prepareMultipart($data, $files)
-    {
-        $multipart = [];
-        foreach ($data as $key => $value) {
-            $multipart[] = [
-                'name' => $key,
-                'contents' => $value
-            ];
-        }
-
-        foreach ($files as $file) {
-            $multipart[] = [
-                'name' => 'file',
-                'contents' => fopen($file['tmp_name'], 'r'),
-                'filename' => $file['name']
-            ];
-        }
-
-        return $multipart;
-    }
-
-
-    public function text_to_audio($text, $user, $streaming = false)
+    /**
+     * テキストを音声に変換する
+     */
+    public function text_to_audio(string $text, string $user, bool $streaming = false): array
     {
         $data = [
             'text' => $text,
             'user' => $user,
-            'streaming' => $streaming
+            'streaming' => $streaming,
         ];
-
         return $this->send_request('POST', 'text-to-audio', $data);
     }
 
-    public function get_meta($user)
+    /**
+     * アプリのメタ情報を取得する
+     */
+    public function get_meta(string $user): array
     {
-        $params = [
-            'user' => $user
-        ];
-
-        return $this->send_request('GET', 'meta', null, $params);
+        return $this->send_request('GET', 'meta', null, ['user' => $user]);
     }
 }
 
+/**
+ * テキスト補完APIクライアント
+ */
 class CompletionClient extends DifyClient
 {
-    public function create_completion_message($inputs, $response_mode, $user, $files = null)
+    /**
+     * テキスト補完メッセージを作成する
+     */
+    public function create_completion_message(array $inputs, string $response_mode, string $user, ?array $files = null): array
     {
         $data = [
             'inputs' => $inputs,
@@ -118,9 +191,15 @@ class CompletionClient extends DifyClient
     }
 }
 
+/**
+ * チャットAPIクライアント
+ */
 class ChatClient extends DifyClient
 {
-    public function create_chat_message($inputs, $query, $user, $response_mode = 'blocking', $conversation_id = null, $files = null)
+    /**
+     * チャットメッセージを送信する
+     */
+    public function create_chat_message(array $inputs, string $query, string $user, string $response_mode = 'blocking', ?string $conversation_id = null, ?array $files = null): array
     {
         $data = [
             'inputs' => $inputs,
@@ -129,28 +208,32 @@ class ChatClient extends DifyClient
             'response_mode' => $response_mode,
             'files' => $files,
         ];
-        if ($conversation_id) {
+        if ($conversation_id !== null) {
             $data['conversation_id'] = $conversation_id;
         }
-
         return $this->send_request('POST', 'chat-messages', $data, null, $response_mode === 'streaming');
     }
 
-    public function get_suggestions($message_id, $user)
+    /**
+     * メッセージへの返信候補を取得する
+     */
+    public function get_suggestions(string $message_id, string $user): array
     {
-        $params = [
-            'user' => $user
-        ];
-        return $this->send_request('GET', "messages/{$message_id}/suggested", null, $params);
+        return $this->send_request('GET', "messages/{$message_id}/suggested", null, ['user' => $user]);
     }
 
-    public function stop_message($task_id, $user)
+    /**
+     * ストリーミングメッセージを停止する
+     */
+    public function stop_message(string $task_id, string $user): array
     {
-        $data = ['user' => $user];
-        return $this->send_request('POST', "chat-messages/{$task_id}/stop", $data);
+        return $this->send_request('POST', "chat-messages/{$task_id}/stop", ['user' => $user]);
     }
 
-    public function get_conversations($user, $first_id = null, $limit = null, $pinned = null)
+    /**
+     * 会話一覧を取得する
+     */
+    public function get_conversations(string $user, ?string $first_id = null, ?int $limit = null, ?bool $pinned = null): array
     {
         $params = [
             'user' => $user,
@@ -161,57 +244,61 @@ class ChatClient extends DifyClient
         return $this->send_request('GET', 'conversations', null, $params);
     }
 
-    public function get_conversation_messages($user, $conversation_id = null, $first_id = null, $limit = null)
+    /**
+     * 会話のメッセージ履歴を取得する
+     */
+    public function get_conversation_messages(string $user, ?string $conversation_id = null, ?string $first_id = null, ?int $limit = null): array
     {
         $params = ['user' => $user];
-
-        if ($conversation_id) {
+        if ($conversation_id !== null)
             $params['conversation_id'] = $conversation_id;
-        }
-        if ($first_id) {
+        if ($first_id !== null)
             $params['first_id'] = $first_id;
-        }
-        if ($limit) {
+        if ($limit !== null)
             $params['limit'] = $limit;
-        }
 
         return $this->send_request('GET', 'messages', null, $params);
     }
 
-    public function rename_conversation($conversation_id, $name, $auto_generate, $user)
+    /**
+     * 会話名を変更する
+     */
+    public function rename_conversation(string $conversation_id, string $name, bool $auto_generate, string $user): array
     {
         $data = [
             'name' => $name,
             'user' => $user,
-            'auto_generate' => $auto_generate
+            'auto_generate' => $auto_generate,
         ];
         return $this->send_request('PATCH', "conversations/{$conversation_id}", $data);
     }
 
-    public function delete_conversation($conversation_id, $user)
+    /**
+     * 会話を削除する
+     */
+    public function delete_conversation(string $conversation_id, string $user): array
     {
-        $data = [
-            'user' => $user,
-        ];
-        return $this->send_request('DELETE', "conversations/{$conversation_id}", $data);
+        return $this->send_request('DELETE', "conversations/{$conversation_id}", ['user' => $user]);
     }
 
-    public function audio_to_text($audio_file, $user)
+    /**
+     * 音声をテキストに変換する
+     */
+    public function audio_to_text(array $audio_file, string $user): array
     {
-        $data = [
-            'user' => $user,
-        ];
-        $options = [
-            'multipart' => $this->prepareMultipart($data, $audio_file)
-        ];
-        return $this->client->request('POST', 'audio-to-text', $options);
+        return $this->send_multipart_request('audio-to-text', ['user' => $user], [$audio_file]);
     }
-
 }
 
+/**
+ * ワークフローAPIクライアント
+ */
 class WorkflowClient extends DifyClient
 {
-    public function run($inputs, $response_mode, $user)
+    /**
+     * ワークフローを実行する
+     */
+    public function run(array $inputs, string $response_mode, string $user): array
     {
         $data = [
             'inputs' => $inputs,
@@ -221,12 +308,11 @@ class WorkflowClient extends DifyClient
         return $this->send_request('POST', 'workflows/run', $data);
     }
 
-    public function stop($task_id, $user)
+    /**
+     * ワークフローを停止する
+     */
+    public function stop(string $task_id, string $user): array
     {
-        $data = [
-            'user' => $user,
-        ];
-        return $this->send_request('POST', "workflows/tasks/{$task_id}/stop", $data);
+        return $this->send_request('POST', "workflows/tasks/{$task_id}/stop", ['user' => $user]);
     }
-
 }
