@@ -6,7 +6,7 @@
 
 | カテゴリ | 内容 |
 |---------|------|
-| Python | 3.11 (pyenv 経由) + venv (`Remotion/.venv`) |
+| Python | 3.11.9 (pyenv 経由) + venv (`Remotion/.venv`) |
 | Python パッケージ | Whisper, OpenCV, MediaPipe, JAX, Remotion スクリプト等 |
 | Node.js | 22.17.1 と Dify 用 Node 24 系 (`nvm` / `nvm-windows` 経由) |
 | npm パッケージ | Remotion, VOICEVOX MCP, Canva補助, Dify Web/SDK |
@@ -48,7 +48,7 @@ bash "[team-info を置いた絶対パス]/setup/setup_all.cmd"
 bash "[team-info を置いた絶対パス]/setup/setup_mac.sh"
 ```
 
-- Homebrew → pyenv → Python 3.11 → venv → pip パッケージ → nvm → Node.js → npm の順で自動インストール
+- Homebrew → pyenv → Python 3.11.9 → venv → pip パッケージ → nvm → Node.js → npm の順で自動インストール
 - Apple Silicon (M1/M2/M3) は `jax[metal]`、Intel Mac は `jax[cpu]` を自動選択
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `tesseract-lang` も追加で入れます
@@ -62,7 +62,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 & "[team-info を置いた絶対パス]\setup\setup_windows.ps1"
 ```
 
-- winget → pyenv-win → Python 3.11 → venv → pip パッケージ → nvm-windows → Node.js → npm の順で自動インストール
+- winget → pyenv-win → Python 3.11.9 → venv → pip パッケージ → nvm-windows → Node.js → npm の順で自動インストール
 - `jax[cpu]` をインストール
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `uv` は Python 経由で入れます

@@ -22,7 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEAM_INFO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VENV_DIR="$TEAM_INFO_ROOT/Remotion/.venv"
 NODE_VERSION="22.17.1"
-PYTHON_VERSION="3.11"
+PYTHON_VERSION="3.11.9"
 SHELL_RC="$HOME/.zshrc"
 SECRETS_DIR="$HOME/.secrets"
 CANVA_CREDENTIALS_FILE="$SECRETS_DIR/canva_credentials.txt"
@@ -132,7 +132,7 @@ for pkg in "${BREW_PACKAGES[@]}"; do
   fi
 done
 
-# ── 4. pyenv + Python 3.11 ────────────────────────────────────────────────────
+# ── 4. pyenv + Python ─────────────────────────────────────────────────────────
 step "4. pyenv + Python $PYTHON_VERSION"
 if ! command -v pyenv &>/dev/null; then
   info "pyenv をインストールします..."
@@ -153,7 +153,7 @@ else
   eval "$(pyenv init -)" 2>/dev/null || true
 fi
 
-# Python 3.11 がなければインストール
+# Python がなければインストール
 if pyenv versions | grep -q "$PYTHON_VERSION"; then
   success "Python $PYTHON_VERSION インストール済み"
 else

@@ -1,0 +1,151 @@
+{
+  "fps": 30,
+  "total_duration_seconds": 54.0,
+  "total_frames": 1620,
+  "segments": [
+    {
+      "id": 1,
+      "section": "hook",
+      "from_time": 0.0,
+      "to_time": 3.0,
+      "from_frame": 0,
+      "to_frame": 90,
+      "text": "際どいシーンを演じた女性芸能人3選！"
+    },
+    {
+      "id": 2,
+      "section": "opening",
+      "from_time": 3.0,
+      "to_time": 6.0,
+      "from_frame": 90,
+      "to_frame": 180,
+      "text": "清純派なのに…"
+    },
+    {
+      "id": 3,
+      "section": "opening",
+      "from_time": 6.0,
+      "to_time": 9.0,
+      "from_frame": 180,
+      "to_frame": 270,
+      "text": "あの女優たちが挑んだ衝撃の役がこちら。"
+    },
+    {
+      "id": 4,
+      "section": "s1",
+      "from_time": 9.0,
+      "to_time": 12.0,
+      "from_frame": 270,
+      "to_frame": 360,
+      "text": "1人目は吉高由里子。"
+    },
+    {
+      "id": 5,
+      "section": "s1",
+      "from_time": 12.0,
+      "to_time": 16.0,
+      "from_frame": 360,
+      "to_frame": 480,
+      "text": "デビュー作『蛇にピアス』での演技が業界を震わせた。"
+    },
+    {
+      "id": 6,
+      "section": "s1",
+      "from_time": 16.0,
+      "to_time": 19.5,
+      "from_frame": 480,
+      "to_frame": 585,
+      "text": "ピアスにタトゥー、過激な役柄を体当たりで演じ切り、"
+    },
+    {
+      "id": 7,
+      "section": "s1",
+      "from_time": 19.5,
+      "to_time": 23.0,
+      "from_frame": 585,
+      "to_frame": 690,
+      "text": "清楚なイメージとのギャップが大きな話題を呼んだ。"
+    },
+    {
+      "id": 8,
+      "section": "s2",
+      "from_time": 23.0,
+      "to_time": 26.0,
+      "from_frame": 690,
+      "to_frame": 780,
+      "text": "2人目は長澤まさみ。"
+    },
+    {
+      "id": 9,
+      "section": "s2",
+      "from_time": 26.0,
+      "to_time": 30.0,
+      "from_frame": 780,
+      "to_frame": 900,
+      "text": "天才女優の名にふさわしい際どい役への挑戦が続く。"
+    },
+    {
+      "id": 10,
+      "section": "s2",
+      "from_time": 30.0,
+      "to_time": 33.5,
+      "from_frame": 900,
+      "to_frame": 1005,
+      "text": "清純派出身なのに大胆な役柄を次々と引き受け、"
+    },
+    {
+      "id": 11,
+      "section": "s2",
+      "from_time": 33.5,
+      "to_time": 37.0,
+      "from_frame": 1005,
+      "to_frame": 1110,
+      "text": "女優としての底知れない胆力を証明し続けている。"
+    },
+    {
+      "id": 12,
+      "section": "s3",
+      "from_time": 37.0,
+      "to_time": 40.0,
+      "from_frame": 1110,
+      "to_frame": 1200,
+      "text": "3人目は深田恭子。"
+    },
+    {
+      "id": 13,
+      "section": "s3",
+      "from_time": 40.0,
+      "to_time": 43.5,
+      "from_frame": 1200,
+      "to_frame": 1305,
+      "text": "デビュー当初からセクシー路線で人気を博し、"
+    },
+    {
+      "id": 14,
+      "section": "s3",
+      "from_time": 43.5,
+      "to_time": 46.5,
+      "from_frame": 1305,
+      "to_frame": 1395,
+      "text": "今なお話題を集め続ける圧倒的な存在感。"
+    },
+    {
+      "id": 15,
+      "section": "s3",
+      "from_time": 46.5,
+      "to_time": 50.0,
+      "from_frame": 1395,
+      "to_frame": 1500,
+      "text": "このギャップがたまらないと今も根強いファンが絶えない。"
+    },
+    {
+      "id": 16,
+      "section": "cta",
+      "from_time": 50.0,
+      "to_time": 54.0,
+      "from_frame": 1500,
+      "to_frame": 1620,
+      "text": "知らなかった人はフォローして教えて！"
+    }
+  ]
+}

@@ -1,0 +1,3861 @@
+{
+  "duration": 54.9,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/Users/deguchishouma/team-info/inputs/viral-analysis/女優魂を見せた芸能人3選.mp4",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 2.333,
+        "start_frame": 0,
+        "end_frame": 70
+      },
+      {
+        "start": 2.333,
+        "end": 2.367,
+        "start_frame": 70,
+        "end_frame": 71
+      },
+      {
+        "start": 2.367,
+        "end": 2.4,
+        "start_frame": 71,
+        "end_frame": 72
+      },
+      {
+        "start": 2.4,
+        "end": 2.467,
+        "start_frame": 72,
+        "end_frame": 74
+      },
+      {
+        "start": 2.467,
+        "end": 2.5,
+        "start_frame": 74,
+        "end_frame": 75
+      },
+      {
+        "start": 2.5,
+        "end": 5.133,
+        "start_frame": 75,
+        "end_frame": 154
+      },
+      {
+        "start": 5.133,
+        "end": 5.967,
+        "start_frame": 154,
+        "end_frame": 179
+      },
+      {
+        "start": 5.967,
+        "end": 9.8,
+        "start_frame": 179,
+        "end_frame": 294
+      },
+      {
+        "start": 9.8,
+        "end": 12.667,
+        "start_frame": 294,
+        "end_frame": 380
+      },
+      {
+        "start": 12.667,
+        "end": 14.633,
+        "start_frame": 380,
+        "end_frame": 439
+      },
+      {
+        "start": 14.633,
+        "end": 16.033,
+        "start_frame": 439,
+        "end_frame": 481
+      },
+      {
+        "start": 16.033,
+        "end": 18.233,
+        "start_frame": 481,
+        "end_frame": 547
+      },
+      {
+        "start": 18.233,
+        "end": 20.667,
+        "start_frame": 547,
+        "end_frame": 620
+      },
+      {
+        "start": 20.667,
+        "end": 20.733,
+        "start_frame": 620,
+        "end_frame": 622
+      },
+      {
+        "start": 20.733,
+        "end": 20.8,
+        "start_frame": 622,
+        "end_frame": 624
+      },
+      {
+        "start": 20.8,
+        "end": 20.833,
+        "start_frame": 624,
+        "end_frame": 625
+      },
+      {
+        "start": 20.833,
+        "end": 20.867,
+        "start_frame": 625,
+        "end_frame": 626
+      },
+      {
+        "start": 20.867,
+        "end": 21.0,
+        "start_frame": 626,
+        "end_frame": 630
+      },
+      {
+        "start": 21.0,
+        "end": 22.5,
+        "start_frame": 630,
+        "end_frame": 675
+      },
+      {
+        "start": 22.5,
+        "end": 23.3,
+        "start_frame": 675,
+        "end_frame": 699
+      },
+      {
+        "start": 23.3,
+        "end": 25.8,
+        "start_frame": 699,
+        "end_frame": 774
+      },
+      {
+        "start": 25.8,
+        "end": 26.733,
+        "start_frame": 774,
+        "end_frame": 802
+      },
+      {
+        "start": 26.733,
+        "end": 29.367,
+        "start_frame": 802,
+        "end_frame": 881
+      },
+      {
+        "start": 29.367,
+        "end": 31.3,
+        "start_frame": 881,
+        "end_frame": 939
+      },
+      {
+        "start": 31.3,
+        "end": 32.633,
+        "start_frame": 939,
+        "end_frame": 979
+      },
+      {
+        "start": 32.633,
+        "end": 35.0,
+        "start_frame": 979,
+        "end_frame": 1050
+      },
+      {
+        "start": 35.0,
+        "end": 36.567,
+        "start_frame": 1050,
+        "end_frame": 1097
+      },
+      {
+        "start": 36.567,
+        "end": 37.167,
+        "start_frame": 1097,
+        "end_frame": 1115
+      },
+      {
+        "start": 37.167,
+        "end": 38.0,
+        "start_frame": 1115,
+        "end_frame": 1140
+      },
+      {
+        "start": 38.0,
+        "end": 41.033,
+        "start_frame": 1140,
+        "end_frame": 1231
+      },
+      {
+        "start": 41.033,
+        "end": 42.167,
+        "start_frame": 1231,
+        "end_frame": 1265
+      },
+      {
+        "start": 42.167,
+        "end": 44.5,
+        "start_frame": 1265,
+        "end_frame": 1335
+      },
+      {
+        "start": 44.5,
+        "end": 46.533,
+        "start_frame": 1335,
+        "end_frame": 1396
+      },
+      {
+        "start": 46.533,
+        "end": 48.633,
+        "start_frame": 1396,
+        "end_frame": 1459
+      },
+      {
+        "start": 48.633,
+        "end": 50.033,
+        "start_frame": 1459,
+        "end_frame": 1501
+      },
+      {
+        "start": 50.033,
+        "end": 51.4,
+        "start_frame": 1501,
+        "end_frame": 1542
+      },
+      {
+        "start": 51.4,
+        "end": 53.5,
+        "start_frame": 1542,
+        "end_frame": 1605
+      },
+      {
+        "start": 53.5,
+        "end": 54.9,
+        "start_frame": 1605,
+        "end_frame": 1647
+      }
+    ],
+    "faces": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.507,
+        "y": 0.294,
+        "size": 0.116,
+        "confidence": 0.949
+      },
+      {
+        "frame": 15,
+        "time": 0.5,
+        "x": 0.505,
+        "y": 0.253,
+        "size": 0.147,
+        "confidence": 0.911
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.514,
+        "y": 0.263,
+        "size": 0.144,
+        "confidence": 0.921
+      },
+      {
+        "frame": 45,
+        "time": 1.5,
+        "x": 0.509,
+        "y": 0.278,
+        "size": 0.145,
+        "confidence": 0.955
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.514,
+        "y": 0.291,
+        "size": 0.125,
+        "confidence": 0.945
+      },
+      {
+        "frame": 75,
+        "time": 2.5,
+        "x": 0.513,
+        "y": 0.28,
+        "size": 0.122,
+        "confidence": 0.956
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.516,
+        "y": 0.28,
+        "size": 0.121,
+        "confidence": 0.962
+      },
+      {
+        "frame": 105,
+        "time": 3.5,
+        "x": 0.516,
+        "y": 0.28,
+        "size": 0.122,
+        "confidence": 0.962
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.514,
+        "y": 0.28,
+        "size": 0.121,
+        "confidence": 0.962
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.514,
+        "y": 0.28,
+        "size": 0.122,
+        "confidence": 0.962
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.514,
+        "y": 0.281,
+        "size": 0.122,
+        "confidence": 0.962
+      },
+      {
+        "frame": 165,
+        "time": 5.5,
+        "x": 0.491,
+        "y": 0.298,
+        "size": 0.134,
+        "confidence": 0.974
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.454,
+        "y": 0.26,
+        "size": 0.053,
+        "confidence": 0.94
+      },
+      {
+        "frame": 195,
+        "time": 6.5,
+        "x": 0.44,
+        "y": 0.263,
+        "size": 0.052,
+        "confidence": 0.939
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.429,
+        "y": 0.256,
+        "size": 0.052,
+        "confidence": 0.947
+      },
+      {
+        "frame": 225,
+        "time": 7.5,
+        "x": 0.411,
+        "y": 0.257,
+        "size": 0.05,
+        "confidence": 0.944
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.398,
+        "y": 0.257,
+        "size": 0.051,
+        "confidence": 0.924
+      },
+      {
+        "frame": 255,
+        "time": 8.5,
+        "x": 0.386,
+        "y": 0.26,
+        "size": 0.055,
+        "confidence": 0.905
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.377,
+        "y": 0.263,
+        "size": 0.062,
+        "confidence": 0.904
+      },
+      {
+        "frame": 285,
+        "time": 9.5,
+        "x": 0.369,
+        "y": 0.262,
+        "size": 0.059,
+        "confidence": 0.936
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.447,
+        "y": 0.298,
+        "size": 0.136,
+        "confidence": 0.967
+      },
+      {
+        "frame": 315,
+        "time": 10.5,
+        "x": 0.45,
+        "y": 0.295,
+        "size": 0.145,
+        "confidence": 0.969
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.448,
+        "y": 0.292,
+        "size": 0.152,
+        "confidence": 0.97
+      },
+      {
+        "frame": 345,
+        "time": 11.5,
+        "x": 0.445,
+        "y": 0.29,
+        "size": 0.152,
+        "confidence": 0.967
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.441,
+        "y": 0.286,
+        "size": 0.156,
+        "confidence": 0.967
+      },
+      {
+        "frame": 375,
+        "time": 12.5,
+        "x": 0.443,
+        "y": 0.278,
+        "size": 0.157,
+        "confidence": 0.964
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.345,
+        "y": 0.37,
+        "size": 0.114,
+        "confidence": 0.745
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.383,
+        "y": 0.376,
+        "size": 0.118,
+        "confidence": 0.704
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.434,
+        "y": 0.373,
+        "size": 0.117,
+        "confidence": 0.629
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.492,
+        "y": 0.38,
+        "size": 0.115,
+        "confidence": 0.58
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.451,
+        "y": 0.27,
+        "size": 0.102,
+        "confidence": 0.959
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.454,
+        "y": 0.271,
+        "size": 0.107,
+        "confidence": 0.96
+      },
+      {
+        "frame": 480,
+        "time": 16.0,
+        "x": 0.456,
+        "y": 0.273,
+        "size": 0.097,
+        "confidence": 0.962
+      },
+      {
+        "frame": 495,
+        "time": 16.5,
+        "x": 0.386,
+        "y": 0.293,
+        "size": 0.17,
+        "confidence": 0.973
+      },
+      {
+        "frame": 510,
+        "time": 17.0,
+        "x": 0.368,
+        "y": 0.299,
+        "size": 0.173,
+        "confidence": 0.964
+      },
+      {
+        "frame": 525,
+        "time": 17.5,
+        "x": 0.343,
+        "y": 0.3,
+        "size": 0.171,
+        "confidence": 0.955
+      },
+      {
+        "frame": 540,
+        "time": 18.0,
+        "x": 0.335,
+        "y": 0.305,
+        "size": 0.159,
+        "confidence": 0.955
+      },
+      {
+        "frame": 555,
+        "time": 18.5,
+        "x": 0.41,
+        "y": 0.292,
+        "size": 0.328,
+        "confidence": 0.906
+      },
+      {
+        "frame": 570,
+        "time": 19.0,
+        "x": 0.428,
+        "y": 0.291,
+        "size": 0.338,
+        "confidence": 0.863
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.432,
+        "y": 0.289,
+        "size": 0.335,
+        "confidence": 0.878
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.448,
+        "y": 0.295,
+        "size": 0.302,
+        "confidence": 0.842
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.457,
+        "y": 0.295,
+        "size": 0.265,
+        "confidence": 0.865
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.534,
+        "y": 0.253,
+        "size": 0.125,
+        "confidence": 0.959
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.535,
+        "y": 0.253,
+        "size": 0.132,
+        "confidence": 0.968
+      },
+      {
+        "frame": 660,
+        "time": 22.0,
+        "x": 0.535,
+        "y": 0.252,
+        "size": 0.132,
+        "confidence": 0.968
+      },
+      {
+        "frame": 675,
+        "time": 22.5,
+        "x": 0.504,
+        "y": 0.257,
+        "size": 0.104,
+        "confidence": 0.95
+      },
+      {
+        "frame": 690,
+        "time": 23.0,
+        "x": 0.503,
+        "y": 0.247,
+        "size": 0.096,
+        "confidence": 0.92
+      },
+      {
+        "frame": 705,
+        "time": 23.5,
+        "x": 0.529,
+        "y": 0.233,
+        "size": 0.05,
+        "confidence": 0.942
+      },
+      {
+        "frame": 720,
+        "time": 24.0,
+        "x": 0.528,
+        "y": 0.232,
+        "size": 0.053,
+        "confidence": 0.939
+      },
+      {
+        "frame": 735,
+        "time": 24.5,
+        "x": 0.532,
+        "y": 0.224,
+        "size": 0.055,
+        "confidence": 0.952
+      }
+    ],
+    "text_regions": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.361,
+        "y": 0.608,
+        "text": "イガ",
+        "confidence": 90
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.565,
+        "y": 0.612,
+        "text": "きれ",
+        "confidence": 76
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.335,
+        "y": 0.723,
+        "text": "女性",
+        "confidence": 95
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.609,
+        "y": 0.718,
+        "text": "芸能",
+        "confidence": 72
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.849,
+        "y": 0.603,
+        "text": "8",
+        "confidence": 60
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.329,
+        "y": 0.8,
+        "text": "の",
+        "confidence": 51
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.436,
+        "y": 0.83,
+        "text": "3",
+        "confidence": 54
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.391,
+        "y": 0.954,
+        "text": "/",
+        "confidence": 79
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.043,
+        "y": 0.477,
+        "text": "»",
+        "confidence": 82
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.24,
+        "y": 0.499,
+        "text": "BR",
+        "confidence": 90
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.427,
+        "y": 0.5,
+        "text": "Hic",
+        "confidence": 76
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.69,
+        "y": 0.498,
+        "text": "手",
+        "confidence": 90
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.767,
+        "y": 0.491,
+        "text": "で",
+        "confidence": 94
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.294,
+        "y": 0.606,
+        "text": "イカ",
+        "confidence": 89
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.764,
+        "y": 0.606,
+        "text": "Tz",
+        "confidence": 94
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.3,
+        "y": 0.718,
+        "text": "女性",
+        "confidence": 96
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.643,
+        "y": 0.704,
+        "text": "Ht",
+        "confidence": 73
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.638,
+        "y": 0.732,
+        "text": "Be",
+        "confidence": 78
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.542,
+        "y": 0.83,
+        "text": "選",
+        "confidence": 81
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.093,
+        "y": 0.477,
+        "text": ")",
+        "confidence": 64
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.24,
+        "y": 0.499,
+        "text": "BR",
+        "confidence": 85
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.427,
+        "y": 0.5,
+        "text": "Hic",
+        "confidence": 71
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.826,
+        "y": 0.505,
+        "text": "Cz",
+        "confidence": 79
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.295,
+        "y": 0.606,
+        "text": "イカ",
+        "confidence": 87
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.764,
+        "y": 0.606,
+        "text": "Tz",
+        "confidence": 95
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.3,
+        "y": 0.718,
+        "text": "女性",
+        "confidence": 96
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.429,
+        "y": 0.83,
+        "text": "3",
+        "confidence": 92
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.246,
+        "y": 0.503,
+        "text": "1.",
+        "confidence": 93
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.374,
+        "y": 0.498,
+        "text": "池",
+        "confidence": 92
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.704,
+        "y": 0.498,
+        "text": "千鶴",
+        "confidence": 51
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.326,
+        "y": 0.595,
+        "text": "の",
+        "confidence": 93
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.381,
+        "y": 0.595,
+        "text": "ガ",
+        "confidence": 78
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.761,
+        "y": 0.602,
+        "text": "光輝",
+        "confidence": 69
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.821,
+        "y": 0.6,
+        "text": "く",
+        "confidence": 93
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.868,
+        "y": 0.6,
+        "text": ")",
+        "confidence": 91
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.246,
+        "y": 0.503,
+        "text": "1.",
+        "confidence": 93
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.374,
+        "y": 0.498,
+        "text": "池",
+        "confidence": 92
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.326,
+        "y": 0.595,
+        "text": "の",
+        "confidence": 93
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.381,
+        "y": 0.595,
+        "text": "ガ",
+        "confidence": 77
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.446,
+        "y": 0.595,
+        "text": "が!",
+        "confidence": 61
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.761,
+        "y": 0.602,
+        "text": "光輝",
+        "confidence": 65
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.821,
+        "y": 0.6,
+        "text": "く",
+        "confidence": 93
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.868,
+        "y": 0.6,
+        "text": ")",
+        "confidence": 91
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.246,
+        "y": 0.503,
+        "text": "1.",
+        "confidence": 93
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.374,
+        "y": 0.498,
+        "text": "池",
+        "confidence": 92
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.656,
+        "y": 0.498,
+        "text": "千",
+        "confidence": 64
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.326,
+        "y": 0.595,
+        "text": "の",
+        "confidence": 92
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.381,
+        "y": 0.595,
+        "text": "ガ",
+        "confidence": 79
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.419,
+        "y": 0.595,
+        "text": "が",
+        "confidence": 60
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.761,
+        "y": 0.602,
+        "text": "光輝",
+        "confidence": 72
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.821,
+        "y": 0.6,
+        "text": "く",
+        "confidence": 93
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.868,
+        "y": 0.6,
+        "text": ")",
+        "confidence": 91
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.122,
+        "y": 0.953,
+        "text": "way",
+        "confidence": 54
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.686,
+        "y": 0.529,
+        "text": "ah",
+        "confidence": 61
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.636,
+        "y": 0.991,
+        "text": "、",
+        "confidence": 73
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.614,
+        "y": 0.991,
+        "text": "、",
+        "confidence": 56
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.56,
+        "y": 0.486,
+        "text": "な",
+        "confidence": 66
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.632,
+        "y": 0.484,
+        "text": "が",
+        "confidence": 92
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.693,
+        "y": 0.484,
+        "text": "ら",
+        "confidence": 92
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.743,
+        "y": 0.486,
+        "text": "モ",
+        "confidence": 74
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.781,
+        "y": 0.484,
+        "text": "も",
+        "confidence": 94
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.697,
+        "y": 0.529,
+        "text": "物語",
+        "confidence": 96
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.543,
+        "y": 0.164,
+        "text": "N",
+        "confidence": 70
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.545,
+        "y": 0.153,
+        "text": "NN",
+        "confidence": 73
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.054,
+        "y": 0.511,
+        "text": "|",
+        "confidence": 53
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.176,
+        "y": 0.506,
+        "text": "池脇",
+        "confidence": 72
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.35,
+        "y": 0.506,
+        "text": "千鶴",
+        "confidence": 62
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.492,
+        "y": 0.506,
+        "text": "が",
+        "confidence": 89
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.64,
+        "y": 0.511,
+        "text": "演じ",
+        "confidence": 78
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.71,
+        "y": 0.507,
+        "text": "た",
+        "confidence": 96
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.789,
+        "y": 0.506,
+        "text": "の",
+        "confidence": 96
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.866,
+        "y": 0.507,
+        "text": "は",
+        "confidence": 96
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.547,
+        "y": 0.142,
+        "text": "NN",
+        "confidence": 76
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.041,
+        "y": 0.537,
+        "text": "J",
+        "confidence": 77
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.498,
+        "y": 0.491,
+        "text": "誰か",
+        "confidence": 96
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.474,
+        "y": 0.49,
+        "text": "に",
+        "confidence": 96
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.583,
+        "y": 0.491,
+        "text": "必要",
+        "confidence": 96
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.69,
+        "y": 0.49,
+        "text": "と",
+        "confidence": 96
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.117,
+        "y": 0.487,
+        "text": "の",
+        "confidence": 55
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.287,
+        "y": 0.529,
+        "text": "れ",
+        "confidence": 92
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.363,
+        "y": 0.546,
+        "text": "た",
+        "confidence": 94
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.471,
+        "y": 0.526,
+        "text": "いと",
+        "confidence": 92
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.762,
+        "y": 0.528,
+        "text": "女性",
+        "confidence": 95
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.106,
+        "y": 0.864,
+        "text": "ミ",
+        "confidence": 51
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.175,
+        "y": 0.866,
+        "text": "oF",
+        "confidence": 53
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.464,
+        "y": 0.068,
+        "text": "ーー",
+        "confidence": 53
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.526,
+        "y": 0.073,
+        "text": "、",
+        "confidence": 75
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.213,
+        "y": 0.12,
+        "text": "ce",
+        "confidence": 60
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.498,
+        "y": 0.467,
+        "text": "誰か",
+        "confidence": 60
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.476,
+        "y": 0.47,
+        "text": "に",
+        "confidence": 90
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.588,
+        "y": 0.467,
+        "text": "必要",
+        "confidence": 96
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.7,
+        "y": 0.47,
+        "text": "と",
+        "confidence": 95
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.23,
+        "y": 0.53,
+        "text": "され",
+        "confidence": 96
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.349,
+        "y": 0.537,
+        "text": "た",
+        "confidence": 87
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.466,
+        "y": 0.547,
+        "text": "いと",
+        "confidence": 91
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.621,
+        "y": 0.53,
+        "text": "願う",
+        "confidence": 78
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.774,
+        "y": 0.529,
+        "text": "女性",
+        "confidence": 81
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.142,
+        "y": 0.65,
+        "text": "=",
+        "confidence": 63
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.197,
+        "y": 0.645,
+        "text": "=",
+        "confidence": 68
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.358,
+        "y": 0.168,
+        "text": "に",
+        "confidence": 55
+      }
+    ],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 2.333,
+        "end": 2.333
+      },
+      {
+        "type": "pan_left",
+        "start": 2.5,
+        "end": 2.5
+      },
+      {
+        "type": "pan_right",
+        "start": 5.333,
+        "end": 5.333
+      },
+      {
+        "type": "tilt_up",
+        "start": 8.0,
+        "end": 8.0
+      },
+      {
+        "type": "pan_left",
+        "start": 8.333,
+        "end": 8.333
+      },
+      {
+        "type": "shake",
+        "start": 12.667,
+        "end": 12.667
+      },
+      {
+        "type": "pan_right",
+        "start": 12.833,
+        "end": 13.0
+      },
+      {
+        "type": "shake",
+        "start": 16.167,
+        "end": 16.167
+      },
+      {
+        "type": "pan_left",
+        "start": 16.333,
+        "end": 16.333
+      },
+      {
+        "type": "shake",
+        "start": 18.333,
+        "end": 18.333
+      },
+      {
+        "type": "pan_right",
+        "start": 19.833,
+        "end": 20.0
+      },
+      {
+        "type": "shake",
+        "start": 21.0,
+        "end": 21.167
+      },
+      {
+        "type": "shake",
+        "start": 22.5,
+        "end": 22.5
+      },
+      {
+        "type": "shake",
+        "start": 25.833,
+        "end": 25.833
+      },
+      {
+        "type": "shake",
+        "start": 26.833,
+        "end": 26.833
+      },
+      {
+        "type": "pan_right",
+        "start": 27.0,
+        "end": 27.167
+      },
+      {
+        "type": "shake",
+        "start": 29.5,
+        "end": 29.5
+      },
+      {
+        "type": "shake",
+        "start": 31.333,
+        "end": 31.333
+      },
+      {
+        "type": "pan_right",
+        "start": 31.5,
+        "end": 31.5
+      },
+      {
+        "type": "pan_left",
+        "start": 33.0,
+        "end": 33.0
+      },
+      {
+        "type": "shake",
+        "start": 35.0,
+        "end": 35.0
+      },
+      {
+        "type": "shake",
+        "start": 36.667,
+        "end": 36.667
+      },
+      {
+        "type": "shake",
+        "start": 37.167,
+        "end": 37.167
+      },
+      {
+        "type": "pan_left",
+        "start": 37.333,
+        "end": 37.5
+      },
+      {
+        "type": "shake",
+        "start": 41.167,
+        "end": 41.167
+      },
+      {
+        "type": "pan_right",
+        "start": 41.333,
+        "end": 41.333
+      },
+      {
+        "type": "pan_right",
+        "start": 42.333,
+        "end": 42.5
+      },
+      {
+        "type": "shake",
+        "start": 44.5,
+        "end": 44.5
+      },
+      {
+        "type": "pan_left",
+        "start": 44.833,
+        "end": 44.833
+      },
+      {
+        "type": "tilt_down",
+        "start": 46.667,
+        "end": 46.667
+      },
+      {
+        "type": "pan_left",
+        "start": 47.0,
+        "end": 47.0
+      },
+      {
+        "type": "shake",
+        "start": 48.667,
+        "end": 48.667
+      },
+      {
+        "type": "pan_right",
+        "start": 48.833,
+        "end": 48.833
+      },
+      {
+        "type": "shake",
+        "start": 50.167,
+        "end": 50.167
+      },
+      {
+        "type": "shake",
+        "start": 51.5,
+        "end": 51.5
+      },
+      {
+        "type": "pan_right",
+        "start": 51.667,
+        "end": 51.667
+      },
+      {
+        "type": "zoom",
+        "start": 52.5,
+        "end": 52.5
+      },
+      {
+        "type": "shake",
+        "start": 53.5,
+        "end": 53.5
+      }
+    ],
+    "important_frames": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      70,
+      71,
+      72,
+      74,
+      75,
+      90,
+      105,
+      120,
+      135,
+      150,
+      154,
+      165,
+      179,
+      180,
+      210,
+      240,
+      270,
+      294,
+      300,
+      315,
+      330,
+      345,
+      360,
+      375,
+      380
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 2.26,
+        "text": "映画で出ていかされた女性絵の応じんさん戦",
+        "words": [
+          {
+            "word": "映",
+            "start": 0.0,
+            "end": 0.26
+          },
+          {
+            "word": "画",
+            "start": 0.26,
+            "end": 0.42
+          },
+          {
+            "word": "で",
+            "start": 0.42,
+            "end": 0.52
+          },
+          {
+            "word": "出",
+            "start": 0.52,
+            "end": 0.6
+          },
+          {
+            "word": "て",
+            "start": 0.6,
+            "end": 0.68
+          },
+          {
+            "word": "い",
+            "start": 0.68,
+            "end": 0.76
+          },
+          {
+            "word": "か",
+            "start": 0.76,
+            "end": 0.86
+          },
+          {
+            "word": "さ",
+            "start": 0.86,
+            "end": 0.96
+          },
+          {
+            "word": "れた",
+            "start": 0.96,
+            "end": 1.1
+          },
+          {
+            "word": "女",
+            "start": 1.1,
+            "end": 1.24
+          },
+          {
+            "word": "性",
+            "start": 1.24,
+            "end": 1.38
+          },
+          {
+            "word": "絵",
+            "start": 1.38,
+            "end": 1.54
+          },
+          {
+            "word": "の",
+            "start": 1.54,
+            "end": 1.66
+          },
+          {
+            "word": "応",
+            "start": 1.66,
+            "end": 1.84
+          },
+          {
+            "word": "じ",
+            "start": 1.84,
+            "end": 1.86
+          },
+          {
+            "word": "ん",
+            "start": 1.86,
+            "end": 1.94
+          },
+          {
+            "word": "さん",
+            "start": 1.94,
+            "end": 2.06
+          },
+          {
+            "word": "戦",
+            "start": 2.06,
+            "end": 2.26
+          }
+        ]
+      },
+      {
+        "start": 2.26,
+        "end": 3.68,
+        "text": "1 行けはきちずる",
+        "words": [
+          {
+            "word": "1",
+            "start": 2.26,
+            "end": 2.7
+          },
+          {
+            "word": " 行",
+            "start": 2.94,
+            "end": 3.04
+          },
+          {
+            "word": "け",
+            "start": 3.04,
+            "end": 3.14
+          },
+          {
+            "word": "は",
+            "start": 3.14,
+            "end": 3.24
+          },
+          {
+            "word": "き",
+            "start": 3.24,
+            "end": 3.36
+          },
+          {
+            "word": "ち",
+            "start": 3.36,
+            "end": 3.46
+          },
+          {
+            "word": "ず",
+            "start": 3.46,
+            "end": 3.56
+          },
+          {
+            "word": "る",
+            "start": 3.56,
+            "end": 3.68
+          }
+        ]
+      },
+      {
+        "start": 3.68,
+        "end": 4.98,
+        "text": "そこの身にて光かない役",
+        "words": [
+          {
+            "word": "そ",
+            "start": 3.68,
+            "end": 3.9
+          },
+          {
+            "word": "この",
+            "start": 3.9,
+            "end": 4.04
+          },
+          {
+            "word": "身",
+            "start": 4.04,
+            "end": 4.18
+          },
+          {
+            "word": "に",
+            "start": 4.18,
+            "end": 4.26
+          },
+          {
+            "word": "て",
+            "start": 4.26,
+            "end": 4.34
+          },
+          {
+            "word": "光",
+            "start": 4.34,
+            "end": 4.48
+          },
+          {
+            "word": "か",
+            "start": 4.48,
+            "end": 4.7
+          },
+          {
+            "word": "ない",
+            "start": 4.7,
+            "end": 4.82
+          },
+          {
+            "word": "役",
+            "start": 4.82,
+            "end": 4.98
+          }
+        ]
+      },
+      {
+        "start": 4.98,
+        "end": 7.5,
+        "text": "当作品は平息感のただよう町であった",
+        "words": [
+          {
+            "word": "当",
+            "start": 4.98,
+            "end": 5.3
+          },
+          {
+            "word": "作",
+            "start": 5.3,
+            "end": 5.46
+          },
+          {
+            "word": "品",
+            "start": 5.46,
+            "end": 5.68
+          },
+          {
+            "word": "は",
+            "start": 5.68,
+            "end": 5.88
+          },
+          {
+            "word": "平",
+            "start": 5.88,
+            "end": 6.12
+          },
+          {
+            "word": "息",
+            "start": 6.12,
+            "end": 6.26
+          },
+          {
+            "word": "感",
+            "start": 6.26,
+            "end": 6.46
+          },
+          {
+            "word": "の",
+            "start": 6.46,
+            "end": 6.58
+          },
+          {
+            "word": "ただ",
+            "start": 6.58,
+            "end": 6.72
+          },
+          {
+            "word": "よう",
+            "start": 6.72,
+            "end": 6.88
+          },
+          {
+            "word": "町",
+            "start": 6.88,
+            "end": 7.1
+          },
+          {
+            "word": "で",
+            "start": 7.1,
+            "end": 7.22
+          },
+          {
+            "word": "あ",
+            "start": 7.22,
+            "end": 7.36
+          },
+          {
+            "word": "った",
+            "start": 7.36,
+            "end": 7.5
+          }
+        ]
+      },
+      {
+        "start": 7.5,
+        "end": 9.74,
+        "text": "男女が傷を抱えながらも光れ合うものがたり",
+        "words": [
+          {
+            "word": "男",
+            "start": 7.5,
+            "end": 7.66
+          },
+          {
+            "word": "女",
+            "start": 7.66,
+            "end": 7.82
+          },
+          {
+            "word": "が",
+            "start": 7.82,
+            "end": 7.92
+          },
+          {
+            "word": "傷",
+            "start": 7.92,
+            "end": 8.02
+          },
+          {
+            "word": "を",
+            "start": 8.02,
+            "end": 8.24
+          },
+          {
+            "word": "抱",
+            "start": 8.24,
+            "end": 8.32
+          },
+          {
+            "word": "え",
+            "start": 8.32,
+            "end": 8.5
+          },
+          {
+            "word": "な",
+            "start": 8.5,
+            "end": 8.56
+          },
+          {
+            "word": "が",
+            "start": 8.56,
+            "end": 8.66
+          },
+          {
+            "word": "ら",
+            "start": 8.66,
+            "end": 8.76
+          },
+          {
+            "word": "も",
+            "start": 8.76,
+            "end": 8.86
+          },
+          {
+            "word": "光",
+            "start": 8.86,
+            "end": 8.98
+          },
+          {
+            "word": "れ",
+            "start": 8.98,
+            "end": 9.16
+          },
+          {
+            "word": "合",
+            "start": 9.16,
+            "end": 9.2
+          },
+          {
+            "word": "う",
+            "start": 9.2,
+            "end": 9.28
+          },
+          {
+            "word": "もの",
+            "start": 9.28,
+            "end": 9.4
+          },
+          {
+            "word": "が",
+            "start": 9.4,
+            "end": 9.56
+          },
+          {
+            "word": "た",
+            "start": 9.56,
+            "end": 9.66
+          },
+          {
+            "word": "り",
+            "start": 9.66,
+            "end": 9.74
+          }
+        ]
+      },
+      {
+        "start": 9.74,
+        "end": 12.66,
+        "text": "行けはきちずるが演じたのは孤独と明らめを背負いながらも",
+        "words": [
+          {
+            "word": "行",
+            "start": 9.74,
+            "end": 9.98
+          },
+          {
+            "word": "け",
+            "start": 9.98,
+            "end": 10.06
+          },
+          {
+            "word": "は",
+            "start": 10.06,
+            "end": 10.16
+          },
+          {
+            "word": "き",
+            "start": 10.16,
+            "end": 10.26
+          },
+          {
+            "word": "ち",
+            "start": 10.26,
+            "end": 10.38
+          },
+          {
+            "word": "ず",
+            "start": 10.38,
+            "end": 10.48
+          },
+          {
+            "word": "る",
+            "start": 10.48,
+            "end": 10.56
+          },
+          {
+            "word": "が",
+            "start": 10.56,
+            "end": 10.66
+          },
+          {
+            "word": "演",
+            "start": 10.66,
+            "end": 10.78
+          },
+          {
+            "word": "じ",
+            "start": 10.78,
+            "end": 10.88
+          },
+          {
+            "word": "た",
+            "start": 10.88,
+            "end": 10.98
+          },
+          {
+            "word": "のは",
+            "start": 10.98,
+            "end": 11.14
+          },
+          {
+            "word": "孤",
+            "start": 11.14,
+            "end": 11.3
+          },
+          {
+            "word": "独",
+            "start": 11.3,
+            "end": 11.34
+          },
+          {
+            "word": "と",
+            "start": 11.34,
+            "end": 11.52
+          },
+          {
+            "word": "明",
+            "start": 11.52,
+            "end": 11.62
+          },
+          {
+            "word": "ら",
+            "start": 11.62,
+            "end": 11.72
+          },
+          {
+            "word": "め",
+            "start": 11.72,
+            "end": 11.84
+          },
+          {
+            "word": "を",
+            "start": 11.84,
+            "end": 11.94
+          },
+          {
+            "word": "背",
+            "start": 11.94,
+            "end": 12.1
+          },
+          {
+            "word": "負",
+            "start": 12.1,
+            "end": 12.16
+          },
+          {
+            "word": "い",
+            "start": 12.16,
+            "end": 12.26
+          },
+          {
+            "word": "な",
+            "start": 12.26,
+            "end": 12.34
+          },
+          {
+            "word": "が",
+            "start": 12.34,
+            "end": 12.44
+          },
+          {
+            "word": "ら",
+            "start": 12.44,
+            "end": 12.52
+          },
+          {
+            "word": "も",
+            "start": 12.52,
+            "end": 12.66
+          }
+        ]
+      },
+      {
+        "start": 12.66,
+        "end": 14.5,
+        "text": "誰かに必要とされたいと願う女性",
+        "words": [
+          {
+            "word": "誰",
+            "start": 12.66,
+            "end": 12.86
+          },
+          {
+            "word": "か",
+            "start": 12.86,
+            "end": 13.0
+          },
+          {
+            "word": "に",
+            "start": 13.0,
+            "end": 13.1
+          },
+          {
+            "word": "必",
+            "start": 13.1,
+            "end": 13.26
+          },
+          {
+            "word": "要",
+            "start": 13.26,
+            "end": 13.4
+          },
+          {
+            "word": "と",
+            "start": 13.4,
+            "end": 13.52
+          },
+          {
+            "word": "さ",
+            "start": 13.52,
+            "end": 13.66
+          },
+          {
+            "word": "れ",
+            "start": 13.66,
+            "end": 13.72
+          },
+          {
+            "word": "たい",
+            "start": 13.72,
+            "end": 13.88
+          },
+          {
+            "word": "と",
+            "start": 13.88,
+            "end": 13.98
+          },
+          {
+            "word": "願",
+            "start": 13.98,
+            "end": 14.08
+          },
+          {
+            "word": "う",
+            "start": 14.08,
+            "end": 14.24
+          },
+          {
+            "word": "女",
+            "start": 14.24,
+            "end": 14.34
+          },
+          {
+            "word": "性",
+            "start": 14.34,
+            "end": 14.5
+          }
+        ]
+      },
+      {
+        "start": 14.5,
+        "end": 16.02,
+        "text": "貧乏の中でもがきながらも",
+        "words": [
+          {
+            "word": "貧",
+            "start": 14.5,
+            "end": 14.82
+          },
+          {
+            "word": "乏",
+            "start": 14.82,
+            "end": 14.94
+          },
+          {
+            "word": "の",
+            "start": 14.94,
+            "end": 15.08
+          },
+          {
+            "word": "中",
+            "start": 15.08,
+            "end": 15.24
+          },
+          {
+            "word": "でも",
+            "start": 15.24,
+            "end": 15.42
+          },
+          {
+            "word": "が",
+            "start": 15.42,
+            "end": 15.54
+          },
+          {
+            "word": "き",
+            "start": 15.54,
+            "end": 15.62
+          },
+          {
+            "word": "な",
+            "start": 15.62,
+            "end": 15.7
+          },
+          {
+            "word": "が",
+            "start": 15.7,
+            "end": 15.8
+          },
+          {
+            "word": "ら",
+            "start": 15.8,
+            "end": 15.88
+          },
+          {
+            "word": "も",
+            "start": 15.88,
+            "end": 16.02
+          }
+        ]
+      },
+      {
+        "start": 16.02,
+        "end": 18.3,
+        "text": "濃厚な攻めで口張っててしまう彼女を見ると",
+        "words": [
+          {
+            "word": "濃",
+            "start": 16.02,
+            "end": 16.26
+          },
+          {
+            "word": "厚",
+            "start": 16.26,
+            "end": 16.38
+          },
+          {
+            "word": "な",
+            "start": 16.38,
+            "end": 16.52
+          },
+          {
+            "word": "攻",
+            "start": 16.52,
+            "end": 16.62
+          },
+          {
+            "word": "め",
+            "start": 16.62,
+            "end": 16.7
+          },
+          {
+            "word": "で",
+            "start": 16.7,
+            "end": 16.8
+          },
+          {
+            "word": "口",
+            "start": 16.8,
+            "end": 16.9
+          },
+          {
+            "word": "張",
+            "start": 16.9,
+            "end": 17.06
+          },
+          {
+            "word": "って",
+            "start": 17.06,
+            "end": 17.16
+          },
+          {
+            "word": "て",
+            "start": 17.16,
+            "end": 17.26
+          },
+          {
+            "word": "しま",
+            "start": 17.26,
+            "end": 17.42
+          },
+          {
+            "word": "う",
+            "start": 17.42,
+            "end": 17.52
+          },
+          {
+            "word": "彼",
+            "start": 17.52,
+            "end": 17.62
+          },
+          {
+            "word": "女",
+            "start": 17.62,
+            "end": 17.78
+          },
+          {
+            "word": "を",
+            "start": 17.78,
+            "end": 17.86
+          },
+          {
+            "word": "見",
+            "start": 17.86,
+            "end": 17.96
+          },
+          {
+            "word": "る",
+            "start": 17.96,
+            "end": 18.04
+          },
+          {
+            "word": "と",
+            "start": 18.04,
+            "end": 18.3
+          }
+        ]
+      },
+      {
+        "start": 18.3,
+        "end": 20.82,
+        "text": "世の男性は相手配慮の手に生まれ変わりたいわすだ",
+        "words": [
+          {
+            "word": "世",
+            "start": 18.3,
+            "end": 18.4
+          },
+          {
+            "word": "の",
+            "start": 18.4,
+            "end": 18.54
+          },
+          {
+            "word": "男",
+            "start": 18.54,
+            "end": 18.62
+          },
+          {
+            "word": "性",
+            "start": 18.62,
+            "end": 18.82
+          },
+          {
+            "word": "は",
+            "start": 18.82,
+            "end": 18.96
+          },
+          {
+            "word": "相",
+            "start": 18.96,
+            "end": 19.08
+          },
+          {
+            "word": "手",
+            "start": 19.08,
+            "end": 19.22
+          },
+          {
+            "word": "配",
+            "start": 19.22,
+            "end": 19.36
+          },
+          {
+            "word": "慮",
+            "start": 19.36,
+            "end": 19.48
+          },
+          {
+            "word": "の",
+            "start": 19.48,
+            "end": 19.62
+          },
+          {
+            "word": "手",
+            "start": 19.62,
+            "end": 19.74
+          },
+          {
+            "word": "に",
+            "start": 19.74,
+            "end": 19.84
+          },
+          {
+            "word": "生",
+            "start": 19.84,
+            "end": 19.92
+          },
+          {
+            "word": "ま",
+            "start": 19.92,
+            "end": 20.0
+          },
+          {
+            "word": "れ",
+            "start": 20.0,
+            "end": 20.06
+          },
+          {
+            "word": "変",
+            "start": 20.06,
+            "end": 20.16
+          },
+          {
+            "word": "わ",
+            "start": 20.16,
+            "end": 20.24
+          },
+          {
+            "word": "り",
+            "start": 20.24,
+            "end": 20.32
+          },
+          {
+            "word": "たい",
+            "start": 20.32,
+            "end": 20.44
+          },
+          {
+            "word": "わ",
+            "start": 20.44,
+            "end": 20.56
+          },
+          {
+            "word": "す",
+            "start": 20.56,
+            "end": 20.7
+          },
+          {
+            "word": "だ",
+            "start": 20.7,
+            "end": 20.82
+          }
+        ]
+      },
+      {
+        "start": 20.82,
+        "end": 21.44,
+        "text": "2 ハル",
+        "words": [
+          {
+            "word": "2",
+            "start": 20.82,
+            "end": 21.1
+          },
+          {
+            "word": " ハ",
+            "start": 21.1,
+            "end": 21.34
+          },
+          {
+            "word": "ル",
+            "start": 21.34,
+            "end": 21.44
+          }
+        ]
+      },
+      {
+        "start": 21.44,
+        "end": 22.44,
+        "text": "みなさんさようなら",
+        "words": [
+          {
+            "word": "み",
+            "start": 21.44,
+            "end": 21.72
+          },
+          {
+            "word": "な",
+            "start": 21.72,
+            "end": 21.8
+          },
+          {
+            "word": "さん",
+            "start": 21.8,
+            "end": 21.98
+          },
+          {
+            "word": "さ",
+            "start": 21.98,
+            "end": 22.12
+          },
+          {
+            "word": "よう",
+            "start": 22.12,
+            "end": 22.24
+          },
+          {
+            "word": "なら",
+            "start": 22.24,
+            "end": 22.44
+          }
+        ]
+      },
+      {
+        "start": 22.44,
+        "end": 23.26,
+        "text": "当作品は",
+        "words": [
+          {
+            "word": "当",
+            "start": 22.44,
+            "end": 22.66
+          },
+          {
+            "word": "作",
+            "start": 22.66,
+            "end": 22.82
+          },
+          {
+            "word": "品",
+            "start": 22.82,
+            "end": 23.06
+          },
+          {
+            "word": "は",
+            "start": 23.06,
+            "end": 23.26
+          }
+        ]
+      },
+      {
+        "start": 23.26,
+        "end": 25.76,
+        "text": "段近ら出られない男の反省を描くものがたり",
+        "words": [
+          {
+            "word": "段",
+            "start": 23.26,
+            "end": 23.48
+          },
+          {
+            "word": "近",
+            "start": 23.48,
+            "end": 23.62
+          },
+          {
+            "word": "ら",
+            "start": 23.62,
+            "end": 23.78
+          },
+          {
+            "word": "出",
+            "start": 23.78,
+            "end": 23.88
+          },
+          {
+            "word": "ら",
+            "start": 23.88,
+            "end": 23.96
+          },
+          {
+            "word": "れない",
+            "start": 23.96,
+            "end": 24.14
+          },
+          {
+            "word": "男",
+            "start": 24.14,
+            "end": 24.36
+          },
+          {
+            "word": "の",
+            "start": 24.36,
+            "end": 24.58
+          },
+          {
+            "word": "反",
+            "start": 24.58,
+            "end": 24.74
+          },
+          {
+            "word": "省",
+            "start": 24.74,
+            "end": 24.86
+          },
+          {
+            "word": "を",
+            "start": 24.86,
+            "end": 25.04
+          },
+          {
+            "word": "描",
+            "start": 25.04,
+            "end": 25.14
+          },
+          {
+            "word": "く",
+            "start": 25.14,
+            "end": 25.28
+          },
+          {
+            "word": "もの",
+            "start": 25.28,
+            "end": 25.4
+          },
+          {
+            "word": "が",
+            "start": 25.4,
+            "end": 25.56
+          },
+          {
+            "word": "た",
+            "start": 25.56,
+            "end": 25.64
+          },
+          {
+            "word": "り",
+            "start": 25.64,
+            "end": 25.76
+          }
+        ]
+      },
+      {
+        "start": 25.76,
+        "end": 26.64,
+        "text": "ハルが演じたのは",
+        "words": [
+          {
+            "word": "ハ",
+            "start": 25.76,
+            "end": 25.94
+          },
+          {
+            "word": "ル",
+            "start": 25.94,
+            "end": 26.02
+          },
+          {
+            "word": "が",
+            "start": 26.02,
+            "end": 26.14
+          },
+          {
+            "word": "演",
+            "start": 26.14,
+            "end": 26.26
+          },
+          {
+            "word": "じ",
+            "start": 26.26,
+            "end": 26.36
+          },
+          {
+            "word": "た",
+            "start": 26.36,
+            "end": 26.46
+          },
+          {
+            "word": "のは",
+            "start": 26.46,
+            "end": 26.64
+          }
+        ]
+      },
+      {
+        "start": 26.64,
+        "end": 29.24,
+        "text": "主人公の人生に大きく影響を与える女性",
+        "words": [
+          {
+            "word": "主",
+            "start": 26.64,
+            "end": 26.92
+          },
+          {
+            "word": "人",
+            "start": 26.92,
+            "end": 27.08
+          },
+          {
+            "word": "公",
+            "start": 27.08,
+            "end": 27.22
+          },
+          {
+            "word": "の",
+            "start": 27.22,
+            "end": 27.36
+          },
+          {
+            "word": "人",
+            "start": 27.36,
+            "end": 27.52
+          },
+          {
+            "word": "生",
+            "start": 27.52,
+            "end": 27.68
+          },
+          {
+            "word": "に",
+            "start": 27.68,
+            "end": 27.82
+          },
+          {
+            "word": "大",
+            "start": 27.82,
+            "end": 27.96
+          },
+          {
+            "word": "き",
+            "start": 27.96,
+            "end": 28.08
+          },
+          {
+            "word": "く",
+            "start": 28.08,
+            "end": 28.24
+          },
+          {
+            "word": "影",
+            "start": 28.24,
+            "end": 28.34
+          },
+          {
+            "word": "響",
+            "start": 28.34,
+            "end": 28.48
+          },
+          {
+            "word": "を",
+            "start": 28.48,
+            "end": 28.68
+          },
+          {
+            "word": "与",
+            "start": 28.68,
+            "end": 28.78
+          },
+          {
+            "word": "える",
+            "start": 28.78,
+            "end": 28.96
+          },
+          {
+            "word": "女",
+            "start": 28.96,
+            "end": 29.08
+          },
+          {
+            "word": "性",
+            "start": 29.08,
+            "end": 29.24
+          }
+        ]
+      },
+      {
+        "start": 29.24,
+        "end": 31.22,
+        "text": "生素なイメージとのギャップが強烈で",
+        "words": [
+          {
+            "word": "生",
+            "start": 29.24,
+            "end": 29.6
+          },
+          {
+            "word": "素",
+            "start": 29.6,
+            "end": 29.74
+          },
+          {
+            "word": "な",
+            "start": 29.74,
+            "end": 29.84
+          },
+          {
+            "word": "イ",
+            "start": 29.84,
+            "end": 29.94
+          },
+          {
+            "word": "メ",
+            "start": 29.94,
+            "end": 30.0
+          },
+          {
+            "word": "ージ",
+            "start": 30.0,
+            "end": 30.12
+          },
+          {
+            "word": "と",
+            "start": 30.12,
+            "end": 30.24
+          },
+          {
+            "word": "の",
+            "start": 30.24,
+            "end": 30.36
+          },
+          {
+            "word": "ギ",
+            "start": 30.36,
+            "end": 30.44
+          },
+          {
+            "word": "ャ",
+            "start": 30.44,
+            "end": 30.46
+          },
+          {
+            "word": "ップ",
+            "start": 30.46,
+            "end": 30.58
+          },
+          {
+            "word": "が",
+            "start": 30.58,
+            "end": 30.72
+          },
+          {
+            "word": "強",
+            "start": 30.72,
+            "end": 30.88
+          },
+          {
+            "word": "烈",
+            "start": 30.88,
+            "end": 31.0
+          },
+          {
+            "word": "で",
+            "start": 31.0,
+            "end": 31.22
+          }
+        ]
+      },
+      {
+        "start": 31.22,
+        "end": 32.5,
+        "text": "思わず息を飲む展開",
+        "words": [
+          {
+            "word": "思",
+            "start": 31.22,
+            "end": 31.46
+          },
+          {
+            "word": "わ",
+            "start": 31.46,
+            "end": 31.64
+          },
+          {
+            "word": "ず",
+            "start": 31.64,
+            "end": 31.76
+          },
+          {
+            "word": "息",
+            "start": 31.76,
+            "end": 31.9
+          },
+          {
+            "word": "を",
+            "start": 31.9,
+            "end": 32.0
+          },
+          {
+            "word": "飲",
+            "start": 32.0,
+            "end": 32.1
+          },
+          {
+            "word": "む",
+            "start": 32.1,
+            "end": 32.22
+          },
+          {
+            "word": "展",
+            "start": 32.22,
+            "end": 32.36
+          },
+          {
+            "word": "開",
+            "start": 32.36,
+            "end": 32.5
+          }
+        ]
+      },
+      {
+        "start": 32.5,
+        "end": 35.0,
+        "text": "主人公と共にお互いをまさむり合う場面の",
+        "words": [
+          {
+            "word": "主",
+            "start": 32.5,
+            "end": 32.82
+          },
+          {
+            "word": "人",
+            "start": 32.82,
+            "end": 33.0
+          },
+          {
+            "word": "公",
+            "start": 33.0,
+            "end": 33.14
+          },
+          {
+            "word": "と",
+            "start": 33.14,
+            "end": 33.28
+          },
+          {
+            "word": "共",
+            "start": 33.28,
+            "end": 33.46
+          },
+          {
+            "word": "に",
+            "start": 33.46,
+            "end": 33.58
+          },
+          {
+            "word": "お",
+            "start": 33.58,
+            "end": 33.64
+          },
+          {
+            "word": "互",
+            "start": 33.64,
+            "end": 33.76
+          },
+          {
+            "word": "い",
+            "start": 33.76,
+            "end": 33.88
+          },
+          {
+            "word": "を",
+            "start": 33.88,
+            "end": 34.0
+          },
+          {
+            "word": "ま",
+            "start": 34.0,
+            "end": 34.08
+          },
+          {
+            "word": "さ",
+            "start": 34.08,
+            "end": 34.18
+          },
+          {
+            "word": "む",
+            "start": 34.18,
+            "end": 34.28
+          },
+          {
+            "word": "り",
+            "start": 34.28,
+            "end": 34.4
+          },
+          {
+            "word": "合",
+            "start": 34.4,
+            "end": 34.46
+          },
+          {
+            "word": "う",
+            "start": 34.46,
+            "end": 34.56
+          },
+          {
+            "word": "場",
+            "start": 34.56,
+            "end": 34.64
+          },
+          {
+            "word": "面",
+            "start": 34.64,
+            "end": 34.78
+          },
+          {
+            "word": "の",
+            "start": 34.78,
+            "end": 35.0
+          }
+        ]
+      },
+      {
+        "start": 35.0,
+        "end": 36.46,
+        "text": "表情は明らかに保てている",
+        "words": [
+          {
+            "word": "表",
+            "start": 35.0,
+            "end": 35.18
+          },
+          {
+            "word": "情",
+            "start": 35.18,
+            "end": 35.36
+          },
+          {
+            "word": "は",
+            "start": 35.36,
+            "end": 35.52
+          },
+          {
+            "word": "明",
+            "start": 35.52,
+            "end": 35.66
+          },
+          {
+            "word": "ら",
+            "start": 35.66,
+            "end": 35.76
+          },
+          {
+            "word": "か",
+            "start": 35.76,
+            "end": 35.84
+          },
+          {
+            "word": "に",
+            "start": 35.84,
+            "end": 35.94
+          },
+          {
+            "word": "保",
+            "start": 35.94,
+            "end": 36.06
+          },
+          {
+            "word": "て",
+            "start": 36.06,
+            "end": 36.12
+          },
+          {
+            "word": "て",
+            "start": 36.12,
+            "end": 36.32
+          },
+          {
+            "word": "いる",
+            "start": 36.32,
+            "end": 36.46
+          }
+        ]
+      },
+      {
+        "start": 36.46,
+        "end": 37.24,
+        "text": "最後は",
+        "words": [
+          {
+            "word": "最後",
+            "start": 36.46,
+            "end": 36.9
+          },
+          {
+            "word": "は",
+            "start": 36.9,
+            "end": 37.24
+          }
+        ]
+      },
+      {
+        "start": 37.24,
+        "end": 38.92,
+        "text": "当作品は優格を舞台に",
+        "words": [
+          {
+            "word": "当",
+            "start": 37.24,
+            "end": 37.36
+          },
+          {
+            "word": "作",
+            "start": 37.36,
+            "end": 37.52
+          },
+          {
+            "word": "品",
+            "start": 37.52,
+            "end": 37.74
+          },
+          {
+            "word": "は",
+            "start": 37.74,
+            "end": 38.0
+          },
+          {
+            "word": "優",
+            "start": 38.0,
+            "end": 38.22
+          },
+          {
+            "word": "格",
+            "start": 38.22,
+            "end": 38.34
+          },
+          {
+            "word": "を",
+            "start": 38.34,
+            "end": 38.52
+          },
+          {
+            "word": "舞",
+            "start": 38.52,
+            "end": 38.64
+          },
+          {
+            "word": "台",
+            "start": 38.64,
+            "end": 38.76
+          },
+          {
+            "word": "に",
+            "start": 38.76,
+            "end": 38.92
+          }
+        ]
+      },
+      {
+        "start": 38.92,
+        "end": 41.02,
+        "text": "説なくも話しい声を描いたものがたり",
+        "words": [
+          {
+            "word": "説",
+            "start": 38.92,
+            "end": 39.18
+          },
+          {
+            "word": "なく",
+            "start": 39.18,
+            "end": 39.36
+          },
+          {
+            "word": "も",
+            "start": 39.36,
+            "end": 39.56
+          },
+          {
+            "word": "話",
+            "start": 39.56,
+            "end": 39.66
+          },
+          {
+            "word": "しい",
+            "start": 39.66,
+            "end": 39.9
+          },
+          {
+            "word": "声",
+            "start": 39.9,
+            "end": 40.06
+          },
+          {
+            "word": "を",
+            "start": 40.06,
+            "end": 40.18
+          },
+          {
+            "word": "描",
+            "start": 40.18,
+            "end": 40.34
+          },
+          {
+            "word": "いた",
+            "start": 40.34,
+            "end": 40.5
+          },
+          {
+            "word": "もの",
+            "start": 40.5,
+            "end": 40.64
+          },
+          {
+            "word": "が",
+            "start": 40.64,
+            "end": 40.8
+          },
+          {
+            "word": "た",
+            "start": 40.8,
+            "end": 40.9
+          },
+          {
+            "word": "り",
+            "start": 40.9,
+            "end": 41.02
+          }
+        ]
+      },
+      {
+        "start": 41.02,
+        "end": 42.04,
+        "text": "彼女が演じたのは",
+        "words": [
+          {
+            "word": "彼",
+            "start": 41.02,
+            "end": 41.22
+          },
+          {
+            "word": "女",
+            "start": 41.22,
+            "end": 41.4
+          },
+          {
+            "word": "が",
+            "start": 41.4,
+            "end": 41.52
+          },
+          {
+            "word": "演",
+            "start": 41.52,
+            "end": 41.64
+          },
+          {
+            "word": "じ",
+            "start": 41.64,
+            "end": 41.74
+          },
+          {
+            "word": "た",
+            "start": 41.74,
+            "end": 41.84
+          },
+          {
+            "word": "のは",
+            "start": 41.84,
+            "end": 42.04
+          }
+        ]
+      },
+      {
+        "start": 42.04,
+        "end": 44.48,
+        "text": "運命に本療されに出場もない中で憲命に",
+        "words": [
+          {
+            "word": "運",
+            "start": 42.04,
+            "end": 42.4
+          },
+          {
+            "word": "命",
+            "start": 42.4,
+            "end": 42.48
+          },
+          {
+            "word": "に",
+            "start": 42.48,
+            "end": 42.62
+          },
+          {
+            "word": "本",
+            "start": 42.62,
+            "end": 42.82
+          },
+          {
+            "word": "療",
+            "start": 42.82,
+            "end": 42.9
+          },
+          {
+            "word": "さ",
+            "start": 42.9,
+            "end": 43.08
+          },
+          {
+            "word": "れ",
+            "start": 43.08,
+            "end": 43.16
+          },
+          {
+            "word": "に",
+            "start": 43.16,
+            "end": 43.24
+          },
+          {
+            "word": "出",
+            "start": 43.24,
+            "end": 43.34
+          },
+          {
+            "word": "場",
+            "start": 43.34,
+            "end": 43.44
+          },
+          {
+            "word": "も",
+            "start": 43.44,
+            "end": 43.54
+          },
+          {
+            "word": "ない",
+            "start": 43.54,
+            "end": 43.66
+          },
+          {
+            "word": "中",
+            "start": 43.66,
+            "end": 43.82
+          },
+          {
+            "word": "で",
+            "start": 43.82,
+            "end": 43.94
+          },
+          {
+            "word": "憲",
+            "start": 43.94,
+            "end": 44.1
+          },
+          {
+            "word": "命",
+            "start": 44.1,
+            "end": 44.26
+          },
+          {
+            "word": "に",
+            "start": 44.26,
+            "end": 44.48
+          }
+        ]
+      },
+      {
+        "start": 44.48,
+        "end": 46.54,
+        "text": "強く生きるオイラン要言なたたずまいと",
+        "words": [
+          {
+            "word": "強",
+            "start": 44.48,
+            "end": 44.72
+          },
+          {
+            "word": "く",
+            "start": 44.72,
+            "end": 44.92
+          },
+          {
+            "word": "生",
+            "start": 44.92,
+            "end": 45.0
+          },
+          {
+            "word": "き",
+            "start": 45.0,
+            "end": 45.04
+          },
+          {
+            "word": "る",
+            "start": 45.04,
+            "end": 45.14
+          },
+          {
+            "word": "オ",
+            "start": 45.14,
+            "end": 45.3
+          },
+          {
+            "word": "イ",
+            "start": 45.3,
+            "end": 45.32
+          },
+          {
+            "word": "ラ",
+            "start": 45.32,
+            "end": 45.38
+          },
+          {
+            "word": "ン",
+            "start": 45.38,
+            "end": 45.48
+          },
+          {
+            "word": "要",
+            "start": 45.48,
+            "end": 45.6
+          },
+          {
+            "word": "言",
+            "start": 45.6,
+            "end": 45.74
+          },
+          {
+            "word": "な",
+            "start": 45.74,
+            "end": 45.9
+          },
+          {
+            "word": "た",
+            "start": 45.9,
+            "end": 46.02
+          },
+          {
+            "word": "た",
+            "start": 46.02,
+            "end": 46.12
+          },
+          {
+            "word": "ず",
+            "start": 46.12,
+            "end": 46.2
+          },
+          {
+            "word": "ま",
+            "start": 46.2,
+            "end": 46.3
+          },
+          {
+            "word": "い",
+            "start": 46.3,
+            "end": 46.36
+          },
+          {
+            "word": "と",
+            "start": 46.36,
+            "end": 46.54
+          }
+        ]
+      },
+      {
+        "start": 46.54,
+        "end": 48.5,
+        "text": "視線一つで空気を支配する演技力",
+        "words": [
+          {
+            "word": "視",
+            "start": 46.54,
+            "end": 46.74
+          },
+          {
+            "word": "線",
+            "start": 46.74,
+            "end": 46.84
+          },
+          {
+            "word": "一",
+            "start": 46.84,
+            "end": 47.02
+          },
+          {
+            "word": "つ",
+            "start": 47.02,
+            "end": 47.14
+          },
+          {
+            "word": "で",
+            "start": 47.14,
+            "end": 47.22
+          },
+          {
+            "word": "空",
+            "start": 47.22,
+            "end": 47.34
+          },
+          {
+            "word": "気",
+            "start": 47.34,
+            "end": 47.46
+          },
+          {
+            "word": "を",
+            "start": 47.46,
+            "end": 47.58
+          },
+          {
+            "word": "支",
+            "start": 47.58,
+            "end": 47.72
+          },
+          {
+            "word": "配",
+            "start": 47.72,
+            "end": 47.82
+          },
+          {
+            "word": "する",
+            "start": 47.82,
+            "end": 48.06
+          },
+          {
+            "word": "演",
+            "start": 48.06,
+            "end": 48.22
+          },
+          {
+            "word": "技",
+            "start": 48.22,
+            "end": 48.32
+          },
+          {
+            "word": "力",
+            "start": 48.32,
+            "end": 48.5
+          }
+        ]
+      },
+      {
+        "start": 48.5,
+        "end": 50.08,
+        "text": "イメージを完全に塗り替え",
+        "words": [
+          {
+            "word": "イ",
+            "start": 48.5,
+            "end": 48.8
+          },
+          {
+            "word": "メ",
+            "start": 48.8,
+            "end": 48.88
+          },
+          {
+            "word": "ージ",
+            "start": 48.88,
+            "end": 49.04
+          },
+          {
+            "word": "を",
+            "start": 49.04,
+            "end": 49.16
+          },
+          {
+            "word": "完全",
+            "start": 49.16,
+            "end": 49.42
+          },
+          {
+            "word": "に",
+            "start": 49.42,
+            "end": 49.62
+          },
+          {
+            "word": "塗",
+            "start": 49.62,
+            "end": 49.7
+          },
+          {
+            "word": "り",
+            "start": 49.7,
+            "end": 49.82
+          },
+          {
+            "word": "替",
+            "start": 49.82,
+            "end": 49.88
+          },
+          {
+            "word": "え",
+            "start": 49.88,
+            "end": 50.08
+          }
+        ]
+      },
+      {
+        "start": 50.08,
+        "end": 51.38,
+        "text": "古役から知っている世代を",
+        "words": [
+          {
+            "word": "古",
+            "start": 50.08,
+            "end": 50.2
+          },
+          {
+            "word": "役",
+            "start": 50.2,
+            "end": 50.38
+          },
+          {
+            "word": "から",
+            "start": 50.38,
+            "end": 50.54
+          },
+          {
+            "word": "知",
+            "start": 50.54,
+            "end": 50.66
+          },
+          {
+            "word": "って",
+            "start": 50.66,
+            "end": 50.84
+          },
+          {
+            "word": "いる",
+            "start": 50.84,
+            "end": 50.94
+          },
+          {
+            "word": "世",
+            "start": 50.94,
+            "end": 51.08
+          },
+          {
+            "word": "代",
+            "start": 51.08,
+            "end": 51.18
+          },
+          {
+            "word": "を",
+            "start": 51.18,
+            "end": 51.38
+          }
+        ]
+      },
+      {
+        "start": 51.38,
+        "end": 52.48,
+        "text": "むしろ取り込みしたのは",
+        "words": [
+          {
+            "word": "む",
+            "start": 51.38,
+            "end": 51.56
+          },
+          {
+            "word": "し",
+            "start": 51.56,
+            "end": 51.66
+          },
+          {
+            "word": "ろ",
+            "start": 51.66,
+            "end": 51.74
+          },
+          {
+            "word": "取",
+            "start": 51.74,
+            "end": 51.86
+          },
+          {
+            "word": "り",
+            "start": 51.86,
+            "end": 51.98
+          },
+          {
+            "word": "込",
+            "start": 51.98,
+            "end": 52.0
+          },
+          {
+            "word": "み",
+            "start": 52.0,
+            "end": 52.1
+          },
+          {
+            "word": "した",
+            "start": 52.1,
+            "end": 52.24
+          },
+          {
+            "word": "のは",
+            "start": 52.24,
+            "end": 52.48
+          }
+        ]
+      },
+      {
+        "start": 53.34,
+        "end": 54.86,
+        "text": "あたち海花屋へ道中",
+        "words": [
+          {
+            "word": "あ",
+            "start": 53.34,
+            "end": 53.62
+          },
+          {
+            "word": "た",
+            "start": 53.62,
+            "end": 53.7
+          },
+          {
+            "word": "ち",
+            "start": 53.7,
+            "end": 53.86
+          },
+          {
+            "word": "海",
+            "start": 53.86,
+            "end": 54.0
+          },
+          {
+            "word": "花",
+            "start": 54.0,
+            "end": 54.28
+          },
+          {
+            "word": "屋",
+            "start": 54.28,
+            "end": 54.42
+          },
+          {
+            "word": "へ",
+            "start": 54.42,
+            "end": 54.52
+          },
+          {
+            "word": "道",
+            "start": 54.52,
+            "end": 54.6
+          },
+          {
+            "word": "中",
+            "start": 54.6,
+            "end": 54.86
+          }
+        ]
+      }
+    ],
+    "full_text": "映画で出ていかされた女性絵の応じんさん戦 1 行けはきちずる そこの身にて光かない役 当作品は平息感のただよう町であった 男女が傷を抱えながらも光れ合うものがたり 行けはきちずるが演じたのは孤独と明らめを背負いながらも 誰かに必要とされたいと願う女性 貧乏の中でもがきながらも 濃厚な攻めで口張っててしまう彼女を見ると 世の男性は相手配慮の手に生まれ変わりたいわすだ 2 ハル みなさんさようなら 当作品は 段近ら出られない男の反省を描くものがたり ハルが演じたのは 主人公の人生に大きく影響を与える女性 生素なイメージとのギャップが強烈で 思わず息を飲む展開 主人公と共にお互いをまさむり合う場面の 表情は明らかに保てている 最後は 当作品は優格を舞台に 説なくも話しい声を描いたものがたり 彼女が演じたのは 運命に本療されに出場もない中で憲命に 強く生きるオイラン要言なたたずまいと 視線一つで空気を支配する演技力 イメージを完全に塗り替え 古役から知っている世代を むしろ取り込みしたのは あたち海花屋へ道中",
+    "words_per_minute": 474.4,
+    "keywords": [
+      "映画で出ていかされた女性絵の応じんさん戦",
+      "行けはきちずる",
+      "そこの身にて光かない役",
+      "当作品は平息感のただよう町であった",
+      "男女が傷を抱えながらも光れ合うものがたり",
+      "行けはきちずるが演じたのは孤独と明らめを背負いながらも",
+      "誰かに必要とされたいと願う女性",
+      "貧乏の中でもがきながらも",
+      "濃厚な攻めで口張っててしまう彼女を見ると",
+      "世の男性は相手配慮の手に生まれ変わりたいわすだ"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 52.48,
+        "end": 53.34,
+        "duration": 0.86
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [
+      2.333,
+      2.367,
+      2.4,
+      2.467,
+      5.133,
+      20.667,
+      20.733,
+      20.8,
+      20.833,
+      20.867,
+      22.5,
+      25.8,
+      36.567,
+      37.167
+    ],
+    "loop_point": 53.5,
+    "information_density": "high",
+    "tone": "entertainment"
+  }
+}

@@ -275,6 +275,15 @@ def main() -> None:
     print(f"   ✓ 発話数 : {len(speech_data.get('transcript', []))} セグメント")
     print(f"   ✓ 話速   : {speech_data.get('words_per_minute', 0)} wpm")
 
+    # ── Layer 2.5: BGM・効果音解析 ──────────────────────────────────────
+    print("\n🎵 [2.5/3] Layer2.5: BGM・効果音解析 (librosa)...")
+    from layers.audio_scene import analyze_audio_scene
+    audio_scene_data = analyze_audio_scene(output_dir)
+    print(f"   ✓ BGM区間     : {len(audio_scene_data.get('bgm_segments', []))} セグメント")
+    print(f"   ✓ 効果音      : {len(audio_scene_data.get('sfx_events', []))} 件")
+    print(f"   ✓ テンポ      : {audio_scene_data.get('dominant_tempo', 0)} BPM")
+    print(f"   ✓ BGMカバー率 : {audio_scene_data.get('music_coverage', 0) * 100:.0f}%")
+
     # ── Layer 3: バズ構造解析 ────────────────────────────────────────────
     print("\n🔥 [3/3] Layer3: バズ構造解析...")
     from layers.viral_pattern import analyze_viral_pattern
@@ -292,6 +301,7 @@ def main() -> None:
         "resolution": video_data.get("resolution", {}),
         "video_structure": video_data["video_structure"],
         "speech_structure": speech_data,
+        "audio_scene": audio_scene_data,
         "viral_structure": viral_data,
     }
 

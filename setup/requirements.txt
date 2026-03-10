@@ -1,5 +1,5 @@
 # team-info Python requirements
-# Python 3.11 推奨（ML ライブラリの互換性のため）
+# Python 3.11.9 推奨（ML ライブラリの互換性のため）
 
 # Audio / Speech
 faster-whisper==1.2.1

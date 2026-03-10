@@ -227,8 +227,8 @@ if (Test-Command git) {
     Install-WithWinget "Git.Git" "Git"
 }
 
-# ── 3. Python 3.11 ────────────────────────────────────────────────────────
-Write-Step "3. Python 3.11"
+# ── 3. Python ─────────────────────────────────────────────────────────────
+Write-Step "3. Python $PythonVersion"
 
 # pyenv-win インストール
 if (-not (Test-Command pyenv)) {
@@ -249,8 +249,7 @@ if (-not (Test-Command pyenv)) {
     $env:Path  = "$env:PYENV\bin;$env:PYENV\shims;$env:Path"
 }
 
-# Python 3.11 インストール
-$pyVersionShort = $PythonVersion.Substring(0, 4)  # "3.11"
+# Python インストール
 if ((pyenv versions 2>&1) -match $PythonVersion) {
     Write-Ok "Python $PythonVersion インストール済み"
 } else {
@@ -262,15 +261,7 @@ if ((pyenv versions 2>&1) -match $PythonVersion) {
 }
 
 $Python311 = "$env:USERPROFILE\.pyenv\pyenv-win\versions\$PythonVersion\python.exe"
-if (-not (Test-Path $Python311)) {
-    # バージョン番号が若干違う場合の fallback
-    $Python311 = Get-ChildItem "$env:USERPROFILE\.pyenv\pyenv-win\versions" |
-                 Where-Object { $_.Name -like "3.11*" } |
-                 Sort-Object Name -Descending |
-                 Select-Object -First 1 |
-                 ForEach-Object { Join-Path $_.FullName "python.exe" }
-}
-if (-not (Test-Path $Python311)) { Write-Err "Python $pyVersionShort が見つかりません: $Python311" }
+if (-not (Test-Path $Python311)) { Write-Err "Python $PythonVersion が見つかりません: $Python311" }
 Write-Info "Python: $Python311 ($(& $Python311 --version))"
 
 # ── 4. Tesseract OCR ─────────────────────────────────────────────────────
