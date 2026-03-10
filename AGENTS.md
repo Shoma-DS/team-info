@@ -1,3 +1,17 @@
+## Slash Commands
+
+ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
+
+| コマンド | 読み込むスキル |
+|---------|--------------|
+| `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ |
+| `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
+| `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
+| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
+| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
+| `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
+
 ## Skills
 A skill is a set of local instructions stored in a `SKILL.md` file.
 From now on, this repository uses only `.agent/skills` as the skills source.

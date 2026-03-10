@@ -1,6 +1,20 @@
 # GEMINI.md - プロジェクトAIアシスタント設定
 このファイルは、Gemini CLIアシスタントであるあなたのプロジェクト固有の振る舞いを定義するためのシステムプロンプトです。ここに記述された情報は、あなたの行動と判断の「憲法」として機能します。
 
+## スラッシュコマンド
+
+ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
+
+| コマンド | 読み込むスキル |
+|---------|--------------|
+| `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ |
+| `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
+| `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
+| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
+| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
+| `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
+
 ## 応答言語
 - **すべての出力は日本語で行う**: ユーザーが別の言語で入力した場合でも、日本語で理解し、日本語で返答してください。
 - **専門用語には簡単な説明を添える**: 専門的な用語を使用する際は、初心者にも理解しやすいように簡潔な説明を加えます。
