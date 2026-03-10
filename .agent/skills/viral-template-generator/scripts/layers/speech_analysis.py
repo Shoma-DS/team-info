@@ -36,7 +36,7 @@ def transcribe_with_faster_whisper(audio_path: Path) -> list[dict]:
     """faster-whisper で書き起こし（セグメント単位）"""
     try:
         from faster_whisper import WhisperModel
-        model = WhisperModel("base", device="cpu", compute_type="int8")
+        model = WhisperModel("large-v3", device="cpu", compute_type="int8")
         segments, _ = model.transcribe(str(audio_path), language="ja", word_timestamps=True)
         transcript = []
         for seg in segments:
@@ -58,7 +58,7 @@ def transcribe_with_faster_whisper(audio_path: Path) -> list[dict]:
     # fallback: openai-whisper
     try:
         import whisper
-        model = whisper.load_model("base")
+        model = whisper.load_model("large-v3")
         result = model.transcribe(str(audio_path), language="ja", word_timestamps=True)
         transcript = []
         for seg in result["segments"]:

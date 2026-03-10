@@ -14,11 +14,18 @@ if str(COMMON_SCRIPTS_DIR) not in sys.path:
 from runtime_common import get_config_dir, get_repo_root
 
 
-PYTHON_PACKAGES = [
+# インストール必須パッケージ
+PYTHON_PACKAGES_REQUIRED = [
     ["opencv-python-headless", "numpy"],
-    ["mediapipe"],
     ["pytesseract"],
     ["faster-whisper"],
+    ["openai-whisper"],
+]
+
+# インストール失敗しても続行するオプションパッケージ
+PYTHON_PACKAGES_OPTIONAL = [
+    ["mediapipe"],  # Python 3.13+ 非対応のため失敗しても続行
+    ["librosa", "soundfile"],  # BGM・効果音解析用（Layer 2.5）
 ]
 
 
@@ -55,9 +62,15 @@ def main() -> int:
     print("viral-template-generator setup")
 
     _run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-    for package_group in PYTHON_PACKAGES:
+    for package_group in PYTHON_PACKAGES_REQUIRED:
         _run([sys.executable, "-m", "pip", "install", *package_group])
         print(f"  installed: {' '.join(package_group)}")
+    for package_group in PYTHON_PACKAGES_OPTIONAL:
+        try:
+            _run([sys.executable, "-m", "pip", "install", *package_group])
+            print(f"  installed (optional): {' '.join(package_group)}")
+        except subprocess.CalledProcessError:
+            print(f"  ⚠️  optional package skipped (not supported on this Python): {' '.join(package_group)}")
 
     missing_required: list[str] = []
     missing_optional: list[str] = []
