@@ -71,7 +71,7 @@ def transcribe_with_faster_whisper(audio_path: Path) -> list[dict]:
     except ImportError:
         raise RuntimeError(
             "faster-whisper または openai-whisper のどちらかをインストールしてください:\n"
-            "  pip install faster-whisper"
+            "  team_info_runtime.py build-remotion-python"
         )
 
 

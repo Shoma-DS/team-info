@@ -21,7 +21,9 @@ from pathlib import Path
 try:
     import budoux
 except ImportError:
-    raise SystemExit("budoux が見つかりません。pip install budoux でインストールしてください。")
+    raise SystemExit(
+        "budoux が見つかりません。team_info_runtime.py build-remotion-python で Docker ランタイムを再ビルドしてください。"
+    )
 
 PARSER = budoux.load_default_japanese_parser()
 

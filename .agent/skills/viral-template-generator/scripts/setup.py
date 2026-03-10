@@ -14,18 +14,20 @@ if str(COMMON_SCRIPTS_DIR) not in sys.path:
 from runtime_common import get_config_dir, get_repo_root
 
 
-# インストール必須パッケージ
-PYTHON_PACKAGES_REQUIRED = [
-    ["opencv-python-headless", "numpy"],
-    ["pytesseract"],
-    ["faster-whisper"],
-    ["openai-whisper"],
+# 必須 Python モジュール
+PYTHON_MODULES_REQUIRED = [
+    "cv2",
+    "numpy",
+    "pytesseract",
+    "faster_whisper",
+    "whisper",
 ]
 
-# インストール失敗しても続行するオプションパッケージ
-PYTHON_PACKAGES_OPTIONAL = [
-    ["mediapipe"],  # Python 3.13+ 非対応のため失敗しても続行
-    ["librosa", "soundfile"],  # BGM・効果音解析用（Layer 2.5）
+# 任意 Python モジュール
+PYTHON_MODULES_OPTIONAL = [
+    "mediapipe",
+    "librosa",
+    "soundfile",
 ]
 
 
@@ -61,16 +63,21 @@ def main() -> int:
 
     print("viral-template-generator setup")
 
-    _run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-    for package_group in PYTHON_PACKAGES_REQUIRED:
-        _run([sys.executable, "-m", "pip", "install", *package_group])
-        print(f"  installed: {' '.join(package_group)}")
-    for package_group in PYTHON_PACKAGES_OPTIONAL:
+    missing_required_modules: list[str] = []
+    missing_optional_modules: list[str] = []
+    for module_name in PYTHON_MODULES_REQUIRED:
         try:
-            _run([sys.executable, "-m", "pip", "install", *package_group])
-            print(f"  installed (optional): {' '.join(package_group)}")
-        except subprocess.CalledProcessError:
-            print(f"  ⚠️  optional package skipped (not supported on this Python): {' '.join(package_group)}")
+            __import__(module_name)
+            print(f"  detected python module: {module_name}")
+        except ImportError:
+            missing_required_modules.append(module_name)
+
+    for module_name in PYTHON_MODULES_OPTIONAL:
+        try:
+            __import__(module_name)
+            print(f"  detected optional module: {module_name}")
+        except ImportError:
+            missing_optional_modules.append(module_name)
 
     missing_required: list[str] = []
     missing_optional: list[str] = []
@@ -106,6 +113,25 @@ def main() -> int:
             print(f"- {binary_name}", file=sys.stderr)
             _print_dependency_help(binary_name)
         return 1
+
+    if missing_required_modules:
+        print("Required Python modules are missing.", file=sys.stderr)
+        for module_name in missing_required_modules:
+            print(f"- {module_name}", file=sys.stderr)
+        print(
+            "team_info_runtime.py build-remotion-python で Docker ランタイムを再ビルドしてください。",
+            file=sys.stderr,
+        )
+        return 1
+
+    if missing_optional_modules:
+        print("Optional Python modules are missing.")
+        for module_name in missing_optional_modules:
+            print(f"- {module_name}")
+        print(
+            "必要なら setup/requirements.txt を更新して "
+            "team_info_runtime.py build-remotion-python を実行してください。"
+        )
 
     flag_dir.mkdir(parents=True, exist_ok=True)
     flag_path.touch()

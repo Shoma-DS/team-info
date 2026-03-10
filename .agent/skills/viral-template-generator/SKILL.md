@@ -643,15 +643,17 @@ Claude が以下の観点で script.md を読んでレビューする:
 #### Step D-4-2: 音源生成コマンド
 
 ```bash
-/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
-  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/generate_viral_voice.py \
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/generate_viral_voice.py" \
   --script "[script.mdの絶対パス]" \
-  --output-dir "/Users/deguchishouma/team-info/Remotion/my-video/public/viral/[タイトル]/audio" \
+  --output-dir "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio" \
   --profile [プロファイル名]
 ```
 
-- VOICEVOX が未起動の場合は **自動で起動を試みる**（macOS: `open -a VOICEVOX`）
-- 起動待ちは最大30秒。タイムアウトした場合はユーザーに手動起動を依頼する
+- GUI 版ではなく Docker 上の `VOICEVOX Engine` を使う
+- 事前確認は `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status`
+- `run-remotion-python` から起動する場合、必要なら `start-voicevox-engine` が自動で補助される
+- 明示的に起動する場合は `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine`
 
 #### Step D-4-3: 出力ファイル
 

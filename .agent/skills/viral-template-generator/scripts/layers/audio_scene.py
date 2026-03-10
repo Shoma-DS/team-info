@@ -64,7 +64,7 @@ def analyze_audio_scene(output_dir: Path) -> dict:
         import numpy as np
     except ImportError:
         print("    ⚠️  librosa が未インストールのため BGM/SFX 解析をスキップします")
-        print("       (pip install librosa でインストール後に再解析できます)")
+        print("       (setup/requirements.txt を更新して build-remotion-python 後に再解析できます)")
         return _empty_result()
 
     audio_path = _get_audio_path(output_dir)

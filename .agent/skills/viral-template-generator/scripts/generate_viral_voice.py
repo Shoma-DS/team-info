@@ -3,7 +3,7 @@
 generate_viral_voice: script.md をセクション別に VOICEVOX で音声化し、
 remotion/public/audio/ に配置する。
 
-VOICEVOX が未起動の場合は自動起動を試みる。
+VOICEVOX Engine が未起動の場合は team_info_runtime.py 経由で起動を試みる。
 
 Usage:
   python3 generate_viral_voice.py \
@@ -14,19 +14,25 @@ Usage:
 import argparse
 import io
 import json
+import os
 import re
 import subprocess
 import sys
-import time
 import wave
 from pathlib import Path
 
 try:
     import requests
 except ImportError:
-    raise SystemExit("requests が見つかりません。pip install requests でインストールしてください。")
+    raise SystemExit(
+        "requests が見つかりません。team_info_runtime.py build-remotion-python で Docker ランタイムを再ビルドしてください。"
+    )
 
-VOICEVOX_BASE = "http://127.0.0.1:50021"
+VOICEVOX_BASE = os.environ.get(
+    "VOICEVOX_API_BASE_URL",
+    os.environ.get("VOICEVOX_BASE", "http://127.0.0.1:50021"),
+)
+RUNNING_IN_DOCKER = os.environ.get("TEAM_INFO_IN_DOCKER") == "1"
 
 COMMON_SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "common" / "scripts"
 if str(COMMON_SCRIPTS_DIR) not in sys.path:
@@ -36,6 +42,7 @@ from runtime_common import get_repo_root
 
 PROJECT_ROOT = get_repo_root()
 CONFIG_FILE = PROJECT_ROOT / "Remotion" / "configs" / "voice_config.json"
+RUNTIME_SCRIPT = PROJECT_ROOT / ".agent" / "skills" / "common" / "scripts" / "team_info_runtime.py"
 
 # ─── VOICEVOX 起動確認 & 自動起動 ───────────────────────────────────────────
 
@@ -48,60 +55,31 @@ def is_voicevox_running() -> bool:
 
 
 def start_voicevox() -> bool:
-    """VOICEVOX を OS に応じて起動し、最大30秒待つ"""
-    print("VOICEVOX が起動していません。自動起動を試みます...")
+    """team_info_runtime.py 経由で Docker 上の VOICEVOX Engine を起動する"""
+    print("VOICEVOX Engine が起動していません。起動を試みます...")
 
-    if sys.platform == "darwin":
-        # macOS: 一般的なインストール先を試みる
-        candidates = [
-            Path("/Applications/VOICEVOX.app"),
-            Path.home() / "Applications" / "VOICEVOX.app",
-        ]
-        launched = False
-        for app in candidates:
-            if app.exists():
-                subprocess.Popen(["open", str(app)])
-                launched = True
-                break
-        if not launched:
-            # open -a でアプリ名で試みる
-            result = subprocess.run(["open", "-a", "VOICEVOX"], capture_output=True)
-            if result.returncode != 0:
-                print("  → VOICEVOX アプリが見つかりませんでした。手動で起動してください。")
-                print("     起動後に Enter を押してください。")
-                input()
-                return is_voicevox_running()
-    elif sys.platform == "win32":
-        candidates = [
-            Path("C:/Users") / Path.home().name / "AppData/Local/Programs/VOICEVOX/VOICEVOX.exe",
-            Path("C:/Program Files/VOICEVOX/VOICEVOX.exe"),
-        ]
-        launched = False
-        for exe in candidates:
-            if exe.exists():
-                subprocess.Popen([str(exe)])
-                launched = True
-                break
-        if not launched:
-            print("  → VOICEVOX.exe が見つかりませんでした。手動で起動してください。")
-            print("     起動後に Enter を押してください。")
-            input()
-            return is_voicevox_running()
-    else:
-        print("  → Linux では手動で VOICEVOX を起動してください。")
-        print("     起動後に Enter を押してください。")
-        input()
-        return is_voicevox_running()
+    if RUNNING_IN_DOCKER:
+        print("  → この Docker ランタイムから host 側の Docker は起動できません。")
+        print("     host 側で team_info_runtime.py start-voicevox-engine を実行後、再試行してください。")
+        return False
 
-    print("  VOICEVOX 起動待ち...", end="", flush=True)
-    for _ in range(30):
-        time.sleep(1)
-        print(".", end="", flush=True)
-        if is_voicevox_running():
-            print(" 起動完了！")
-            return True
-    print(" タイムアウト。手動で起動後に Enter を押してください。")
-    input()
+    if not RUNTIME_SCRIPT.exists():
+        print(f"  → team_info_runtime.py が見つかりません: {RUNTIME_SCRIPT}")
+        return False
+
+    completed = subprocess.run(
+        [sys.executable, str(RUNTIME_SCRIPT), "start-voicevox-engine"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.stdout.strip():
+        print(completed.stdout.strip())
+    if completed.returncode != 0:
+        if completed.stderr.strip():
+            print(completed.stderr.strip())
+        return False
+
     return is_voicevox_running()
 
 
