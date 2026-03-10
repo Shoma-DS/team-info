@@ -6,6 +6,7 @@
 |---------|--------------|
 | `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
 | `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ |
+| `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` |
 | `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
 | `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
 | `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
