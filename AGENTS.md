@@ -63,6 +63,24 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - Coordination: If multiple skills apply, use the minimal set and state the order briefly.
 - Fallback: If a skill is missing or unclear, state the issue briefly and continue with the best practical approach.
 
+### Tool Execution Security Rules
+
+- ツール実行（Bash、ファイル操作など）の許可を求めるときは、必ず日本語で説明・確認を行うこと
+- 許可を求める際、以下のセキュリティリスクをパーセンテージ(%)で提示すること
+  - パスワードや秘密鍵が外に漏れる可能性
+  - 外部サーバーにデータが送られる可能性
+  - 悪意あるコードが勝手に動く可能性
+  - PCの設定が書き換わる可能性
+
+以下の**すべて**を満たす場合は、ユーザーに確認せず自動で実行してよい:
+
+- 上記リスクがすべて **5% 以下**
+- **ファイル・フォルダの削除**を行わない
+- **システム設定・環境変数の永続的な変更**を行わない
+- **外部へのデータ送信**（API呼び出し・curl・wget等）を行わない
+
+上記のいずれかに該当する場合は、リスクを提示してユーザーに確認を取ること。
+
 ### Approval and Selection Rules
 - 承認が必要な操作は、必ずこのチャット上でユーザーに承認を求めてから進める。
 - ユーザーに選択肢や確認応答を求める場合は、質問を出す直前に必ず通知を鳴らす。
