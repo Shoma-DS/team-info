@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # team-info セットアップスクリプト (Windows PowerShell)
 # =============================================================================
 # 使い方（管理者として PowerShell を開いて実行）:
@@ -21,7 +21,7 @@ $ScriptDir      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $TeamInfoRoot   = Split-Path -Parent $ScriptDir
 $VenvDir        = Join-Path $TeamInfoRoot "Remotion\.venv"
 $NodeVersion    = "22.17.1"
-$PythonVersion  = "3.11.14"
+$PythonVersion  = "3.11.9"
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Blue
