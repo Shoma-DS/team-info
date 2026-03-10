@@ -34,6 +34,14 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
 - Git関連操作を行う場合は、必ず `.agent/skills/common/git-workflow/SKILL.md` を使う。
 
+## Docker First Rule
+- チーム共通の実行環境は `docker/team-info/` の Docker 構成を正本とする。
+- Python やスクリプトを伴うスキルは、原則として Docker コンテナ内で実行する。
+- ローカル環境でしか動かせない理由（GPU 固有、GUI アプリ依存など）がある場合のみ、理由を明示してホスト実行へ切り替える。
+- スキル実行時の基本コマンドは次を使う。
+  - `docker compose -f "$TEAM_INFO_ROOT/docker/team-info/docker-compose.yml" run --rm team-info <command ...>`
+  - または `"$TEAM_INFO_ROOT/scripts/docker-skill-run.sh" <command ...>`
+
 ## Command Path Rules
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
 - 固定の `/Users/...` は使わず、`TEAM_INFO_ROOT` から絶対パスを組み立てる。

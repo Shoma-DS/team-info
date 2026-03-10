@@ -69,6 +69,24 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---
 
+## Docker で共通実行（推奨）
+
+Python やスクリプトを伴う作業は、まず Docker 版の共通環境を使ってください。
+
+```bash
+docker compose -f "$TEAM_INFO_ROOT/docker/team-info/docker-compose.yml" build
+```
+
+```bash
+docker compose -f "$TEAM_INFO_ROOT/docker/team-info/docker-compose.yml" run --rm team-info bash
+```
+
+コマンドを1回だけ実行するなら:
+
+```bash
+"$TEAM_INFO_ROOT/scripts/docker-skill-run.sh" python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" worked-before-status
+```
+
 ## まだ手で必要なもの
 
 - VOICEVOX 本体アプリのインストールと起動

@@ -1,0 +1,21 @@
+services:
+  team-info:
+    build:
+      context: ../..
+      dockerfile: docker/team-info/Dockerfile
+    image: team-info/dev:latest
+    container_name: team-info-dev
+    working_dir: /workspace/team-info
+    environment:
+      TEAM_INFO_ROOT: /workspace/team-info
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ../..:/workspace/team-info
+      - team_info_pip_cache:/root/.cache/pip
+      - team_info_npm_cache:/root/.npm
+    tty: true
+    stdin_open: true
+
+volumes:
+  team_info_pip_cache:
+  team_info_npm_cache:
