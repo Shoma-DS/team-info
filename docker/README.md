@@ -1,16 +1,43 @@
-# Docker self-host (n8n + Dify)
+# Docker self-host (Python runtime + n8n + Dify)
 
-このディレクトリで、`n8n` と `Dify` をローカルホスト上で動かせます。
+このディレクトリで、標準の Python スキル実行環境と、`n8n` / `Dify` をローカルホスト上で動かせます。
+
+## 0) Python Skill Runtime + VOICEVOX Engine
+
+標準の Python/スクリプト系スキルは、ホストの `.venv` ではなく Docker ランタイム経由で実行します。
+
+### 初回
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine
+```
+
+### よく使う操作
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" stop-voicevox-engine
+```
 
 ## 1) n8n
 
 ### 初回
 
+Mac / Linux:
+
 ```bash
-cd docker/n8n
-cp .env.example .env
-docker compose up -d
+bash "$TEAM_INFO_ROOT/run.sh" --project n8n -d
 ```
+
+Windows:
+
+```powershell
+& "$env:TEAM_INFO_ROOT\run.ps1" -Project n8n -d
+```
+
+- 既に `docker/n8n/.env` があればそのまま起動できる。
+- 起動前の Docker Desktop 確認と Engine 待機は共通ランチャーが処理する。
 
 ### アクセス
 
@@ -40,7 +67,7 @@ cd docker
 
 - `langgenius/dify` を `docker/dify` に clone
 - `docker/dify/docker/.env` が無ければ `.env.example` から作成
-- `docker compose up -d` を実行
+- 共通ランチャー `run.sh --project dify -d` を実行
 
 ### アクセス
 
@@ -58,16 +85,18 @@ cd docker
 
 `Cannot connect to the Docker daemon` が出る場合は Docker Desktop が未起動です。
 
+Docker が起動してから再実行する代わりに、共通ランチャーを使う:
+
+macOS:
+
 ```bash
-# macOS
-open -a Docker
+bash "$TEAM_INFO_ROOT/run.sh" --project dify -d
 ```
 
-Docker が起動してから再実行:
+Windows:
 
-```bash
-cd docker/dify/docker
-docker compose up -d
+```powershell
+& "$env:TEAM_INFO_ROOT\run.ps1" -Project dify -d
 ```
 
 ### よく使う操作

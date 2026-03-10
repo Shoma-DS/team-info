@@ -46,6 +46,8 @@ From now on, this repository uses only `.agent/skills` as the skills source.
   - Git: `git -C "$TEAM_INFO_ROOT" ...`
   - npm: `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" ...`
   - リポジトリ内Python: `python "$TEAM_INFO_ROOT/..."`
+  - Docker 起動: `bash "$TEAM_INFO_ROOT/run.sh" --project [n8n|dify] ...`
+  - Windows の Docker 起動: `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project [n8n|dify] ...`
 - ユーザー指定の入力/出力パスが入る場合も、`"$TEAM_INFO_ROOT/..."` や `"[出力先の絶対パス]"` のように絶対パス前提で案内する。
 
 ## New Machine Rule

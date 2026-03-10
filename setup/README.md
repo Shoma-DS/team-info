@@ -6,11 +6,11 @@
 
 | カテゴリ | 内容 |
 |---------|------|
-| Python | 3.11.9 (pyenv 経由) + venv (`Remotion/.venv`) |
-| Python パッケージ | Whisper, OpenCV, MediaPipe, JAX, Remotion スクリプト等 |
+| Python | 3.11.9 (ホスト側の起動用) + Docker ランタイム `team-info/python-skill-runtime:3.11.9` |
+| Python パッケージ | Whisper, OpenCV, MediaPipe, JAX, Remotion スクリプト等を Docker イメージへ固定 |
 | Node.js | 22.17.1 と Dify 用 Node 24 系 (`nvm` / `nvm-windows` 経由) |
 | npm パッケージ | Remotion, VOICEVOX MCP, Canva補助, Dify Web/SDK |
-| その他 | Git, FFmpeg, Tesseract OCR, macOS では `tesseract-lang`, `uv`, Docker (確認のみ) |
+| その他 | Git, FFmpeg, Tesseract OCR, macOS では `tesseract-lang`, `uv`, Docker, VOICEVOX Engine コンテナ |
 
 ---
 
@@ -48,7 +48,7 @@ bash "[team-info を置いた絶対パス]/setup/setup_all.cmd"
 bash "[team-info を置いた絶対パス]/setup/setup_mac.sh"
 ```
 
-- Homebrew → pyenv → Python 3.11.9 → venv → pip パッケージ → nvm → Node.js → npm の順で自動インストール
+- Homebrew → pyenv → Python 3.11.9 → Docker ランタイム → nvm → Node.js → npm の順で自動インストール
 - Apple Silicon (M1/M2/M3) は `jax[metal]`、Intel Mac は `jax[cpu]` を自動選択
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `tesseract-lang` も追加で入れます
@@ -62,7 +62,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 & "[team-info を置いた絶対パス]\setup\setup_windows.ps1"
 ```
 
-- winget → pyenv-win → Python 3.11.9 → venv → pip パッケージ → nvm-windows → Node.js → npm の順で自動インストール
+- winget → pyenv-win → Python 3.11.9 → Docker ランタイム → nvm-windows → Node.js → npm の順で自動インストール
 - `jax[cpu]` をインストール
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `uv` は Python 経由で入れます
@@ -71,15 +71,51 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ## まだ手で必要なもの
 
-- VOICEVOX 本体アプリのインストールと起動
 - Canva の `CANVA_CLIENT_ID` と `CANVA_CLIENT_SECRET` を `~/.secrets/canva_credentials.txt` に書くこと
 - Docker Desktop 本体のインストール
 
-自動セットアップだけで土台はかなりそろいますが、外部サービスの認証や GUI アプリ本体は別作業です。
+自動セットアップだけで土台はかなりそろいますが、外部サービスの認証は別作業です。
 
 ---
 
-## Python venv の手動有効化
+## Docker Python ランタイムの標準運用
+
+Python/スクリプト系スキルは、原則として次の共通ランタイム経由で動かします。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "[repo 内の Python スクリプト絶対パス]" [引数...]
+```
+
+Docker イメージを手動で再ビルドしたい場合:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
+```
+
+VOICEVOX は GUI 版ではなく Docker 上の Engine を使います。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine
+```
+
+`Dify` や `n8n` を起動するときは、素の `docker compose up` ではなく共通ランチャーを使います。
+
+```bash
+bash "$TEAM_INFO_ROOT/run.sh" --project dify -d
+```
+
+Windows:
+
+```powershell
+& "$env:TEAM_INFO_ROOT\run.ps1" -Project dify -d
+```
+
+---
+
+## Python venv の手動有効化（非常用のホスト実行）
+
+標準は Docker です。`TEAM_INFO_PYTHON_RUNTIME=host` を使う非常時だけ有効化してください。
 
 ```bash
 # macOS
@@ -93,8 +129,8 @@ source "$TEAM_INFO_ROOT/Remotion/.venv/bin/activate"
 
 ## requirements.txt の更新
 
-現在の venv からパッケージリストを更新する場合:
+Docker ランタイムに入れる依存は `setup/requirements.txt` を編集し、次を実行します。
 
 ```bash
-"$TEAM_INFO_ROOT/Remotion/.venv/bin/pip" freeze > "$TEAM_INFO_ROOT/setup/requirements.txt"
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
 ```

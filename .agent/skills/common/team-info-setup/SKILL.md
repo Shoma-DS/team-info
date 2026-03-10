@@ -91,6 +91,25 @@ py -3 "$env:TEAM_INFO_ROOT\.agent\skills\common\scripts\team_info_runtime.py" se
 
 - このパソコンをオーナー機として使うときだけ、最後に `--owner` を付ける。
 
+### Docker サービスを起動する
+
+セットアップ後に `Dify` や `n8n` を起動するときは、素の `docker compose up` ではなく共通ランチャーを使う。
+
+macOS:
+
+```bash
+bash "$TEAM_INFO_ROOT/run.sh" --project dify -d
+```
+
+Windows:
+
+```powershell
+& "$env:TEAM_INFO_ROOT\run.ps1" -Project dify -d
+```
+
+- `n8n` を起動したいときは `dify` を `n8n` に置き換える。
+- このランチャーが Docker Desktop の有無確認、起動、Engine 待機まで面倒を見る。
+
 ## 承認ルール
 - `worked-before-status` の確認やマニュアルの読み込みは、そのまま実行してよい。
 - `setup/setup_all.cmd` の実行は、道具の追加、外部取得、環境変更を含むため、必ず日本語で承認を取り、リスクを数値で示してから進める。

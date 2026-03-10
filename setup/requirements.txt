@@ -32,7 +32,8 @@ sentencepiece==0.2.1
 
 # HTTP / Networking
 httpx==0.28.1
-requests
+requests==2.32.5
+certifi==2026.2.25
 
 # CLI / Utilities
 typer==0.24.0
@@ -48,3 +49,4 @@ python-dateutil==2.9.0.post0
 pydantic
 typing_extensions==4.15.0
 protobuf==4.25.8
+budoux==0.7.0

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DIFY_DIR="${ROOT_DIR}/dify"
+DOCKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${DOCKER_DIR}/.." && pwd)"
+DIFY_DIR="${DOCKER_DIR}/dify"
 
 if [[ ! -d "${DIFY_DIR}" ]]; then
   echo "[info] Cloning Dify repository into ${DIFY_DIR}"
@@ -18,8 +19,8 @@ if [[ ! -f .env ]]; then
   cp .env.example .env
 fi
 
-echo "[info] Starting Dify with docker compose"
-docker compose up -d
+echo "[info] Starting Dify with common Docker launcher"
+bash "${ROOT_DIR}/run.sh" --project dify -d
 
 echo "[done] Dify is starting."
 echo "[hint] Open http://localhost:3000 after containers become healthy."

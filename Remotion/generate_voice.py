@@ -20,7 +20,10 @@ MAX_SENTENCE_LENGTH = 80
 MAX_WORKERS = 4
 
 # VOICEVOXエンジンのAPIエンドポイント
-VOICEVOX_API_BASE_URL = "http://127.0.0.1:50021"
+VOICEVOX_API_BASE_URL = os.environ.get(
+    "VOICEVOX_API_BASE_URL",
+    os.environ.get("VOICEVOX_BASE", "http://127.0.0.1:50021"),
+)
 
 # フォルダパス (チームインフォのルートからの相対パス)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Remotionディレクトリ
@@ -134,7 +137,12 @@ def get_voicevox_speakers() -> Dict[str, Dict[str, int]]:
                 speaker_map[speaker_name][style_name] = speaker_id
         return speaker_map
     except requests.exceptions.ConnectionError:
-        print(f"エラー: VOICEVOXエンジンに接続できませんでした。'{VOICEVOX_API_BASE_URL}' が起動しているか確認してください。")
+        print(
+            f"エラー: VOICEVOXエンジンに接続できませんでした。'{VOICEVOX_API_BASE_URL}' が起動しているか確認してください。"
+        )
+        print(
+            "Docker 前提の環境では、team_info_runtime.py start-voicevox-engine で GUI なしの Engine を起動してください。"
+        )
         return {}
     except requests.exceptions.RequestException as e:
         print(f"VOICEVOXスピーカー情報の取得中にエラーが発生しました: {e}")

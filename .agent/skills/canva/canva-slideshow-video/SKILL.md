@@ -51,10 +51,12 @@ Step 6: Remotion で動画レンダリング
 
 ## 前提条件
 
-- VOICEVOX エンジンが起動済み
+- VOICEVOX Engine が起動済み
+  - 状態確認: `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status`
+  - 起動: `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine`
 - `~/.secrets/pixabay_api_key.txt` に Pixabay API キーが保存済み
   - 未取得: https://pixabay.com/api/docs/ で無料登録（従量課金なし）
-  - 初回のみ `--save-key` オプションで保存: `python3 mcp-servers/generate_slides.py ... --pixabay-key KEY --save-key`
+  - 初回のみ `--save-key` オプションで保存: `python "$TEAM_INFO_ROOT/mcp-servers/generate_slides.py" ... --pixabay-key KEY --save-key`
 
 ---
 
@@ -89,7 +91,7 @@ Step 6: Remotion で動画レンダリング
 ### Step 3: 背景画像生成（Pixabay）
 
 ```bash
-python3 $TEAM_INFO_ROOT/mcp-servers/generate_slides.py \
+python "$TEAM_INFO_ROOT/mcp-servers/generate_slides.py" \
   --script "台本ファイル名.md" \
   --theme "テーマ名" \
   --max-slides 20
@@ -104,7 +106,8 @@ python3 $TEAM_INFO_ROOT/mcp-servers/generate_slides.py \
 Step 1 で選んだプロファイルを `--profile` に指定して実行:
 
 ```bash
-python3 $TEAM_INFO_ROOT/Remotion/generate_voice.py \
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/Remotion/generate_voice.py" \
   --script "台本ファイル名.md" \
   --profile "aoyama_ryuusei_normal" \
   --theme "テーマ名"

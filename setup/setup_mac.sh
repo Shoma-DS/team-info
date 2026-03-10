@@ -351,12 +351,25 @@ fi
 step "14. 秘密ファイルの下準備"
 ensure_canva_credentials_template
 warn "Canva を使うときは $CANVA_CREDENTIALS_FILE に鍵を書いてください。"
-warn "VOICEVOX 本体アプリは別で入れて起動してください。"
+warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
 
 # ── 15. Docker 確認 ───────────────────────────────────────────────────────────
 step "15. Docker"
 if command -v docker &>/dev/null; then
   success "Docker インストール済み: $(docker --version)"
+  info "標準の Python Docker ランタイムをビルドします..."
+  if "$PYTHON311" "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python; then
+    success "Python Docker ランタイムのビルド完了"
+  else
+    warn "Python Docker ランタイムのビルドに失敗しました。あとで build-remotion-python を実行してください。"
+  fi
+
+  info "VOICEVOX Engine イメージを取得します..."
+  if "$PYTHON311" "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" pull-voicevox-engine; then
+    success "VOICEVOX Engine イメージ取得完了"
+  else
+    warn "VOICEVOX Engine イメージ取得に失敗しました。あとで pull-voicevox-engine を実行してください。"
+  fi
 else
   warn "Docker が見つかりません。"
   warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
@@ -370,7 +383,8 @@ echo "║       セットアップ完了！                             ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo -e "${RESET}"
 echo "主要パス:"
-echo "  Python venv:   $VENV_DIR/bin/python"
+echo "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
+echo "  Host fallback: $VENV_DIR/bin/python"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
 echo "  SHELL_RC:      $SHELL_RC"
@@ -378,5 +392,6 @@ echo "  Canva secrets: $CANVA_CREDENTIALS_FILE"
 echo ""
 echo "次のステップ:"
 echo "  ・ターミナルを再起動して PATH を再読み込みしてください"
+echo "  ・VOICEVOX Engine: python \"$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py\" start-voicevox-engine"
 echo "  ・Claude Code: code $TEAM_INFO_ROOT"
 echo ""
