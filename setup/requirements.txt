@@ -1,13 +1,15 @@
 # team-info Python requirements
-# Python 3.11 推奨（ML ライブラリの互換性のため）
+# Python 3.11.9 推奨（ML ライブラリの互換性のため）
 
 # Audio / Speech
 faster-whisper==1.2.1
 sounddevice==0.5.5
+librosa==0.10.2.post1
+soundfile==0.12.1
 
 # Computer Vision / ML
 opencv-contrib-python==4.11.0.86
-opencv-python-headless==4.13.0.92
+opencv-python-headless==4.11.0.86
 mediapipe==0.10.21
 pytesseract==0.3.13
 onnxruntime==1.23.2
@@ -32,7 +34,8 @@ sentencepiece==0.2.1
 
 # HTTP / Networking
 httpx==0.28.1
-requests
+requests==2.32.5
+certifi==2026.2.25
 
 # CLI / Utilities
 typer==0.24.0
@@ -42,9 +45,13 @@ Pygments==2.19.2
 markdown-it-py==4.0.0
 tqdm==4.67.3
 
+# Japanese text
+pykakasi==2.3.0
+
 # Data
 PyYAML==6.0.3
 python-dateutil==2.9.0.post0
 pydantic
 typing_extensions==4.15.0
 protobuf==4.25.8
+budoux==0.7.0

@@ -64,8 +64,10 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 - `mediapipe` — 顔検出
 - `pytesseract` — OCR（テロップ検出）
 - `faster-whisper` — 音声書き起こし
+- `pykakasi` — 台本のひらがな変換
 - `ffmpeg` — 音声抽出（システム依存、未導入時は案内を表示）
 - `tesseract` — OCRエンジン（システム依存、未導入時は案内を表示）
+- これらの Python 依存は Docker ランタイム `team-info/python-skill-runtime:3.11.9` に固定される
 
 ### Step 2: 動画解析
 
@@ -172,9 +174,9 @@ cd /absolute/path/to/output/remotion && npx remotion render \
 
 ## トラブルシューティング
 
-**`mediapipe` インポートエラー**
+**Docker ランタイムを再構築したい**
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -m pip install mediapipe
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
 ```
 
 **OCR が動かない**

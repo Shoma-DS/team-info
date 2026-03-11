@@ -219,6 +219,7 @@ def get_video_duration(video_path: str) -> float:
         ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", video_path],
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     if result.returncode != 0:
         raise RuntimeError(f"ffprobe failed: {video_path}")

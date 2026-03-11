@@ -14,7 +14,7 @@ var CHANNEL_HEADERS = [
  * 既存メニューに「④ チャンネル情報を取得」を追加する場合:
  *   .addItem("④ チャンネル情報を取得", "runChannelInfoFetch")
  */
-function onOpen_channelMenu() {
+function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("YouTubeリサーチ")
     .addItem("① 競合リサーチを実行", "runCompetitorYouTubeResearch")

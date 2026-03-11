@@ -1,6 +1,20 @@
 # GEMINI.md - プロジェクトAIアシスタント設定
 このファイルは、Gemini CLIアシスタントであるあなたのプロジェクト固有の振る舞いを定義するためのシステムプロンプトです。ここに記述された情報は、あなたの行動と判断の「憲法」として機能します。
 
+## スラッシュコマンド
+
+ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
+
+| コマンド | 読み込むスキル |
+|---------|--------------|
+| `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ |
+| `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
+| `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
+| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
+| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
+| `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
+
 ## 応答言語
 - **すべての出力は日本語で行う**: ユーザーが別の言語で入力した場合でも、日本語で理解し、日本語で返答してください。
 - **専門用語には簡単な説明を添える**: 専門的な用語を使用する際は、初心者にも理解しやすいように簡潔な説明を加えます。
@@ -54,6 +68,26 @@
 ## ✅ 解決方法
 [具体的な手順]
 ```
+
+## ツール実行時の許可ルール
+
+- ツール実行（Bash、ファイル操作など）の許可を求めるときは、必ず日本語で説明・確認を行うこと
+- 許可を求める際、以下のセキュリティリスクをパーセンテージ(%)で提示すること
+  - パスワードや秘密鍵が外に漏れる可能性
+  - 外部サーバーにデータが送られる可能性
+  - 悪意あるコードが勝手に動く可能性
+  - PCの設定が書き換わる可能性
+
+### 自動許可の条件（確認なしで即実行してよい）
+
+以下の**すべて**を満たす場合は、ユーザーに確認せず自動で実行してよい:
+
+- 上記リスクがすべて **5% 以下**
+- **ファイル・フォルダの削除**を行わない
+- **システム設定・環境変数の永続的な変更**を行わない
+- **外部へのデータ送信**（API呼び出し・curl・wget等）を行わない
+
+上記のいずれかに該当する場合は、リスクを提示してユーザーに確認を取ること。
 
 ## 行動原則
 - **常に、このGEMINI.mdに記述されたコンテキストを最優先してください。**

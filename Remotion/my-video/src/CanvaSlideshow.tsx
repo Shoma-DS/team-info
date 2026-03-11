@@ -24,6 +24,13 @@ type CanvasSlideshowProps = {
 	slides: SlideEntry[];
 };
 
+type TimedSlideEntry = {
+	entry: SlideEntry;
+	from: number;
+	durationInFrames: number;
+	slideIndex: number;
+};
+
 const baseTextStyle: React.CSSProperties = {
 	fontFamily: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif',
 	color: '#f5f5f0',
@@ -45,8 +52,8 @@ const Slide: React.FC<{
 	entry: SlideEntry;
 	durationInFrames: number;
 	slideIndex: number;
-}> = ({entry, durationInFrames, slideIndex}) => {
-	const frame = useCurrentFrame();
+	frame: number;
+}> = ({entry, durationInFrames, slideIndex, frame}) => {
 	const {fps} = useVideoConfig();
 	const fadeFrames = Math.min(Math.floor(0.6 * fps), Math.floor(durationInFrames / 4));
 
@@ -114,6 +121,59 @@ const Slide: React.FC<{
 	);
 };
 
+const buildSlideTimeline = (
+	slides: SlideEntry[],
+	totalDurationInFrames: number
+): TimedSlideEntry[] => {
+	if (slides.length === 0) {
+		return [];
+	}
+
+	const slideDuration = Math.floor(totalDurationInFrames / slides.length);
+
+	return slides.map((entry, i) => {
+		const from = i * slideDuration;
+		const durationInFrames =
+			i === slides.length - 1 ? totalDurationInFrames - from : slideDuration;
+
+		return {
+			entry,
+			from,
+			durationInFrames,
+			slideIndex: i,
+		};
+	});
+};
+
+const SlidesTrack: React.FC<{
+	slides: SlideEntry[];
+	totalDurationInFrames: number;
+}> = ({slides, totalDurationInFrames}) => {
+	const frame = useCurrentFrame();
+	const timeline = useMemo(
+		() => buildSlideTimeline(slides, totalDurationInFrames),
+		[slides, totalDurationInFrames]
+	);
+
+	if (timeline.length === 0) {
+		return <AbsoluteFill style={{backgroundColor: '#0a0a0a'}} />;
+	}
+
+	const activeSlide =
+		timeline.find(
+			(item) => frame >= item.from && frame < item.from + item.durationInFrames
+		) ?? timeline[timeline.length - 1];
+
+	return (
+		<Slide
+			entry={activeSlide.entry}
+			durationInFrames={activeSlide.durationInFrames}
+			slideIndex={activeSlide.slideIndex}
+			frame={frame - activeSlide.from}
+		/>
+	);
+};
+
 const BgmLoop: React.FC<{src: string; volume: number}> = ({src, volume}) => {
 	const {durationInFrames, fps} = useVideoConfig();
 	const bgmFrames = Math.floor(180 * fps);
@@ -141,24 +201,16 @@ export const CanvaSlideshow: React.FC<CanvasSlideshowProps> = ({
 	slides,
 }) => {
 	const {durationInFrames} = useVideoConfig();
-	const slideDuration = useMemo(
-		() => Math.floor(durationInFrames / Math.max(slides.length, 1)),
-		[durationInFrames, slides.length]
-	);
 	return (
 		<AbsoluteFill style={{backgroundColor: '#0a0a0a'}}>
 			<Audio src={staticFile(audioSrc)} />
 			{bgmSrc && <BgmLoop src={bgmSrc} volume={bgmVolume} />}
-			{slides.map((entry, i) => {
-				const from = i * slideDuration;
-				const dur =
-					i === slides.length - 1 ? durationInFrames - from : slideDuration;
-				return (
-					<Sequence key={entry.index} from={from} durationInFrames={dur}>
-						<Slide entry={entry} durationInFrames={dur} slideIndex={i} />
-					</Sequence>
-				);
-			})}
+			<Sequence durationInFrames={durationInFrames}>
+				<SlidesTrack
+					slides={slides}
+					totalDurationInFrames={durationInFrames}
+				/>
+			</Sequence>
 		</AbsoluteFill>
 	);
 };

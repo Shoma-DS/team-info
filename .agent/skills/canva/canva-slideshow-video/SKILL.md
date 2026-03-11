@@ -51,14 +51,24 @@ Step 6: Remotion で動画レンダリング
 
 ## 前提条件
 
-- VOICEVOX エンジンが起動済み
+- VOICEVOX Engine が起動済み
+  - 状態確認: `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status`
+  - 起動: `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine`
 - `~/.secrets/pixabay_api_key.txt` に Pixabay API キーが保存済み
   - 未取得: https://pixabay.com/api/docs/ で無料登録（従量課金なし）
-  - 初回のみ `--save-key` オプションで保存: `python3 mcp-servers/generate_slides.py ... --pixabay-key KEY --save-key`
+  - 初回のみ `--save-key` オプションで保存: `python "$TEAM_INFO_ROOT/mcp-servers/generate_slides.py" ... --pixabay-key KEY --save-key`
 
 ---
 
 ## 制作フロー
+
+### Remotion実装ルール（必須）
+
+- 画像スライド、差し替えBGM、補助効果音など、同じ種類で時系列が重ならない素材は、種類ごとに `<Sequence>` を1本へ統合する。
+- `CanvaSlideshow.tsx` では `slides.map(...<Sequence>...)` のように画像スライドごとに `<Sequence>` を量産しない。
+- スライドは「画像用 `<Sequence>` 1本 + タイムライン配列 + 現在フレームからアクティブな1枚を選択して描画」を標準実装にする。
+- 音声も複数クリップが非重複なら同様に1トラック化を優先し、BGMループだけは `<Loop>` で管理してよい。
+- 複数 `<Sequence>` を分けるのは、クロスフェードなど同種素材の時間重複が必要な場合だけに限定する。
 
 ### Step 1: 音声プロファイルを選択（必須・最初に確認）
 
@@ -81,7 +91,7 @@ Step 6: Remotion で動画レンダリング
 ### Step 3: 背景画像生成（Pixabay）
 
 ```bash
-python3 $TEAM_INFO_ROOT/mcp-servers/generate_slides.py \
+python "$TEAM_INFO_ROOT/mcp-servers/generate_slides.py" \
   --script "台本ファイル名.md" \
   --theme "テーマ名" \
   --max-slides 20
@@ -96,7 +106,8 @@ python3 $TEAM_INFO_ROOT/mcp-servers/generate_slides.py \
 Step 1 で選んだプロファイルを `--profile` に指定して実行:
 
 ```bash
-python3 $TEAM_INFO_ROOT/Remotion/generate_voice.py \
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/Remotion/generate_voice.py" \
   --script "台本ファイル名.md" \
   --profile "aoyama_ryuusei_normal" \
   --theme "テーマ名"
@@ -128,6 +139,9 @@ import slidesData from "../public/assets/slide_images/{テーマ}/manifest.json"
   }}
 />
 ```
+
+- `CanvaSlideshow.tsx` の画像トラックは `<Sequence>` 1本で管理し、現在フレームに応じて表示するスライドを切り替える。
+- スライドごとに sibling の `<Sequence>` を増やしてタイムラインを分断しない。
 
 lint チェック後、レンダリング（**必ず「出力しますか？書き出しますか？」を確認してから実行**）:
 

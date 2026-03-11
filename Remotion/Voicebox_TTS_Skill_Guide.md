@@ -12,13 +12,20 @@
 
 1.  **Python 3.x のインストール**:
     *   Pythonがインストールされていることを確認してください。
-    *   必要なライブラリ `requests` は次のコマンドでインストールしてください。`Remotion/.venv` がなければ自動作成されます。
+    *   Python依存は次のコマンドで Docker ランタイムに固定してください。
         ```bash
-        python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -m pip install requests
+        python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
         ```
-2.  **VOICEVOXエンジンのインストールと起動**:
-    *   VOICEVOX公式サイト ([https://voicevox.hiroshiba.jp/](https://voicevox.hiroshiba.jp/)) から、お使いのOSに合ったVOICEVOXアプリケーションをダウンロードし、インストールしてください。
-    *   VOICEVOXアプリケーションを起動し、バックグラウンドでVOICEVOXエンジンが動作している状態にしてください。
+2.  **VOICEVOX Engine の起動**:
+    *   GUI版ではなく Docker 上の `VOICEVOX Engine` を使います。
+    *   まず状態を確認します。
+        ```bash
+        python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status
+        ```
+    *   次のコマンドで起動してください。
+        ```bash
+        python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine
+        ```
 
 ### VOICEVOXエンジンのAPIポート確認方法
 
@@ -123,7 +130,7 @@ team-info/
 `voice_config.json` を直接編集し、新しいプロファイル名と設定を追加してください。
 
 **VOICEVOXのキャラクター名とスタイル名の確認方法:**
-VOICEVOXアプリケーションを起動し、キャラクター選択画面や、`http://127.0.0.1:50021/docs` の `/speakers` エンドポイントで確認できます。`get_voicevox_speakers()`関数が返す `speaker_map` のキーも参考にしてください。
+`http://127.0.0.1:50021/docs` の `/speakers` エンドポイント、または `voicevox_get_speakers` / `get_voicevox_speakers()` が返す `speaker_map` で確認できます。
 
 ## 音声生成スクリプトの実行 (`generate_voice.py`)
 
@@ -185,15 +192,14 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" copy-
 
 ## トラブルシューティング
 
-*   **`requests` ライブラリがない**:
-    *   エラーメッセージ: `ModuleNotFoundError: No module named 'requests'`
-    *   解決策: 前提条件のセクションを参照し、`requests`ライブラリをインストールしてください。
+*   **Docker ランタイムがない**:
+    *   解決策: `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python` を実行してください。
 *   **VOICEVOXエンジンに接続できない**:
     *   エラーメッセージ: `エラー: VOICEVOXエンジンに接続できませんでした。'http://127.0.0.1:50021' が起動しているか確認してください。`
-    *   解決策: VOICEVOXアプリケーションが起動しており、エンジンが動作していることを確認してください。ポート番号が異なる場合は、スクリプトの `VOICEVOX_API_BASE_URL` を修正してください。
+    *   解決策: `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status` で状態確認後、`start-voicevox-engine` を実行してください。ポート番号が異なる場合は、`VOICEVOX_API_BASE_URL` を指定してください。
 *   **指定したスピーカー名やスタイルが見つからない**:
     *   エラーメッセージ: `エラー: 指定されたスピーカー名 '〇〇' はVOICEVOXエンジンに存在しません。` など
-    *   解決策: `voice_config.json` に記述されている `speaker_name` や `style_name` が、VOICEVOXアプリケーションで利用可能なものと完全に一致しているか確認してください。
+    *   解決策: `voice_config.json` に記述されている `speaker_name` や `style_name` が、VOICEVOX Engine の `/speakers` にあるものと完全に一致しているか確認してください。
 
 ## フィードバックと改善
 

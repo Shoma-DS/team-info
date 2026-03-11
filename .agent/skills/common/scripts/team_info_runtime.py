@@ -8,16 +8,30 @@ import sys
 from pathlib import Path
 
 from runtime_common import (
+    build_python_runtime_image,
+    clear_worked_before,
     clear_owner_machine,
     detect_shared_root,
     ensure_remotion_venv,
+    get_python_runtime_image,
+    get_python_runtime_mode,
+    get_worked_before_path,
+    has_worked_before,
     get_local_state_path,
     get_machine_fingerprint,
     get_repo_root,
+    get_voicevox_base_url,
     is_owner_machine,
+    is_voicevox_available,
+    is_voicevox_container_running,
+    mark_worked_before,
+    pull_voicevox_engine_image,
     resolve_input_path,
+    run_remotion_python,
     save_owner_machine,
     save_repo_root,
+    start_voicevox_engine_container,
+    stop_voicevox_engine_container,
 )
 
 
@@ -55,11 +69,21 @@ def main() -> int:
     repo_path_parser = subparsers.add_parser("repo-path")
     repo_path_parser.add_argument("relative_path")
     subparsers.add_parser("remotion-python")
+    subparsers.add_parser("python-runtime-mode")
+    subparsers.add_parser("build-remotion-python")
+    subparsers.add_parser("pull-voicevox-engine")
+    subparsers.add_parser("start-voicevox-engine")
+    subparsers.add_parser("stop-voicevox-engine")
+    subparsers.add_parser("voicevox-engine-status")
     subparsers.add_parser("shared-root")
     subparsers.add_parser("shared-jmty-root")
     subparsers.add_parser("local-state-path")
+    subparsers.add_parser("worked-before-path")
     subparsers.add_parser("machine-id")
     subparsers.add_parser("owner-status")
+    subparsers.add_parser("worked-before-status")
+    subparsers.add_parser("mark-worked-before")
+    subparsers.add_parser("clear-worked-before")
     subparsers.add_parser("mark-owner-machine")
     subparsers.add_parser("clear-owner-machine")
 
@@ -108,7 +132,39 @@ def main() -> int:
         return 0
 
     if args.command == "remotion-python":
-        print(ensure_remotion_venv())
+        if get_python_runtime_mode() == "docker":
+            print(f"docker://{get_python_runtime_image()}")
+        else:
+            print(ensure_remotion_venv())
+        return 0
+
+    if args.command == "python-runtime-mode":
+        print(get_python_runtime_mode())
+        return 0
+
+    if args.command == "build-remotion-python":
+        print(build_python_runtime_image())
+        return 0
+
+    if args.command == "pull-voicevox-engine":
+        print(pull_voicevox_engine_image())
+        return 0
+
+    if args.command == "start-voicevox-engine":
+        print(start_voicevox_engine_container())
+        return 0
+
+    if args.command == "stop-voicevox-engine":
+        print(stop_voicevox_engine_container())
+        return 0
+
+    if args.command == "voicevox-engine-status":
+        if is_voicevox_container_running() and is_voicevox_available():
+            print(f"running {get_voicevox_base_url()}")
+        elif is_voicevox_container_running():
+            print("starting")
+        else:
+            print("stopped")
         return 0
 
     if args.command == "shared-root":
@@ -139,12 +195,29 @@ def main() -> int:
         print(get_local_state_path())
         return 0
 
+    if args.command == "worked-before-path":
+        print(get_worked_before_path())
+        return 0
+
     if args.command == "machine-id":
         print(get_machine_fingerprint())
         return 0
 
     if args.command == "owner-status":
         print("owner" if is_owner_machine() else "other")
+        return 0
+
+    if args.command == "worked-before-status":
+        print("known" if has_worked_before() else "new")
+        return 0
+
+    if args.command == "mark-worked-before":
+        print(mark_worked_before())
+        return 0
+
+    if args.command == "clear-worked-before":
+        removed = clear_worked_before()
+        print("cleared" if removed else "not-found")
         return 0
 
     if args.command == "mark-owner-machine":
@@ -160,6 +233,7 @@ def main() -> int:
         repo_root = save_repo_root(args.repo_root)
         print(f"Saved repo root: {repo_root}")
         print(f"Local state: {get_local_state_path()}")
+        print(f"Worked before file: {mark_worked_before()}")
 
         if args.owner:
             save_owner_machine()
@@ -203,11 +277,11 @@ def main() -> int:
             print("No command was provided to run-remotion-python.", file=sys.stderr)
             return 1
 
-        remotion_python = ensure_remotion_venv()
-        completed = subprocess.run(
-            [str(remotion_python), *run_args],
-            cwd=str(get_repo_root()),
-        )
+        try:
+            completed = run_remotion_python(run_args)
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
         return completed.returncode
 
     return 1

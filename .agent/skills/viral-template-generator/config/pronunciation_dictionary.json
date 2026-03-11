@@ -1,0 +1,60 @@
+{
+  "replacements": [
+    {
+      "surface": "芸能人",
+      "reading": "げいのうじん",
+      "note": "よく使う一般語を固定"
+    },
+    {
+      "surface": "出身",
+      "reading": "しゅっしん",
+      "note": "pykakasi の誤変換対策"
+    },
+    {
+      "surface": "清純派",
+      "reading": "せいじゅんは",
+      "voice_text": "せいじゅんハ",
+      "note": "VOICEVOX が助詞の は と誤解して わ 読みしやすいため、音声用はカタカナで固定"
+    },
+    {
+      "surface": "1人目",
+      "reading": "ひとりめ",
+      "note": "人数カウントの不規則読みを固定"
+    },
+    {
+      "surface": "一人目",
+      "reading": "ひとりめ",
+      "note": "漢数字表記でも同じ読みを固定"
+    },
+    {
+      "surface": "2人目",
+      "reading": "ふたりめ",
+      "note": "人数カウントの不規則読みを固定"
+    },
+    {
+      "surface": "二人目",
+      "reading": "ふたりめ",
+      "note": "漢数字表記でも同じ読みを固定"
+    },
+    {
+      "surface": "挑んだ",
+      "reading": "いどんだ",
+      "note": "pykakasi の誤変換対策"
+    },
+    {
+      "surface": "挑む",
+      "reading": "いどむ",
+      "note": "pykakasi の誤変換対策"
+    },
+    {
+      "surface": "挑戦",
+      "reading": "ちょうせん",
+      "note": "関連語の読みを固定"
+    },
+    {
+      "surface": "女優魂",
+      "reading": "じょゆうだましい",
+      "note": "複合語の誤変換対策"
+    }
+  ]
+}

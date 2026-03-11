@@ -18,3 +18,11 @@ __pycache__/
 
 # Node modules
 node_modules/
+
+# Python virtual environment
+.venv/
+*/.venv/
+
+# OS files
+.DS_Store
+*/.DS_Store

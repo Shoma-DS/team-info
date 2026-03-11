@@ -1,3 +1,18 @@
+## Slash Commands
+
+ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
+
+| コマンド | 読み込むスキル |
+|---------|--------------|
+| `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ |
+| `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` |
+| `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
+| `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
+| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
+| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
+| `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
+
 ## Skills
 A skill is a set of local instructions stored in a `SKILL.md` file.
 From now on, this repository uses only `.agent/skills` as the skills source.
@@ -21,39 +36,49 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 
 ## Command Path Rules
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
+- ただし新しいパソコンで最初に案内する `setup/setup_all.cmd` だけは、ユーザーがリポジトリルートにいる前提で `./setup/setup_all.cmd` / `.\setup\setup_all.cmd` の相対パス案内を許可する。
 - 固定の `/Users/...` は使わず、`TEAM_INFO_ROOT` から絶対パスを組み立てる。
 - `TEAM_INFO_ROOT` は、このリポジトリのチェックアウト先を指す各パソコンごとの環境変数とする。
-- 新しいパソコンでは、リポジトリルートで `python .agent/skills/common/scripts/team_info_runtime.py setup-local-machine --repo-root .` を 1 回実行して保存する。
-- このパソコンをオーナー機として使う場合だけ、上のコマンドに `--owner` を付ける。
+- 新しいパソコンでは、まず `setup/setup_all.cmd` の流れを優先する。
+- `setup-local-machine` は、`TEAM_INFO_ROOT` の保存だけをやり直したいときの手動補助として使う。
+- このパソコンをオーナー機として使う場合だけ、`setup-local-machine` に `--owner` を付ける。
 - `cd Remotion/...` や `python .agent/...` のような相対パスのコマンドは、ユーザー向けには渡さない。
 - リポジトリ内コマンドは、できるだけ次の形で渡す。
   - Git: `git -C "$TEAM_INFO_ROOT" ...`
   - npm: `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" ...`
   - リポジトリ内Python: `python "$TEAM_INFO_ROOT/..."`
+  - Docker 起動: `bash "$TEAM_INFO_ROOT/run.sh" --project [n8n|dify] ...`
+  - Windows の Docker 起動: `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project [n8n|dify] ...`
 - ユーザー指定の入力/出力パスが入る場合も、`"$TEAM_INFO_ROOT/..."` や `"[出力先の絶対パス]"` のように絶対パス前提で案内する。
 
+## New Machine Rule
+- 作業開始時は、まず `team_info_runtime.py worked-before-status` 相当で、そのパソコンが過去に `team-info` で作業したことがあるかを確認する。
+- 判定にはローカル設定ディレクトリの `worked_before_machines.json` を使う。
+- 結果が `known` なら、通常どおり作業を進めてよい。
+- 結果が `new` なら、最初に `マニュアル/まずはこちらをお読みください.md` を読み込み、その流れに沿ってセットアップを始める。
+- `setup-local-machine` や `setup/setup_all.cmd` が終わったら、このパソコンは自動で `worked_before_machines.json` に記録される前提で扱う。
+- 新しいパソコンでのセットアップが終わったら、ユーザーへもう一度 `マニュアル/まずはこちらをお読みください.md` を読むように促す。
+- それでもユーザーがわからない場合は、止まった画面のスクリーンショットを添えて次の Discord へ質問するよう案内する。
+- Discord 案内先: `https://discord.com/channels/1478351976168165511/1479287635535990794`
+
 ### Available skills
-- acoriel-video-description: Acoriel（アコリエル）チャンネルのYouTube動画概要欄を生成する。 (file: .agent/skills/acoriel/acoriel-video-description/SKILL.md)
-- remotion-template-acoriel-acoustic-cover: acoriel向けのアコースティックカバー用Remotion編集。 (file: .agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md)
-- remotion-video-production: Remotion動画制作の親スキル（チャンネル/テンプレ選択）。 (file: .agent/skills/remotion/remotion-video-production/SKILL.md)
-- remotion-template-sleep-travel-long-knowledge-relax: sleep_travel長尺動画テンプレ編集。 (file: .agent/skills/remotion/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md)
-- remotion-template-sleep-travel-short-digest: sleep_travel短尺動画テンプレ編集。 (file: .agent/skills/remotion/remotion-template-sleep-travel-short-digest/SKILL.md)
-- lyric-video-production: 音声と歌詞からLRC生成とリリック演出を行う。 (file: .agent/skills/remotion/lyric-emotion-mapper/SKILL.md)
-- script-writing-accounts-aware: アカウント連動の段階的な台本作成。 (file: .agent/skills/remotion/script-writing-accounts-aware/SKILL.md)
-- voice-script-launcher: 台本をVOICEVOXで音声化する実行フロー。 (file: .agent/skills/remotion/voice-script-launcher/SKILL.md)
-- remotion-unified-output-routing: 出力先を `outputs/` 配下へ統一する運用。 (file: .agent/skills/remotion/remotion-unified-output-routing/SKILL.md)
-- jmty-posts: ジモティー投稿作成の親スキル。 (file: .agent/skills/jmty/jmty-posts/SKILL.md)
-- jmty-posts-factory-12: 工場求人向け投稿文を12本作成する。 (file: .agent/skills/jmty/jmty-posts-factory-12/SKILL.md)
-- jmty-posts-remote-12: 在宅求人向け投稿文を12本作成する。 (file: .agent/skills/jmty/jmty-posts-remote-12/SKILL.md)
-- jmty-posts-12-variants: 案件ファイルから12本の投稿文を作成する。 (file: .agent/skills/jmty/jmty-posts-12-variants/SKILL.md)
-- jmty-posts-gdrive-sync: ジモティー投稿出力をGoogleドライブに同期する。 (file: .agent/skills/jmty/jmty-posts-gdrive-sync/SKILL.md)
-- git-workflow: Gitの安全なブランチ/コミット/プッシュ手順。 (file: .agent/skills/common/git-workflow/SKILL.md)
-- macos-intel-compatibility: Intel MacのPython/PyTorch互換性対応。 (file: .agent/skills/common/macos-intel-compatibility/SKILL.md)
-- note-article-ayumi: 「愛され女子あゆみ」のnote記事を作成する。 (file: .agent/skills/common/note-article-ayumi/SKILL.md)
-- frontend-design: 高品質なフロントエンドUIを制作する。 (file: .agent/skills/web-design/frontend-design/SKILL.md)
-- gsap-awwwards-website: GSAPスクロール演出付きLPを開発/保守する。 (file: .agent/skills/web-design/gsap-awwwards-website/SKILL.md)
-- skill-finder: タスクに合うスキルを一覧から特定する。 (file: .agent/skills/skill-finder/SKILL.md)
-- viral-template-generator: ショート動画を3層解析しRemotionバズ動画テンプレートを自動生成する。 (file: .agent/skills/viral-template-generator/SKILL.md)
+
+スキルは `.agent/skills/` 配下のフォルダで管理しています。
+タスクに該当するスキルが不明な場合は **skill-finder** スキル (`.agent/skills/skill-finder/SKILL.md`) を起動して特定してください。
+
+フォルダ構成:
+- `acoriel/`                   — アコリエルチャンネル（リリックビデオ・概要欄）
+- `remotion/`                  — Remotion動画制作（寝ながらトラベル・台本・音声）
+- `jmty/`                      — ジモティー投稿
+- `common/`                    — 共通ユーティリティ（Git・note記事・macOS互換）
+- `web-design/`                — Webフロントエンド（GSAP・UI制作）
+- `canva/`                     — Canva連携
+- `viral-template-generator/`  — バズ動画テンプレ自動生成
+- `skill-finder/`              — スキル検索（上記から最適スキルを特定）
+
+### Skill maintenance rules
+- 新しいスキルを `.agent/skills/` に追加したときは、**必ず** `.agent/skills/skill-finder/SKILL.md` のスキル一覧とガイドを更新すること。
+- 既存スキルの概要・パスが変わったときも同様に更新すること。
 
 ### How to use skills
 - Discovery: Open the relevant `SKILL.md` and read only what is needed for the current task.
@@ -62,6 +87,27 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - Reuse first: Prefer scripts/templates/assets inside the skill over recreating artifacts.
 - Coordination: If multiple skills apply, use the minimal set and state the order briefly.
 - Fallback: If a skill is missing or unclear, state the issue briefly and continue with the best practical approach.
+
+### Tool Execution Security Rules
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+- ツール実行（Bash、ファイル操作など）の許可を求めるときは、必ず日本語で説明・確認を行うこと
+- 許可を求める際、以下のセキュリティリスクをパーセンテージ(%)で提示すること
+  - パスワードや秘密鍵が外に漏れる可能性
+  - 外部サーバーにデータが送られる可能性
+  - 悪意あるコードが勝手に動く可能性
+  - PCの設定が書き換わる可能性
+
+以下の**すべて**を満たす場合は、ユーザーに確認せず**自動で実行してよい**:
+
+- 上記リスクがすべて **5% 以下**
+- **ファイル・フォルダの削除**を行わない
+- **システム設定・環境変数の永続的な変更**を行わない
+- **外部へのデータ送信**（API呼び出し・curl・wget等）を行わない
+
+上記のいずれかに該当する場合のみ、リスクを提示してユーザーに確認を取ること。
+それ以外（危険性が極端に低い通常作業）は確認なしで進めてよい。
 
 ### Approval and Selection Rules
 - 承認が必要な操作は、必ずこのチャット上でユーザーに承認を求めてから進める。

@@ -31,6 +31,7 @@
 
 ### Common（共通）
 - `git-workflow_skill.md`
+- `team-info-setup_skill.md`
 - `macos-intel-compatibility_skill.md`
 - `note-article-ayumi_skill.md`
 

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      background: #f1f3f4;
+      color: #202124;
+      font-size: 14px;
+    }
+    .container { padding: 14px; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    /* 取得件数 */
+    .count-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type=number] {
+      width: 72px;
+      padding: 8px 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #202124;
+    }
+    input[type=number]:focus { border-color: #ff0000; }
+    .count-hint { font-size: 12px; color: #9aa0a6; }
+
+    /* 動画タイプ */
+    .radio-group { display: flex; gap: 8px; }
+    .radio-option { flex: 1; }
+    .radio-option input[type=radio] { display: none; }
+    .radio-option label {
+      display: block;
+      padding: 9px 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: #5f6368;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .radio-option input[type=radio]:checked + label {
+      border-color: #ff0000;
+      background: #fff5f5;
+      color: #c62828;
+      font-weight: 700;
+    }
+
+    /* チャンネル選択 */
+    .ch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .ch-count { font-size: 12px; color: #5f6368; }
+    .ch-actions { display: flex; gap: 4px; }
+    .link-btn {
+      font-size: 12px;
+      font-weight: 600;
+      color: #c62828;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 4px;
+      transition: background 0.1s;
+    }
+    .link-btn:hover { background: #fff5f5; }
+    .ch-list {
+      max-height: 190px;
+      overflow-y: auto;
+      border: 1px solid #e8eaed;
+      border-radius: 8px;
+    }
+    .ch-item {
+      display: flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-bottom: 1px solid #f1f3f4;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .ch-item:last-child { border-bottom: none; }
+    .ch-item:hover { background: #f8f9fa; }
+    .ch-item input[type=checkbox] {
+      margin-right: 10px;
+      width: 15px;
+      height: 15px;
+      accent-color: #ff0000;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .ch-info { overflow: hidden; }
+    .ch-name {
+      font-size: 13px;
+      color: #202124;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ch-id {
+      font-size: 11px;
+      color: #9aa0a6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ch-empty {
+      padding: 20px;
+      text-align: center;
+      color: #9aa0a6;
+      font-size: 13px;
+    }
+
+    /* フッター */
+    .footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding-top: 4px;
+    }
+    .btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-cancel { background: #e8eaed; color: #5f6368; }
+    .btn-cancel:hover { background: #d8dadd; }
+    .btn-run { background: #ff0000; color: #fff; }
+    .btn-run:hover { background: #cc0000; }
+    .btn-run:disabled { background: #e0e0e0; color: #9aa0a6; cursor: not-allowed; }
+
+    /* ローディング */
+    #loadingView { display: none; padding: 40px 20px; text-align: center; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #f0f0f0;
+      border-top-color: #ff0000;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #5f6368; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- メインビュー -->
+<div id="mainView" class="container">
+
+  <!-- 取得件数 -->
+  <div class="card">
+    <div class="card-title">📊 取得件数</div>
+    <div class="count-wrap">
+      <input type="number" id="maxPerChannel" value="20" min="1" max="50">
+      <span class="count-hint">件 / チャンネル（最大 50 件）</span>
+    </div>
+  </div>
+
+  <!-- 動画タイプ -->
+  <div class="card">
+    <div class="card-title">🎬 対象動画タイプ</div>
+    <div class="radio-group">
+      <div class="radio-option">
+        <input type="radio" name="videoType" id="type-both" value="both" checked>
+        <label for="type-both">🎯 両方</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="videoType" id="type-short" value="short">
+        <label for="type-short">⚡ Shortsのみ</label>
+      </div>
+      <div class="radio-option">
+        <input type="radio" name="videoType" id="type-long" value="long">
+        <label for="type-long">🎞️ 長尺のみ</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- チャンネル選択 -->
+  <div class="card">
+    <div class="card-title">📺 対象チャンネル</div>
+    <div class="ch-header">
+      <span class="ch-count" id="chCount">読み込み中...</span>
+      <div class="ch-actions">
+        <button class="link-btn" onclick="selectAll()">全選択</button>
+        <button class="link-btn" onclick="deselectAll()">全解除</button>
+      </div>
+    </div>
+    <div class="ch-list" id="chList">
+      <div class="ch-empty">チャンネルを読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div class="footer">
+    <button class="btn btn-cancel" onclick="google.script.host.close()">キャンセル</button>
+    <button class="btn btn-run" id="runBtn" onclick="runResearch()" disabled>リサーチ実行</button>
+  </div>
+</div>
+
+<!-- ローディングビュー -->
+<div id="loadingView">
+  <div class="spinner"></div>
+  <div class="loading-text">
+    リサーチを実行中です...<br>
+    チャンネル数によっては数分かかる場合があります。
+  </div>
+</div>
+
+<script>
+  var channels = [];
+
+  // チャンネル一覧を読み込む
+  google.script.run
+    .withSuccessHandler(function(list) {
+      channels = list || [];
+      renderChannels();
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('chList').innerHTML = '<div class="ch-empty">読み込みに失敗しました: ' + escHtml(err.message) + '</div>';
+      document.getElementById('runBtn').disabled = false;
+    })
+    .getChannelListForDialog();
+
+  function renderChannels() {
+    var list = document.getElementById('chList');
+    if (channels.length === 0) {
+      list.innerHTML = '<div class="ch-empty">「Youtubeチャンネル」シートにチャンネルが登録されていません。</div>';
+      document.getElementById('chCount').textContent = '0 チャンネル';
+      document.getElementById('runBtn').disabled = false;
+      return;
+    }
+    list.innerHTML = channels.map(function(ch, i) {
+      return '<div class="ch-item" onclick="toggleCheck(' + i + ')">' +
+        '<input type="checkbox" id="ch_' + i + '" value="' + escHtml(ch.channelId || '') + '" checked onclick="event.stopPropagation()" onchange="updateCount()">' +
+        '<div class="ch-info">' +
+          '<div class="ch-name">' + escHtml(ch.name) + '</div>' +
+          (ch.channelId ? '<div class="ch-id">' + escHtml(ch.channelId) + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+    updateCount();
+    document.getElementById('runBtn').disabled = false;
+  }
+
+  function toggleCheck(i) {
+    var cb = document.getElementById('ch_' + i);
+    cb.checked = !cb.checked;
+    updateCount();
+  }
+
+  function updateCount() {
+    var checked = document.querySelectorAll('#chList input[type=checkbox]:checked').length;
+    document.getElementById('chCount').textContent = checked + ' / ' + channels.length + ' チャンネル選択中';
+  }
+
+  function selectAll() {
+    document.querySelectorAll('#chList input[type=checkbox]').forEach(function(cb) { cb.checked = true; });
+    updateCount();
+  }
+
+  function deselectAll() {
+    document.querySelectorAll('#chList input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+    updateCount();
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function runResearch() {
+    var maxPerChannel = Math.min(Math.max(parseInt(document.getElementById('maxPerChannel').value) || 20, 1), 50);
+    var videoType = document.querySelector('input[name=videoType]:checked').value;
+
+    var checkboxes = document.querySelectorAll('#chList input[type=checkbox]');
+    var selectedIds = [];
+    var allChecked = true;
+    checkboxes.forEach(function(cb) {
+      if (cb.checked) { selectedIds.push(cb.value); }
+      else { allChecked = false; }
+    });
+
+    if (selectedIds.length === 0) {
+      alert('チャンネルを1つ以上選択してください。');
+      return;
+    }
+
+    // ローディング表示に切り替え
+    document.getElementById('mainView').style.display = 'none';
+    document.getElementById('loadingView').style.display = 'block';
+
+    google.script.run
+      .withSuccessHandler(function() {
+        google.script.host.close();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('mainView').style.display = 'block';
+        document.getElementById('loadingView').style.display = 'none';
+        alert('エラーが発生しました:\n' + err.message);
+      })
+      .runCompetitorResearchWithParams({
+        maxPerChannel: maxPerChannel,
+        videoType: videoType,
+        selectedChannelIds: selectedIds,
+        selectAll: allChecked && channels.length > 0
+      });
+  }
+</script>
+</body>
+</html>

@@ -52,10 +52,10 @@ my-video/public/assets/songs/{曲名}/
 - **acoriel（アコリエル）**: アコースティックカバー動画。MultiBG テンプレート使用。
 - **sleep_travel（寝ながらトラベル）**: 知識系・旅行系ショート/長尺動画。
 
-## Python 仮想環境
+## Python ランタイム
 
 ```
-Remotion/.venv/bin/python3.11
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- ...
 ```
 
-Whisper（faster-whisper）・OpenCV・mediapipe 等がインストール済み。
+標準は Docker ランタイム `team-info/python-skill-runtime:3.11.9`。Whisper（faster-whisper）・OpenCV・mediapipe 等はそこに固定される。
