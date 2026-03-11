@@ -49,6 +49,7 @@ $DifyWebDir     = Join-Path $DifyRoot "web"
 $DifyWebNvmrc   = Join-Path $DifyWebDir ".nvmrc"
 $DifyWebPackage = Join-Path $DifyWebDir "package.json"
 $DifySdkDir     = Join-Path $DifyRoot "sdks\nodejs-client"
+$CodexNpmPackage = "@openai/codex"
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Blue
@@ -424,8 +425,35 @@ if ($NvmExe) {
     Write-Warn "nvm を見つけられませんでした。PowerShell を再起動してから再実行してください。"
 }
 
-# ── 11. npm パッケージ (Remotion) ────────────────────────────────────────
-Write-Step "11. npm パッケージ (Remotion/my-video)"
+# ── 11. Codex CLI ──────────────────────────────────────────────────────────
+Write-Step "11. Codex CLI"
+if (Test-Command npm) {
+    if (Test-Command codex) {
+        Write-Info "Codex CLI を更新します..."
+    } else {
+        Write-Info "Codex CLI をグローバルに入れます..."
+    }
+
+    try {
+        Invoke-NativeOrThrow "Codex CLI の npm install -g" {
+            npm install -g $CodexNpmPackage
+        }
+        $codexVersion = (& codex --version 2>$null | Select-Object -First 1)
+        if ($codexVersion) {
+            Write-Ok "Codex CLI インストール完了: $codexVersion"
+        } else {
+            Write-Ok "Codex CLI インストール完了"
+        }
+    } catch {
+        Write-Warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CodexNpmPackage を実行してください。"
+    }
+} else {
+    Write-Warn "npm が見つかりません。PowerShell 再起動後に手動で実行してください:"
+    Write-Warn "  npm install -g $CodexNpmPackage"
+}
+
+# ── 12. npm パッケージ (Remotion) ────────────────────────────────────────
+Write-Step "12. npm パッケージ (Remotion/my-video)"
 $RemotionDir = Join-Path $TeamInfoRoot "Remotion\my-video"
 if (Test-Command node) {
     if (Test-Path $RemotionDir) {
@@ -445,8 +473,8 @@ if (Test-Command node) {
     Write-Warn "  npm install"
 }
 
-# ── 12. MCP サーバー (VOICEVOX) ──────────────────────────────────────────
-Write-Step "12. npm パッケージ (mcp-servers/voicevox)"
+# ── 13. MCP サーバー (VOICEVOX) ──────────────────────────────────────────
+Write-Step "13. npm パッケージ (mcp-servers/voicevox)"
 $VoicevoxMcpDir = Join-Path $TeamInfoRoot "mcp-servers\voicevox"
 if ((Test-Path $VoicevoxMcpDir) -and (Test-Command node)) {
     Push-Location $VoicevoxMcpDir
@@ -465,8 +493,8 @@ if ((Test-Path $VoicevoxMcpDir) -and (Test-Command node)) {
     Write-Ok "voicevox MCP npm install 完了"
 }
 
-# ── 13. npm パッケージ (Canva 補助) ──────────────────────────────────────
-Write-Step "13. npm パッケージ (Remotion/scripts/canva_auth)"
+# ── 14. npm パッケージ (Canva 補助) ──────────────────────────────────────
+Write-Step "14. npm パッケージ (Remotion/scripts/canva_auth)"
 if ((Test-Path $CanvaAuthDir) -and (Test-Command node)) {
     Push-Location $CanvaAuthDir
     Invoke-NativeOrThrow "Canva 補助の npm install" {
@@ -476,8 +504,8 @@ if ((Test-Path $CanvaAuthDir) -and (Test-Command node)) {
     Write-Ok "Canva 補助 npm install 完了"
 }
 
-# ── 14. Dify 開発環境 ─────────────────────────────────────────────────────
-Write-Step "14. Dify 開発環境"
+# ── 15. Dify 開発環境 ─────────────────────────────────────────────────────
+Write-Step "15. Dify 開発環境"
 if (Test-Path $DifyRoot) {
     Copy-IfMissing (Join-Path $DifyApiDir ".env.example") (Join-Path $DifyApiDir ".env")
     Copy-IfMissing (Join-Path $DifyWebDir ".env.example") (Join-Path $DifyWebDir ".env.local")
@@ -568,14 +596,14 @@ if (Test-Path $DifyRoot) {
     Write-Warn "docker/dify が見つからないため、Dify の準備は飛ばしました。"
 }
 
-# ── 15. 秘密ファイルの下準備 ─────────────────────────────────────────────
-Write-Step "15. 秘密ファイルの下準備"
+# ── 16. 秘密ファイルの下準備 ─────────────────────────────────────────────
+Write-Step "16. 秘密ファイルの下準備"
 Ensure-CanvaCredentialsTemplate
 Write-Warn "Canva を使うときは $CanvaCredentialsFile に鍵を書いてください。"
 Write-Warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
 
-# ── 16. Docker 確認 ───────────────────────────────────────────────────────
-Write-Step "16. Docker"
+# ── 17. Docker 確認 ───────────────────────────────────────────────────────
+Write-Step "17. Docker"
 if (Test-Command docker) {
     Write-Ok "Docker インストール済み: $(docker --version)"
     try {
@@ -598,9 +626,9 @@ if (Test-Command docker) {
     Write-Warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください"
 }
 
-# ── 16. セットアップ検証 ─────────────────────────────────────────────────
+# ── 18. セットアップ検証 ─────────────────────────────────────────────────
 $VerifyStatus = 0
-Write-Step "16. セットアップ検証"
+Write-Step "18. セットアップ検証"
 $VerifyScript = Join-Path $ScriptDir "verify_setup.py"
 if (Test-Path $VerifyScript) {
     try {
@@ -635,6 +663,8 @@ Write-Host ""
 Write-Host "主要パス:"
 Write-Host "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
 Write-Host "  Host fallback: $VenvDir\Scripts\python.exe"
+Write-Host "  Node.js:       $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { '要: PowerShell 再起動後に確認' })"
+Write-Host "  Codex CLI:     $(if (Get-Command codex -ErrorAction SilentlyContinue) { (Get-Command codex -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { '要: setup 再実行か手動インストール' })"
 Write-Host "  プロジェクト:  $TeamInfoRoot"
 Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
 Write-Host "  Canva secrets: $CanvaCredentialsFile"

@@ -12,7 +12,7 @@ from pathlib import Path
 
 PYTHON_RUNTIME_IMAGE = "team-info/python-skill-runtime:3.11.9"
 VOICEVOX_IMAGE = "voicevox/voicevox_engine:latest"
-REQUIRED_HOST_COMMANDS = ("docker", "node", "npm")
+REQUIRED_HOST_COMMANDS = ("docker", "node", "npm", "codex")
 HOST_IMPORTS = (
     "cv2",
     "numpy",

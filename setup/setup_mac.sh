@@ -49,6 +49,7 @@ DIFY_WEB_DIR="$DIFY_ROOT/web"
 DIFY_WEB_NVMRC="$DIFY_WEB_DIR/.nvmrc"
 DIFY_WEB_PACKAGE_JSON="$DIFY_WEB_DIR/package.json"
 DIFY_SDK_DIR="$DIFY_ROOT/sdks/nodejs-client"
+CODEX_NPM_PACKAGE="@openai/codex"
 
 append_line_if_missing() {
   local file="$1"
@@ -325,8 +326,21 @@ fi
 nvm use "$NODE_VERSION"
 info "Node.js: $(node --version), npm: $(npm --version)"
 
-# ── 9. TEAM_INFO_ROOT ──────────────────────────────────────────────────────────
-step "9. TEAM_INFO_ROOT"
+# ── 9. Codex CLI ───────────────────────────────────────────────────────────────
+step "9. Codex CLI"
+if command -v codex &>/dev/null; then
+  info "Codex CLI を更新します..."
+else
+  info "Codex CLI をグローバルに入れます..."
+fi
+if npm install -g "$CODEX_NPM_PACKAGE"; then
+  success "Codex CLI インストール完了: $(codex --version 2>/dev/null || echo 'version unknown')"
+else
+  warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CODEX_NPM_PACKAGE を実行してください。"
+fi
+
+# ── 10. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
+step "10. TEAM_INFO_ROOT"
 export TEAM_INFO_ROOT
 write_team_info_env_file
 ensure_shell_loads_team_info_env
@@ -342,8 +356,8 @@ else
   warn "TEAM_INFO_ROOT の保存に失敗しました。必要なら手動で設定してください。"
 fi
 
-# ── 10. npm パッケージ (Remotion) ─────────────────────────────────────────────
-step "10. npm パッケージ (Remotion/my-video)"
+# ── 11. npm パッケージ (Remotion) ─────────────────────────────────────────────
+step "11. npm パッケージ (Remotion/my-video)"
 REMOTION_DIR="$TEAM_INFO_ROOT/Remotion/my-video"
 if [[ -d "$REMOTION_DIR" ]]; then
   info "npm install を実行します..."
@@ -354,8 +368,8 @@ else
   warn "Remotion/my-video が見つかりません: $REMOTION_DIR"
 fi
 
-# ── 11. MCP サーバー (VOICEVOX) ───────────────────────────────────────────────
-step "11. npm パッケージ (mcp-servers/voicevox)"
+# ── 12. MCP サーバー (VOICEVOX) ───────────────────────────────────────────────
+step "12. npm パッケージ (mcp-servers/voicevox)"
 VOICEVOX_MCP_DIR="$TEAM_INFO_ROOT/mcp-servers/voicevox"
 if [[ -d "$VOICEVOX_MCP_DIR" ]]; then
   cd "$VOICEVOX_MCP_DIR"
@@ -368,16 +382,16 @@ if [[ -d "$VOICEVOX_MCP_DIR" ]]; then
   success "voicevox MCP npm install 完了"
 fi
 
-# ── 12. npm パッケージ (Canva 補助) ──────────────────────────────────────────
-step "12. npm パッケージ (Remotion/scripts/canva_auth)"
+# ── 13. npm パッケージ (Canva 補助) ──────────────────────────────────────────
+step "13. npm パッケージ (Remotion/scripts/canva_auth)"
 if [[ -d "$CANVA_AUTH_DIR" ]]; then
   cd "$CANVA_AUTH_DIR"
   npm install
   success "Canva 補助 npm install 完了"
 fi
 
-# ── 13. Dify 開発環境 ─────────────────────────────────────────────────────────
-step "13. Dify 開発環境"
+# ── 14. Dify 開発環境 ─────────────────────────────────────────────────────────
+step "14. Dify 開発環境"
 if [[ -d "$DIFY_ROOT" ]]; then
   copy_if_missing "$DIFY_API_DIR/.env.example" "$DIFY_API_DIR/.env"
   copy_if_missing "$DIFY_WEB_DIR/.env.example" "$DIFY_WEB_DIR/.env.local"
@@ -432,14 +446,14 @@ else
   warn "docker/dify が見つからないため、Dify の準備は飛ばしました。"
 fi
 
-# ── 14. 秘密ファイルの下準備 ───────────────────────────────────────────────
-step "14. 秘密ファイルの下準備"
+# ── 15. 秘密ファイルの下準備 ───────────────────────────────────────────────
+step "15. 秘密ファイルの下準備"
 ensure_canva_credentials_template
 warn "Canva を使うときは $CANVA_CREDENTIALS_FILE に鍵を書いてください。"
 warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
 
-# ── 15. Docker 確認 ───────────────────────────────────────────────────────────
-step "15. Docker"
+# ── 16. Docker 確認 ───────────────────────────────────────────────────────────
+step "16. Docker"
 if command -v docker &>/dev/null; then
   success "Docker インストール済み: $(docker --version)"
   info "標準の Python Docker ランタイムをビルドします..."
@@ -460,9 +474,9 @@ else
   warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
 fi
 
-# ── 16. セットアップ検証 ─────────────────────────────────────────────────────
+# ── 17. セットアップ検証 ─────────────────────────────────────────────────────
 VERIFY_STATUS=0
-step "16. セットアップ検証"
+step "17. セットアップ検証"
 VERIFY_SCRIPT="$SCRIPT_DIR/verify_setup.py"
 if [[ -f "$VERIFY_SCRIPT" ]]; then
   if "$PYTHON311" "$VERIFY_SCRIPT" --repo-root "$TEAM_INFO_ROOT"; then
@@ -495,6 +509,7 @@ echo "主要パス:"
 echo "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
 echo "  Host fallback: $VENV_DIR/bin/python"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
+echo "  Codex CLI:     $(command -v codex 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
 echo "  TEAM_INFO_ENV: $TEAM_INFO_ENV_FILE"
 echo "  Canva secrets: $CANVA_CREDENTIALS_FILE"

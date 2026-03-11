@@ -9,7 +9,7 @@
 | Python | 3.11.9 (ホスト側の起動用) + Docker ランタイム `team-info/python-skill-runtime:3.11.9` |
 | Python パッケージ | Whisper, OpenCV, MediaPipe, JAX, Remotion スクリプト等を Docker イメージへ固定 |
 | Node.js | 22.17.1 と Dify 用 Node 24 系 (`nvm` / `nvm-windows` 経由) |
-| npm パッケージ | Remotion, VOICEVOX MCP, Canva補助, Dify Web/SDK |
+| npm パッケージ | Codex CLI, Remotion, VOICEVOX MCP, Canva補助, Dify Web/SDK |
 | その他 | Git, FFmpeg, Tesseract OCR, macOS では `tesseract-lang`, `uv`, Docker, VOICEVOX Engine コンテナ |
 
 ---
@@ -42,6 +42,7 @@ bash ./setup/setup_all.cmd
 - macOS では `~/.config/team-info/env.sh`、シェル初期化ファイル、`launchctl` に保存します
 - Windows ではユーザー環境変数として保存します
 - Windows では内部で PowerShell を `Bypass` 付きで呼ぶため、まずはこの入口だけで進められます
+- `Codex CLI` (`@openai/codex`) もグローバルに入れます
 - できる範囲で Dify 開発用の `uv` / `pnpm` / Node 24 も準備します
 - Canva 用の `~/.secrets/canva_credentials.txt` ひな形も作ります
 
@@ -55,11 +56,11 @@ bash ./setup/setup_all.cmd
 bash "[team-info を置いた絶対パス]/setup/setup_mac.sh"
 ```
 
-- Homebrew → pyenv → Python 3.11.9 → Docker ランタイム → nvm → Node.js → npm の順で自動インストール
+- Homebrew → pyenv → Python 3.11.9 → Docker ランタイム → nvm → Node.js → npm → `Codex CLI` の順で自動インストール
 - Apple Silicon (M1/M2/M3) は `jax[metal]`、Intel Mac は `jax[cpu]` を自動選択
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `tesseract-lang` も追加で入れます
-- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、host venv、npm 依存、Docker runtime import を検証します
+- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`codex`、host venv、npm 依存、Docker runtime import を検証します
 
 ### Windows
 
@@ -70,17 +71,18 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 & "[team-info を置いた絶対パス]\setup\setup_windows.ps1"
 ```
 
-- winget → pyenv-win → Python 3.11.9 → Docker ランタイム → nvm-windows → Node.js → npm の順で自動インストール
+- winget → pyenv-win → Python 3.11.9 → Docker ランタイム → nvm-windows → Node.js → npm → `Codex CLI` の順で自動インストール
 - `jax[cpu]` をインストール
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `uv` は Python 経由で入れます
-- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、host venv、npm 依存、Docker runtime import を検証します
+- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`codex`、host venv、npm 依存、Docker runtime import を検証します
 
 ---
 
 ## まだ手で必要なもの
 
 - Canva の `CANVA_CLIENT_ID` と `CANVA_CLIENT_SECRET` を `~/.secrets/canva_credentials.txt` に書くこと
+- Codex CLI を使うときの初回認証
 - Docker Desktop 本体のインストール
 
 自動セットアップだけで土台はかなりそろいますが、外部サービスの認証は別作業です。
