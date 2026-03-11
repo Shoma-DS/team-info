@@ -338,7 +338,7 @@ def save_owner_machine(machine_id: str | None = None) -> str:
 def clear_owner_machine() -> None:
     state = _load_local_state()
     if "owner_machine_id" in state:
-        del state["owner_machine_id"]
+        state.pop("owner_machine_id")
         _save_local_state(state)
 
 

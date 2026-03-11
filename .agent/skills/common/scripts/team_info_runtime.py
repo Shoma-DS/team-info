@@ -176,7 +176,7 @@ def main() -> int:
         return 0
 
     if args.command == "copy-to-shared":
-        shared_root = (
+        shared_root: Path | None = (
             resolve_input_path(args.shared_root)
             if args.shared_root
             else detect_shared_root()
@@ -189,15 +189,16 @@ def main() -> int:
             )
             return 1
 
+        assert shared_root is not None  # 型チェッカー向けナローイング
         source = resolve_input_path(args.source)
         destination = _copy_to_shared(source, shared_root, args.subpath)
         print(destination)
         return 0
 
     if args.command == "run-remotion-python":
-        run_args = list(args.run_args)
+        run_args: list[str] = list(args.run_args)
         if run_args and run_args[0] == "--":
-            run_args = run_args[1:]
+            run_args.pop(0)
         if not run_args:
             print("No command was provided to run-remotion-python.", file=sys.stderr)
             return 1
