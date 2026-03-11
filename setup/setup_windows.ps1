@@ -28,9 +28,15 @@ function Invoke-NativeOrThrow {
     }
 }
 
-# ── プロジェクトルート (このスクリプトの親ディレクトリ) ───────────────────
+# ── プロジェクトルート (repo root にいるならカレント優先、違えばスクリプト基準) ──
 $ScriptDir      = Split-Path -Parent $MyInvocation.MyCommand.Path
-$TeamInfoRoot   = Split-Path -Parent $ScriptDir
+$ScriptRepoRoot = Split-Path -Parent $ScriptDir
+$CurrentDir     = (Get-Location).Path
+if ((Test-Path (Join-Path $CurrentDir "AGENTS.md")) -and (Test-Path (Join-Path $CurrentDir "setup\setup_all.cmd"))) {
+    $TeamInfoRoot = $CurrentDir
+} else {
+    $TeamInfoRoot = $ScriptRepoRoot
+}
 $VenvDir        = Join-Path $TeamInfoRoot "Remotion\.venv"
 $NodeVersion    = "22.17.1"
 $PythonVersion  = "3.11.9"

@@ -36,6 +36,7 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 
 ## Command Path Rules
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
+- ただし新しいパソコンで最初に案内する `setup/setup_all.cmd` だけは、ユーザーがリポジトリルートにいる前提で `./setup/setup_all.cmd` / `.\setup\setup_all.cmd` の相対パス案内を許可する。
 - 固定の `/Users/...` は使わず、`TEAM_INFO_ROOT` から絶対パスを組み立てる。
 - `TEAM_INFO_ROOT` は、このリポジトリのチェックアウト先を指す各パソコンごとの環境変数とする。
 - 新しいパソコンでは、まず `setup/setup_all.cmd` の流れを優先する。

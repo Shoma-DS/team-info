@@ -21,14 +21,17 @@
 ### macOS
 
 ```bash
-bash "[team-info を置いた絶対パス]/setup/setup_all.cmd"
+bash ./setup/setup_all.cmd
 ```
 
 ### Windows
 
 ```powershell
-& "[team-info を置いた絶対パス]\setup\setup_all.cmd"
+.\setup\setup_all.cmd
 ```
+
+この入口は、`team-info` のリポジトリルートをカレントディレクトリにした状態で実行する前提です。
+セットアップ中の `TEAM_INFO_ROOT` は、まずそのカレントディレクトリを見て、repo root と判断できるときはその値を使います。違う場所から起動した場合だけ、スクリプト自身の位置から推定します。
 
 この入口が OS に合わせて中のセットアップを呼び分けます。
 - macOS は `setup_mac.sh`

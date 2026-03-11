@@ -17,9 +17,21 @@ warn()    { echo -e "${YELLOW}[WARN]${RESET}  $*"; }
 error()   { echo -e "${RED}[ERROR]${RESET} $*"; exit 1; }
 step()    { echo -e "\n${BOLD}━━━ $* ━━━${RESET}"; }
 
-# ── プロジェクトルート (このスクリプトの親ディレクトリ) ─────────────────────
+# ── プロジェクトルート (repo root にいるならカレント優先、違えばスクリプト基準) ──
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEAM_INFO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+is_repo_root_dir() {
+  local candidate="$1"
+  [[ -f "$candidate/AGENTS.md" && -f "$candidate/setup/setup_all.cmd" ]]
+}
+
+CURRENT_DIR="$(pwd -P)"
+if is_repo_root_dir "$CURRENT_DIR"; then
+  TEAM_INFO_ROOT="$CURRENT_DIR"
+else
+  TEAM_INFO_ROOT="$SCRIPT_REPO_ROOT"
+fi
 VENV_DIR="$TEAM_INFO_ROOT/Remotion/.venv"
 NODE_VERSION="22.17.1"
 PYTHON_VERSION="3.11.9"

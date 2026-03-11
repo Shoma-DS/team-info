@@ -41,14 +41,17 @@ description: team-info の初回セットアップや再セットアップを始
 macOS:
 
 ```bash
-bash "[team-info を置いた絶対パス]/setup/setup_all.cmd"
+bash ./setup/setup_all.cmd
 ```
 
 Windows:
 
 ```powershell
-& "[team-info を置いた絶対パス]\setup\setup_all.cmd"
+.\setup\setup_all.cmd
 ```
+
+- この最初のコマンドだけは、`team-info` のリポジトリルートをカレントディレクトリにした状態で案内してよい。
+- setup 側はカレントディレクトリが repo root なら、その値を `TEAM_INFO_ROOT` として保存する。
 
 ### `TEAM_INFO_ROOT` が設定済みのときの再セットアップ
 
