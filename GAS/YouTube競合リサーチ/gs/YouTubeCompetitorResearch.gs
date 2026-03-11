@@ -8,8 +8,8 @@
 
 var CONFIG = {
   SPREADSHEET_ID: "1XTfZOQ3IFHU9uhgRmc3TF4Jk-YHe7FS8fS7BzvJPshc",
-  SHEET_VIDEOS: "Youtube動画",
-  SHEET_CHANNELS: "Youtubeチャンネル",
+  SHEET_VIDEOS: "競合動画リサーチ",
+  SHEET_CHANNELS: "競合チャンネル",
   SHEET_KEYWORDS: "検索キーワード",
   SHEET_KEYWORD_RESEARCH: "検索キーワードリサーチ",
   SHEET_VIEW_RANKING: "再生数ランキング",

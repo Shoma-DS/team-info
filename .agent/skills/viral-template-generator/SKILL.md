@@ -71,42 +71,48 @@ description: ショート動画を3層解析し、複数動画のパターンを
 
 ```
 inputs/viral-analysis/output/
-├── [参照動画1タイトル]/
-│   └── analysis.json          ← Phase 1 の出力
-├── [参照動画2タイトル]/
-│   └── analysis.json
-└── [新規コンテンツタイトル]/   ← Phase A 以降の出力
-    ├── viral_patterns.md       ← Phase A: 統合分析レポート
-    ├── script.md               ← Phase D: 台本
-    ├── subtitles.json          ← Phase D: 字幕タイムライン
-    ├── materials/              ← Phase E: 素材フォルダ（ユーザーが画像を入れる）
-    │   ├── 00_hook.jpg
-    │   ├── 01_scene1.jpg
-    │   └── ...
-    └── remotion/               ← Phase F: Remotionプロジェクト
-        ├── public/
-        │   └── materials/ → シンボリックリンクまたはコピー
-        └── src/
-            ├── Root.tsx
-            └── ViralVideo.tsx
+└── YYYYMMDD/                          ← 分析日タイムスタンプ（同日2回目は YYYYMMDD_2）
+    ├── [参照動画1タイトル]/            ← Phase 1 の出力（analyze_video.py が生成）
+    │   └── analysis.json
+    ├── [参照動画2タイトル]/
+    │   └── analysis.json
+    └── [テンプレ名]/                   ← Phase A 以降の出力（ユーザーが名前を決める）
+        ├── viral_patterns.md           ← Phase A: 統合分析レポート
+        ├── script.md                   ← Phase D: 台本
+        ├── subtitles.json              ← Phase D: 字幕タイムライン
+        ├── materials/                  ← Phase E: 素材フォルダ
+        │   ├── 00_hook.jpg
+        │   └── ...
+        └── （Remotion は my-video に統合）
 ```
+
+**重要**: analysis.json は `output/YYYYMMDD/{動画名}/analysis.json` に格納される。
+Phase A では使用するタイムスタンプフォルダをユーザーに確認してから読み込む。
 
 ---
 
 ## Phase 0: 起動判定
 
-起動時にユーザーの意図と現在の状態を確認し、どのフェーズから始めるかを決定する。
+起動時に `inputs/viral-analysis/output/` を確認し、フェーズを決定する。
 
-**確認項目:**
-1. `inputs/viral-analysis/output/` に analysis.json があるか → ある: Phase A へ
-2. `viral_patterns.md` がすでにあるか → ある: Phase B へ
-3. テーマが決定済みか → Phase D へ
-4. `script.md` があるか → Phase E へ
-5. `materials/` に画像があるか → Phase F へ
+**タイムスタンプフォルダの確認:**
 
-**分析対象の確認:**
+```
+output/
+├── 20260310/    ← 古い分析（analysis.json あり）
+└── 20260311/    ← 新しい分析（analysis.json あり）
+```
 
-分析するanalysis.jsonが複数ある場合、どれを対象にするかユーザーに確認する（または全件）。
+**判定フロー:**
+1. タイムスタンプフォルダ（YYYYMMDD）が **ない** → Phase 1 へ（動画解析から開始）
+2. タイムスタンプフォルダが **ある** → どのフォルダを使うかユーザーに確認する
+3. 選択したフォルダ内に `viral_patterns.md` がない → Phase A へ（統合分析）
+4. `viral_patterns.md` がある → その中の状態を確認してスキップ
+   - `script.md` なし → Phase C（テーマ提案）
+   - `script.md` あり、`materials/` に画像なし → Phase E（素材収集）
+   - `materials/` に画像あり → Phase F（Remotion生成）
+
+**分析対象のタイムスタンプフォルダを確認してから先に進む。**
 
 ---
 
@@ -128,15 +134,34 @@ inputs/viral-analysis/
 
 ### Step 1-1: 解析実行
 
+**推奨（対話モード）**: 起動フローが対話式で new/use_existing/overwrite を選ばせる。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py"
+```
+
+**一括解析（全動画を今日の日付フォルダへ）:**
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py" \
+  --all --platform [tiktok|shorts|reels]
+```
+
+**単体指定（非対話）:**
+
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py" \
   "[入力動画の絶対パス]" \
-  --output-dir "[出力先の絶対パス]" \
-  --platform [tiktok|shorts|reels]
+  --platform [tiktok|shorts|reels] \
+  --date [YYYYMMDD]   # 省略すると今日の日付
 ```
 
-複数動画を解析する場合は動画ごとに上記コマンドを実行する。完了したら「終わりました」と伝えるよう案内する。
+完了したら「終わりました」と伝えるよう案内する。
+
+**出力先**: `inputs/viral-analysis/output/YYYYMMDD/{動画名}/analysis.json`
 
 ### クロスプラットフォーム通知
 
@@ -152,9 +177,25 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 
 **目的**: 複数の analysis.json を横断的に分析し、バズ動画の共通パターンを抽出して `viral_patterns.md` を生成する。
 
+### Step A-0: タイムスタンプフォルダの確認
+
+Phase 0 の判定で選択されたタイムスタンプフォルダ（例: `20260311`）を使う。
+ユーザーに確認してからそのフォルダ内の analysis.json を読み込む。
+
+```
+inputs/viral-analysis/output/YYYYMMDD/
+├── 動画1/analysis.json
+├── 動画2/analysis.json
+└── ...
+```
+
+また、**テンプレ名**をユーザーに確認する（例: `芸能人エンタメ_バズパターン`）。
+テンプレ名フォルダ（`output/YYYYMMDD/[テンプレ名]/`）に Phase A 以降の出力を保存する。
+
 ### Step A-1: analysis.json を全件読み込む
 
-`inputs/viral-analysis/output/` 以下のすべての `analysis.json` を Read ツールで読み込む。
+`inputs/viral-analysis/output/YYYYMMDD/` 以下のすべての `analysis.json` を Read ツールで読み込む。
+（タイムスタンプフォルダ内の直下サブフォルダを対象とする。テンプレ名フォルダは除く）
 
 各ファイルから以下を抽出する:
 - `duration`, `fps`, `platform`
@@ -231,9 +272,9 @@ else:
 
 ### Step A-4: viral_patterns.md を生成
 
-**出力先**: `inputs/viral-analysis/output/[コンテンツタイトル]/viral_patterns.md`
+**出力先**: `inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/viral_patterns.md`
 
-コンテンツタイトルはユーザーに確認する（またはセッション日付を使う）。
+テンプレ名は Step A-0 でユーザーに確認済みの名前を使う。
 
 生成内容のテンプレート:
 
@@ -466,7 +507,7 @@ const lines = entry.text.split("\n");
 以下のフォルダとファイルを作成する:
 
 ```
-inputs/viral-analysis/output/[タイトル]/
+inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/
 └── materials/
     └── README.md    ← 収集ガイド
 ```
@@ -540,7 +581,7 @@ inputs/viral-analysis/output/[タイトル]/
 
 ### Step D-1: script.md を生成
 
-**出力先**: `inputs/viral-analysis/output/[タイトル]/script.md`
+**出力先**: `inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/script.md`
 
 生成フォーマット:
 ```markdown
@@ -659,12 +700,27 @@ Claude が以下の観点で script.md を読んでレビューする:
 
 ### Step D-4: subtitles.json を生成
 
-**出力先**: `inputs/viral-analysis/output/[タイトル]/subtitles.json`
+**出力先**: `inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/subtitles.json`
 
 字幕タイミングの計算方法:
 - 参照動画の平均話速（words_per_minute）から1文字あたりの表示時間を算出
 - 1セグメントあたり平均X文字・Y秒を参考値とする
 - セクション境界（フック終わり、本編切り替え）でセグメントを分割する
+
+#### Step D-4-0: 字幕の行数制限（必須）
+
+subtitles.json 生成後、必ず `split_subtitles.py` で **2行以内** に収める:
+
+```bash
+"$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/split_subtitles.py" \
+  --input "[subtitles.jsonの絶対パス]" \
+  --mode newline
+```
+
+- 13文字以内 → そのまま
+- 14文字以上 → BudouX で文節区切り → **最大2行**（3行以上になる場合は均等2分割）
+- split モードは自動で2行制限をかける（各セグメントが1行になる）
 
 生成フォーマット:
 ```json

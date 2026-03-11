@@ -49,10 +49,42 @@ def group_chunks_to_lines(chunks: list[str], line_max: int) -> list[str]:
     return lines
 
 
+def _force_two_lines(chunks: list[str]) -> list[str]:
+    """
+    チャンクリストを文字数が均等になるように2行に強制分割する。
+    3行以上になってしまう場合のフォールバック用。
+    """
+    if not chunks:
+        return []
+    if len(chunks) == 1:
+        return chunks
+
+    total = sum(len(c) for c in chunks)
+    target = total / 2
+
+    acc = 0
+    split_at = len(chunks) - 1
+    for i, chunk in enumerate(chunks):
+        acc += len(chunk)
+        if acc >= target:
+            # i の前後どちらで分割するか、均等になる方を選ぶ
+            acc_before = acc - len(chunk)
+            if i > 0 and abs(acc_before - target) < abs(acc - target):
+                split_at = i - 1
+            else:
+                split_at = i
+            break
+
+    line1 = "".join(chunks[:split_at + 1])
+    line2 = "".join(chunks[split_at + 1:])
+    return [line1, line2] if line2 else [line1]
+
+
 def process_newline_mode(segments: list[dict], line_max: int = LINE_MAX) -> list[dict]:
     """
     各セグメントのテキストを \n 折り返しに変換する（タイミング変更なし）。
     line_max 以下の場合はそのまま。
+    3行以上になる場合は2行に収まるよう均等分割する。
     """
     result = []
     for seg in segments:
@@ -63,6 +95,10 @@ def process_newline_mode(segments: list[dict], line_max: int = LINE_MAX) -> list
 
         chunks = PARSER.parse(text)
         lines = group_chunks_to_lines(chunks, line_max)
+
+        # 3行以上になる場合は2行に強制収束
+        if len(lines) > 2:
+            lines = _force_two_lines(chunks)
 
         new_seg = dict(seg)
         new_seg["text"] = "\n".join(lines)
