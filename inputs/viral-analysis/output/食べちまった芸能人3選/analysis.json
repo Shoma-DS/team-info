@@ -2,7 +2,7 @@
   "duration": 58.367,
   "fps": 30.0,
   "platform": "shorts",
-  "source_file": "/Users/deguchishouma/team-info/inputs/viral-analysis/食べちまった芸能人3選.mp4",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/食べちまった芸能人3選.mp4",
   "resolution": {
     "width": 720,
     "height": 1280
@@ -599,7 +599,7 @@
         "x": 0.369,
         "y": 0.484,
         "text": "=",
-        "confidence": 71
+        "confidence": 84
       },
       {
         "frame": 0,
@@ -607,7 +607,7 @@
         "x": 0.653,
         "y": 0.52,
         "text": "—",
-        "confidence": 77
+        "confidence": 79
       },
       {
         "frame": 0,
@@ -615,15 +615,7 @@
         "x": 0.648,
         "y": 0.488,
         "text": "っ",
-        "confidence": 87
-      },
-      {
-        "frame": 0,
-        "time": 0.0,
-        "x": 0.322,
-        "y": 0.524,
-        "text": "ド",
-        "confidence": 53
+        "confidence": 86
       },
       {
         "frame": 0,
@@ -631,7 +623,7 @@
         "x": 0.499,
         "y": 0.502,
         "text": "Xx",
-        "confidence": 60
+        "confidence": 54
       },
       {
         "frame": 0,
@@ -647,12 +639,12 @@
         "x": 0.445,
         "y": 0.7,
         "text": "られ",
-        "confidence": 95
+        "confidence": 96
       },
       {
         "frame": 0,
         "time": 0.0,
-        "x": 0.625,
+        "x": 0.631,
         "y": 0.7,
         "text": "ちゃ",
         "confidence": 96
@@ -660,10 +652,10 @@
       {
         "frame": 0,
         "time": 0.0,
-        "x": 0.826,
-        "y": 0.693,
-        "text": "うだ",
-        "confidence": 80
+        "x": 0.838,
+        "y": 0.7,
+        "text": "うた",
+        "confidence": 79
       },
       {
         "frame": 0,
@@ -679,7 +671,7 @@
         "x": 0.624,
         "y": 0.805,
         "text": "芸能",
-        "confidence": 96
+        "confidence": 95
       },
       {
         "frame": 0,
@@ -695,15 +687,15 @@
         "x": 0.537,
         "y": 0.888,
         "text": "選",
-        "confidence": 87
+        "confidence": 88
       },
       {
         "frame": 30,
         "time": 1.0,
         "x": 0.72,
         "y": 0.07,
-        "text": "\\)",
-        "confidence": 66
+        "text": "\\",
+        "confidence": 77
       },
       {
         "frame": 30,
@@ -711,7 +703,7 @@
         "x": 0.617,
         "y": 0.18,
         "text": "|<",
-        "confidence": 63
+        "confidence": 72
       },
       {
         "frame": 30,
@@ -719,39 +711,15 @@
         "x": 0.531,
         "y": 0.301,
         "text": "-",
-        "confidence": 85
-      },
-      {
-        "frame": 30,
-        "time": 1.0,
-        "x": 0.621,
-        "y": 0.3,
-        "text": "者",
-        "confidence": 58
-      },
-      {
-        "frame": 30,
-        "time": 1.0,
-        "x": 0.159,
-        "y": 0.34,
-        "text": "Peck",
-        "confidence": 51
-      },
-      {
-        "frame": 30,
-        "time": 1.0,
-        "x": 0.217,
-        "y": 0.343,
-        "text": "|",
-        "confidence": 64
-      },
-      {
-        "frame": 30,
-        "time": 1.0,
-        "x": 0.524,
-        "y": 0.508,
-        "text": "Al",
         "confidence": 86
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.662,
+        "y": 0.589,
+        "text": "PUES",
+        "confidence": 51
       },
       {
         "frame": 30,
@@ -764,26 +732,18 @@
       {
         "frame": 30,
         "time": 1.0,
-        "x": 0.439,
+        "x": 0.444,
         "y": 0.668,
         "text": "られ",
-        "confidence": 94
+        "confidence": 95
       },
       {
         "frame": 30,
         "time": 1.0,
-        "x": 0.606,
+        "x": 0.628,
         "y": 0.668,
         "text": "ちや",
-        "confidence": 77
-      },
-      {
-        "frame": 30,
-        "time": 1.0,
-        "x": 0.694,
-        "y": 0.668,
-        "text": "ゃ",
-        "confidence": 80
+        "confidence": 73
       },
       {
         "frame": 30,
@@ -791,7 +751,7 @@
         "x": 0.767,
         "y": 0.668,
         "text": "っ",
-        "confidence": 95
+        "confidence": 96
       },
       {
         "frame": 30,
@@ -799,7 +759,7 @@
         "x": 0.872,
         "y": 0.668,
         "text": "た",
-        "confidence": 86
+        "confidence": 84
       },
       {
         "frame": 30,
@@ -812,7 +772,7 @@
       {
         "frame": 30,
         "time": 1.0,
-        "x": 0.637,
+        "x": 0.631,
         "y": 0.754,
         "text": "芸能",
         "confidence": 96
@@ -820,7 +780,7 @@
       {
         "frame": 30,
         "time": 1.0,
-        "x": 0.745,
+        "x": 0.74,
         "y": 0.751,
         "text": "人",
         "confidence": 96
@@ -831,7 +791,7 @@
         "x": 0.443,
         "y": 0.834,
         "text": "3",
-        "confidence": 92
+        "confidence": 93
       },
       {
         "frame": 30,
@@ -839,7 +799,7 @@
         "x": 0.534,
         "y": 0.834,
         "text": "選",
-        "confidence": 70
+        "confidence": 71
       },
       {
         "frame": 60,
@@ -847,7 +807,7 @@
         "x": 0.735,
         "y": 0.093,
         "text": "\\",
-        "confidence": 69
+        "confidence": 78
       },
       {
         "frame": 60,
@@ -855,7 +815,7 @@
         "x": 0.454,
         "y": 0.198,
         "text": "⑨)",
-        "confidence": 62
+        "confidence": 53
       },
       {
         "frame": 60,
@@ -863,7 +823,7 @@
         "x": 0.76,
         "y": 0.195,
         "text": ">",
-        "confidence": 66
+        "confidence": 63
       },
       {
         "frame": 60,
@@ -871,7 +831,7 @@
         "x": 0.556,
         "y": 0.311,
         "text": "-",
-        "confidence": 86
+        "confidence": 83
       },
       {
         "frame": 60,
@@ -879,15 +839,31 @@
         "x": 0.641,
         "y": 0.311,
         "text": "#",
-        "confidence": 73
+        "confidence": 54
       },
       {
         "frame": 60,
         "time": 2.0,
-        "x": 0.117,
-        "y": 0.447,
-        "text": "ーー",
-        "confidence": 52
+        "x": 0.592,
+        "y": 0.386,
+        "text": "<",
+        "confidence": 57
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.087,
+        "y": 0.482,
+        "text": "a",
+        "confidence": 55
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.317,
+        "y": 0.479,
+        "text": "ros",
+        "confidence": 51
       },
       {
         "frame": 60,
@@ -895,7 +871,7 @@
         "x": 0.188,
         "y": 0.447,
         "text": "デー",
-        "confidence": 65
+        "confidence": 68
       },
       {
         "frame": 60,
@@ -903,15 +879,15 @@
         "x": 0.234,
         "y": 0.44,
         "text": "マ",
-        "confidence": 84
+        "confidence": 86
       },
       {
         "frame": 60,
         "time": 2.0,
-        "x": 0.551,
-        "y": 0.509,
-        "text": "Az",
-        "confidence": 51
+        "x": 0.137,
+        "y": 0.565,
+        "text": "“A",
+        "confidence": 64
       },
       {
         "frame": 60,
@@ -919,7 +895,7 @@
         "x": 0.342,
         "y": 0.588,
         "text": "慢",
-        "confidence": 92
+        "confidence": 91
       },
       {
         "frame": 60,
@@ -935,7 +911,7 @@
         "x": 0.5,
         "y": 0.665,
         "text": "食べ",
-        "confidence": 93
+        "confidence": 94
       },
       {
         "frame": 60,
@@ -951,7 +927,7 @@
         "x": 0.628,
         "y": 0.668,
         "text": "ちや",
-        "confidence": 89
+        "confidence": 94
       },
       {
         "frame": 60,
@@ -964,10 +940,18 @@
       {
         "frame": 60,
         "time": 2.0,
-        "x": 0.872,
+        "x": 0.839,
         "y": 0.668,
         "text": "た",
-        "confidence": 79
+        "confidence": 70
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.894,
+        "y": 0.668,
+        "text": "だ",
+        "confidence": 68
       },
       {
         "frame": 60,
@@ -1007,7 +991,7 @@
         "x": 0.534,
         "y": 0.834,
         "text": "選",
-        "confidence": 63
+        "confidence": 57
       },
       {
         "frame": 90,
@@ -1015,15 +999,7 @@
         "x": 0.751,
         "y": 0.116,
         "text": "\\",
-        "confidence": 74
-      },
-      {
-        "frame": 90,
-        "time": 3.0,
-        "x": 0.778,
-        "y": 0.215,
-        "text": ">",
-        "confidence": 57
+        "confidence": 77
       },
       {
         "frame": 90,
@@ -1031,15 +1007,7 @@
         "x": 0.581,
         "y": 0.322,
         "text": "-",
-        "confidence": 83
-      },
-      {
-        "frame": 90,
-        "time": 3.0,
-        "x": 0.661,
-        "y": 0.321,
-        "text": "#",
-        "confidence": 53
+        "confidence": 82
       },
       {
         "frame": 90,
@@ -1047,15 +1015,7 @@
         "x": 0.526,
         "y": 0.379,
         "text": "<",
-        "confidence": 56
-      },
-      {
-        "frame": 90,
-        "time": 3.0,
-        "x": 0.167,
-        "y": 0.528,
-        "text": "i",
-        "confidence": 52
+        "confidence": 59
       },
       {
         "frame": 90,
@@ -1063,7 +1023,7 @@
         "x": 0.382,
         "y": 0.524,
         "text": "会",
-        "confidence": 91
+        "confidence": 86
       },
       {
         "frame": 90,
@@ -1071,7 +1031,7 @@
         "x": 0.615,
         "y": 0.538,
         "text": "と",
-        "confidence": 77
+        "confidence": 70
       },
       {
         "frame": 90,
@@ -1079,7 +1039,7 @@
         "x": 0.501,
         "y": 0.665,
         "text": "食べ",
-        "confidence": 94
+        "confidence": 95
       },
       {
         "frame": 90,
@@ -1092,10 +1052,18 @@
       {
         "frame": 90,
         "time": 3.0,
-        "x": 0.622,
+        "x": 0.594,
         "y": 0.668,
         "text": "ちや",
-        "confidence": 65
+        "confidence": 72
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.689,
+        "y": 0.668,
+        "text": "ゃ",
+        "confidence": 81
       },
       {
         "frame": 90,
@@ -1104,14 +1072,6 @@
         "y": 0.668,
         "text": "っ",
         "confidence": 96
-      },
-      {
-        "frame": 90,
-        "time": 3.0,
-        "x": 0.872,
-        "y": 0.668,
-        "text": "た",
-        "confidence": 51
       },
       {
         "frame": 90,
@@ -1135,23 +1095,15 @@
         "x": 0.742,
         "y": 0.754,
         "text": "人",
-        "confidence": 96
+        "confidence": 94
       },
       {
         "frame": 90,
         "time": 3.0,
-        "x": 0.443,
+        "x": 0.501,
         "y": 0.834,
-        "text": "3",
-        "confidence": 93
-      },
-      {
-        "frame": 90,
-        "time": 3.0,
-        "x": 0.534,
-        "y": 0.834,
-        "text": "選",
-        "confidence": 66
+        "text": "31",
+        "confidence": 64
       },
       {
         "frame": 120,
@@ -1159,63 +1111,55 @@
         "x": 0.134,
         "y": 0.886,
         "text": "4",
-        "confidence": 78
+        "confidence": 88
       },
       {
         "frame": 150,
         "time": 5.0,
-        "x": 0.44,
-        "y": 0.459,
-        "text": "+",
-        "confidence": 74
+        "x": 0.346,
+        "y": 0.524,
+        "text": "EAH",
+        "confidence": 61
       },
       {
         "frame": 150,
         "time": 5.0,
-        "x": 0.298,
-        "y": 0.523,
-        "text": "2)",
-        "confidence": 63
+        "x": 0.535,
+        "y": 0.537,
+        "text": "こ",
+        "confidence": 82
       },
       {
         "frame": 150,
         "time": 5.0,
-        "x": 0.342,
-        "y": 0.469,
-        "text": "ま",
-        "confidence": 90
+        "x": 0.588,
+        "y": 0.531,
+        "text": "に",
+        "confidence": 53
       },
       {
         "frame": 150,
         "time": 5.0,
-        "x": 0.474,
-        "y": 0.53,
-        "text": "Ei:",
-        "confidence": 68
-      },
-      {
-        "frame": 180,
-        "time": 6.0,
-        "x": 0.125,
-        "y": 0.134,
-        "text": "&",
-        "confidence": 64
+        "x": 0.683,
+        "y": 0.516,
+        "text": "シンド",
+        "confidence": 54
       },
       {
         "frame": 180,
         "time": 6.0,
         "x": 0.275,
         "y": 0.142,
-        "text": "み",
-        "confidence": 75
+        "text": "4",
+        "confidence": 55
       },
       {
         "frame": 180,
         "time": 6.0,
-        "x": 0.219,
-        "y": 0.407,
-        "text": "1",
-        "confidence": 51
+        "x": 0.049,
+        "y": 0.431,
+        "text": "W/",
+        "confidence": 60
       },
       {
         "frame": 180,
@@ -1231,7 +1175,7 @@
         "x": 0.478,
         "y": 0.55,
         "text": "wer",
-        "confidence": 54
+        "confidence": 55
       },
       {
         "frame": 180,
@@ -1239,47 +1183,47 @@
         "x": 0.934,
         "y": 0.593,
         "text": "き",
-        "confidence": 71
+        "confidence": 57
       },
       {
         "frame": 180,
         "time": 6.0,
-        "x": 0.239,
-        "y": 0.968,
-        "text": "イイ",
-        "confidence": 59
+        "x": 0.011,
+        "y": 0.997,
+        "text": "、",
+        "confidence": 85
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.081,
+        "x": 0.032,
+        "y": 0.036,
+        "text": "ュ",
+        "confidence": 53
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.078,
         "y": 0.029,
         "text": "ン",
-        "confidence": 76
+        "confidence": 83
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.119,
-        "y": 0.03,
-        "text": "ェ",
-        "confidence": 73
-      },
-      {
-        "frame": 210,
-        "time": 7.0,
-        "x": 0.14,
+        "x": 0.105,
         "y": 0.032,
-        "text": "ス",
+        "text": "ェ",
         "confidence": 71
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.488,
-        "y": 0.043,
-        "text": "«",
-        "confidence": 78
+        "x": 0.185,
+        "y": 0.03,
+        "text": "フー",
+        "confidence": 64
       },
       {
         "frame": 210,
@@ -1287,23 +1231,23 @@
         "x": 0.037,
         "y": 0.048,
         "text": "oe",
-        "confidence": 66
+        "confidence": 70
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.108,
-        "y": 0.064,
-        "text": "の",
-        "confidence": 58
+        "x": 0.04,
+        "y": 0.061,
+        "text": "ワウ",
+        "confidence": 72
       },
       {
         "frame": 210,
         "time": 7.0,
         "x": 0.097,
         "y": 0.043,
-        "text": "レー",
-        "confidence": 54
+        "text": "レフ",
+        "confidence": 76
       },
       {
         "frame": 210,
@@ -1311,7 +1255,7 @@
         "x": 0.142,
         "y": 0.043,
         "text": "ピナ",
-        "confidence": 64
+        "confidence": 81
       },
       {
         "frame": 210,
@@ -1319,15 +1263,23 @@
         "x": 0.179,
         "y": 0.045,
         "text": "の",
-        "confidence": 74
+        "confidence": 64
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.464,
-        "y": 0.051,
-        "text": "一",
-        "confidence": 60
+        "x": 0.213,
+        "y": 0.057,
+        "text": "ンー",
+        "confidence": 51
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.234,
+        "y": 0.057,
+        "text": "ン",
+        "confidence": 55
       },
       {
         "frame": 210,
@@ -1335,7 +1287,15 @@
         "x": 0.408,
         "y": 0.059,
         "text": "レス",
-        "confidence": 71
+        "confidence": 70
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.058,
+        "y": 0.108,
+        "text": "ン",
+        "confidence": 82
       },
       {
         "frame": 210,
@@ -1343,7 +1303,7 @@
         "x": 0.088,
         "y": 0.09,
         "text": "レン",
-        "confidence": 72
+        "confidence": 56
       },
       {
         "frame": 210,
@@ -1351,7 +1311,7 @@
         "x": 0.134,
         "y": 0.09,
         "text": "レス",
-        "confidence": 73
+        "confidence": 61
       },
       {
         "frame": 210,
@@ -1359,31 +1319,31 @@
         "x": 0.343,
         "y": 0.09,
         "text": "ビー",
-        "confidence": 61
+        "confidence": 62
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.296,
-        "y": 0.132,
-        "text": "ea",
-        "confidence": 57
+        "x": 0.137,
+        "y": 0.122,
+        "text": "スン",
+        "confidence": 60
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.034,
-        "y": 0.154,
-        "text": "ラー",
-        "confidence": 69
+        "x": 0.058,
+        "y": 0.164,
+        "text": "a",
+        "confidence": 55
       },
       {
         "frame": 210,
         "time": 7.0,
-        "x": 0.091,
-        "y": 0.154,
-        "text": "ン",
-        "confidence": 64
+        "x": 0.305,
+        "y": 0.158,
+        "text": "つ",
+        "confidence": 85
       },
       {
         "frame": 210,
@@ -1391,7 +1351,47 @@
         "x": 0.131,
         "y": 0.232,
         "text": "ャ",
-        "confidence": 53
+        "confidence": 57
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.186,
+        "y": 0.234,
+        "text": "ーー",
+        "confidence": 86
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.878,
+        "y": 0.252,
+        "text": "‘a",
+        "confidence": 64
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.18,
+        "y": 0.403,
+        "text": "x",
+        "confidence": 71
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.65,
+        "y": 0.498,
+        "text": "つつ",
+        "confidence": 54
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.381,
+        "y": 0.521,
+        "text": "絶対",
+        "confidence": 89
       }
     ],
     "camera_motion": [
@@ -1638,1946 +1638,2799 @@
     "transcript": [
       {
         "start": 0.0,
-        "end": 3.24,
-        "text": "ゲーニンにじまんのアワビを食べられちゃった女性絵のおじんさん線",
+        "end": 3.1,
+        "text": "芸人に自慢のアワビを食べられちゃった女性芸能人参戦",
         "words": [
           {
-            "word": "ゲ",
+            "word": "芸",
             "start": 0.0,
-            "end": 0.28
+            "end": 0.3
           },
           {
-            "word": "ーニ",
-            "start": 0.28,
-            "end": 0.46
-          },
-          {
-            "word": "ン",
-            "start": 0.46,
-            "end": 0.56
+            "word": "人",
+            "start": 0.3,
+            "end": 0.4
           },
           {
             "word": "に",
-            "start": 0.56,
-            "end": 0.66
+            "start": 0.4,
+            "end": 0.6
           },
           {
-            "word": "じ",
-            "start": 0.66,
-            "end": 0.76
+            "word": "自",
+            "start": 0.6,
+            "end": 0.68
           },
           {
-            "word": "ま",
-            "start": 0.76,
+            "word": "慢",
+            "start": 0.68,
             "end": 0.86
           },
           {
-            "word": "ん",
-            "start": 0.86,
-            "end": 0.94
-          },
-          {
             "word": "の",
-            "start": 0.94,
-            "end": 1.04
+            "start": 0.86,
+            "end": 0.96
           },
           {
             "word": "ア",
-            "start": 1.04,
-            "end": 1.16
+            "start": 0.96,
+            "end": 1.06
           },
           {
             "word": "ワ",
-            "start": 1.16,
-            "end": 1.2
+            "start": 1.06,
+            "end": 1.12
           },
           {
             "word": "ビ",
-            "start": 1.2,
-            "end": 1.28
+            "start": 1.12,
+            "end": 1.2
           },
           {
             "word": "を",
-            "start": 1.28,
-            "end": 1.38
+            "start": 1.2,
+            "end": 1.3
           },
           {
             "word": "食べ",
-            "start": 1.38,
-            "end": 1.54
+            "start": 1.3,
+            "end": 1.48
           },
           {
             "word": "ら",
-            "start": 1.54,
-            "end": 1.62
+            "start": 1.48,
+            "end": 1.58
           },
           {
             "word": "れ",
-            "start": 1.62,
-            "end": 1.72
+            "start": 1.58,
+            "end": 1.7
           },
           {
             "word": "ちゃ",
-            "start": 1.72,
-            "end": 1.82
+            "start": 1.7,
+            "end": 1.78
           },
           {
             "word": "った",
-            "start": 1.82,
-            "end": 1.98
+            "start": 1.78,
+            "end": 1.9
           },
           {
             "word": "女",
-            "start": 1.98,
-            "end": 2.1
+            "start": 1.9,
+            "end": 2.04
           },
           {
             "word": "性",
-            "start": 2.1,
-            "end": 2.26
+            "start": 2.04,
+            "end": 2.18
           },
           {
-            "word": "絵",
-            "start": 2.26,
-            "end": 2.4
+            "word": "芸",
+            "start": 2.18,
+            "end": 2.38
           },
           {
-            "word": "の",
-            "start": 2.4,
-            "end": 2.52
+            "word": "能",
+            "start": 2.38,
+            "end": 2.5
           },
           {
-            "word": "お",
-            "start": 2.52,
+            "word": "人",
+            "start": 2.5,
             "end": 2.66
           },
           {
-            "word": "じ",
+            "word": "参",
             "start": 2.66,
-            "end": 2.72
-          },
-          {
-            "word": "ん",
-            "start": 2.72,
-            "end": 2.78
-          },
-          {
-            "word": "さん",
-            "start": 2.78,
             "end": 2.92
           },
           {
-            "word": "線",
+            "word": "戦",
             "start": 2.92,
-            "end": 3.24
+            "end": 3.1
           }
         ]
       },
       {
-        "start": 3.24,
-        "end": 7.6,
-        "text": "最後はまさかのたまの子支援度、1、高橋相、モーニング娘。",
+        "start": 3.1,
+        "end": 5.0,
+        "text": "最後はまさかの玉残しエンド",
         "words": [
           {
             "word": "最後",
-            "start": 3.24,
-            "end": 3.72
+            "start": 3.1,
+            "end": 3.6
           },
           {
             "word": "は",
-            "start": 3.72,
-            "end": 3.86
+            "start": 3.6,
+            "end": 3.84
           },
           {
             "word": "ま",
-            "start": 3.86,
-            "end": 3.96
+            "start": 3.84,
+            "end": 3.94
           },
           {
             "word": "さ",
-            "start": 3.96,
-            "end": 4.06
+            "start": 3.94,
+            "end": 4.0
           },
           {
             "word": "か",
-            "start": 4.06,
-            "end": 4.16
+            "start": 4.0,
+            "end": 4.12
           },
           {
             "word": "の",
-            "start": 4.16,
-            "end": 4.26
+            "start": 4.12,
+            "end": 4.22
           },
           {
-            "word": "た",
-            "start": 4.26,
+            "word": "玉",
+            "start": 4.22,
             "end": 4.36
           },
           {
-            "word": "ま",
+            "word": "残",
             "start": 4.36,
-            "end": 4.42
+            "end": 4.58
           },
           {
-            "word": "の",
-            "start": 4.42,
-            "end": 4.54
+            "word": "し",
+            "start": 4.58,
+            "end": 4.7
           },
           {
-            "word": "子",
-            "start": 4.54,
-            "end": 4.62
+            "word": "エ",
+            "start": 4.7,
+            "end": 4.78
           },
           {
-            "word": "支",
-            "start": 4.62,
-            "end": 4.82
-          },
-          {
-            "word": "援",
-            "start": 4.82,
-            "end": 4.88
-          },
-          {
-            "word": "度、",
-            "start": 4.88,
-            "end": 5.04
-          },
-          {
-            "word": "1、",
-            "start": 5.3,
-            "end": 5.5
-          },
-          {
-            "word": "高",
-            "start": 6.04,
-            "end": 6.22
-          },
-          {
-            "word": "橋",
-            "start": 6.22,
-            "end": 6.46
-          },
-          {
-            "word": "相、",
-            "start": 6.46,
-            "end": 6.68
-          },
-          {
-            "word": "モ",
-            "start": 7.0,
-            "end": 7.06
-          },
-          {
-            "word": "ーニ",
-            "start": 7.06,
-            "end": 7.22
-          },
-          {
-            "word": "ング",
-            "start": 7.22,
-            "end": 7.34
-          },
-          {
-            "word": "娘。",
-            "start": 7.34,
-            "end": 7.6
+            "word": "ンド",
+            "start": 4.78,
+            "end": 5.0
           }
         ]
       },
       {
-        "start": 8.02,
-        "end": 12.18,
-        "text": "の絶対的エース、小腹で動画、王道アイドルド真ん中の彼女だが",
+        "start": 5.0,
+        "end": 9.04,
+        "text": "1.高橋愛 モーニング娘。の絶対的エース",
         "words": [
           {
+            "word": "1.",
+            "start": 5.0,
+            "end": 5.34
+          },
+          {
+            "word": "高",
+            "start": 5.88,
+            "end": 6.16
+          },
+          {
+            "word": "橋",
+            "start": 6.16,
+            "end": 6.36
+          },
+          {
+            "word": "愛",
+            "start": 6.36,
+            "end": 6.6
+          },
+          {
+            "word": " モ",
+            "start": 6.6,
+            "end": 6.98
+          },
+          {
+            "word": "ーニ",
+            "start": 6.98,
+            "end": 7.16
+          },
+          {
+            "word": "ング",
+            "start": 7.16,
+            "end": 7.28
+          },
+          {
+            "word": "娘。",
+            "start": 7.28,
+            "end": 7.52
+          },
+          {
             "word": "の",
-            "start": 8.02,
-            "end": 8.3
+            "start": 7.96,
+            "end": 8.24
           },
           {
             "word": "絶",
-            "start": 8.3,
-            "end": 8.48
+            "start": 8.24,
+            "end": 8.44
           },
           {
             "word": "対",
-            "start": 8.48,
+            "start": 8.44,
             "end": 8.62
           },
           {
             "word": "的",
             "start": 8.62,
-            "end": 8.8
+            "end": 8.72
           },
           {
             "word": "エ",
-            "start": 8.8,
-            "end": 9.04
+            "start": 8.72,
+            "end": 8.96
           },
           {
             "word": "ー",
-            "start": 9.04,
-            "end": 9.08
+            "start": 8.96,
+            "end": 9.04
           },
           {
-            "word": "ス、",
-            "start": 9.08,
-            "end": 9.16
-          },
+            "word": "ス",
+            "start": 9.04,
+            "end": 9.04
+          }
+        ]
+      },
+      {
+        "start": 9.04,
+        "end": 12.12,
+        "text": "小柄で銅眼 王道アイドルど真ん中の彼女だが",
+        "words": [
           {
             "word": "小",
-            "start": 9.48,
-            "end": 9.56
+            "start": 9.04,
+            "end": 9.42
           },
           {
-            "word": "腹",
-            "start": 9.56,
+            "word": "柄",
+            "start": 9.42,
             "end": 9.64
           },
           {
             "word": "で",
             "start": 9.64,
-            "end": 9.8
+            "end": 9.78
           },
           {
-            "word": "動画、",
-            "start": 9.8,
-            "end": 9.96
+            "word": "銅",
+            "start": 9.78,
+            "end": 9.92
           },
           {
-            "word": "王",
-            "start": 10.46,
-            "end": 10.74
+            "word": "眼",
+            "start": 9.92,
+            "end": 10.06
+          },
+          {
+            "word": " 王",
+            "start": 10.18,
+            "end": 10.6
           },
           {
             "word": "道",
-            "start": 10.74,
-            "end": 10.82
+            "start": 10.6,
+            "end": 10.8
           },
           {
             "word": "ア",
-            "start": 10.82,
-            "end": 11.02
+            "start": 10.8,
+            "end": 10.92
           },
           {
             "word": "イ",
-            "start": 11.02,
-            "end": 11.06
+            "start": 10.92,
+            "end": 11.04
           },
           {
             "word": "ド",
-            "start": 11.06,
-            "end": 11.12
+            "start": 11.04,
+            "end": 11.08
           },
           {
             "word": "ル",
-            "start": 11.12,
-            "end": 11.18
+            "start": 11.08,
+            "end": 11.14
           },
           {
-            "word": "ド",
-            "start": 11.18,
-            "end": 11.28
+            "word": "ど",
+            "start": 11.14,
+            "end": 11.24
           },
           {
             "word": "真",
-            "start": 11.28,
-            "end": 11.38
+            "start": 11.24,
+            "end": 11.34
           },
           {
             "word": "ん",
-            "start": 11.38,
-            "end": 11.54
+            "start": 11.34,
+            "end": 11.42
           },
           {
             "word": "中",
-            "start": 11.54,
-            "end": 11.54
+            "start": 11.42,
+            "end": 11.56
           },
           {
             "word": "の",
-            "start": 11.54,
-            "end": 11.7
+            "start": 11.56,
+            "end": 11.66
           },
           {
             "word": "彼",
-            "start": 11.7,
-            "end": 11.82
+            "start": 11.66,
+            "end": 11.78
           },
           {
             "word": "女",
-            "start": 11.82,
-            "end": 11.96
+            "start": 11.78,
+            "end": 11.9
           },
           {
             "word": "だ",
-            "start": 11.96,
-            "end": 12.06
+            "start": 11.9,
+            "end": 11.98
           },
           {
             "word": "が",
-            "start": 12.06,
-            "end": 12.18
+            "start": 11.98,
+            "end": 12.12
           }
         ]
       },
       {
-        "start": 12.18,
-        "end": 15.48,
-        "text": "2012年にR1グランプリを取ったアベコウジトの",
+        "start": 12.12,
+        "end": 16.62,
+        "text": "2012年にR1グランプリを取った安部浩二との交際が報じられた",
         "words": [
           {
             "word": "20",
-            "start": 12.18,
-            "end": 12.6
+            "start": 12.12,
+            "end": 12.5
           },
           {
             "word": "12",
-            "start": 12.6,
-            "end": 12.98
+            "start": 12.5,
+            "end": 12.86
           },
           {
             "word": "年",
-            "start": 12.98,
+            "start": 12.86,
             "end": 13.12
           },
           {
             "word": "に",
             "start": 13.12,
-            "end": 13.38
+            "end": 13.28
           },
           {
             "word": "R",
-            "start": 13.38,
-            "end": 13.72
+            "start": 13.28,
+            "end": 13.64
           },
           {
             "word": "1",
-            "start": 13.72,
-            "end": 13.92
+            "start": 13.64,
+            "end": 13.84
           },
           {
             "word": "グ",
-            "start": 13.92,
-            "end": 14.12
+            "start": 13.84,
+            "end": 14.02
           },
           {
             "word": "ラ",
-            "start": 14.12,
-            "end": 14.18
+            "start": 14.02,
+            "end": 14.14
           },
           {
             "word": "ンプ",
-            "start": 14.18,
-            "end": 14.34
+            "start": 14.14,
+            "end": 14.28
           },
           {
             "word": "リ",
-            "start": 14.34,
-            "end": 14.44
+            "start": 14.28,
+            "end": 14.38
           },
           {
             "word": "を",
-            "start": 14.44,
-            "end": 14.54
+            "start": 14.38,
+            "end": 14.48
           },
           {
             "word": "取",
-            "start": 14.54,
-            "end": 14.62
+            "start": 14.48,
+            "end": 14.58
           },
           {
             "word": "った",
-            "start": 14.62,
-            "end": 14.8
+            "start": 14.58,
+            "end": 14.76
           },
           {
-            "word": "ア",
-            "start": 14.8,
-            "end": 14.94
+            "word": "安",
+            "start": 14.76,
+            "end": 14.86
           },
           {
-            "word": "ベ",
-            "start": 14.94,
-            "end": 14.94
+            "word": "部",
+            "start": 14.86,
+            "end": 14.92
           },
           {
-            "word": "コ",
-            "start": 14.94,
-            "end": 15.1
+            "word": "浩",
+            "start": 14.92,
+            "end": 15.08
           },
           {
-            "word": "ウ",
-            "start": 15.1,
-            "end": 15.22
+            "word": "二",
+            "start": 15.08,
+            "end": 15.16
           },
           {
-            "word": "ジ",
-            "start": 15.22,
-            "end": 15.24
-          },
-          {
-            "word": "ト",
-            "start": 15.24,
-            "end": 15.34
+            "word": "と",
+            "start": 15.16,
+            "end": 15.32
           },
           {
             "word": "の",
-            "start": 15.34,
-            "end": 15.48
+            "start": 15.32,
+            "end": 15.42
+          },
+          {
+            "word": "交",
+            "start": 15.42,
+            "end": 15.8
+          },
+          {
+            "word": "際",
+            "start": 15.8,
+            "end": 15.96
+          },
+          {
+            "word": "が",
+            "start": 15.96,
+            "end": 16.1
+          },
+          {
+            "word": "報",
+            "start": 16.1,
+            "end": 16.24
+          },
+          {
+            "word": "じ",
+            "start": 16.24,
+            "end": 16.34
+          },
+          {
+            "word": "ら",
+            "start": 16.34,
+            "end": 16.46
+          },
+          {
+            "word": "れた",
+            "start": 16.46,
+            "end": 16.62
           }
         ]
       },
       {
-        "start": 15.48,
-        "end": 18.62,
-        "text": "公裁が放じられた一部ファンから巨日反応が出たが",
+        "start": 16.62,
+        "end": 18.5,
+        "text": "一部ファンから拒否反応が出たが",
         "words": [
           {
-            "word": "公",
-            "start": 15.48,
-            "end": 15.86
-          },
-          {
-            "word": "裁",
-            "start": 15.86,
-            "end": 16.02
-          },
-          {
-            "word": "が",
-            "start": 16.02,
-            "end": 16.16
-          },
-          {
-            "word": "放",
-            "start": 16.16,
-            "end": 16.34
-          },
-          {
-            "word": "じ",
-            "start": 16.34,
-            "end": 16.42
-          },
-          {
-            "word": "ら",
-            "start": 16.42,
-            "end": 16.5
-          },
-          {
-            "word": "れた",
-            "start": 16.5,
-            "end": 16.7
-          },
-          {
             "word": "一",
-            "start": 16.7,
-            "end": 17.1
+            "start": 16.62,
+            "end": 17.0
           },
           {
             "word": "部",
-            "start": 17.1,
-            "end": 17.24
+            "start": 17.0,
+            "end": 17.18
           },
           {
             "word": "フ",
-            "start": 17.24,
-            "end": 17.38
+            "start": 17.18,
+            "end": 17.3
           },
           {
             "word": "ァ",
-            "start": 17.38,
-            "end": 17.38
+            "start": 17.3,
+            "end": 17.36
           },
           {
             "word": "ン",
-            "start": 17.38,
-            "end": 17.44
+            "start": 17.36,
+            "end": 17.36
           },
           {
             "word": "から",
-            "start": 17.44,
-            "end": 17.6
+            "start": 17.36,
+            "end": 17.52
           },
           {
-            "word": "巨",
-            "start": 17.6,
-            "end": 17.76
+            "word": "拒",
+            "start": 17.52,
+            "end": 17.7
           },
           {
-            "word": "日",
-            "start": 17.76,
-            "end": 17.86
+            "word": "否",
+            "start": 17.7,
+            "end": 17.8
           },
           {
             "word": "反",
-            "start": 17.86,
-            "end": 18.06
+            "start": 17.8,
+            "end": 17.96
           },
           {
             "word": "応",
-            "start": 18.06,
+            "start": 17.96,
             "end": 18.12
           },
           {
             "word": "が",
             "start": 18.12,
-            "end": 18.28
+            "end": 18.2
           },
           {
             "word": "出",
-            "start": 18.28,
-            "end": 18.36
+            "start": 18.2,
+            "end": 18.32
           },
           {
             "word": "た",
-            "start": 18.36,
-            "end": 18.48
+            "start": 18.32,
+            "end": 18.42
           },
           {
             "word": "が",
-            "start": 18.48,
-            "end": 18.62
+            "start": 18.42,
+            "end": 18.5
           }
         ]
       },
       {
-        "start": 18.62,
-        "end": 20.28,
-        "text": "そのままゴールインレンザイは",
+        "start": 18.5,
+        "end": 22.74,
+        "text": "そのままゴールイン現在は夫婦で仲良く番組に出演することも多く",
         "words": [
           {
             "word": "その",
-            "start": 18.62,
-            "end": 19.1
+            "start": 18.5,
+            "end": 19.0
           },
           {
             "word": "ま",
-            "start": 19.1,
-            "end": 19.26
+            "start": 19.0,
+            "end": 19.14
           },
           {
             "word": "ま",
-            "start": 19.26,
-            "end": 19.28
+            "start": 19.14,
+            "end": 19.3
           },
           {
             "word": "ゴ",
-            "start": 19.28,
-            "end": 19.46
+            "start": 19.3,
+            "end": 19.4
           },
           {
             "word": "ール",
-            "start": 19.46,
-            "end": 19.54
+            "start": 19.4,
+            "end": 19.5
           },
           {
             "word": "イ",
-            "start": 19.54,
-            "end": 19.72
-          },
-          {
-            "word": "ンレ",
-            "start": 19.72,
-            "end": 19.84
+            "start": 19.5,
+            "end": 19.6
           },
           {
             "word": "ン",
-            "start": 19.84,
-            "end": 19.94
+            "start": 19.6,
+            "end": 19.66
           },
           {
-            "word": "ザ",
-            "start": 19.94,
-            "end": 20.0
-          },
-          {
-            "word": "イ",
-            "start": 20.0,
-            "end": 20.1
+            "word": "現在",
+            "start": 19.66,
+            "end": 19.88
           },
           {
             "word": "は",
-            "start": 20.1,
-            "end": 20.28
-          }
-        ]
-      },
-      {
-        "start": 20.28,
-        "end": 22.8,
-        "text": "夫婦で仲良く番組に出演することも多く",
-        "words": [
+            "start": 19.88,
+            "end": 20.16
+          },
           {
             "word": "夫",
-            "start": 20.28,
-            "end": 20.66
+            "start": 20.16,
+            "end": 20.56
           },
           {
             "word": "婦",
-            "start": 20.66,
-            "end": 20.8
+            "start": 20.56,
+            "end": 20.78
           },
           {
             "word": "で",
-            "start": 20.8,
-            "end": 20.9
+            "start": 20.78,
+            "end": 20.84
           },
           {
             "word": "仲",
-            "start": 20.9,
-            "end": 21.04
+            "start": 20.84,
+            "end": 21.0
           },
           {
             "word": "良",
-            "start": 21.04,
-            "end": 21.14
+            "start": 21.0,
+            "end": 21.08
           },
           {
             "word": "く",
-            "start": 21.14,
-            "end": 21.26
+            "start": 21.08,
+            "end": 21.22
           },
           {
             "word": "番",
-            "start": 21.26,
-            "end": 21.4
+            "start": 21.22,
+            "end": 21.3
           },
           {
             "word": "組",
-            "start": 21.4,
-            "end": 21.52
+            "start": 21.3,
+            "end": 21.48
           },
           {
             "word": "に",
-            "start": 21.52,
-            "end": 21.68
+            "start": 21.48,
+            "end": 21.64
           },
           {
             "word": "出",
-            "start": 21.68,
-            "end": 21.86
+            "start": 21.64,
+            "end": 21.76
           },
           {
             "word": "演",
-            "start": 21.86,
+            "start": 21.76,
             "end": 21.96
           },
           {
             "word": "する",
             "start": 21.96,
-            "end": 22.22
+            "end": 22.1
           },
           {
             "word": "こと",
-            "start": 22.22,
-            "end": 22.38
+            "start": 22.1,
+            "end": 22.28
           },
           {
             "word": "も",
-            "start": 22.38,
-            "end": 22.5
+            "start": 22.28,
+            "end": 22.42
           },
           {
             "word": "多",
-            "start": 22.5,
-            "end": 22.64
+            "start": 22.42,
+            "end": 22.58
           },
           {
             "word": "く",
-            "start": 22.64,
-            "end": 22.8
+            "start": 22.58,
+            "end": 22.74
           }
         ]
       },
       {
-        "start": 22.8,
-        "end": 24.7,
-        "text": "アワビを食べたいバナナを放ばっている",
+        "start": 22.74,
+        "end": 24.6,
+        "text": "アワビを食べたいバナナを頬張っている",
         "words": [
           {
             "word": "ア",
-            "start": 22.8,
-            "end": 23.12
+            "start": 22.74,
+            "end": 23.02
           },
           {
             "word": "ワ",
-            "start": 23.12,
-            "end": 23.2
+            "start": 23.02,
+            "end": 23.12
           },
           {
             "word": "ビ",
-            "start": 23.2,
-            "end": 23.3
+            "start": 23.12,
+            "end": 23.26
           },
           {
             "word": "を",
-            "start": 23.3,
-            "end": 23.38
+            "start": 23.26,
+            "end": 23.32
           },
           {
             "word": "食べ",
-            "start": 23.38,
-            "end": 23.54
+            "start": 23.32,
+            "end": 23.48
           },
           {
             "word": "たい",
-            "start": 23.54,
-            "end": 23.72
+            "start": 23.48,
+            "end": 23.66
           },
           {
             "word": "バ",
-            "start": 23.72,
-            "end": 23.86
+            "start": 23.66,
+            "end": 23.78
           },
           {
             "word": "ナ",
-            "start": 23.86,
-            "end": 23.88
+            "start": 23.78,
+            "end": 23.84
           },
           {
             "word": "ナ",
-            "start": 23.88,
-            "end": 23.98
+            "start": 23.84,
+            "end": 23.92
           },
           {
             "word": "を",
-            "start": 23.98,
-            "end": 24.08
+            "start": 23.92,
+            "end": 24.06
           },
           {
-            "word": "放",
-            "start": 24.08,
-            "end": 24.24
+            "word": "頬",
+            "start": 24.06,
+            "end": 24.2
           },
           {
-            "word": "ば",
-            "start": 24.24,
-            "end": 24.34
+            "word": "張",
+            "start": 24.2,
+            "end": 24.3
           },
           {
             "word": "って",
-            "start": 24.34,
-            "end": 24.52
+            "start": 24.3,
+            "end": 24.42
           },
           {
             "word": "いる",
-            "start": 24.52,
-            "end": 24.7
+            "start": 24.42,
+            "end": 24.6
           }
         ]
       },
       {
-        "start": 24.7,
-        "end": 26.16,
-        "text": "み、しのざきややな",
+        "start": 24.6,
+        "end": 28.52,
+        "text": "2.篠崎彩奈 AKB48のメンバーとして活動",
         "words": [
           {
-            "word": "み、",
-            "start": 24.7,
-            "end": 25.0
+            "word": "2.",
+            "start": 24.6,
+            "end": 25.04
           },
           {
-            "word": "し",
-            "start": 25.42,
-            "end": 25.5
+            "word": "篠",
+            "start": 25.32,
+            "end": 25.52
           },
           {
-            "word": "の",
-            "start": 25.5,
-            "end": 25.6
+            "word": "崎",
+            "start": 25.52,
+            "end": 25.74
           },
           {
-            "word": "ざ",
-            "start": 25.6,
-            "end": 25.7
-          },
-          {
-            "word": "き",
-            "start": 25.7,
-            "end": 25.84
-          },
-          {
-            "word": "や",
-            "start": 25.84,
+            "word": "彩",
+            "start": 25.74,
             "end": 25.9
           },
           {
-            "word": "や",
+            "word": "奈",
             "start": 25.9,
-            "end": 26.06
+            "end": 26.04
           },
           {
-            "word": "な",
-            "start": 26.06,
-            "end": 26.16
-          }
-        ]
-      },
-      {
-        "start": 26.16,
-        "end": 29.96,
-        "text": "AKB48のメンバーとして勝つと本枠下ふりきと",
-        "words": [
-          {
-            "word": "A",
-            "start": 26.16,
-            "end": 26.56
-          },
-          {
-            "word": "K",
-            "start": 26.56,
-            "end": 26.74
+            "word": " AK",
+            "start": 26.04,
+            "end": 26.58
           },
           {
             "word": "B",
-            "start": 26.74,
-            "end": 26.92
+            "start": 26.58,
+            "end": 26.82
           },
           {
             "word": "48",
-            "start": 26.92,
-            "end": 27.34
+            "start": 26.82,
+            "end": 27.18
           },
           {
             "word": "の",
-            "start": 27.34,
-            "end": 27.68
+            "start": 27.18,
+            "end": 27.58
           },
           {
             "word": "メ",
-            "start": 27.68,
-            "end": 27.8
+            "start": 27.58,
+            "end": 27.72
           },
           {
             "word": "ンバ",
-            "start": 27.8,
-            "end": 27.94
+            "start": 27.72,
+            "end": 27.9
           },
           {
             "word": "ー",
-            "start": 27.94,
+            "start": 27.9,
+            "end": 27.96
+          },
+          {
+            "word": "と",
+            "start": 27.96,
             "end": 28.02
           },
           {
-            "word": "と",
-            "start": 28.02,
-            "end": 28.1
-          },
-          {
             "word": "して",
-            "start": 28.1,
-            "end": 28.24
+            "start": 28.02,
+            "end": 28.18
           },
           {
-            "word": "勝",
-            "start": 28.24,
+            "word": "活",
+            "start": 28.18,
             "end": 28.34
           },
           {
-            "word": "つ",
+            "word": "動",
             "start": 28.34,
-            "end": 28.46
-          },
-          {
-            "word": "と",
-            "start": 28.46,
-            "end": 28.58
-          },
+            "end": 28.52
+          }
+        ]
+      },
+      {
+        "start": 28.52,
+        "end": 31.66,
+        "text": "本話化した雰囲気と柔らかいキャラが売りの彼女だが",
+        "words": [
           {
             "word": "本",
-            "start": 28.58,
-            "end": 29.04
+            "start": 28.52,
+            "end": 28.92
           },
           {
-            "word": "枠",
-            "start": 29.04,
-            "end": 29.14
+            "word": "話",
+            "start": 28.92,
+            "end": 29.1
           },
           {
-            "word": "下",
-            "start": 29.14,
-            "end": 29.38
+            "word": "化",
+            "start": 29.1,
+            "end": 29.22
           },
           {
-            "word": "ふ",
-            "start": 29.38,
+            "word": "した",
+            "start": 29.22,
+            "end": 29.4
+          },
+          {
+            "word": "雰",
+            "start": 29.4,
             "end": 29.56
           },
           {
-            "word": "り",
+            "word": "囲",
             "start": 29.56,
-            "end": 29.68
+            "end": 29.66
           },
           {
-            "word": "き",
-            "start": 29.68,
-            "end": 29.8
+            "word": "気",
+            "start": 29.66,
+            "end": 29.72
           },
           {
             "word": "と",
-            "start": 29.8,
-            "end": 29.96
-          }
-        ]
-      },
-      {
-        "start": 29.96,
-        "end": 31.74,
-        "text": "柔らかいキャラが売りの彼女だが",
-        "words": [
+            "start": 29.72,
+            "end": 29.86
+          },
           {
             "word": "柔",
-            "start": 29.96,
-            "end": 30.34
+            "start": 29.86,
+            "end": 30.32
           },
           {
             "word": "ら",
-            "start": 30.34,
-            "end": 30.46
+            "start": 30.32,
+            "end": 30.44
           },
           {
             "word": "か",
-            "start": 30.46,
-            "end": 30.6
+            "start": 30.44,
+            "end": 30.52
           },
           {
             "word": "い",
-            "start": 30.6,
-            "end": 30.72
+            "start": 30.52,
+            "end": 30.62
           },
           {
             "word": "キ",
-            "start": 30.72,
-            "end": 30.84
+            "start": 30.62,
+            "end": 30.7
           },
           {
             "word": "ャ",
-            "start": 30.84,
-            "end": 30.86
+            "start": 30.7,
+            "end": 30.78
           },
           {
             "word": "ラ",
-            "start": 30.86,
-            "end": 30.86
+            "start": 30.78,
+            "end": 30.8
           },
           {
             "word": "が",
-            "start": 30.86,
-            "end": 31.0
+            "start": 30.8,
+            "end": 30.92
           },
           {
             "word": "売",
-            "start": 31.0,
-            "end": 31.08
+            "start": 30.92,
+            "end": 31.04
           },
           {
             "word": "り",
-            "start": 31.08,
-            "end": 31.14
+            "start": 31.04,
+            "end": 31.12
           },
           {
             "word": "の",
-            "start": 31.14,
-            "end": 31.22
+            "start": 31.12,
+            "end": 31.12
           },
           {
             "word": "彼",
-            "start": 31.22,
-            "end": 31.32
+            "start": 31.12,
+            "end": 31.3
           },
           {
             "word": "女",
-            "start": 31.32,
-            "end": 31.46
+            "start": 31.3,
+            "end": 31.38
           },
           {
             "word": "だ",
-            "start": 31.46,
-            "end": 31.56
+            "start": 31.38,
+            "end": 31.48
           },
           {
             "word": "が",
-            "start": 31.56,
-            "end": 31.74
+            "start": 31.48,
+            "end": 31.66
           }
         ]
       },
       {
-        "start": 31.74,
-        "end": 33.4,
-        "text": "お笑い芸人レインボーイケだ",
+        "start": 31.66,
+        "end": 34.84,
+        "text": "お笑い芸人レインボー池田との韓国旅行がスクープ",
         "words": [
           {
             "word": "お",
-            "start": 31.74,
-            "end": 32.1
+            "start": 31.66,
+            "end": 32.0
           },
           {
             "word": "笑",
-            "start": 32.1,
-            "end": 32.2
+            "start": 32.0,
+            "end": 32.16
           },
           {
             "word": "い",
-            "start": 32.2,
-            "end": 32.36
+            "start": 32.16,
+            "end": 32.28
           },
           {
             "word": "芸",
-            "start": 32.36,
-            "end": 32.44
+            "start": 32.28,
+            "end": 32.46
           },
           {
             "word": "人",
-            "start": 32.44,
-            "end": 32.6
+            "start": 32.46,
+            "end": 32.58
           },
           {
             "word": "レ",
-            "start": 32.6,
+            "start": 32.58,
+            "end": 32.78
+          },
+          {
+            "word": "イ",
+            "start": 32.78,
             "end": 32.82
           },
           {
-            "word": "イ",
-            "start": 32.82,
-            "end": 32.86
-          },
-          {
             "word": "ンボ",
-            "start": 32.86,
-            "end": 33.0
+            "start": 32.82,
+            "end": 32.98
           },
           {
             "word": "ー",
-            "start": 33.0,
-            "end": 33.1
+            "start": 32.98,
+            "end": 33.02
           },
           {
-            "word": "イ",
-            "start": 33.1,
+            "word": "池",
+            "start": 33.02,
             "end": 33.18
           },
           {
-            "word": "ケ",
+            "word": "田",
             "start": 33.18,
-            "end": 33.24
+            "end": 33.32
           },
           {
-            "word": "だ",
-            "start": 33.24,
-            "end": 33.4
-          }
-        ]
-      },
-      {
-        "start": 33.4,
-        "end": 34.92,
-        "text": "との韓国旅行がスクープ",
-        "words": [
-          {
             "word": "と",
-            "start": 33.4,
-            "end": 33.72
+            "start": 33.32,
+            "end": 33.62
           },
           {
             "word": "の",
-            "start": 33.72,
-            "end": 33.84
+            "start": 33.62,
+            "end": 33.72
           },
           {
             "word": "韓",
-            "start": 33.84,
+            "start": 33.72,
             "end": 33.96
           },
           {
             "word": "国",
             "start": 33.96,
-            "end": 34.1
+            "end": 34.08
           },
           {
             "word": "旅",
-            "start": 34.1,
-            "end": 34.28
+            "start": 34.08,
+            "end": 34.26
           },
           {
             "word": "行",
-            "start": 34.28,
-            "end": 34.42
+            "start": 34.26,
+            "end": 34.36
           },
           {
             "word": "が",
-            "start": 34.42,
-            "end": 34.56
+            "start": 34.36,
+            "end": 34.5
           },
           {
             "word": "ス",
-            "start": 34.56,
-            "end": 34.68
+            "start": 34.5,
+            "end": 34.62
           },
           {
             "word": "ク",
-            "start": 34.68,
+            "start": 34.62,
             "end": 34.74
           },
           {
             "word": "ープ",
             "start": 34.74,
-            "end": 34.92
+            "end": 34.84
           }
         ]
       },
       {
-        "start": 34.92,
-        "end": 37.92,
-        "text": "世間の声は行けたに反韓の声が上がるかと思えたが",
+        "start": 34.84,
+        "end": 37.84,
+        "text": "世間の声は池田に反感の声が上がるかと思えたが",
         "words": [
           {
             "word": "世",
-            "start": 34.92,
-            "end": 35.38
+            "start": 34.84,
+            "end": 35.26
           },
           {
             "word": "間",
-            "start": 35.38,
-            "end": 35.5
+            "start": 35.26,
+            "end": 35.46
           },
           {
             "word": "の",
-            "start": 35.5,
-            "end": 35.66
+            "start": 35.46,
+            "end": 35.62
           },
           {
             "word": "声",
-            "start": 35.66,
-            "end": 35.8
+            "start": 35.62,
+            "end": 35.78
           },
           {
             "word": "は",
-            "start": 35.8,
-            "end": 35.94
+            "start": 35.78,
+            "end": 35.92
           },
           {
-            "word": "行",
-            "start": 35.94,
+            "word": "池",
+            "start": 35.92,
             "end": 36.02
           },
           {
-            "word": "け",
+            "word": "田",
             "start": 36.02,
             "end": 36.1
           },
           {
-            "word": "た",
-            "start": 36.1,
-            "end": 36.18
-          },
-          {
             "word": "に",
-            "start": 36.18,
-            "end": 36.26
+            "start": 36.1,
+            "end": 36.24
           },
           {
             "word": "反",
-            "start": 36.26,
-            "end": 36.46
+            "start": 36.24,
+            "end": 36.38
           },
           {
-            "word": "韓",
-            "start": 36.46,
-            "end": 36.54
+            "word": "感",
+            "start": 36.38,
+            "end": 36.48
           },
           {
             "word": "の",
-            "start": 36.54,
-            "end": 36.7
+            "start": 36.48,
+            "end": 36.64
           },
           {
             "word": "声",
-            "start": 36.7,
-            "end": 36.9
+            "start": 36.64,
+            "end": 36.82
           },
           {
             "word": "が",
-            "start": 36.9,
-            "end": 37.02
+            "start": 36.82,
+            "end": 36.94
           },
           {
             "word": "上",
-            "start": 37.02,
-            "end": 37.1
+            "start": 36.94,
+            "end": 37.08
           },
           {
             "word": "が",
-            "start": 37.1,
-            "end": 37.18
+            "start": 37.08,
+            "end": 37.12
           },
           {
             "word": "る",
-            "start": 37.18,
-            "end": 37.26
+            "start": 37.12,
+            "end": 37.22
           },
           {
             "word": "か",
-            "start": 37.26,
-            "end": 37.36
+            "start": 37.22,
+            "end": 37.28
           },
           {
             "word": "と思",
-            "start": 37.36,
-            "end": 37.56
+            "start": 37.28,
+            "end": 37.46
           },
           {
             "word": "え",
-            "start": 37.56,
-            "end": 37.7
+            "start": 37.46,
+            "end": 37.66
           },
           {
             "word": "た",
-            "start": 37.7,
-            "end": 37.8
+            "start": 37.66,
+            "end": 37.7
           },
           {
             "word": "が",
-            "start": 37.8,
-            "end": 37.92
+            "start": 37.7,
+            "end": 37.84
           }
         ]
       },
       {
-        "start": 37.92,
-        "end": 40.1,
-        "text": "実際には行けめに行けたお返せ",
+        "start": 37.84,
+        "end": 41.3,
+        "text": "実際にはイケメン池田を返せとの声が相次いだ",
         "words": [
           {
             "word": "実",
-            "start": 37.92,
-            "end": 38.34
+            "start": 37.84,
+            "end": 38.3
           },
           {
             "word": "際",
-            "start": 38.34,
-            "end": 38.54
+            "start": 38.3,
+            "end": 38.5
           },
           {
             "word": "には",
-            "start": 38.54,
-            "end": 38.78
+            "start": 38.5,
+            "end": 38.7
           },
           {
-            "word": "行",
-            "start": 38.78,
-            "end": 39.16
+            "word": "イ",
+            "start": 38.7,
+            "end": 39.08
           },
           {
-            "word": "け",
-            "start": 39.16,
-            "end": 39.28
+            "word": "ケ",
+            "start": 39.08,
+            "end": 39.2
           },
           {
-            "word": "め",
-            "start": 39.28,
-            "end": 39.36
+            "word": "メ",
+            "start": 39.2,
+            "end": 39.34
           },
           {
-            "word": "に",
-            "start": 39.36,
-            "end": 39.46
+            "word": "ン",
+            "start": 39.34,
+            "end": 39.38
           },
           {
-            "word": "行",
-            "start": 39.46,
-            "end": 39.56
+            "word": "池",
+            "start": 39.38,
+            "end": 39.54
           },
           {
-            "word": "け",
-            "start": 39.56,
+            "word": "田",
+            "start": 39.54,
             "end": 39.62
           },
           {
-            "word": "た",
+            "word": "を",
             "start": 39.62,
-            "end": 39.7
-          },
-          {
-            "word": "お",
-            "start": 39.7,
-            "end": 39.8
+            "end": 39.74
           },
           {
             "word": "返",
-            "start": 39.8,
+            "start": 39.74,
             "end": 39.94
           },
           {
             "word": "せ",
             "start": 39.94,
             "end": 40.1
-          }
-        ]
-      },
-      {
-        "start": 40.1,
-        "end": 41.36,
-        "text": "との声があいついた",
-        "words": [
+          },
           {
             "word": "と",
             "start": 40.1,
-            "end": 40.5
+            "end": 40.4
           },
           {
             "word": "の",
-            "start": 40.5,
-            "end": 40.6
+            "start": 40.4,
+            "end": 40.52
           },
           {
             "word": "声",
-            "start": 40.6,
-            "end": 40.8
+            "start": 40.52,
+            "end": 40.74
           },
           {
             "word": "が",
-            "start": 40.8,
-            "end": 40.94
+            "start": 40.74,
+            "end": 40.9
           },
           {
-            "word": "あ",
-            "start": 40.94,
-            "end": 41.0
+            "word": "相",
+            "start": 40.9,
+            "end": 40.98
           },
           {
-            "word": "いつ",
-            "start": 41.0,
-            "end": 41.16
+            "word": "次",
+            "start": 40.98,
+            "end": 41.14
           },
           {
-            "word": "いた",
-            "start": 41.16,
-            "end": 41.36
+            "word": "い",
+            "start": 41.14,
+            "end": 41.24
+          },
+          {
+            "word": "だ",
+            "start": 41.24,
+            "end": 41.3
           }
         ]
       },
       {
-        "start": 41.36,
-        "end": 43.86,
-        "text": "どんなアワビをいただいたのかと想像が働る",
+        "start": 41.3,
+        "end": 43.7,
+        "text": "どんなアワビをいただいたのかと想像がはたどる",
         "words": [
           {
             "word": "ど",
-            "start": 41.36,
-            "end": 41.8
+            "start": 41.3,
+            "end": 41.72
           },
           {
             "word": "んな",
-            "start": 41.8,
-            "end": 41.98
+            "start": 41.72,
+            "end": 41.9
           },
           {
             "word": "ア",
-            "start": 41.98,
-            "end": 42.14
+            "start": 41.9,
+            "end": 42.04
           },
           {
             "word": "ワ",
-            "start": 42.14,
-            "end": 42.14
+            "start": 42.04,
+            "end": 42.1
           },
           {
             "word": "ビ",
-            "start": 42.14,
-            "end": 42.24
+            "start": 42.1,
+            "end": 42.18
           },
           {
             "word": "を",
-            "start": 42.24,
-            "end": 42.34
+            "start": 42.18,
+            "end": 42.28
           },
           {
             "word": "いただ",
-            "start": 42.34,
-            "end": 42.52
+            "start": 42.28,
+            "end": 42.46
           },
           {
             "word": "いた",
-            "start": 42.52,
-            "end": 42.7
+            "start": 42.46,
+            "end": 42.66
           },
           {
             "word": "の",
-            "start": 42.7,
-            "end": 42.8
+            "start": 42.66,
+            "end": 42.74
           },
           {
             "word": "か",
-            "start": 42.8,
-            "end": 42.92
+            "start": 42.74,
+            "end": 42.84
           },
           {
             "word": "と",
-            "start": 42.92,
-            "end": 43.02
+            "start": 42.84,
+            "end": 42.98
           },
           {
             "word": "想",
-            "start": 43.02,
-            "end": 43.16
+            "start": 42.98,
+            "end": 43.1
           },
           {
             "word": "像",
-            "start": 43.16,
-            "end": 43.3
+            "start": 43.1,
+            "end": 43.26
           },
           {
             "word": "が",
-            "start": 43.3,
-            "end": 43.44
+            "start": 43.26,
+            "end": 43.4
           },
           {
-            "word": "働",
-            "start": 43.44,
-            "end": 43.6
+            "word": "は",
+            "start": 43.4,
+            "end": 43.5
+          },
+          {
+            "word": "た",
+            "start": 43.5,
+            "end": 43.54
+          },
+          {
+            "word": "ど",
+            "start": 43.54,
+            "end": 43.62
           },
           {
             "word": "る",
-            "start": 43.6,
-            "end": 43.86
+            "start": 43.62,
+            "end": 43.7
           }
         ]
       },
       {
-        "start": 43.86,
-        "end": 46.62,
-        "text": "最後はおばかけらでブレイク、カントリーム娘。",
+        "start": 44.0,
+        "end": 45.56,
+        "text": "最後はおバカキャラでブレイク",
         "words": [
           {
             "word": "最後",
-            "start": 43.86,
+            "start": 44.0,
             "end": 44.28
           },
           {
             "word": "は",
             "start": 44.28,
-            "end": 44.64
+            "end": 44.48
           },
           {
             "word": "お",
-            "start": 44.64,
-            "end": 44.86
+            "start": 44.48,
+            "end": 44.8
           },
           {
-            "word": "ば",
-            "start": 44.86,
-            "end": 44.94
-          },
-          {
-            "word": "か",
-            "start": 44.94,
-            "end": 45.04
-          },
-          {
-            "word": "け",
-            "start": 45.04,
-            "end": 45.14
-          },
-          {
-            "word": "ら",
-            "start": 45.14,
-            "end": 45.22
-          },
-          {
-            "word": "で",
-            "start": 45.22,
-            "end": 45.32
-          },
-          {
-            "word": "ブ",
-            "start": 45.32,
-            "end": 45.48
-          },
-          {
-            "word": "レ",
-            "start": 45.48,
-            "end": 45.48
-          },
-          {
-            "word": "イ",
-            "start": 45.48,
-            "end": 45.56
-          },
-          {
-            "word": "ク、",
-            "start": 45.56,
-            "end": 45.68
+            "word": "バ",
+            "start": 44.8,
+            "end": 44.92
           },
           {
             "word": "カ",
-            "start": 46.0,
-            "end": 46.04
+            "start": 44.92,
+            "end": 45.02
           },
           {
-            "word": "ント",
-            "start": 46.04,
-            "end": 46.2
+            "word": "キ",
+            "start": 45.02,
+            "end": 45.1
           },
           {
-            "word": "リ",
-            "start": 46.2,
-            "end": 46.3
+            "word": "ャ",
+            "start": 45.1,
+            "end": 45.12
           },
           {
-            "word": "ーム",
-            "start": 46.3,
-            "end": 46.42
-          },
-          {
-            "word": "娘。",
-            "start": 46.42,
-            "end": 46.62
-          }
-        ]
-      },
-      {
-        "start": 47.0,
-        "end": 49.38,
-        "text": "出身、あなたの芸人と教演しており",
-        "words": [
-          {
-            "word": "出",
-            "start": 47.0,
-            "end": 47.22
-          },
-          {
-            "word": "身、",
-            "start": 47.22,
-            "end": 47.44
-          },
-          {
-            "word": "あ",
-            "start": 47.82,
-            "end": 47.86
-          },
-          {
-            "word": "なた",
-            "start": 47.86,
-            "end": 48.02
-          },
-          {
-            "word": "の",
-            "start": 48.02,
-            "end": 48.18
-          },
-          {
-            "word": "芸",
-            "start": 48.18,
-            "end": 48.28
-          },
-          {
-            "word": "人",
-            "start": 48.28,
-            "end": 48.44
-          },
-          {
-            "word": "と",
-            "start": 48.44,
-            "end": 48.64
-          },
-          {
-            "word": "教",
-            "start": 48.64,
-            "end": 48.8
-          },
-          {
-            "word": "演",
-            "start": 48.8,
-            "end": 48.94
-          },
-          {
-            "word": "して",
-            "start": 48.94,
-            "end": 49.16
-          },
-          {
-            "word": "お",
-            "start": 49.16,
-            "end": 49.26
-          },
-          {
-            "word": "り",
-            "start": 49.26,
-            "end": 49.38
-          }
-        ]
-      },
-      {
-        "start": 49.38,
-        "end": 51.34,
-        "text": "数え切れないほどのわさを経で",
-        "words": [
-          {
-            "word": "数",
-            "start": 49.38,
-            "end": 49.76
-          },
-          {
-            "word": "え",
-            "start": 49.76,
-            "end": 49.9
-          },
-          {
-            "word": "切",
-            "start": 49.9,
-            "end": 50.0
-          },
-          {
-            "word": "れない",
-            "start": 50.0,
-            "end": 50.18
-          },
-          {
-            "word": "ほど",
-            "start": 50.18,
-            "end": 50.36
-          },
-          {
-            "word": "の",
-            "start": 50.36,
-            "end": 50.52
-          },
-          {
-            "word": "わ",
-            "start": 50.52,
-            "end": 50.66
-          },
-          {
-            "word": "さ",
-            "start": 50.66,
-            "end": 50.78
-          },
-          {
-            "word": "を",
-            "start": 50.78,
-            "end": 50.86
-          },
-          {
-            "word": "経",
-            "start": 50.86,
-            "end": 50.98
+            "word": "ラ",
+            "start": 45.12,
+            "end": 45.16
           },
           {
             "word": "で",
-            "start": 50.98,
-            "end": 51.34
+            "start": 45.16,
+            "end": 45.28
+          },
+          {
+            "word": "ブ",
+            "start": 45.28,
+            "end": 45.38
+          },
+          {
+            "word": "レ",
+            "start": 45.38,
+            "end": 45.46
+          },
+          {
+            "word": "イ",
+            "start": 45.46,
+            "end": 45.46
+          },
+          {
+            "word": "ク",
+            "start": 45.46,
+            "end": 45.56
           }
         ]
       },
       {
-        "start": 51.34,
-        "end": 53.44,
-        "text": "最終的に長一流はスリートと結婚",
+        "start": 45.56,
+        "end": 47.4,
+        "text": "カントリー娘。出身",
         "words": [
           {
-            "word": "最",
-            "start": 51.34,
-            "end": 51.54
+            "word": "カ",
+            "start": 45.56,
+            "end": 45.92
           },
           {
-            "word": "終",
-            "start": 51.54,
-            "end": 51.74
-          },
-          {
-            "word": "的",
-            "start": 51.74,
-            "end": 51.88
-          },
-          {
-            "word": "に",
-            "start": 51.88,
-            "end": 52.06
-          },
-          {
-            "word": "長",
-            "start": 52.06,
-            "end": 52.24
-          },
-          {
-            "word": "一",
-            "start": 52.24,
-            "end": 52.4
-          },
-          {
-            "word": "流",
-            "start": 52.4,
-            "end": 52.56
-          },
-          {
-            "word": "は",
-            "start": 52.56,
-            "end": 52.7
-          },
-          {
-            "word": "ス",
-            "start": 52.7,
-            "end": 52.84
+            "word": "ント",
+            "start": 45.92,
+            "end": 46.1
           },
           {
             "word": "リ",
-            "start": 52.84,
-            "end": 52.92
+            "start": 46.1,
+            "end": 46.22
           },
           {
-            "word": "ート",
-            "start": 52.92,
-            "end": 53.0
+            "word": "ー",
+            "start": 46.22,
+            "end": 46.3
+          },
+          {
+            "word": "娘。",
+            "start": 46.3,
+            "end": 46.38
+          },
+          {
+            "word": "出",
+            "start": 46.86,
+            "end": 47.14
+          },
+          {
+            "word": "身",
+            "start": 47.14,
+            "end": 47.4
+          }
+        ]
+      },
+      {
+        "start": 47.4,
+        "end": 51.06,
+        "text": "数多の芸人と共演しており数え切れないほどの噂を経て",
+        "words": [
+          {
+            "word": "数",
+            "start": 47.4,
+            "end": 47.84
+          },
+          {
+            "word": "多",
+            "start": 47.84,
+            "end": 47.92
+          },
+          {
+            "word": "の",
+            "start": 47.92,
+            "end": 48.06
+          },
+          {
+            "word": "芸",
+            "start": 48.06,
+            "end": 48.3
+          },
+          {
+            "word": "人",
+            "start": 48.3,
+            "end": 48.4
           },
           {
             "word": "と",
-            "start": 53.0,
-            "end": 53.12
+            "start": 48.4,
+            "end": 48.58
+          },
+          {
+            "word": "共",
+            "start": 48.58,
+            "end": 48.74
+          },
+          {
+            "word": "演",
+            "start": 48.74,
+            "end": 48.9
+          },
+          {
+            "word": "して",
+            "start": 48.9,
+            "end": 49.06
+          },
+          {
+            "word": "お",
+            "start": 49.06,
+            "end": 49.2
+          },
+          {
+            "word": "り",
+            "start": 49.2,
+            "end": 49.32
+          },
+          {
+            "word": "数",
+            "start": 49.32,
+            "end": 49.7
+          },
+          {
+            "word": "え",
+            "start": 49.7,
+            "end": 49.84
+          },
+          {
+            "word": "切",
+            "start": 49.84,
+            "end": 49.92
+          },
+          {
+            "word": "れない",
+            "start": 49.92,
+            "end": 50.12
+          },
+          {
+            "word": "ほど",
+            "start": 50.12,
+            "end": 50.32
+          },
+          {
+            "word": "の",
+            "start": 50.32,
+            "end": 50.48
+          },
+          {
+            "word": "噂",
+            "start": 50.48,
+            "end": 50.68
+          },
+          {
+            "word": "を",
+            "start": 50.68,
+            "end": 50.84
+          },
+          {
+            "word": "経",
+            "start": 50.84,
+            "end": 50.96
+          },
+          {
+            "word": "て",
+            "start": 50.96,
+            "end": 51.06
+          }
+        ]
+      },
+      {
+        "start": 51.06,
+        "end": 53.44,
+        "text": "最終的に超一流アスリートと結婚",
+        "words": [
+          {
+            "word": "最",
+            "start": 51.06,
+            "end": 51.44
+          },
+          {
+            "word": "終",
+            "start": 51.44,
+            "end": 51.68
+          },
+          {
+            "word": "的",
+            "start": 51.68,
+            "end": 51.84
+          },
+          {
+            "word": "に",
+            "start": 51.84,
+            "end": 52.04
+          },
+          {
+            "word": "超",
+            "start": 52.04,
+            "end": 52.2
+          },
+          {
+            "word": "一",
+            "start": 52.2,
+            "end": 52.34
+          },
+          {
+            "word": "流",
+            "start": 52.34,
+            "end": 52.52
+          },
+          {
+            "word": "ア",
+            "start": 52.52,
+            "end": 52.68
+          },
+          {
+            "word": "ス",
+            "start": 52.68,
+            "end": 52.72
+          },
+          {
+            "word": "リ",
+            "start": 52.72,
+            "end": 52.82
+          },
+          {
+            "word": "ート",
+            "start": 52.82,
+            "end": 52.96
+          },
+          {
+            "word": "と",
+            "start": 52.96,
+            "end": 53.04
           },
           {
             "word": "結",
-            "start": 53.12,
-            "end": 53.28
+            "start": 53.04,
+            "end": 53.18
           },
           {
             "word": "婚",
-            "start": 53.28,
+            "start": 53.18,
             "end": 53.44
           }
         ]
       },
       {
         "start": 53.44,
-        "end": 56.04,
-        "text": "だんだがまわく髪のこしぎな子なのは",
+        "end": 54.44,
+        "text": "旦那がマー君",
         "words": [
           {
-            "word": "だ",
+            "word": "旦",
             "start": 53.44,
             "end": 53.9
           },
           {
-            "word": "んだ",
+            "word": "那",
             "start": 53.9,
             "end": 54.04
           },
           {
             "word": "が",
             "start": 54.04,
-            "end": 54.18
+            "end": 54.14
           },
           {
-            "word": "ま",
-            "start": 54.18,
+            "word": "マ",
+            "start": 54.14,
             "end": 54.28
           },
           {
-            "word": "わ",
+            "word": "ー",
             "start": 54.28,
-            "end": 54.36
+            "end": 54.3
           },
           {
-            "word": "く",
-            "start": 54.36,
-            "end": 54.48
-          },
-          {
-            "word": "髪",
-            "start": 54.48,
-            "end": 54.98
-          },
-          {
-            "word": "の",
-            "start": 54.98,
-            "end": 55.08
-          },
-          {
-            "word": "こ",
-            "start": 55.08,
-            "end": 55.2
-          },
-          {
-            "word": "し",
-            "start": 55.2,
-            "end": 55.34
-          },
-          {
-            "word": "ぎ",
-            "start": 55.34,
-            "end": 55.48
-          },
-          {
-            "word": "な",
-            "start": 55.48,
-            "end": 55.54
-          },
-          {
-            "word": "子",
-            "start": 55.54,
-            "end": 55.62
-          },
-          {
-            "word": "な",
-            "start": 55.62,
-            "end": 55.72
-          },
-          {
-            "word": "のは",
-            "start": 55.72,
-            "end": 56.04
+            "word": "君",
+            "start": 54.3,
+            "end": 54.44
           }
         ]
       },
       {
-        "start": 57.58,
-        "end": 58.2,
-        "text": "さとだない",
+        "start": 54.44,
+        "end": 55.82,
+        "text": "髪の子不思議な子なのは",
         "words": [
           {
-            "word": "さ",
-            "start": 57.58,
-            "end": 57.82
+            "word": "髪",
+            "start": 54.44,
+            "end": 54.94
           },
           {
-            "word": "と",
-            "start": 57.82,
+            "word": "の",
+            "start": 54.94,
+            "end": 55.0
+          },
+          {
+            "word": "子",
+            "start": 55.0,
+            "end": 55.12
+          },
+          {
+            "word": "不",
+            "start": 55.12,
+            "end": 55.24
+          },
+          {
+            "word": "思",
+            "start": 55.24,
+            "end": 55.26
+          },
+          {
+            "word": "議",
+            "start": 55.26,
+            "end": 55.42
+          },
+          {
+            "word": "な",
+            "start": 55.42,
+            "end": 55.44
+          },
+          {
+            "word": "子",
+            "start": 55.44,
+            "end": 55.54
+          },
+          {
+            "word": "な",
+            "start": 55.54,
+            "end": 55.68
+          },
+          {
+            "word": "のは",
+            "start": 55.68,
+            "end": 55.82
+          }
+        ]
+      },
+      {
+        "start": 57.56,
+        "end": 58.1,
+        "text": "里田舞",
+        "words": [
+          {
+            "word": "里",
+            "start": 57.56,
+            "end": 57.84
+          },
+          {
+            "word": "田",
+            "start": 57.84,
             "end": 57.94
           },
           {
-            "word": "だ",
+            "word": "舞",
             "start": 57.94,
-            "end": 58.04
+            "end": 58.1
+          }
+        ]
+      },
+      {
+        "start": 58.26,
+        "end": 58.4,
+        "text": "ご視聴ありがとうございました",
+        "words": [
+          {
+            "word": "ご",
+            "start": 58.26,
+            "end": 58.32
           },
           {
-            "word": "ない",
-            "start": 58.04,
-            "end": 58.2
+            "word": "視",
+            "start": 58.32,
+            "end": 58.34
+          },
+          {
+            "word": "聴",
+            "start": 58.34,
+            "end": 58.38
+          },
+          {
+            "word": "ありがとうございました",
+            "start": 58.38,
+            "end": 58.4
           }
         ]
       }
     ],
-    "full_text": "ゲーニンにじまんのアワビを食べられちゃった女性絵のおじんさん線 最後はまさかのたまの子支援度、1、高橋相、モーニング娘。 の絶対的エース、小腹で動画、王道アイドルド真ん中の彼女だが 2012年にR1グランプリを取ったアベコウジトの 公裁が放じられた一部ファンから巨日反応が出たが そのままゴールインレンザイは 夫婦で仲良く番組に出演することも多く アワビを食べたいバナナを放ばっている み、しのざきややな AKB48のメンバーとして勝つと本枠下ふりきと 柔らかいキャラが売りの彼女だが お笑い芸人レインボーイケだ との韓国旅行がスクープ 世間の声は行けたに反韓の声が上がるかと思えたが 実際には行けめに行けたお返せ との声があいついた どんなアワビをいただいたのかと想像が働る 最後はおばかけらでブレイク、カントリーム娘。 出身、あなたの芸人と教演しており 数え切れないほどのわさを経で 最終的に長一流はスリートと結婚 だんだがまわく髪のこしぎな子なのは さとだない",
-    "words_per_minute": 441.5,
+    "full_text": "芸人に自慢のアワビを食べられちゃった女性芸能人参戦 最後はまさかの玉残しエンド 1.高橋愛 モーニング娘。の絶対的エース 小柄で銅眼 王道アイドルど真ん中の彼女だが 2012年にR1グランプリを取った安部浩二との交際が報じられた 一部ファンから拒否反応が出たが そのままゴールイン現在は夫婦で仲良く番組に出演することも多く アワビを食べたいバナナを頬張っている 2.篠崎彩奈 AKB48のメンバーとして活動 本話化した雰囲気と柔らかいキャラが売りの彼女だが お笑い芸人レインボー池田との韓国旅行がスクープ 世間の声は池田に反感の声が上がるかと思えたが 実際にはイケメン池田を返せとの声が相次いだ どんなアワビをいただいたのかと想像がはたどる 最後はおバカキャラでブレイク カントリー娘。出身 数多の芸人と共演しており数え切れないほどの噂を経て 最終的に超一流アスリートと結婚 旦那がマー君 髪の子不思議な子なのは 里田舞 ご視聴ありがとうございました",
+    "words_per_minute": 431.3,
     "keywords": [
-      "ニンにじまんのアワビを食べられちゃった女性絵のおじんさん線",
-      "最後はまさかのたまの子支援度",
-      "高橋相",
+      "芸人に自慢のアワビを食べられちゃった女性芸能人参戦",
+      "最後はまさかの玉残しエンド",
+      "高橋愛",
       "ニング娘",
       "の絶対的エ",
-      "小腹で動画",
-      "王道アイドルド真ん中の彼女だが",
+      "小柄で銅眼",
+      "王道アイドルど真ん中の彼女だが",
       "年にR",
-      "グランプリを取ったアベコウジトの",
-      "公裁が放じられた一部ファンから巨日反応が出たが"
+      "グランプリを取った安部浩二との交際が報じられた",
+      "一部ファンから拒否反応が出たが"
     ],
     "emotional_intensity": "high",
     "pauses": [
       {
-        "start": 56.04,
-        "end": 57.58,
-        "duration": 1.54
+        "start": 55.82,
+        "end": 57.56,
+        "duration": 1.74
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 0.74,
+        "end": 1.39,
+        "energy": "medium"
+      },
+      {
+        "start": 2.16,
+        "end": 2.81,
+        "energy": "medium"
+      },
+      {
+        "start": 9.47,
+        "end": 10.15,
+        "energy": "medium"
+      },
+      {
+        "start": 10.66,
+        "end": 11.91,
+        "energy": "medium"
+      },
+      {
+        "start": 12.61,
+        "end": 13.28,
+        "energy": "medium"
+      },
+      {
+        "start": 13.65,
+        "end": 14.28,
+        "energy": "medium"
+      },
+      {
+        "start": 17.79,
+        "end": 18.39,
+        "energy": "medium"
+      },
+      {
+        "start": 19.04,
+        "end": 20.13,
+        "energy": "medium"
+      },
+      {
+        "start": 23.08,
+        "end": 24.08,
+        "energy": "medium"
+      },
+      {
+        "start": 27.24,
+        "end": 28.05,
+        "energy": "medium"
+      },
+      {
+        "start": 30.79,
+        "end": 31.6,
+        "energy": "low"
+      },
+      {
+        "start": 32.07,
+        "end": 33.16,
+        "energy": "medium"
+      },
+      {
+        "start": 33.72,
+        "end": 34.32,
+        "energy": "medium"
+      },
+      {
+        "start": 35.76,
+        "end": 36.76,
+        "energy": "medium"
+      },
+      {
+        "start": 36.78,
+        "end": 37.92,
+        "energy": "low"
+      },
+      {
+        "start": 41.77,
+        "end": 42.86,
+        "energy": "medium"
+      },
+      {
+        "start": 47.86,
+        "end": 48.67,
+        "energy": "medium"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 3.576,
+        "type": "whoosh",
+        "energy": 0.62
+      },
+      {
+        "time": 4.18,
+        "type": "whoosh",
+        "energy": 0.477
+      },
+      {
+        "time": 4.853,
+        "type": "whoosh",
+        "energy": 0.493
+      },
+      {
+        "time": 6.13,
+        "type": "whoosh",
+        "energy": 0.432
+      },
+      {
+        "time": 8.266,
+        "type": "whoosh",
+        "energy": 0.517
+      },
+      {
+        "time": 8.591,
+        "type": "whoosh",
+        "energy": 0.552
+      },
+      {
+        "time": 10.612,
+        "type": "impact",
+        "energy": 0.553
+      },
+      {
+        "time": 13.607,
+        "type": "transition",
+        "energy": 0.74
+      },
+      {
+        "time": 14.791,
+        "type": "whoosh",
+        "energy": 0.425
+      },
+      {
+        "time": 15.093,
+        "type": "whoosh",
+        "energy": 0.575
+      },
+      {
+        "time": 16.3,
+        "type": "whoosh",
+        "energy": 0.534
+      },
+      {
+        "time": 16.997,
+        "type": "whoosh",
+        "energy": 0.324
+      },
+      {
+        "time": 20.596,
+        "type": "whoosh",
+        "energy": 0.482
+      },
+      {
+        "time": 21.084,
+        "type": "whoosh",
+        "energy": 0.612
+      },
+      {
+        "time": 21.92,
+        "type": "whoosh",
+        "energy": 0.599
+      },
+      {
+        "time": 23.057,
+        "type": "whoosh",
+        "energy": 0.587
+      },
+      {
+        "time": 24.242,
+        "type": "impact",
+        "energy": 0.553
+      },
+      {
+        "time": 24.985,
+        "type": "whoosh",
+        "energy": 0.384
+      },
+      {
+        "time": 26.471,
+        "type": "whoosh",
+        "energy": 0.692
+      },
+      {
+        "time": 28.932,
+        "type": "impact",
+        "energy": 0.545
+      },
+      {
+        "time": 29.42,
+        "type": "whoosh",
+        "energy": 0.438
+      },
+      {
+        "time": 32.136,
+        "type": "transition",
+        "energy": 0.997
+      },
+      {
+        "time": 34.203,
+        "type": "whoosh",
+        "energy": 0.628
+      },
+      {
+        "time": 34.76,
+        "type": "whoosh",
+        "energy": 0.508
+      },
+      {
+        "time": 35.341,
+        "type": "whoosh",
+        "energy": 0.632
+      },
+      {
+        "time": 35.805,
+        "type": "transition",
+        "energy": 0.701
+      },
+      {
+        "time": 36.177,
+        "type": "whoosh",
+        "energy": 0.651
+      },
+      {
+        "time": 36.873,
+        "type": "whoosh",
+        "energy": 0.659
+      },
+      {
+        "time": 38.522,
+        "type": "whoosh",
+        "energy": 0.693
+      },
+      {
+        "time": 39.706,
+        "type": "whoosh",
+        "energy": 0.601
+      },
+      {
+        "time": 41.749,
+        "type": "whoosh",
+        "energy": 0.586
+      },
+      {
+        "time": 43.143,
+        "type": "whoosh",
+        "energy": 0.522
+      },
+      {
+        "time": 44.188,
+        "type": "whoosh",
+        "energy": 0.679
+      },
+      {
+        "time": 44.931,
+        "type": "transition",
+        "energy": 0.776
+      },
+      {
+        "time": 45.488,
+        "type": "whoosh",
+        "energy": 0.426
+      },
+      {
+        "time": 45.976,
+        "type": "whoosh",
+        "energy": 0.557
+      },
+      {
+        "time": 49.157,
+        "type": "whoosh",
+        "energy": 0.393
+      },
+      {
+        "time": 49.83,
+        "type": "whoosh",
+        "energy": 0.694
+      },
+      {
+        "time": 50.805,
+        "type": "whoosh",
+        "energy": 0.422
+      },
+      {
+        "time": 51.525,
+        "type": "transition",
+        "energy": 0.793
+      },
+      {
+        "time": 53.406,
+        "type": "impact",
+        "energy": 0.264
+      },
+      {
+        "time": 53.87,
+        "type": "whoosh",
+        "energy": 0.546
+      },
+      {
+        "time": 55.449,
+        "type": "whoosh",
+        "energy": 0.693
+      }
+    ],
+    "beat_times": [
+      0.209,
+      0.65,
+      1.045,
+      1.509,
+      1.974,
+      2.392,
+      2.786,
+      3.181,
+      3.576,
+      3.971,
+      4.435,
+      4.876,
+      5.341,
+      5.735,
+      6.153,
+      6.618,
+      7.059,
+      7.477,
+      7.872,
+      8.266,
+      8.615,
+      9.056,
+      9.474,
+      9.892,
+      10.31,
+      10.728,
+      11.146,
+      11.633,
+      12.051,
+      12.539,
+      13.003,
+      13.468,
+      13.909,
+      14.35,
+      14.791,
+      15.325,
+      15.766,
+      16.161,
+      16.602,
+      17.043,
+      17.531,
+      17.995,
+      18.46,
+      18.924,
+      19.365,
+      19.83,
+      20.225,
+      20.643,
+      21.084,
+      21.502,
+      21.92,
+      22.338,
+      22.732,
+      23.104,
+      23.591,
+      24.056,
+      24.52,
+      25.008,
+      25.472,
+      25.983,
+      26.494,
+      26.912,
+      27.33,
+      27.771,
+      28.143,
+      28.537,
+      28.979,
+      29.443,
+      29.861,
+      30.279,
+      30.697,
+      31.138,
+      31.556,
+      31.997,
+      32.438,
+      32.833,
+      33.251,
+      33.692,
+      34.11,
+      34.551,
+      34.946,
+      35.364,
+      35.759,
+      36.177,
+      36.548,
+      37.013,
+      37.454,
+      37.895,
+      38.313,
+      38.731,
+      39.149,
+      39.59,
+      40.031,
+      40.472,
+      40.914,
+      41.355,
+      41.773,
+      42.167,
+      42.585,
+      43.003,
+      43.421,
+      43.816,
+      44.211,
+      44.629,
+      45.047,
+      45.488,
+      45.976,
+      46.463,
+      46.928,
+      47.392,
+      47.856,
+      48.274,
+      48.739,
+      49.18,
+      49.691,
+      50.178,
+      50.666,
+      51.084,
+      51.525,
+      51.989
+    ],
+    "dominant_tempo": 136.0,
+    "music_coverage": 0.249,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.525
+      },
+      {
+        "time": 1.0,
+        "energy": 0.573
+      },
+      {
+        "time": 1.5,
+        "energy": 0.44
+      },
+      {
+        "time": 2.0,
+        "energy": 0.296
+      },
+      {
+        "time": 2.5,
+        "energy": 0.461
+      },
+      {
+        "time": 3.0,
+        "energy": 0.144
+      },
+      {
+        "time": 3.5,
+        "energy": 0.131
+      },
+      {
+        "time": 4.0,
+        "energy": 0.289
+      },
+      {
+        "time": 4.5,
+        "energy": 0.413
+      },
+      {
+        "time": 5.0,
+        "energy": 0.238
+      },
+      {
+        "time": 5.5,
+        "energy": 0.316
+      },
+      {
+        "time": 6.0,
+        "energy": 0.075
+      },
+      {
+        "time": 6.5,
+        "energy": 0.295
+      },
+      {
+        "time": 7.0,
+        "energy": 0.458
+      },
+      {
+        "time": 7.5,
+        "energy": 0.323
+      },
+      {
+        "time": 8.0,
+        "energy": 0.05
+      },
+      {
+        "time": 8.5,
+        "energy": 0.068
+      },
+      {
+        "time": 9.0,
+        "energy": 0.308
+      },
+      {
+        "time": 9.5,
+        "energy": 0.5
+      },
+      {
+        "time": 10.0,
+        "energy": 0.485
+      },
+      {
+        "time": 10.5,
+        "energy": 0.054
+      },
+      {
+        "time": 11.0,
+        "energy": 0.512
+      },
+      {
+        "time": 11.5,
+        "energy": 0.448
+      },
+      {
+        "time": 12.0,
+        "energy": 0.291
+      },
+      {
+        "time": 12.5,
+        "energy": 0.313
+      },
+      {
+        "time": 13.0,
+        "energy": 0.371
+      },
+      {
+        "time": 13.5,
+        "energy": 0.088
+      },
+      {
+        "time": 14.0,
+        "energy": 0.405
+      },
+      {
+        "time": 14.5,
+        "energy": 0.307
+      },
+      {
+        "time": 15.0,
+        "energy": 0.184
+      },
+      {
+        "time": 15.5,
+        "energy": 0.086
+      },
+      {
+        "time": 16.0,
+        "energy": 0.577
+      },
+      {
+        "time": 16.5,
+        "energy": 0.475
+      },
+      {
+        "time": 17.0,
+        "energy": 0.319
+      },
+      {
+        "time": 17.5,
+        "energy": 0.45
+      },
+      {
+        "time": 18.0,
+        "energy": 0.544
+      },
+      {
+        "time": 18.5,
+        "energy": 0.231
+      },
+      {
+        "time": 19.0,
+        "energy": 0.456
+      },
+      {
+        "time": 19.5,
+        "energy": 0.632
+      },
+      {
+        "time": 20.0,
+        "energy": 0.392
+      },
+      {
+        "time": 20.5,
+        "energy": 0.079
+      },
+      {
+        "time": 21.0,
+        "energy": 0.351
+      },
+      {
+        "time": 21.5,
+        "energy": 0.73
+      },
+      {
+        "time": 22.0,
+        "energy": 0.45
+      },
+      {
+        "time": 22.5,
+        "energy": 0.343
+      },
+      {
+        "time": 23.0,
+        "energy": 0.154
+      },
+      {
+        "time": 23.5,
+        "energy": 0.419
+      },
+      {
+        "time": 24.0,
+        "energy": 0.441
+      },
+      {
+        "time": 24.5,
+        "energy": 0.223
+      },
+      {
+        "time": 25.0,
+        "energy": 0.423
+      },
+      {
+        "time": 25.5,
+        "energy": 0.729
+      },
+      {
+        "time": 26.0,
+        "energy": 0.262
+      },
+      {
+        "time": 26.5,
+        "energy": 0.845
+      },
+      {
+        "time": 27.0,
+        "energy": 0.276
+      },
+      {
+        "time": 27.5,
+        "energy": 0.307
+      },
+      {
+        "time": 28.0,
+        "energy": 0.391
+      },
+      {
+        "time": 28.5,
+        "energy": 0.232
+      },
+      {
+        "time": 29.0,
+        "energy": 0.637
+      },
+      {
+        "time": 29.5,
+        "energy": 0.199
+      },
+      {
+        "time": 30.0,
+        "energy": 0.087
+      },
+      {
+        "time": 30.5,
+        "energy": 0.304
+      },
+      {
+        "time": 31.0,
+        "energy": 0.422
+      },
+      {
+        "time": 31.5,
+        "energy": 0.291
+      },
+      {
+        "time": 32.0,
+        "energy": 0.325
+      },
+      {
+        "time": 32.5,
+        "energy": 0.656
+      },
+      {
+        "time": 33.0,
+        "energy": 0.679
+      },
+      {
+        "time": 33.5,
+        "energy": 0.069
+      },
+      {
+        "time": 34.0,
+        "energy": 0.311
+      },
+      {
+        "time": 34.5,
+        "energy": 0.394
+      },
+      {
+        "time": 35.0,
+        "energy": 0.129
+      },
+      {
+        "time": 35.5,
+        "energy": 0.671
+      },
+      {
+        "time": 36.0,
+        "energy": 0.261
+      },
+      {
+        "time": 36.5,
+        "energy": 0.295
+      },
+      {
+        "time": 37.0,
+        "energy": 0.432
+      },
+      {
+        "time": 37.5,
+        "energy": 0.333
+      },
+      {
+        "time": 38.0,
+        "energy": 0.091
+      },
+      {
+        "time": 38.5,
+        "energy": 0.693
+      },
+      {
+        "time": 39.0,
+        "energy": 0.109
+      },
+      {
+        "time": 39.5,
+        "energy": 0.269
+      },
+      {
+        "time": 40.0,
+        "energy": 0.263
+      },
+      {
+        "time": 40.5,
+        "energy": 0.716
+      },
+      {
+        "time": 41.0,
+        "energy": 0.478
+      },
+      {
+        "time": 41.5,
+        "energy": 0.036
+      },
+      {
+        "time": 42.0,
+        "energy": 0.605
+      },
+      {
+        "time": 42.5,
+        "energy": 0.388
+      },
+      {
+        "time": 43.0,
+        "energy": 0.324
+      },
+      {
+        "time": 43.5,
+        "energy": 0.171
+      },
+      {
+        "time": 44.0,
+        "energy": 0.041
+      },
+      {
+        "time": 44.5,
+        "energy": 0.142
+      },
+      {
+        "time": 45.0,
+        "energy": 0.366
+      },
+      {
+        "time": 45.5,
+        "energy": 0.352
+      },
+      {
+        "time": 46.0,
+        "energy": 0.763
+      },
+      {
+        "time": 46.5,
+        "energy": 0.206
+      },
+      {
+        "time": 47.0,
+        "energy": 0.063
+      },
+      {
+        "time": 47.5,
+        "energy": 0.227
+      },
+      {
+        "time": 48.0,
+        "energy": 0.487
+      },
+      {
+        "time": 48.5,
+        "energy": 0.404
+      },
+      {
+        "time": 49.0,
+        "energy": 0.255
+      },
+      {
+        "time": 49.5,
+        "energy": 0.076
+      },
+      {
+        "time": 50.0,
+        "energy": 0.487
+      },
+      {
+        "time": 50.5,
+        "energy": 0.368
+      },
+      {
+        "time": 51.0,
+        "energy": 0.179
+      },
+      {
+        "time": 51.5,
+        "energy": 0.715
+      },
+      {
+        "time": 52.0,
+        "energy": 0.328
+      },
+      {
+        "time": 52.5,
+        "energy": 0.372
+      },
+      {
+        "time": 53.0,
+        "energy": 0.226
+      },
+      {
+        "time": 53.5,
+        "energy": 0.148
+      },
+      {
+        "time": 54.0,
+        "energy": 0.579
+      },
+      {
+        "time": 54.5,
+        "energy": 0.168
+      },
+      {
+        "time": 55.0,
+        "energy": 0.759
+      },
+      {
+        "time": 55.5,
+        "energy": 0.542
+      },
+      {
+        "time": 56.0,
+        "energy": 0.039
+      },
+      {
+        "time": 56.5,
+        "energy": 0.079
+      },
+      {
+        "time": 57.0,
+        "energy": 0.096
+      },
+      {
+        "time": 57.5,
+        "energy": 0.116
+      },
+      {
+        "time": 58.0,
+        "energy": 0.566
       }
     ]
   },

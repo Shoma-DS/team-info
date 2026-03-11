@@ -11,6 +11,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -100,6 +101,11 @@ def _notify(title: str, message: str, sound: str = "Ping") -> None:
 
 def _ensure_setup() -> None:
     """セットアップ済みか確認し、未完了なら自動でセットアップを実行する。"""
+    # Docker ランタイムはビルド時点で依存が固定されているため、
+    # 実行時セットアップとホーム配下のフラグ書き込みを省略する。
+    if os.environ.get("TEAM_INFO_IN_DOCKER") == "1":
+        return
+
     if _SETUP_FLAG.exists():
         return
 

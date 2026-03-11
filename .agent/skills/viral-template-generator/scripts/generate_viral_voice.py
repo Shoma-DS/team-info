@@ -396,10 +396,28 @@ def main():
 
     # script パスの決定
     if args.script:
-        script_path = args.script
+        # 明示指定の場合: script_hiragana.md が同フォルダにあれば自動で優先
+        base = args.script
+        hiragana = base.with_name("script_hiragana.md")
+        if hiragana.exists():
+            print(f"ひらがな台本を使用: {hiragana.name}")
+            script_path = hiragana
+        else:
+            script_path = base
     else:
-        candidates = list(PROJECT_ROOT.rglob("script.md"))
-        candidates = [c for c in candidates if "node_modules" not in str(c)]
+        # 自動検索: script_hiragana.md を優先、なければ script.md
+        hira_candidates = [
+            c for c in PROJECT_ROOT.rglob("script_hiragana.md")
+            if "node_modules" not in str(c)
+        ]
+        if hira_candidates:
+            candidates = hira_candidates
+            print("ひらがな台本を自動検出しました（VOICEVOX 読み間違い防止）")
+        else:
+            candidates = [
+                c for c in PROJECT_ROOT.rglob("script.md")
+                if "node_modules" not in str(c)
+            ]
         if not candidates:
             raise SystemExit("script.md が見つかりません。--script で指定してください。")
         if len(candidates) == 1:

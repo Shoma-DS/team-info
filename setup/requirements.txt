@@ -4,10 +4,12 @@
 # Audio / Speech
 faster-whisper==1.2.1
 sounddevice==0.5.5
+librosa==0.10.2.post1
+soundfile==0.12.1
 
 # Computer Vision / ML
 opencv-contrib-python==4.11.0.86
-opencv-python-headless==4.13.0.92
+opencv-python-headless==4.11.0.86
 mediapipe==0.10.21
 pytesseract==0.3.13
 onnxruntime==1.23.2

@@ -20,11 +20,11 @@ PYTHON_MODULES_REQUIRED = [
     "numpy",
     "pytesseract",
     "faster_whisper",
-    "whisper",
 ]
 
 # 任意 Python モジュール
 PYTHON_MODULES_OPTIONAL = [
+    "whisper",
     "mediapipe",
     "librosa",
     "soundfile",
@@ -93,12 +93,11 @@ def main() -> int:
     if template_dir.exists():
         if shutil.which("npm") is None:
             print(
-                "Required command was not found: npm. Install Node.js before using the Remotion template.",
-                file=sys.stderr,
+                "Optional command was not found: npm. Remotion template setup is skipped.",
             )
-            return 1
-        _run(["npm", "install", "--quiet"], cwd=template_dir)
-        print(f"  installed npm dependencies: {template_dir}")
+        else:
+            _run(["npm", "install", "--quiet"], cwd=template_dir)
+            print(f"  installed npm dependencies: {template_dir}")
 
     if missing_optional:
         print("Optional system dependencies are missing.")

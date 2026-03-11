@@ -579,7 +579,38 @@ Claude が以下の観点で script.md を読んでレビューする:
 
 ---
 
-### Step D-3: subtitles.json を生成
+### Step D-3: ひらがな台本生成（VOICEVOX 読み間違い防止）
+
+**目的**: VOICEVOX が漢字を誤読しないよう、台本をひらがなに変換した `script_hiragana.md` を生成する。
+
+#### Step D-3-1: 自動変換
+
+```bash
+/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
+  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/convert_to_hiragana.py \
+  --script "[script.mdの絶対パス]"
+```
+
+`script_hiragana.md` が同フォルダに生成される。
+
+#### Step D-3-2: Claude によるレビューと修正（必須）
+
+自動変換後、Claude が `script_hiragana.md` を読み込んで以下を確認・修正する:
+
+| チェック項目 | よくある誤変換例 | 正しい読み |
+|---|---|---|
+| 人名・芸能人名 | `しゅつみ`（出身） | `しゅっしん` |
+| 動詞の誤読 | `ちょうんだ`（挑んだ） | `いどんだ` |
+| 複合語 | `じょゆうたましい` | `じょゆうだましい` |
+| 外来語・カタカナ | そのまま残っていればOK | - |
+| 固有名詞 | 人名・地名が正しく読まれているか | - |
+
+誤変換を発見した場合は `script_hiragana.md` を直接編集して修正する。
+修正後「ひらがな台本の確認が完了しました」と報告する。
+
+---
+
+### Step D-4: subtitles.json を生成
 
 **出力先**: `inputs/viral-analysis/output/[タイトル]/subtitles.json`
 
@@ -645,10 +676,14 @@ Claude が以下の観点で script.md を読んでレビューする:
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/generate_viral_voice.py" \
-  --script "[script.mdの絶対パス]" \
+  --script "[script_hiragana.mdの絶対パス]" \
   --output-dir "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio" \
   --profile [プロファイル名]
 ```
+
+**`script_hiragana.md` を `--script` に指定する（Step D-3 で生成したひらがな台本）。**
+`generate_viral_voice.py` は `--script` に `script_hiragana.md` を渡すと自動でそれを使う。
+`script.md` を渡した場合でも同フォルダに `script_hiragana.md` があれば自動優先される。
 
 - GUI 版ではなく Docker 上の `VOICEVOX Engine` を使う
 - 事前確認は `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status`
