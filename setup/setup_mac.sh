@@ -23,7 +23,11 @@ TEAM_INFO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 VENV_DIR="$TEAM_INFO_ROOT/Remotion/.venv"
 NODE_VERSION="22.17.1"
 PYTHON_VERSION="3.11.9"
-SHELL_RC="$HOME/.zshrc"
+DEFAULT_SHELL_NAME="$(basename "${SHELL:-zsh}")"
+TEAM_INFO_ENV_DIR="$HOME/.config/team-info"
+TEAM_INFO_ENV_FILE="$TEAM_INFO_ENV_DIR/env.sh"
+LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
+TEAM_INFO_LAUNCH_AGENT_PLIST="$LAUNCH_AGENTS_DIR/com.team-info.env.plist"
 SECRETS_DIR="$HOME/.secrets"
 CANVA_CREDENTIALS_FILE="$SECRETS_DIR/canva_credentials.txt"
 CANVA_AUTH_DIR="$TEAM_INFO_ROOT/Remotion/scripts/canva_auth"
@@ -33,9 +37,6 @@ DIFY_WEB_DIR="$DIFY_ROOT/web"
 DIFY_WEB_NVMRC="$DIFY_WEB_DIR/.nvmrc"
 DIFY_WEB_PACKAGE_JSON="$DIFY_WEB_DIR/package.json"
 DIFY_SDK_DIR="$DIFY_ROOT/sdks/nodejs-client"
-if [[ "${SHELL:-}" == *"bash"* ]]; then
-  SHELL_RC="$HOME/.bash_profile"
-fi
 
 append_line_if_missing() {
   local file="$1"
@@ -45,6 +46,72 @@ append_line_if_missing() {
   if ! grep -Fqx "$line" "$file"; then
     printf '%s\n' "$line" >> "$file"
   fi
+}
+
+get_shell_rc_files() {
+  case "$DEFAULT_SHELL_NAME" in
+    bash)
+      printf '%s\n' "$HOME/.bash_profile" "$HOME/.bashrc"
+      ;;
+    zsh|*)
+      printf '%s\n' "$HOME/.zprofile" "$HOME/.zshrc"
+      ;;
+  esac
+}
+
+append_line_to_shell_rcs() {
+  local line="$1"
+  local shell_rc
+  while IFS= read -r shell_rc; do
+    [[ -n "$shell_rc" ]] || continue
+    append_line_if_missing "$shell_rc" "$line"
+  done < <(get_shell_rc_files)
+}
+
+write_team_info_env_file() {
+  mkdir -p "$TEAM_INFO_ENV_DIR"
+  cat > "$TEAM_INFO_ENV_FILE" <<EOF
+export TEAM_INFO_ROOT="$TEAM_INFO_ROOT"
+EOF
+}
+
+ensure_shell_loads_team_info_env() {
+  local shell_rc
+  while IFS= read -r shell_rc; do
+    [[ -n "$shell_rc" ]] || continue
+    append_line_if_missing "$shell_rc" "[ -f \"$TEAM_INFO_ENV_FILE\" ] && source \"$TEAM_INFO_ENV_FILE\""
+  done < <(get_shell_rc_files)
+}
+
+install_team_info_launch_agent() {
+  local gui_domain
+  mkdir -p "$LAUNCH_AGENTS_DIR"
+  cat > "$TEAM_INFO_LAUNCH_AGENT_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.team-info.env</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/launchctl</string>
+    <string>setenv</string>
+    <string>TEAM_INFO_ROOT</string>
+    <string>$TEAM_INFO_ROOT</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+EOF
+
+  launchctl setenv TEAM_INFO_ROOT "$TEAM_INFO_ROOT" >/dev/null 2>&1 || return 1
+
+  gui_domain="gui/$(id -u)"
+  launchctl bootout "$gui_domain" "$TEAM_INFO_LAUNCH_AGENT_PLIST" >/dev/null 2>&1 || true
+  launchctl bootstrap "$gui_domain" "$TEAM_INFO_LAUNCH_AGENT_PLIST" >/dev/null 2>&1 || return 1
+  launchctl kickstart -k "$gui_domain/com.team-info.env" >/dev/null 2>&1 || true
 }
 
 copy_if_missing() {
@@ -138,10 +205,10 @@ if ! command -v pyenv &>/dev/null; then
   info "pyenv をインストールします..."
   brew install pyenv
   # shell 設定に追加
-  append_line_if_missing "$SHELL_RC" '# pyenv'
-  append_line_if_missing "$SHELL_RC" 'export PYENV_ROOT="$HOME/.pyenv"'
-  append_line_if_missing "$SHELL_RC" 'export PATH="$PYENV_ROOT/bin:$PATH"'
-  append_line_if_missing "$SHELL_RC" 'eval "$(pyenv init -)"'
+  append_line_to_shell_rcs '# pyenv'
+  append_line_to_shell_rcs 'export PYENV_ROOT="$HOME/.pyenv"'
+  append_line_to_shell_rcs 'export PATH="$PYENV_ROOT/bin:$PATH"'
+  append_line_to_shell_rcs 'eval "$(pyenv init -)"'
   export PYENV_ROOT="$HOME/.pyenv"
   export PATH="$PYENV_ROOT/bin:$PATH"
   eval "$(pyenv init -)"
@@ -211,7 +278,7 @@ success "jax インストール完了"
 # ── 7. uv ─────────────────────────────────────────────────────────────────────
 step "7. uv"
 PYTHON_USER_BIN="$(get_python_user_bin)"
-append_line_if_missing "$SHELL_RC" "export PATH=\"$PYTHON_USER_BIN:\$PATH\""
+append_line_to_shell_rcs "export PATH=\"$PYTHON_USER_BIN:\$PATH\""
 export PATH="$PYTHON_USER_BIN:$PATH"
 if command -v uv &>/dev/null; then
   success "uv インストール済み: $(uv --version)"
@@ -249,7 +316,13 @@ info "Node.js: $(node --version), npm: $(npm --version)"
 # ── 9. TEAM_INFO_ROOT ──────────────────────────────────────────────────────────
 step "9. TEAM_INFO_ROOT"
 export TEAM_INFO_ROOT
-append_line_if_missing "$SHELL_RC" "export TEAM_INFO_ROOT=\"$TEAM_INFO_ROOT\""
+write_team_info_env_file
+ensure_shell_loads_team_info_env
+if install_team_info_launch_agent; then
+  success "TEAM_INFO_ROOT を launchctl に保存しました: $TEAM_INFO_ROOT"
+else
+  warn "launchctl への保存に失敗しました。ログイン後の GUI アプリで見えない場合があります。"
+fi
 if "$PYTHON311" "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" \
   setup-local-machine --repo-root "$TEAM_INFO_ROOT" --shell sh >/dev/null; then
   success "TEAM_INFO_ROOT を保存しました: $TEAM_INFO_ROOT"
@@ -375,23 +448,50 @@ else
   warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
 fi
 
+# ── 16. セットアップ検証 ─────────────────────────────────────────────────────
+VERIFY_STATUS=0
+step "16. セットアップ検証"
+VERIFY_SCRIPT="$SCRIPT_DIR/verify_setup.py"
+if [[ -f "$VERIFY_SCRIPT" ]]; then
+  if "$PYTHON311" "$VERIFY_SCRIPT" --repo-root "$TEAM_INFO_ROOT"; then
+    success "セットアップ検証完了"
+  else
+    VERIFY_STATUS=$?
+    warn "セットアップ検証で不足が見つかりました。ログを確認して不足分を埋めてください。"
+  fi
+else
+  VERIFY_STATUS=1
+  warn "検証スクリプトが見つかりません: $VERIFY_SCRIPT"
+fi
+
 # ── 完了 ──────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${GREEN}${BOLD}"
-echo "╔══════════════════════════════════════════════════════╗"
-echo "║       セットアップ完了！                             ║"
-echo "╚══════════════════════════════════════════════════════╝"
-echo -e "${RESET}"
+if [[ "$VERIFY_STATUS" -eq 0 ]]; then
+  echo -e "${GREEN}${BOLD}"
+  echo "╔══════════════════════════════════════════════════════╗"
+  echo "║       セットアップ完了！                             ║"
+  echo "╚══════════════════════════════════════════════════════╝"
+  echo -e "${RESET}"
+else
+  echo -e "${YELLOW}${BOLD}"
+  echo "╔══════════════════════════════════════════════════════╗"
+  echo "║   セットアップは終わりましたが要確認箇所があります   ║"
+  echo "╚══════════════════════════════════════════════════════╝"
+  echo -e "${RESET}"
+fi
 echo "主要パス:"
 echo "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
 echo "  Host fallback: $VENV_DIR/bin/python"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
-echo "  SHELL_RC:      $SHELL_RC"
+echo "  TEAM_INFO_ENV: $TEAM_INFO_ENV_FILE"
 echo "  Canva secrets: $CANVA_CREDENTIALS_FILE"
+echo "  Verify status: $([[ "$VERIFY_STATUS" -eq 0 ]] && echo 'passed' || echo 'failed')"
 echo ""
 echo "次のステップ:"
 echo "  ・ターミナルを再起動して PATH を再読み込みしてください"
 echo "  ・VOICEVOX Engine: python \"$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py\" start-voicevox-engine"
 echo "  ・Claude Code: code $TEAM_INFO_ROOT"
 echo ""
+
+exit "$VERIFY_STATUS"

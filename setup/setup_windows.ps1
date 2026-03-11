@@ -592,11 +592,39 @@ if (Test-Command docker) {
     Write-Warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください"
 }
 
+# ── 16. セットアップ検証 ─────────────────────────────────────────────────
+$VerifyStatus = 0
+Write-Step "16. セットアップ検証"
+$VerifyScript = Join-Path $ScriptDir "verify_setup.py"
+if (Test-Path $VerifyScript) {
+    try {
+        & $Python311 $VerifyScript --repo-root $TeamInfoRoot
+        if ($LASTEXITCODE -eq 0) {
+            Write-Ok "セットアップ検証完了"
+        } else {
+            $VerifyStatus = $LASTEXITCODE
+            Write-Warn "セットアップ検証で不足が見つかりました。ログを確認して不足分を埋めてください。"
+        }
+    } catch {
+        $VerifyStatus = 1
+        Write-Warn "セットアップ検証の実行に失敗しました: $_"
+    }
+} else {
+    $VerifyStatus = 1
+    Write-Warn "検証スクリプトが見つかりません: $VerifyScript"
+}
+
 # ── 完了 ──────────────────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║       セットアップ完了！                             ║" -ForegroundColor Green
-Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Green
+if ($VerifyStatus -eq 0) {
+    Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Green
+    Write-Host "║       セットアップ完了！                             ║" -ForegroundColor Green
+    Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Green
+} else {
+    Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Yellow
+    Write-Host "║   セットアップは終わりましたが要確認箇所があります   ║" -ForegroundColor Yellow
+    Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Yellow
+}
 Write-Host ""
 Write-Host "主要パス:"
 Write-Host "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
@@ -604,9 +632,12 @@ Write-Host "  Host fallback: $VenvDir\Scripts\python.exe"
 Write-Host "  プロジェクト:  $TeamInfoRoot"
 Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
 Write-Host "  Canva secrets: $CanvaCredentialsFile"
+Write-Host "  Verify status: $(if ($VerifyStatus -eq 0) { 'passed' } else { 'failed' })"
 Write-Host ""
 Write-Host "次のステップ:"
 Write-Host "  ・PowerShell を再起動して PATH を再読み込みしてください"
 Write-Host "  ・VOICEVOX Engine: py -3 `"$TeamInfoRoot\.agent\skills\common\scripts\team_info_runtime.py`" start-voicevox-engine"
 Write-Host "  ・Claude Code: code `"$TeamInfoRoot`""
 Write-Host ""
+
+exit $VerifyStatus

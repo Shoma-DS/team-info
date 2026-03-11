@@ -24,6 +24,14 @@ try:
 except ImportError:
     HAS_TESSERACT = False
 
+try:
+    from tqdm import tqdm
+    HAS_TQDM = True
+except ImportError:
+    HAS_TQDM = False
+    def tqdm(it, **kw):  # type: ignore[misc]
+        return it
+
 
 # ─── シーンカット検出 ─────────────────────────────────────────────────────────
 
@@ -33,8 +41,10 @@ def detect_scene_cuts(cap: cv2.VideoCapture, fps: float, threshold: float = 0.35
     prev_hist: Optional[np.ndarray] = None
     frame_idx = 0
     segment_start = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    bar = tqdm(total=total_frames, desc="    シーンカット", unit="f", leave=False, ncols=60)
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -57,9 +67,10 @@ def detect_scene_cuts(cap: cv2.VideoCapture, fps: float, threshold: float = 0.35
 
         prev_hist = hist.copy()
         frame_idx += 1
+        bar.update(1)
+    bar.close()
 
     # 最終セグメント
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cuts.append({
         "start": round(segment_start / fps, 3),
         "end": round(total_frames / fps, 3),
@@ -78,11 +89,13 @@ def detect_faces(cap: cv2.VideoCapture, fps: float, sample_every: int = 15) -> l
 
     faces_data: list[dict] = []
     frame_idx = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     with mp.solutions.face_detection.FaceDetection(
         model_selection=0, min_detection_confidence=0.5
     ) as detector:
+        bar = tqdm(total=total_frames, desc="    顔検出    ", unit="f", leave=False, ncols=60)
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -102,6 +115,8 @@ def detect_faces(cap: cv2.VideoCapture, fps: float, sample_every: int = 15) -> l
                             "confidence": round(det.score[0], 3),
                         })
             frame_idx += 1
+            bar.update(1)
+        bar.close()
 
     return faces_data
 
@@ -117,8 +132,10 @@ def detect_text_regions(
 
     text_regions: list[dict] = []
     frame_idx = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
+    bar = tqdm(total=total_frames, desc="    OCR       ", unit="f", leave=False, ncols=60)
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -148,6 +165,8 @@ def detect_text_regions(
             except Exception:
                 pass
         frame_idx += 1
+        bar.update(1)
+    bar.close()
 
     return text_regions
 
@@ -184,8 +203,10 @@ def analyze_camera_motion(cap: cv2.VideoCapture, fps: float, sample_every: int =
     raw_motions: list[dict] = []
     prev_gray: Optional[np.ndarray] = None
     frame_idx = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
+    bar = tqdm(total=total_frames, desc="    カメラ動き ", unit="f", leave=False, ncols=60)
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -209,8 +230,83 @@ def analyze_camera_motion(cap: cv2.VideoCapture, fps: float, sample_every: int =
                             })
             prev_gray = gray.copy()
         frame_idx += 1
+        bar.update(1)
+    bar.close()
 
     return _merge_motions(raw_motions)
+
+
+# ─── カメラモーション × シーンカット マッチング ───────────────────────────────
+
+def assign_motion_to_cuts(
+    cuts: list[dict], camera_motion: list[dict]
+) -> list[dict]:
+    """
+    各シーンカットに対してその区間で最も支配的なカメラモーションタイプを付与する。
+
+    camera_motion の各エントリ: {"type": str, "start": float, "end": float, "magnitude"?: float}
+    cuts の各エントリ: {"start": float, "end": float, ...}
+
+    Returns: cuts に "motion_type" / "motion_intensity" / "origin_x" / "origin_y" を追加したリスト
+    """
+    # magnitude の正規化係数（最大 magnitude を 1.0 に）
+    all_mags = [m.get("magnitude", 1.0) for m in camera_motion if "magnitude" in m]
+    max_mag = max(all_mags) if all_mags else 1.0
+    if max_mag == 0:
+        max_mag = 1.0
+
+    # pan 方向からズーム基点を推定するマップ
+    _ORIGIN_MAP = {
+        "pan_right": (0.3, 0.5),   # 右パン → 基点は左寄り
+        "pan_left":  (0.7, 0.5),   # 左パン → 基点は右寄り
+        "tilt_up":   (0.5, 0.7),   # 上チルト → 基点は下
+        "tilt_down": (0.5, 0.3),   # 下チルト → 基点は上
+        "zoom":      (0.5, 0.4),
+        "shake":     (0.5, 0.5),
+        "static":    (0.5, 0.5),
+    }
+
+    enriched_cuts = []
+    for cut in cuts:
+        cut_start = cut.get("start", 0.0)
+        cut_end   = cut.get("end", 0.0)
+        overlap_motions: list[dict] = []
+
+        for m in camera_motion:
+            m_start = m.get("start", 0.0)
+            m_end   = m.get("end",   m_start)
+            # 重複区間あり？
+            if m_end > cut_start and m_start < cut_end:
+                overlap_motions.append(m)
+
+        if not overlap_motions:
+            motion_type = "zoom_in"
+            intensity   = 1.0
+        else:
+            # 支配的なタイプを多数決（magnitude 加重）
+            type_score: dict[str, float] = {}
+            for m in overlap_motions:
+                t = m.get("type", "static")
+                # zoom → zoom_in に正規化
+                if t == "zoom":
+                    t = "zoom_in"
+                mag = m.get("magnitude", 1.0) / max_mag
+                type_score[t] = type_score.get(t, 0.0) + mag
+
+            motion_type = max(type_score, key=lambda k: type_score[k])
+            intensity   = round(min(2.0, type_score[motion_type] / max(len(overlap_motions), 1) * 2.0), 2)
+
+        origin_x, origin_y = _ORIGIN_MAP.get(motion_type, (0.5, 0.4))
+
+        enriched_cuts.append({
+            **cut,
+            "motion_type": motion_type,
+            "motion_intensity": intensity,
+            "origin_x": origin_x,
+            "origin_y": origin_y,
+        })
+
+    return enriched_cuts
 
 
 # ─── メイン ───────────────────────────────────────────────────────────────────
@@ -244,6 +340,9 @@ def analyze_video_structure(
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
     camera_motion = analyze_camera_motion(cap, fps)
 
+    print("    カメラモーション × シーンカット マッチング中...")
+    enriched_cuts = assign_motion_to_cuts(cuts, camera_motion)
+
     cap.release()
 
     # 重要フレーム（カット境界 + 大きな顔 + テキスト）
@@ -258,7 +357,7 @@ def analyze_video_structure(
         "fps": round(fps, 2),
         "resolution": {"width": width, "height": height},
         "video_structure": {
-            "cuts": cuts,
+            "cuts": enriched_cuts,
             "faces": faces[:50],
             "text_regions": text_regions[:100],
             "camera_motion": camera_motion,

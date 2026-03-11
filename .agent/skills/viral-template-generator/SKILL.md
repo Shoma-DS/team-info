@@ -305,28 +305,65 @@ else:
 | 配置ゾーン | top / middle / bottom |
 | 水平位置 | center（中央揃え） |
 
-### スタイル推定（tone + emotional_intensity から導出）
+### ビジュアルスタイル（Layer 4 解析結果を最優先で使う）
 
-| tone / intensity | 推奨フォントウェイト | 推奨フォントサイズ倍率 | 推奨テキスト色 | 推奨背景 |
-|---|---|---|---|---|
-| entertainment + high | 900（極太） | ×1.1 | #ffffff | rgba(0,0,0,0.65) または黄色ハイライト |
-| entertainment + medium | 700（太字） | ×1.0 | #ffffff | rgba(0,0,0,0.55) |
-| educational + any | 600（セミボールド） | ×0.95 | #ffffff | rgba(0,0,0,0.5) |
-| curiosity + high | 800 | ×1.05 | #fff700（黄） | rgba(0,0,0,0.6) |
+**Layer 4 (`subtitle_visual`) が analysis.json に含まれる場合は、推測ではなく実測値を直接使う。**
 
-**生成する `SUBTITLE_STYLE` オブジェクトの例（entertainment + high の場合）:**
-```typescript
-const SUBTITLE_STYLE = {
-  yPercent: 75,                          // text_regions の avg_y × 100
-  fontSize: 52,                          // PLATFORM_CONFIG × 倍率
-  fontWeight: "900",                     // tone=entertainment, intensity=high
-  color: "#ffffff",
-  bgColor: "rgba(0,0,0,0.65)",
-  textShadow: "0 2px 12px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,1)",
-  letterSpacing: "0.02em",
-  strokeEnabled: true,                   // entertainment は輪郭線あり
-};
+`analysis.json` の `subtitle_visual` キーから以下を読み取る:
+
+| フィールド | 内容 | TSX での使用先 |
+|---|---|---|
+| `text_color_hex` | 文字色 (例 `"#ffffff"`) | `SUBTITLE_STYLE.color` / 行ごと色 |
+| `stroke_detected` | 縁取りの有無 | `WebkitTextStroke` を付けるか |
+| `stroke_width_px` | 縁取り幅 (px) | `WebkitTextStroke: "Npx #..."` |
+| `stroke_color_hex` | 縁取り色 | `WebkitTextStroke` の色 |
+| `glow_detected` | グロー効果の有無 | `textShadow` にグロー追加 |
+| `glow_color_hex` | グロー色 | `textShadow` の glow 色 |
+| `background_box_detected` | 座布団の有無 | `background: "rgba(...)"` を付けるか |
+| `background_box_rgba` | 座布団の色+透明度文字列 | `background` に直接使う |
+| `font_size_px` | フォントサイズ推定 (px) | `fontSize` の参考値 |
+| `multicolor_lines` | 行ごと色違いか | 行ごとに `color` を変える |
+| `line_colors_hex` | 行ごとの色リスト | 1行目/2行目... の `color` |
+| `confidence` | 検出信頼度 | `"low"` のときは tone 推測で補完 |
+
+**ビジュアルスタイルの再現ルール:**
+
 ```
+stroke_detected=true, stroke_width_px=4, stroke_color_hex="#000000"
+  → WebkitTextStroke: "4px #000000"
+
+glow_detected=true, glow_color_hex="#ffffff"
+  → textShadow に "0 0 20px rgba(255,255,255,0.8)" を追加
+
+background_box_detected=true, background_box_rgba="rgba(0,0,0,0.65)"
+  → 字幕 span/div の background に設定
+  → padding / borderRadius を追加
+
+multicolor_lines=true, line_colors_hex=["#f4d56f","#ffffff"]
+  → 各行の <div> に個別の color を設定（行インデックスで COLORS 配列を引く）
+```
+
+**TSX での行ごと色実装パターン（必須）:**
+```typescript
+// multicolor_lines=true のとき。行ごとに分割して色を当てる
+const LINE_COLORS = ["#f4d56f", "#ffb1bf", "#f2deff", "#ffffff"]; // 実測値を入れる
+const lines = entry.text.split("\n");
+// SubtitleTrack内で:
+{lines.map((line, index) => (
+  <div key={index} style={{ color: LINE_COLORS[index] ?? "#ffffff", whiteSpace: "nowrap" }}>
+    {line}
+  </div>
+))}
+```
+
+**confidence が "low" のとき（字幕テキスト領域が少なかった場合）は tone + emotional_intensity で補完:**
+
+| tone / intensity | フォントウェイト | テキスト色 | 座布団 |
+|---|---|---|---|
+| entertainment + high | 900 | #ffffff | rgba(0,0,0,0.65) |
+| entertainment + medium | 700 | #ffffff | rgba(0,0,0,0.55) |
+| educational + any | 600 | #ffffff | rgba(0,0,0,0.5) |
+| curiosity + high | 800 | #fff700 | rgba(0,0,0,0.6) |
 
 ---
 
@@ -586,12 +623,22 @@ Claude が以下の観点で script.md を読んでレビューする:
 #### Step D-3-1: 自動変換
 
 ```bash
-/Users/deguchishouma/team-info/Remotion/.venv/bin/python3.11 \
-  /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/convert_to_hiragana.py \
+"$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/convert_to_hiragana.py" \
   --script "[script.mdの絶対パス]"
 ```
 
 `script_hiragana.md` が同フォルダに生成される。
+
+#### Step D-3-1.5: 辞書の更新（人名・作品名は必須）
+
+- 共通の誤読対策語は `"$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/config/pronunciation_dictionary.json"` に登録する
+- 企画固有の人名・作品名・地名は `script.md` と同じフォルダの `reading_dictionary.json` に登録する
+- `reading_dictionary.json` には `surface` と `reading` を必ず入れ、`source_url` や `source_note` を残してよい
+- VOICEVOX 用に読みを強制したいときは `voice_text` を併記してよい
+  例: `清純派` → `reading: せいじゅんは`, `voice_text: せいじゅんハ`
+- 人名・作品名は Web で表記と読みを確認してから登録する
+- 字幕に出す固有名詞は `script.md` と `subtitles.json` の両方で同じ表記になっているか確認する
 
 #### Step D-3-2: Claude によるレビューと修正（必須）
 
@@ -603,9 +650,9 @@ Claude が以下の観点で script.md を読んでレビューする:
 | 動詞の誤読 | `ちょうんだ`（挑んだ） | `いどんだ` |
 | 複合語 | `じょゆうたましい` | `じょゆうだましい` |
 | 外来語・カタカナ | そのまま残っていればOK | - |
-| 固有名詞 | 人名・地名が正しく読まれているか | - |
+| 固有名詞 | 人名・地名・作品名が正しく読まれているか | - |
 
-誤変換を発見した場合は `script_hiragana.md` を直接編集して修正する。
+誤変換を発見した場合は、まず辞書に登録し、そのうえで `script_hiragana.md` を再生成する。必要なら最終調整として `script_hiragana.md` を直接編集して修正する。
 修正後「ひらがな台本の確認が完了しました」と報告する。
 
 ---
@@ -678,7 +725,8 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/generate_viral_voice.py" \
   --script "[script_hiragana.mdの絶対パス]" \
   --output-dir "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio" \
-  --profile [プロファイル名]
+  --profile [プロファイル名] \
+  --timeline-ts "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/generated/[任意のファイル名].ts"
 ```
 
 **`script_hiragana.md` を `--script` に指定する（Step D-3 で生成したひらがな台本）。**
@@ -689,6 +737,8 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 - 事前確認は `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" voicevox-engine-status`
 - `run-remotion-python` から起動する場合、必要なら `start-voicevox-engine` が自動で補助される
 - 明示的に起動する場合は `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine`
+- `subtitles.json` が同じフォルダにあれば、音声生成後に先頭無音を見て字幕開始を自動補正する
+- `--timeline-ts` を渡すと、Remotion 側で使う `SUBTITLE_TIMELINE` の TS モジュールも同時に更新される
 
 #### Step D-4-3: 出力ファイル
 
@@ -834,26 +884,81 @@ staticFile("viral/[タイトル]/audio/sfx/whoosh.wav")
 ```
 
 **背景画像トラック:**
-- `SCENE_TIMELINE` 配列を定義（`{ from, to, src }[]`）
+- `SCENE_TIMELINE` 配列を定義（`{ from, to, src, motionType?, motionIntensity?, originX?, originY? }[]`）
 - 1本の `<Sequence from={0}>` + `ImageSceneTrack` コンポーネントで統合
 - `ImageSceneTrack` は `useCurrentFrame()` でアクティブ素材を選択
-- `<ImageScene>` コンポーネントを使い Ken Burns エフェクトを適用
+- `<ImageScene>` コンポーネントに `motionType` と `motionIntensity` を渡してカメラワークを再現する
+
+**カメラワークの再現（必須）:**
+
+`analysis.json` の `video_structure.cuts` に `motion_type` / `motion_intensity` / `origin_x` / `origin_y` が含まれる。
+シーンカットのタイミングと SCENE_TIMELINE のフレームを照合し、対応する値を使う。
+
+```typescript
+// SCENE_TIMELINE の例（カメラワークつき）
+const SCENE_TIMELINE = [
+  { from: 0,   to: 90,  src: staticFile("..."), motionType: "zoom_in",   motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
+  { from: 90,  to: 270, src: staticFile("..."), motionType: "pan_right",  motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
+  { from: 270, to: 390, src: staticFile("..."), motionType: "tilt_up",    motionIntensity: 0.8, originX: 0.5, originY: 0.7 },
+  { from: 390, to: 540, src: staticFile("..."), motionType: "zoom_out",   motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
+  { from: 540, to: 690, src: staticFile("..."), motionType: "shake",      motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
+];
+
+// ImageSceneTrack での使い方
+const ImageSceneTrack: React.FC = () => {
+  const frame = useCurrentFrame();
+  const entry = SCENE_TIMELINE.find((s) => frame >= s.from && frame < s.to)
+    ?? SCENE_TIMELINE[SCENE_TIMELINE.length - 1];
+  return (
+    <AbsoluteFill>
+      <ImageScene
+        src={entry.src}
+        motionType={entry.motionType ?? "zoom_in"}
+        motionIntensity={entry.motionIntensity ?? 1.0}
+        originX={entry.originX ?? 0.5}
+        originY={entry.originY ?? 0.4}
+      />
+    </AbsoluteFill>
+  );
+};
+```
+
+**利用可能な `motionType` 一覧:**
+
+| motionType | 説明 | 激しさの目安 |
+|---|---|---|
+| `zoom_in` | ゆるやかなズームイン（Ken Burns） | intensity 0.5–1.0 |
+| `zoom_out` | ズームアウト | intensity 0.5–1.0 |
+| `pan_right` | 右へスライド | intensity 0.8–1.5 |
+| `pan_left` | 左へスライド | intensity 0.8–1.5 |
+| `tilt_up` | 上へスライド | intensity 0.8–1.5 |
+| `tilt_down` | 下へスライド | intensity 0.8–1.5 |
+| `shake` | カメラシェイク（インタラプト演出に） | intensity 1.5–2.0 |
+| `static` | 静止 | — |
 
 **字幕スタイル（SUBTITLE_STYLE）:**
 
-`viral_patterns.md` の「5. 字幕スタイル詳細分析」から以下を読み取り、`SUBTITLE_STYLE` オブジェクトをハードコードする:
-- `yPercent`: 分析した字幕Y位置（%）
-- `fontSize`: PLATFORM_CONFIG の基準値 × tone倍率
-- `fontWeight`: tone + emotional_intensity から選択
-- `color`: 基本 `"#ffffff"`。curiosity + high なら `"#fff700"`（黄）
-- `bgColor`: entertainment + high なら `"rgba(0,0,0,0.65)"`、その他 `"rgba(0,0,0,0.55)"`
-- `textShadow`: entertainment + high なら二重シャドウ `"0 2px 12px rgba(0,0,0,0.8), 0 0 4px #000"`
-- `strokeEnabled`: entertainment は `true`（-webkit-text-stroke で輪郭線）
+`analysis.json` の `subtitle_visual` キーを **最優先** で読み取り、`SUBTITLE_STYLE` オブジェクトをハードコードする。
+`subtitle_visual.confidence` が `"low"` の場合のみ tone + emotional_intensity で補完する（SKILL.md Phase A「5. 字幕スタイル詳細分析」参照）。
+
+- `yPercent`: `text_regions` の `avg_y × 100`
+- `fontSize`: `font_size_px` を参考に PLATFORM_CONFIG 基準値で調整
+- `fontWeight`: `"900"` 固定（エンタメ系）またはtone推測
+- `color`: `text_color_hex`（実測）
+- `textShadow`: `glow_detected=true` ならグローシャドウを追加
+- `strokeWidth` / `strokeColor`: `stroke_width_px` と `stroke_color_hex`（実測）
+- `background`: `background_box_rgba`（座布団あり時）または `undefined`（なし時）
+- 行ごと色違い: `multicolor_lines=true` なら `line_colors_hex` を `LINE_COLORS` 配列に使う
 
 **字幕トラック:**
 - `subtitles.json` の segments を `SUBTITLE_TIMELINE` 配列として定義（`\n` 折り返し済みのテキストをそのまま使う）
-- `whiteSpace: "pre-wrap"` を必ず指定する
+- `whiteSpace` はテキストの内容に応じて動的に設定する（**必須**）:
+  `whiteSpace: entry.text.includes("\n") ? "pre-wrap" : "nowrap"`
+  `\n` ありの行 → `pre-wrap`（明示的改行を尊重）/ `\n` なしの行 → `nowrap`（CJK自動折り返し防止）
 - 1本の `<Sequence from={0}>` + `SubtitleTrack` コンポーネントで統合
+- **冒頭フック期間は必ず `return null`（二重表示防止）**:
+  `SubtitleTrack` の先頭で `if (frame < Math.round(3 * fps)) return null;` を入れる。
+  フック期間は `Hook` コンポーネントが字幕を担当するため、`SubtitleTrack` がそのまま動くと同じテキストが2重表示される。
 
 **音声トラック:**
 ```typescript
@@ -875,6 +980,7 @@ const SFX_EVENTS = [
 **フック演出:**
 - `<Sequence from={0} durationInFrames={hookDurationFrames}>` + `<Hook>` コンポーネント
 - Hook の text に `\n` が含まれる場合は `.replace("\n", " ")` でスペースに変換する
+- `hookDurationFrames = Math.round(3 * fps)` を `ViralVideo` コンポーネント内で定義し、`SubtitleTrack` でも同じ値を使って冒頭スキップする（`Math.round(3 * fps)` と直書きしてよい）
 
 **パターンインタラプト:**
 - `INTERRUPT_FRAMES` 配列を定義
@@ -915,12 +1021,64 @@ node /Users/deguchishouma/team-info/Remotion/my-video/node_modules/typescript/bi
 - 生成ファイル一覧
 - 字幕セグメント数・フック情報・素材数
 
-プレビューコマンド:
+次に **Phase G（ジェットカット）** を実行する。
+
+---
+
+## Phase G: ジェットカット（無音短縮）
+
+**目的**: narration.wav の無音期間を librosa で検出し、セグメント間の長い無音を食い気味（約 0.08s）に短縮する。
+音声・字幕・画像シーン・SFX の全タイムラインを連動して更新する。
+
+### Step G-1: ジェットカット実行
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/jet_cut.py" \
+  --audio  "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio/narration.wav" \
+  --tsx    "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/ViralVideo_[タイトル].tsx" \
+  [--min-silence 0.20] \
+  [--keep-silence 0.08] \
+  [--top-db 40]
+```
+
+**パラメータ説明:**
+
+| オプション | デフォルト | 説明 |
+|---|---|---|
+| `--min-silence` | `0.20` | これ以上の無音 gap を切る（秒） |
+| `--keep-silence` | `0.08` | 切後に残す無音。小さいほど食い気味（秒） |
+| `--top-db` | `40` | 無音判定の dB 閾値。大きいほど厳しく検出 |
+| `--dry-run` | — | ファイルを変更せず切りどころだけ確認 |
+
+**まず `--dry-run` で確認してから本番実行することを推奨。**
+
+### Step G-2: 更新されるファイル
+
+スクリプトが自動的に以下を更新する（元ファイルは `.before_jetcut.*` でバックアップ）:
+
+| ファイル | 更新内容 |
+|---|---|
+| `narration_jetcut.wav` | 無音短縮済み音声（新規生成） |
+| `generated/[xxx]Subtitles.ts` | `SUBTITLE_TIMELINE` の from/to フレーム番号を再計算 |
+| `ViralVideo_[タイトル].tsx` | `SCENE_TIMELINE` / `INTERRUPT_FRAMES` / `SFX_EVENTS.from` / `totalFrames` / audio src を再計算 |
+
+### Step G-3: lint 確認 & プレビュー
+
+```bash
+node /Users/deguchishouma/team-info/Remotion/my-video/node_modules/typescript/bin/tsc \
+  --noEmit --project /Users/deguchishouma/team-info/Remotion/my-video/tsconfig.json
+```
+
+問題なければプレビュー:
 ```bash
 npm --prefix /Users/deguchishouma/team-info/Remotion/my-video run dev
 ```
 
-レンダリングコマンド:
+---
+
+## Phase H: レンダリング
+
 ```bash
 npm --prefix /Users/deguchishouma/team-info/Remotion/my-video run render -- \
   --composition=Viral-[platform]-[yyyyMMdd] \

@@ -291,12 +291,33 @@ def main() -> None:
     print(f"   ✓ BGMカバー率 : {audio_scene_data.get('music_coverage', 0) * 100:.0f}%")
 
     # ── Layer 3: バズ構造解析 ────────────────────────────────────────────
-    print("\n🔥 [3/3] Layer3: バズ構造解析...")
+    print("\n🔥 [3/4] Layer3: バズ構造解析...")
     from layers.viral_pattern import analyze_viral_pattern
     viral_data = analyze_viral_pattern(video_data, speech_data)
     print(f"   ✓ フック              : {viral_data.get('hook_type', 'unknown')} @ {viral_data.get('hook_time', 0):.1f}s")
     print(f"   ✓ パターンインタラプト: {len(viral_data.get('pattern_interrupts', []))} 箇所")
     print(f"   ✓ 情報密度            : {viral_data.get('information_density', 'unknown')}")
+
+    # ── Layer 4: 字幕ビジュアルスタイル解析 ─────────────────────────────
+    print("\n🎨 [4/4] Layer4: 字幕ビジュアルスタイル解析...")
+    from layers.subtitle_visual import analyze_subtitle_visual_style
+    import cv2 as _cv2
+    _cap4 = _cv2.VideoCapture(str(input_path))
+    _res = video_data.get("resolution", {})
+    subtitle_visual_data = analyze_subtitle_visual_style(
+        _cap4,
+        video_data["fps"],
+        video_data["video_structure"].get("text_regions", []),
+        video_width=_res.get("width", 1080),
+        video_height=_res.get("height", 1920),
+    )
+    _cap4.release()
+    print(f"   ✓ 文字色              : {subtitle_visual_data.get('text_color_hex', '?')}")
+    print(f"   ✓ 縁取り              : {'あり ' + str(subtitle_visual_data.get('stroke_width_px', 0)) + 'px' if subtitle_visual_data.get('stroke_detected') else 'なし'}")
+    print(f"   ✓ グロー              : {'あり' if subtitle_visual_data.get('glow_detected') else 'なし'}")
+    print(f"   ✓ 座布団              : {'あり ' + str(subtitle_visual_data.get('background_box_rgba', '')) if subtitle_visual_data.get('background_box_detected') else 'なし'}")
+    print(f"   ✓ 行ごと色違い        : {'あり' if subtitle_visual_data.get('multicolor_lines') else 'なし'}")
+    print(f"   ✓ フォントサイズ推定  : {subtitle_visual_data.get('font_size_px', 0)}px (信頼度: {subtitle_visual_data.get('confidence', '?')})")
 
     # ── analysis.json 生成 ───────────────────────────────────────────────
     analysis = {
@@ -309,6 +330,7 @@ def main() -> None:
         "speech_structure": speech_data,
         "audio_scene": audio_scene_data,
         "viral_structure": viral_data,
+        "subtitle_visual": subtitle_visual_data,
     }
 
     output_path = output_dir / "analysis.json"

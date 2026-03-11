@@ -1,16 +1,13 @@
 /**
- * Youtubeデータリサーチ（睡眠朗読）用
+ * YoutubeデータリサーチAIカバー用
  * YouTube Data API v3 を使用
  *
- * スプレッドシート: https://docs.google.com/spreadsheets/d/1rlna35UZiTnTT9G4xRl1AKM6AGcaRhmS_5OUtfSAtnM/edit
  * スプレッドシートを開くと「YouTubeリサーチ」メニューが表示されます。
- * 各項目をクリックすると、対応する処理が実行されます。
+ * 各項目をクリックすると、設定ダイアログが開き、条件を指定して実行できます。
  */
 
 var CONFIG = {
-  SPREADSHEET_ID: "1rlna35UZiTnTT9G4xRl1AKM6AGcaRhmS_5OUtfSAtnM",
-  HEADER_ROW: 1,
-  DROPDOWN_VALUES: ["実行する操作を選択", "① 競合リサーチを実行", "② 検索キーワードリサーチを実行", "③ 再生数ランキングを実行"],
+  SPREADSHEET_ID: "1XTfZOQ3IFHU9uhgRmc3TF4Jk-YHe7FS8fS7BzvJPshc",
   SHEET_VIDEOS: "Youtube動画",
   SHEET_CHANNELS: "Youtubeチャンネル",
   SHEET_KEYWORDS: "検索キーワード",
@@ -33,224 +30,251 @@ var KEYWORD_RESEARCH_HEADERS = [
   "カテゴリ名", "カテゴリID", "ハッシュタグ", "サムネイル", "概要欄"
 ];
 
-// -----------------------------------------------------------------------------
-// カスタムメニュー（スプレッドシートを開いたときに「YouTubeリサーチ」が表示される）
-// -----------------------------------------------------------------------------
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu("YouTubeリサーチ")
-    .addItem("① 競合リサーチを実行", "runCompetitorYouTubeResearch")
-    .addItem("② 検索キーワードリサーチを実行", "runKeywordResearch")
-    .addItem("③ 再生数ランキングを実行", "runKeywordViewRanking")
-    .addSeparator()
-    .addItem("リサーチパネルを開く", "openResearchSidebar_")
-    .addItem("YouTubeリサーチボタンを設置", "setupYouTubeResearchButtons_")
-    .addToUi();
-}
+// =============================================================================
+// メニュー / ダイアログ起動
+// =============================================================================
 
 /**
- * スプレッドシート上部に「項目ヘルプ」「YouTubeリサーチ」を設置し、ドロップダウンボタンを追加する。
- * 既存の1行目に「項目ヘルプ」がない場合は1行目を挿入する。
+ * ① 競合リサーチ: 設定ダイアログを表示
  */
-function setupYouTubeResearchButtons_() {
-  var ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-  var sheet = ss.getSheets()[0];
-  var lastCol = sheet.getLastColumn();
-  var headers = lastCol >= 1 ? sheet.getRange(1, 1, 1, Math.max(lastCol, 5)).getValues()[0] : [];
-
-  var colHelp = -1;
-  var colResearch = -1;
-  for (var i = 0; i < headers.length; i++) {
-    if (String(headers[i]).trim() === "項目ヘルプ") colHelp = i + 1;
-    if (String(headers[i]).trim() === "YouTubeリサーチ") colResearch = i + 1;
-  }
-
-  if (colHelp <= 0) {
-    sheet.insertRowBefore(1);
-    sheet.getRange(1, 1).setValue("項目ヘルプ").setBackground("#f3f3f3");
-    sheet.getRange(1, 2).setValue("YouTubeリサーチ").setBackground("#fff3e0");
-    colHelp = 1;
-    colResearch = 2;
-  } else if (colResearch <= 0) {
-    colResearch = colHelp + 1;
-    sheet.getRange(1, colResearch).setValue("YouTubeリサーチ").setBackground("#fff3e0");
-  }
-
-  var dropdownCell = sheet.getRange(2, colResearch);
-  var rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(CONFIG.DROPDOWN_VALUES, true)
-    .setAllowInvalid(false)
-    .build();
-  dropdownCell.setDataValidation(rule);
-  dropdownCell.setValue(CONFIG.DROPDOWN_VALUES[0]);
-  dropdownCell.setBackground("#e8f0fe");
-
-  if (sheet.getFrozenRows() < 2) sheet.setFrozenRows(2);
-  SpreadsheetApp.getUi().alert("YouTubeリサーチボタンを設置しました。\n「YouTubeリサーチ」列のドロップダウンから操作を選択してください。");
+function runCompetitorYouTubeResearch() {
+  var html = HtmlService.createHtmlOutputFromFile('CompetitorResearchDialog')
+    .setWidth(520)
+    .setHeight(640);
+  SpreadsheetApp.getUi().showModalDialog(html, '競合リサーチ設定');
 }
 
 /**
- * ドロップダウン選択時にリサーチを実行する（onEdit トリガー用）
+ * ② 検索キーワードリサーチ: 設定ダイアログを表示
  */
-function onEdit(e) {
-  if (!e || !e.range) return;
-  var range = e.range;
-  var value = String(range.getValue() || "").trim();
-  if (value === CONFIG.DROPDOWN_VALUES[0]) return;
-
-  var sheet = range.getSheet();
-  var headers = sheet.getRange(CONFIG.HEADER_ROW, 1, CONFIG.HEADER_ROW, sheet.getLastColumn()).getValues()[0];
-  var colResearch = -1;
-  for (var i = 0; i < headers.length; i++) {
-    if (String(headers[i]).trim() === "YouTubeリサーチ") { colResearch = i + 1; break; }
-  }
-  if (colResearch <= 0 || range.getColumn() !== colResearch) return;
-
-  range.setValue(CONFIG.DROPDOWN_VALUES[0]);
-  if (value === CONFIG.DROPDOWN_VALUES[1]) runCompetitorYouTubeResearch();
-  else if (value === CONFIG.DROPDOWN_VALUES[2]) runKeywordResearch();
-  else if (value === CONFIG.DROPDOWN_VALUES[3]) runKeywordViewRanking();
+function runKeywordResearch() {
+  var tmpl = HtmlService.createTemplateFromFile('KeywordResearchDialog');
+  tmpl.mode = 'keyword';
+  tmpl.defaultCount = CONFIG.MAX_SEARCH_RESULTS_PER_KEYWORD;
+  var html = tmpl.evaluate().setWidth(440).setHeight(380);
+  SpreadsheetApp.getUi().showModalDialog(html, '検索キーワードリサーチ設定');
 }
 
 /**
- * リサーチ用サイドバー（3つのボタン）を開く
+ * ③ 再生数ランキング: 設定ダイアログを表示
  */
-function openResearchSidebar_() {
-  var html = HtmlService.createHtmlOutput(
-    '<!DOCTYPE html><html><head><base target="_top">' +
-    '<style>body{font-family:Roboto,sans-serif;padding:16px;margin:0;}h3{margin:0 0 16px;color:#333;font-size:16px;}' +
-    '.btn{display:block;width:100%;padding:12px 16px;margin-bottom:10px;border:none;border-radius:8px;font-size:14px;cursor:pointer;text-align:center;box-sizing:border-box;}' +
-    '.btn-primary{background:#ff0000;color:white;}.btn-primary:hover{background:#cc0000;}' +
-    '.btn-secondary{background:#065fd4;color:white;}.btn-secondary:hover{background:#004ba0;}' +
-    '.btn-success{background:#0f9d58;color:white;}.btn-success:hover{background:#0a7d45;}.note{font-size:12px;color:#666;margin-top:16px;}</style></head><body>' +
-    '<h3>YouTubeリサーチ</h3>' +
-    '<button class="btn btn-primary" onclick="runResearch(\'competitor\')">① 競合リサーチを実行</button>' +
-    '<button class="btn btn-secondary" onclick="runResearch(\'keyword\')">② 検索キーワードリサーチを実行</button>' +
-    '<button class="btn btn-success" onclick="runResearch(\'ranking\')">③ 再生数ランキングを実行</button>' +
-    '<p class="note">各ボタンをクリックすると、対応するリサーチが実行されます。</p>' +
-    '<script>function runResearch(t){google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(e){alert("エラー: "+e.message);}).runResearchFromSidebar_(t);}</script>' +
-    '</body></html>'
-  ).setTitle("YouTubeリサーチ").setWidth(280);
-  SpreadsheetApp.getUi().showSidebar(html);
+function runKeywordViewRanking() {
+  var tmpl = HtmlService.createTemplateFromFile('KeywordResearchDialog');
+  tmpl.mode = 'ranking';
+  tmpl.defaultCount = CONFIG.MAX_VIEW_RANKING_PER_KEYWORD;
+  var html = tmpl.evaluate().setWidth(440).setHeight(380);
+  SpreadsheetApp.getUi().showModalDialog(html, '再生数ランキング設定');
 }
 
 /**
- * サイドバーのボタンから呼び出される（google.script.run 用）
+ * サイドバーからの呼び出しディスパッチャー
  */
 function runResearchFromSidebar_(type) {
-  if (type === "competitor") runCompetitorYouTubeResearch();
-  else if (type === "keyword") runKeywordResearch();
-  else if (type === "ranking") runKeywordViewRanking();
+  if (type === 'competitor') runCompetitorYouTubeResearch();
+  else if (type === 'keyword') runKeywordResearch();
+  else if (type === 'ranking') runKeywordViewRanking();
+  else if (type === 'channel') runChannelInfoFetch();
+}
+
+// =============================================================================
+// ダイアログ用サーバーサイド関数
+// =============================================================================
+
+/**
+ * チャンネル一覧を返す（CompetitorResearchDialog 用）
+ * @return {Array<{channelId:string, name:string}>}
+ */
+function getChannelListForDialog() {
+  var ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(CONFIG.SHEET_CHANNELS);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  var headerMap = buildHeaderMap_(sheet);
+  var channelIdKey = findFirstExistingKey_(headerMap, CONFIG.CHANNEL_ID_KEYS);
+  var channelUrlKey = findFirstExistingKey_(headerMap, CONFIG.CHANNEL_URL_KEYS);
+  var nameCol = headerMap['チャンネル名'] || null;
+
+  var lastRow = sheet.getLastRow();
+  var data = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+
+  var results = [];
+  data.forEach(function(row) {
+    var id  = channelIdKey ? String(row[headerMap[channelIdKey] - 1]).trim() : '';
+    var url = channelUrlKey ? String(row[headerMap[channelUrlKey] - 1]).trim() : '';
+    var name = nameCol ? String(row[nameCol - 1]).trim() : '';
+    var chId = id || extractChannelIdFromUrl_(url);
+    if (!chId && !url) return;
+    results.push({
+      channelId: chId,
+      name: name || url || chId
+    });
+  });
+  return results;
 }
 
 /**
- * 件数をポップアップで入力してもらう。キャンセルまたは無効な値の場合はデフォルト値を返す。
+ * 競合リサーチをダイアログのパラメータで実行
+ * @param {Object} params - { maxPerChannel, videoType, selectedChannelIds, selectAll }
+ * @return {number} 追加件数
  */
-function promptNumber_(title, message, defaultVal, minVal, maxVal) {
-  var ui = SpreadsheetApp.getUi();
-  var response = ui.prompt(title, message + "\n（空欄またはキャンセルで " + defaultVal + " 件）", ui.ButtonSet.OK_CANCEL);
-  if (response.getSelectedButton() !== ui.Button.OK) return defaultVal;
-  var text = (response.getResponseText() || "").trim();
-  if (text === "") return defaultVal;
-  var num = parseInt(text, 10);
-  if (isNaN(num) || num < minVal) return defaultVal;
-  if (num > maxVal) num = maxVal;
-  return num;
-}
-
-function runCompetitorYouTubeResearch() {
-  var maxPerChannel = promptNumber_(
-    "競合リサーチの件数",
-    "1チャンネルあたり、何件の動画を取得しますか？（1〜50）",
-    CONFIG.MAX_VIDEOS_PER_CHANNEL,
-    1,
-    50
-  );
+function runCompetitorResearchWithParams(params) {
+  var maxPerChannel   = Math.min(Math.max(parseInt(params.maxPerChannel) || CONFIG.MAX_VIDEOS_PER_CHANNEL, 1), 50);
+  var videoType       = params.videoType || 'both'; // 'both' | 'short' | 'long'
+  var selectedIds     = params.selectedChannelIds || [];
+  var selectAll       = !!params.selectAll;
+  // フィルタリング後に十分な件数を確保するため多めに取得
+  var fetchCount      = Math.min(maxPerChannel * (videoType !== 'both' ? 3 : 1), 50);
 
   var ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-  var sheetVideos = ss.getSheetByName(CONFIG.SHEET_VIDEOS) || ss.insertSheet(CONFIG.SHEET_VIDEOS);
+  var sheetVideos   = ss.getSheetByName(CONFIG.SHEET_VIDEOS)   || ss.insertSheet(CONFIG.SHEET_VIDEOS);
   var sheetChannels = ss.getSheetByName(CONFIG.SHEET_CHANNELS) || ss.insertSheet(CONFIG.SHEET_CHANNELS);
+
   var videoHeaderMap = buildHeaderMap_(sheetVideos);
   if (!videoHeaderMap[CONFIG.VIDEO_ID_HEADER]) {
     writeDefaultVideoHeaders_(sheetVideos);
     videoHeaderMap = buildHeaderMap_(sheetVideos);
   }
+
   var existingVideoIds = loadExistingIds_(sheetVideos, videoHeaderMap, CONFIG.VIDEO_ID_HEADER);
   var channelHeaderMap = buildHeaderMap_(sheetChannels);
-  var channelIdKey = findFirstExistingKey_(channelHeaderMap, CONFIG.CHANNEL_ID_KEYS);
-  var channelUrlKey = findFirstExistingKey_(channelHeaderMap, CONFIG.CHANNEL_URL_KEYS);
+  var channelIdKey   = findFirstExistingKey_(channelHeaderMap, CONFIG.CHANNEL_ID_KEYS);
+  var channelUrlKey  = findFirstExistingKey_(channelHeaderMap, CONFIG.CHANNEL_URL_KEYS);
   var channelViewsKey = findFirstExistingKey_(channelHeaderMap, CONFIG.CHANNEL_VIEWS_KEYS);
-  if (!channelIdKey && !channelUrlKey) throw new Error("チャンネルIDまたはURL列がありません。");
+  if (!channelIdKey && !channelUrlKey) throw new Error('チャンネルIDまたはURL列がありません。');
+
   var channels = loadChannels_(sheetChannels, channelHeaderMap, channelIdKey, channelUrlKey, channelViewsKey);
+
+  // 選択チャンネルでフィルタ（全選択でない場合のみ）
+  if (!selectAll && selectedIds.length > 0) {
+    channels = channels.filter(function(ch) {
+      return selectedIds.indexOf(ch.channelId) !== -1;
+    });
+  }
+
   var rowsToAppend = [];
   var categoryCache = {};
+
   for (var c = 0; c < channels.length; c++) {
     var ch = channels[c];
     if (!ch.channelId) continue;
-    var topVideoIds = listTopVideosByView_(ch.channelId, maxPerChannel);
+
+    var topVideoIds = listTopVideosByView_(ch.channelId, fetchCount);
     if (topVideoIds.length === 0) continue;
+
     var videoItems = fetchVideosDetails_(topVideoIds);
-    for (var v = 0; v < videoItems.length; v++) {
+    var added = 0;
+    for (var v = 0; v < videoItems.length && added < maxPerChannel; v++) {
       var item = videoItems[v];
       if (!item.id || existingVideoIds.has(item.id)) continue;
+
+      var dur = iso8601DurationToSeconds_((item.contentDetails || {}).duration);
+      if (videoType === 'short' && dur > 60) continue;
+      if (videoType === 'long'  && dur <= 60) continue;
+
       var rowObject = buildVideoRowObject_(item, categoryCache);
       rowsToAppend.push(objectToRowByHeader_(rowObject, videoHeaderMap));
       existingVideoIds.add(item.id);
+      added++;
     }
   }
+
+  var resultMsg;
   if (rowsToAppend.length > 0) {
-    var startRow = sheetVideos.getLastRow() + 1;
+    var startRow = findLastDataRow_(sheetVideos, videoHeaderMap, CONFIG.VIDEO_ID_HEADER) + 1;
     sheetVideos.getRange(startRow, 1, rowsToAppend.length, rowsToAppend[0].length).setValues(rowsToAppend);
     applyRowAndThumbnailSizing_(sheetVideos, videoHeaderMap, startRow, rowsToAppend.length);
+    var endRow = startRow + rowsToAppend.length - 1;
+    resultMsg = '✅ リサーチが完了しました。\n\n'
+      + '📄 シート：' + CONFIG.SHEET_VIDEOS + '\n'
+      + '📍 追加行：' + startRow + ' 行目 〜 ' + endRow + ' 行目\n'
+      + '📊 追加件数：' + rowsToAppend.length + ' 件';
+  } else {
+    resultMsg = '⚠️ 追加できる動画がありませんでした。\n\n'
+      + '（すでに取得済み、または条件に一致する動画がありません）';
   }
-
-  SpreadsheetApp.getUi().alert("リサーチが完了しました。");
+  SpreadsheetApp.getUi().alert(resultMsg);
+  return rowsToAppend.length;
 }
 
-function runKeywordResearch() { runKeywordResearchCore_(CONFIG.SHEET_KEYWORD_RESEARCH, false); }
-function runKeywordViewRanking() { runKeywordResearchCore_(CONFIG.SHEET_VIEW_RANKING, true); }
+/**
+ * キーワードリサーチをダイアログのパラメータで実行
+ * @param {Object} params - { mode, maxPerKeyword, videoType }
+ * @return {number} 結果件数
+ */
+function runKeywordResearchWithParams(params) {
+  var mode        = params.mode || 'keyword';
+  var orderByViews = (mode === 'ranking');
+  var defaultMax  = orderByViews ? CONFIG.MAX_VIEW_RANKING_PER_KEYWORD : CONFIG.MAX_SEARCH_RESULTS_PER_KEYWORD;
+  var maxPerKeyword = Math.min(Math.max(parseInt(params.maxPerKeyword) || defaultMax, 1), 50);
+  var videoType   = params.videoType || 'both';
+  var resultSheetName = orderByViews ? CONFIG.SHEET_VIEW_RANKING : CONFIG.SHEET_KEYWORD_RESEARCH;
+  return runKeywordResearchCore_(resultSheetName, orderByViews, maxPerKeyword, videoType);
+}
 
-function runKeywordResearchCore_(resultSheetName, orderByViews) {
-  var defaultNum = orderByViews ? CONFIG.MAX_VIEW_RANKING_PER_KEYWORD : CONFIG.MAX_SEARCH_RESULTS_PER_KEYWORD;
-  var label = orderByViews ? "再生数ランキング" : "検索キーワードリサーチ";
-  var maxPerKeyword = promptNumber_(
-    label + "の件数",
-    "1キーワードあたり、何件の動画を取得しますか？（1〜50）",
-    defaultNum,
-    1,
-    50
-  );
+// =============================================================================
+// 内部: リサーチ処理
+// =============================================================================
+
+function runKeywordResearchCore_(resultSheetName, orderByViews, maxPerKeyword, videoType) {
+  var fetchCount = Math.min(maxPerKeyword * (videoType !== 'both' ? 3 : 1), 50);
 
   var ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
   var sheetKeywords = ss.getSheetByName(CONFIG.SHEET_KEYWORDS) || ss.insertSheet(CONFIG.SHEET_KEYWORDS);
-  var sheetResult = ss.getSheetByName(resultSheetName) || ss.insertSheet(resultSheetName);
+  var sheetResult   = ss.getSheetByName(resultSheetName)       || ss.insertSheet(resultSheetName);
 
   var keywordHeaderMap = buildHeaderMap_(sheetKeywords);
   var keywordKey = findFirstExistingKey_(keywordHeaderMap, CONFIG.KEYWORD_HEADER_KEYS);
   if (!keywordKey) {
-    sheetKeywords.getRange(1, 1).setValue("キーワード");
-    if (sheetKeywords.getLastRow() < 2) sheetKeywords.getRange(2, 1).setValue("例: 睡眠 朗読");
+    sheetKeywords.getRange(1, 1).setValue('キーワード');
+    if (sheetKeywords.getLastRow() < 2) sheetKeywords.getRange(2, 1).setValue('例: カバー 曲名');
     keywordHeaderMap = buildHeaderMap_(sheetKeywords);
     keywordKey = findFirstExistingKey_(keywordHeaderMap, CONFIG.KEYWORD_HEADER_KEYS);
   }
   var keywords = loadKeywords_(sheetKeywords, keywordHeaderMap, keywordKey);
-  if (keywords.length === 0) throw new Error("キーワードを入力してください。");
+  if (keywords.length === 0) throw new Error('キーワードを入力してください。');
 
   var searchDate = formatDate_(new Date());
   var resultRows = [];
   var categoryCache = {};
+
   for (var k = 0; k < keywords.length; k++) {
-    var videoIds = orderByViews ? searchYouTubeByKeywordByViews_(keywords[k], maxPerKeyword) : searchYouTubeByKeyword_(keywords[k], maxPerKeyword);
+    var videoIds = orderByViews
+      ? searchYouTubeByKeywordByViews_(keywords[k], fetchCount)
+      : searchYouTubeByKeyword_(keywords[k], fetchCount);
     if (videoIds.length === 0) continue;
+
     var videoItems = fetchVideosDetails_(videoIds);
-    for (var r = 0; r < videoItems.length; r++) {
-      resultRows.push(buildKeywordResearchRowObject_(keywords[k], r + 1, videoItems[r], categoryCache, searchDate));
+    var rank = 0;
+    for (var r = 0; r < videoItems.length && rank < maxPerKeyword; r++) {
+      var item = videoItems[r];
+      var dur = iso8601DurationToSeconds_((item.contentDetails || {}).duration);
+      if (videoType === 'short' && dur > 60) continue;
+      if (videoType === 'long'  && dur <= 60) continue;
+      rank++;
+      resultRows.push(buildKeywordResearchRowObject_(keywords[k], rank, item, categoryCache, searchDate));
     }
   }
-  writeKeywordResearchSheet_(sheetResult, resultRows);
 
-  SpreadsheetApp.getUi().alert("リサーチが完了しました。");
+  writeKeywordResearchSheet_(sheetResult, resultRows);
+  var kwMsg;
+  if (resultRows.length > 0) {
+    var kwStartRow = 2;
+    var kwEndRow   = 1 + resultRows.length;
+    kwMsg = '✅ リサーチが完了しました。\n\n'
+      + '📄 シート：' + resultSheetName + '\n'
+      + '📍 記載行：' + kwStartRow + ' 行目 〜 ' + kwEndRow + ' 行目\n'
+      + '📊 取得件数：' + resultRows.length + ' 件';
+  } else {
+    kwMsg = '⚠️ 取得できる動画がありませんでした。\n\n'
+      + '（キーワードシートにキーワードが入力されているか確認してください）';
+  }
+  SpreadsheetApp.getUi().alert(kwMsg);
+  return resultRows.length;
 }
+
+// =============================================================================
+// 以下: 既存ユーティリティ関数（変更なし）
+// =============================================================================
 
 function loadKeywords_(sheet, headerMap, keywordKey) {
   var col = headerMap[keywordKey];
@@ -319,10 +343,8 @@ function writeKeywordResearchSheet_(sheet, resultRows) {
   sheet.getRange(2, 1, numRows, KEYWORD_RESEARCH_HEADERS.length).setValues(data);
   var thumbCol = KEYWORD_RESEARCH_HEADERS.indexOf("サムネイル") + 1;
   if (thumbCol > 0 && numRows > 0) {
-    for (var r = 2; r <= 1 + numRows; r++) {
-      sheet.setRowHeight(r, 90);
-    }
-    sheet.setColumnWidth(thumbCol, 120);
+    sheet.setRowHeights(2, numRows, 200);
+    sheet.setColumnWidth(thumbCol, 360);
   }
 }
 
@@ -351,6 +373,24 @@ function loadExistingIds_(sheet, headerMap, idHeaderName) {
   return new Set(sheet.getRange(2, col, sheet.getLastRow() - 1, 1).getValues().map(function(r){ return String(r[0]).trim(); }));
 }
 
+/**
+ * video ID列を上から走査し、最後に値が入っている行番号を返す。
+ * getLastRow() は =IMAGE() 数式の残骸などで実際のデータ末尾より大きくなるため、
+ * ID列だけを確認してデータの実末尾を確定する。
+ * @return {number} 最終データ行（データなし＝ヘッダー行の1を返す）
+ */
+function findLastDataRow_(sheet, headerMap, idHeaderName) {
+  var col = headerMap[idHeaderName];
+  if (!col) return sheet.getLastRow();
+  var sheetLastRow = sheet.getLastRow();
+  if (sheetLastRow < 2) return sheetLastRow;
+  var values = sheet.getRange(2, col, sheetLastRow - 1, 1).getValues();
+  for (var i = values.length - 1; i >= 0; i--) {
+    if (String(values[i][0]).trim() !== '') return i + 2;
+  }
+  return 1; // ヘッダーのみ
+}
+
 function objectToRowByHeader_(rowObject, headerMap) {
   var sorted = Object.keys(headerMap).map(function(k){ return {name: k, col: headerMap[k]}; }).sort(function(a,b){ return a.col - b.col; });
   return sorted.map(function(c){ return rowObject[c.name] || ""; });
@@ -361,8 +401,8 @@ function loadChannels_(sheet, headerMap, channelIdKey, channelUrlKey, channelVie
   if (lastRow < 2) return [];
   var data = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
   return data.map(function(row){
-    var id = channelIdKey ? String(row[headerMap[channelIdKey]-1]).trim() : "";
-    var url = channelUrlKey ? String(row[headerMap[channelUrlKey]-1]).trim() : "";
+    var id  = channelIdKey  ? String(row[headerMap[channelIdKey]  - 1]).trim() : "";
+    var url = channelUrlKey ? String(row[headerMap[channelUrlKey] - 1]).trim() : "";
     return { channelId: id || extractChannelIdFromUrl_(url), viewCount: channelViewsKey ? toNumber_(row[headerMap[channelViewsKey]-1]) : 0 };
   }).sort(function(a,b){ return b.viewCount - a.viewCount; });
 }
@@ -396,13 +436,19 @@ function buildVideoRowObject_(videoItem, categoryCache) {
   var sn = videoItem.snippet || {}, st = videoItem.statistics || {}, cd = videoItem.contentDetails || {};
   var dur = iso8601DurationToSeconds_(cd.duration);
   return {
-    "再生数": toNumber_(st.viewCount), "動画URL": "https://www.youtube.com/watch?v=" + videoItem.id, "投稿日": formatDate_(new Date(sn.publishedAt)), "コメント数": toNumber_(st.commentCount), "概要欄": sn.description, "タイトル": sn.title, "高評価数": toNumber_(st.likeCount), "動画の長さ": formatDurationHuman_(dur), "ハッシュタグ": extractHashtags_(sn.tags, sn.description), "サムネイル": thumbnailToImageFormula_(pickThumbnailUrl_(sn.thumbnails)), "チャンネル名": sn.channelTitle, "ショート / 長尺判定": (dur <= 60 ? "ショート" : "長尺"), "video ID": videoItem.id, "チャンネルID": sn.channelId, "カテゴリID": sn.categoryId, "カテゴリ名": getCategoryName_(sn.categoryId, categoryCache)
+    "再生数": toNumber_(st.viewCount), "動画URL": "https://www.youtube.com/watch?v=" + videoItem.id,
+    "投稿日": formatDate_(new Date(sn.publishedAt)), "コメント数": toNumber_(st.commentCount),
+    "概要欄": sn.description, "タイトル": sn.title, "高評価数": toNumber_(st.likeCount),
+    "動画の長さ": formatDurationHuman_(dur), "ハッシュタグ": extractHashtags_(sn.tags, sn.description),
+    "サムネイル": thumbnailToImageFormula_(pickThumbnailUrl_(sn.thumbnails)), "チャンネル名": sn.channelTitle,
+    "ショート / 長尺判定": (dur <= 60 ? "ショート" : "長尺"), "video ID": videoItem.id,
+    "チャンネルID": sn.channelId, "カテゴリID": sn.categoryId, "カテゴリ名": getCategoryName_(sn.categoryId, categoryCache)
   };
 }
 
 function applyRowAndThumbnailSizing_(sheet, headerMap, startRow, rowCount) {
   var thumbCol = headerMap["サムネイル"];
-  if (thumbCol) { sheet.setRowHeights(startRow, rowCount, 90); sheet.setColumnWidth(thumbCol, 120); }
+  if (thumbCol) { sheet.setRowHeights(startRow, rowCount, 200); sheet.setColumnWidth(thumbCol, 360); }
 }
 
 function extractHashtags_(tags, description) {

@@ -45,6 +45,9 @@ Pygments==2.19.2
 markdown-it-py==4.0.0
 tqdm==4.67.3
 
+# Japanese text
+pykakasi==2.3.0
+
 # Data
 PyYAML==6.0.3
 python-dateutil==2.9.0.post0

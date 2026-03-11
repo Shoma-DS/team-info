@@ -20,11 +20,11 @@ PYTHON_MODULES_REQUIRED = [
     "numpy",
     "pytesseract",
     "faster_whisper",
+    "pykakasi",
 ]
 
 # 任意 Python モジュール
 PYTHON_MODULES_OPTIONAL = [
-    "whisper",
     "mediapipe",
     "librosa",
     "soundfile",

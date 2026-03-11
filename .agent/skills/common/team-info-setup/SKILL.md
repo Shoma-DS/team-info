@@ -26,7 +26,10 @@ description: team-info の初回セットアップや再セットアップを始
 2. 結果が `new` のときは、最初に `マニュアル/まずはこちらをお読みください.md` を読み、その流れに沿って案内する。
 3. 結果が `known` のときは、そのパソコンは既に一度 `team-info` を触った前提で扱う。ユーザーがやり直しを望むなら、そのまま setup を進めてよい。
 4. フルセットアップの入口は常に `setup/setup_all.cmd` とする。
+   - この入口は OS 別 setup の最後に `setup/verify_setup.py` まで走らせる前提で扱う。
+   - `Verify status: passed` かつ終了コード 0 のときだけ「環境がそろった」と判断する。
 5. setup 完了後は、ターミナルを開き直して `TEAM_INFO_ROOT` を確認するよう案内する。
+   - macOS は `~/.config/team-info/env.sh` と `launchctl` に保存される前提で扱う。
 6. `TEAM_INFO_ROOT` が空なら、`setup-local-machine` で作業場所だけを登録し直す。
 7. 新しいパソコンで setup が終わったら、もう一度 `マニュアル/まずはこちらをお読みください.md` を読むよう促す。
 8. それでも止まる場合は、止まった画面のスクリーンショットを添えて Discord `https://discord.com/channels/1478351976168165511/1479287635535990794` へ相談するよう案内する。

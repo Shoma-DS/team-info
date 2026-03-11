@@ -37,8 +37,12 @@ RUNNING_IN_DOCKER = os.environ.get("TEAM_INFO_IN_DOCKER") == "1"
 COMMON_SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "common" / "scripts"
 if str(COMMON_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(COMMON_SCRIPTS_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
 from runtime_common import get_repo_root
+from sync_subtitles_to_audio import sync_subtitles_file
 
 PROJECT_ROOT = get_repo_root()
 CONFIG_FILE = PROJECT_ROOT / "Remotion" / "configs" / "voice_config.json"
@@ -272,6 +276,8 @@ def run(
     output_dir: Path,
     profile_name: str,
     target_seconds: float | None,
+    timeline_ts_path: Path | None,
+    skip_subtitle_sync: bool,
 ):
     # 1. VOICEVOX 起動確認
     if not ensure_voicevox():
@@ -313,7 +319,8 @@ def run(
 
     rendered_sections, duration = render_sections(sections, speaker_id, applied_settings)
 
-    if target_seconds and abs(duration - target_seconds) / target_seconds > 0.02:
+    duration_tolerance = max(0.3, (target_seconds or 0.0) * 0.01) if target_seconds else 0.0
+    if target_seconds and abs(duration - target_seconds) > duration_tolerance:
         ratio = duration / target_seconds
         adjusted_settings = dict(base_settings)
         adjusted_settings["speed"] = min(1.8, max(0.6, base_settings["speed"] * ratio))
@@ -370,6 +377,32 @@ def run(
         f"post={applied_settings['post_phoneme_length']:.2f}"
     )
 
+    subtitles_path = script_path.with_name("subtitles.json")
+    if not skip_subtitle_sync and subtitles_path.exists():
+        print("\n字幕タイミングを音源に同期中...", end="", flush=True)
+        synced, windows = sync_subtitles_file(
+            subtitles_path=subtitles_path,
+            audio_dir=output_dir,
+            timeline_ts_path=timeline_ts_path,
+        )
+        print(" 完了")
+        for window in windows:
+            print(
+                f"  [{window.section}] "
+                f"speech {window.speech_start:.3f}s -> {window.speech_end:.3f}s "
+                f"(lead {window.leading_silence:.3f}s / trail {window.trailing_silence:.3f}s)"
+            )
+        if synced["segments"]:
+            first_segment = synced["segments"][0]
+            last_segment = synced["segments"][-1]
+            print(
+                "  字幕範囲: "
+                f"{first_segment['from_time']:.3f}s -> {last_segment['to_time']:.3f}s "
+                f"({first_segment['from_frame']}f -> {last_segment['to_frame']}f)"
+            )
+        if timeline_ts_path:
+            print(f"  TS モジュール: {timeline_ts_path}")
+
     print("\n完了！")
     print(f"出力先: {output_dir}")
     print("次のステップ: ViralVideo.tsx に Audio トラックを追加してください。")
@@ -392,6 +425,10 @@ def main():
                         help="voice_config.json のプロファイル名 (default: narrator_female)")
     parser.add_argument("--target-seconds", type=float, default=None,
                         help="目標尺（秒）。省略時は隣接する subtitles.json から自動推定")
+    parser.add_argument("--timeline-ts", type=Path, default=None,
+                        help="同期済み字幕タイムラインの TS モジュール出力先")
+    parser.add_argument("--skip-subtitle-sync", action="store_true",
+                        help="音源生成後の subtitles.json 同期をスキップする")
     args = parser.parse_args()
 
     # script パスの決定
@@ -440,7 +477,14 @@ def main():
     if target_seconds is None:
         target_seconds = infer_target_seconds(script_path)
 
-    run(script_path, output_dir, args.profile, target_seconds)
+    run(
+        script_path,
+        output_dir,
+        args.profile,
+        target_seconds,
+        args.timeline_ts,
+        args.skip_subtitle_sync,
+    )
 
 
 if __name__ == "__main__":

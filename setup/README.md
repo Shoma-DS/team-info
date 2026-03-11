@@ -33,7 +33,11 @@ bash "[team-info を置いた絶対パス]/setup/setup_all.cmd"
 この入口が OS に合わせて中のセットアップを呼び分けます。
 - macOS は `setup_mac.sh`
 - Windows は `setup_windows.ps1`
+- 最後に共通の `verify_setup.py` を走らせ、依存関係と Docker ランタイムまで確認します
+- 検証に失敗した場合は、`setup_all.cmd` 全体が非 0 で終了します
 - `TEAM_INFO_ROOT` もあわせて保存します
+- macOS では `~/.config/team-info/env.sh`、シェル初期化ファイル、`launchctl` に保存します
+- Windows ではユーザー環境変数として保存します
 - Windows では内部で PowerShell を `Bypass` 付きで呼ぶため、まずはこの入口だけで進められます
 - できる範囲で Dify 開発用の `uv` / `pnpm` / Node 24 も準備します
 - Canva 用の `~/.secrets/canva_credentials.txt` ひな形も作ります
@@ -52,6 +56,7 @@ bash "[team-info を置いた絶対パス]/setup/setup_mac.sh"
 - Apple Silicon (M1/M2/M3) は `jax[metal]`、Intel Mac は `jax[cpu]` を自動選択
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `tesseract-lang` も追加で入れます
+- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、host venv、npm 依存、Docker runtime import を検証します
 
 ### Windows
 
@@ -66,6 +71,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - `jax[cpu]` をインストール
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `uv` は Python 経由で入れます
+- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、host venv、npm 依存、Docker runtime import を検証します
 
 ---
 

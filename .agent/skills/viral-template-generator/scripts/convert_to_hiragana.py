@@ -13,6 +13,7 @@ Usage:
   python3 convert_to_hiragana.py  # 自動検索
 """
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -31,6 +32,8 @@ if str(COMMON_SCRIPTS_DIR) not in sys.path:
 from runtime_common import get_repo_root
 
 PROJECT_ROOT = get_repo_root()
+GLOBAL_DICTIONARY_PATH = Path(__file__).resolve().parents[1] / "config" / "pronunciation_dictionary.json"
+LOCAL_DICTIONARY_FILENAME = "reading_dictionary.json"
 
 # ─── 数字読み仮名テーブル ────────────────────────────────────────────────────
 
@@ -92,6 +95,102 @@ def preprocess_numbers(text: str) -> str:
     return text
 
 
+def _normalize_dictionary_entries(raw_entries: object) -> list[dict[str, str]]:
+    """辞書JSONを正規化して {surface, reading, output} の配列にする"""
+    if not isinstance(raw_entries, list):
+        return []
+
+    normalized: list[dict[str, str]] = []
+    for entry in raw_entries:
+        if not isinstance(entry, dict):
+            continue
+        surface = str(entry.get("surface", "")).strip()
+        reading = str(entry.get("reading", "")).strip()
+        output = str(entry.get("voice_text", reading)).strip()
+        if not surface or not reading:
+            continue
+        normalized.append({
+            "surface": surface,
+            "reading": reading,
+            "output": output or reading,
+        })
+    return normalized
+
+
+def load_pronunciation_dictionary(script_path: Path) -> tuple[list[dict[str, str]], list[Path]]:
+    """
+    共通辞書 + 台本フォルダ直下の辞書を読み込み、surface の長い順で返す。
+    同じ surface が重複した場合は後から読んだ辞書（ローカル）を優先する。
+    """
+    dictionary_paths = [
+        GLOBAL_DICTIONARY_PATH,
+        script_path.with_name(LOCAL_DICTIONARY_FILENAME),
+    ]
+    merged: dict[str, dict[str, str]] = {}
+    loaded_paths: list[Path] = []
+
+    for path in dictionary_paths:
+        if not path.exists():
+            continue
+
+        data = json.loads(path.read_text(encoding="utf-8"))
+        raw_entries = data.get("replacements", []) if isinstance(data, dict) else data
+        entries = _normalize_dictionary_entries(raw_entries)
+        if not entries:
+            continue
+
+        for entry in entries:
+            merged[entry["surface"]] = entry
+        loaded_paths.append(path)
+
+    replacements = sorted(
+        merged.values(),
+        key=lambda item: len(item["surface"]),
+        reverse=True,
+    )
+    return replacements, loaded_paths
+
+
+def protect_pronunciation_tokens(
+    text: str,
+    replacements: list[dict[str, str]],
+) -> tuple[str, dict[str, str]]:
+    """辞書語をトークンに退避し、pykakasi 後に復元できるようにする"""
+    result = text
+    token_map: dict[str, str] = {}
+
+    for index, entry in enumerate(replacements):
+        surface = entry["surface"]
+        if surface not in result:
+            continue
+        token = f"__VOCAB_{_alpha_token(index)}__"
+        result = result.replace(surface, token)
+        token_map[token] = entry["output"]
+
+    return result, token_map
+
+
+def restore_pronunciation_tokens(text: str, token_map: dict[str, str]) -> str:
+    """pykakasi 後に辞書語の出力文字列へ戻す"""
+    result = text
+    for token, output in token_map.items():
+        result = result.replace(token, output)
+    return result
+
+
+def _alpha_token(index: int) -> str:
+    """0 -> A, 25 -> Z, 26 -> AA のような英大文字トークンへ変換する"""
+    value = index
+    chars: list[str] = []
+    while True:
+        value, remainder = divmod(value, 26)
+        chars.append(chr(ord("A") + remainder))
+        if value == 0:
+            break
+        value -= 1
+    return "".join(reversed(chars))
+
+
 # ─── ひらがな変換 ─────────────────────────────────────────────────────────────
 
 def to_hiragana(text: str, kks: pykakasi.kakasi) -> str:
@@ -100,7 +199,11 @@ def to_hiragana(text: str, kks: pykakasi.kakasi) -> str:
     return "".join(item["hira"] for item in result)
 
 
-def convert_line(line: str, kks: pykakasi.kakasi) -> str:
+def convert_line(
+    line: str,
+    kks: pykakasi.kakasi,
+    replacements: list[dict[str, str]],
+) -> str:
     """
     1行を変換する。
     - Markdown 見出し（##）・区切り（---）・空行はそのまま返す
@@ -111,11 +214,15 @@ def convert_line(line: str, kks: pykakasi.kakasi) -> str:
     if stripped.startswith("#") or stripped == "---" or stripped == "":
         return line
 
+    # よく誤読する語をトークン退避し、pykakasi 後に復元する
+    preprocessed, token_map = protect_pronunciation_tokens(stripped, replacements)
+
     # 数字を先にひらがな化
-    preprocessed = preprocess_numbers(stripped)
+    preprocessed = preprocess_numbers(preprocessed)
 
     # pykakasi でひらがな変換
     hira = to_hiragana(preprocessed, kks)
+    hira = restore_pronunciation_tokens(hira, token_map)
 
     # インデントを保持
     indent = len(line) - len(line.lstrip())
@@ -124,9 +231,10 @@ def convert_line(line: str, kks: pykakasi.kakasi) -> str:
 
 # ─── ファイル単位処理 ─────────────────────────────────────────────────────────
 
-def convert_script(script_path: Path) -> Path:
+def convert_script(script_path: Path) -> tuple[Path, list[dict[str, str]], list[Path]]:
     """script.md を読み込んでひらがな版 script_hiragana.md を生成する"""
     kks = pykakasi.kakasi()
+    replacements, loaded_paths = load_pronunciation_dictionary(script_path)
     text = script_path.read_text(encoding="utf-8")
     lines = text.splitlines(keepends=True)
 
@@ -148,11 +256,11 @@ def convert_script(script_path: Path) -> Path:
             converted_lines.append(line)
             continue
 
-        converted_lines.append(convert_line(line, kks))
+        converted_lines.append(convert_line(line, kks, replacements))
 
     output_path = script_path.with_name("script_hiragana.md")
     output_path.write_text("".join(converted_lines), encoding="utf-8")
-    return output_path
+    return output_path, replacements, loaded_paths
 
 
 # ─── CLI ──────────────────────────────────────────────────────────────────────
@@ -182,8 +290,12 @@ def main():
             script_path = candidates[idx]
 
     print(f"変換中: {script_path.name} → script_hiragana.md")
-    output = convert_script(script_path)
+    output, replacements, loaded_paths = convert_script(script_path)
     print(f"完了: {output}")
+    if loaded_paths:
+        print(f"辞書: {len(replacements)}件")
+        for path in loaded_paths:
+            print(f"  - {path}")
     print("\n⚠ 確認してください:")
     print("  固有名詞・人名の読みが正しいか script_hiragana.md を開いて確認し、")
     print("  誤りがあれば手動で修正してから音源化してください。")
