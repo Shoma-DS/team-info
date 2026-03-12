@@ -7,6 +7,7 @@ narration.wav の無音期間を librosa で検出し:
   2. generated SUBTITLE_TIMELINE .ts のフレーム番号を更新
   3. ViralVideo TSX の SCENE_TIMELINE / INTERRUPT_FRAMES / SFX_EVENTS / totalFrames を更新
   4. TSX 内の Audio src を narration_jetcut.wav に差し替え
+  5. Root.tsx の Composition durationInFrames も同じ尺に同期
 
 Usage:
   python jet_cut.py \\
@@ -273,6 +274,74 @@ def update_tsx(
     return text
 
 
+def _resolve_import_target(base_dir: Path, import_path: str) -> Path | None:
+    candidate = (base_dir / import_path).resolve()
+    if candidate.suffix:
+        return candidate if candidate.exists() else None
+
+    for suffix in (".tsx", ".ts", ".jsx", ".js"):
+        resolved = candidate.with_suffix(suffix)
+        if resolved.exists():
+            return resolved
+
+    return None
+
+
+def update_root_composition_duration(
+    root_path: Path,
+    tsx_path: Path,
+    new_total_frames: int,
+    dry_run: bool = False,
+) -> str:
+    if not root_path.exists():
+        return "root_missing"
+
+    text = root_path.read_text(encoding="utf-8")
+    original = text
+    tsx_resolved = tsx_path.resolve()
+    component_name: str | None = None
+
+    import_pattern = re.compile(
+        r'import\s*\{\s*([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?\s*\}\s*from\s*["\']([^"\']+)["\'];?'
+    )
+    for match in import_pattern.finditer(text):
+        imported_name = match.group(1)
+        local_name = match.group(2) or imported_name
+        import_path = match.group(3)
+        resolved = _resolve_import_target(root_path.parent, import_path)
+        if resolved and resolved == tsx_resolved:
+            component_name = local_name
+            break
+
+    if component_name is None:
+        return "import_not_found"
+
+    composition_found = False
+
+    def replace_composition(match: re.Match) -> str:
+        nonlocal composition_found
+        block = match.group(0)
+        if f"component={{{component_name}}}" not in block:
+            return block
+        composition_found = True
+        return re.sub(
+            r"durationInFrames=\{\d+\}",
+            f"durationInFrames={{{new_total_frames}}}",
+            block,
+            count=1,
+        )
+
+    text = re.sub(r"<Composition\b[\s\S]*?\/>", replace_composition, text)
+
+    if not composition_found:
+        return "composition_not_found"
+
+    if not dry_run and text != original:
+        root_path.write_text(text, encoding="utf-8")
+
+    return "updated" if text != original else "unchanged"
+
+
 # ──────────────────────────────────────────────────────────────
 # 4. main
 # ──────────────────────────────────────────────────────────────
@@ -405,6 +474,24 @@ def main() -> int:
         dry_run=False,
     )
     print(f"TSX 更新: {args.tsx}  (backup: {tsx_backup.name})")
+
+    root_path = args.tsx.parents[1] / "Root.tsx"
+    root_status = update_root_composition_duration(
+        root_path,
+        args.tsx,
+        new_total_frames,
+        dry_run=False,
+    )
+    if root_status == "updated":
+        print(f"Root.tsx 更新: {root_path}")
+    elif root_status == "unchanged":
+        print(f"Root.tsx 同期済み: {root_path}")
+    elif root_status == "root_missing":
+        print(f"WARNING: Root.tsx が見つかりません: {root_path}")
+    elif root_status == "import_not_found":
+        print(f"WARNING: Root.tsx import が見つかりません: {args.tsx.name}")
+    elif root_status == "composition_not_found":
+        print(f"WARNING: Root.tsx Composition が見つかりません: {args.tsx.name}")
 
     print("\n完了。プレビュー:")
     print(f"  npm --prefix /Users/deguchishouma/team-info/Remotion/my-video run dev")

@@ -1,0 +1,107 @@
+{
+  "_comment": "字幕スタイルテンプレート集。viral_patterns.md の分析結果から最も近いものを選ぶ。",
+  "_selection_guide": {
+    "bg_box_dark": "background_box_detected が多数派（50%以上）のとき",
+    "stroke_light": "stroke_detected が多数派（50%以上）のとき",
+    "plain_light": "どちらも少数（各25%以下）のとき"
+  },
+
+  "bg_box_entertainment": {
+    "description": "暗い座布団スタイル。芸能エンタメ系に多い（本分析: 4/7本）。",
+    "trigger": "background_box_detected が多数派",
+    "yPercent": 70,
+    "fontSize": 48,
+    "fontSizeFallback": "platform_default",
+    "fontWeight": "900",
+    "color": "#ebc1b9",
+    "background": "rgba(22,14,14,0.88)",
+    "paddingH": 22,
+    "paddingV": 10,
+    "borderRadius": 6,
+    "letterSpacing": "0.02em",
+    "fontFamily": "\"Hiragino Maru Gothic ProN\", \"Hiragino Sans\", \"Yu Gothic\", \"Meiryo\", sans-serif",
+    "strokeWidth": null,
+    "strokeColor": null,
+    "textShadow": null,
+    "nameCard": {
+      "colors": ["#f4d56f", "#ffffff"],
+      "strokeWidth": "3px",
+      "strokeColor": "#1d1b1a",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.4)",
+      "background": "transparent"
+    },
+    "hook": {
+      "colors": ["#f4d56f", "#ffffff"],
+      "strokeWidth": "3px",
+      "strokeColor": "#1d1b1a",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.4)",
+      "background": "transparent"
+    }
+  },
+
+  "stroke_entertainment": {
+    "description": "ストロークスタイル。一部芸能エンタメ系（本分析: 2/7本）。背景が明るい素材向き。",
+    "trigger": "stroke_detected が多数派",
+    "yPercent": 65,
+    "fontSize": 52,
+    "fontSizeFallback": "platform_default",
+    "fontWeight": "900",
+    "color": "#c6b7b6",
+    "background": null,
+    "paddingH": 0,
+    "paddingV": 0,
+    "borderRadius": 0,
+    "letterSpacing": "0.01em",
+    "fontFamily": "\"Hiragino Maru Gothic ProN\", \"Hiragino Sans\", \"Yu Gothic\", \"Meiryo\", sans-serif",
+    "strokeWidth": "4px",
+    "strokeColor": "#1d1b1a",
+    "textShadow": "0 3px 0 rgba(0,0,0,0.3)",
+    "nameCard": {
+      "colors": ["#f4d56f", "#ffffff"],
+      "strokeWidth": "5px",
+      "strokeColor": "#000000",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.4)",
+      "background": "transparent"
+    },
+    "hook": {
+      "colors": ["#f4d56f", "#ffffff"],
+      "strokeWidth": "5px",
+      "strokeColor": "#000000",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.4)",
+      "background": "transparent"
+    }
+  },
+
+  "plain_light": {
+    "description": "シンプルスタイル。座布団もストロークも少ない場合。白テキスト＋影。",
+    "trigger": "background_box_detected と stroke_detected がともに少数",
+    "yPercent": 70,
+    "fontSize": 48,
+    "fontSizeFallback": "platform_default",
+    "fontWeight": "900",
+    "color": "#ffffff",
+    "background": null,
+    "paddingH": 0,
+    "paddingV": 0,
+    "borderRadius": 0,
+    "letterSpacing": "0.01em",
+    "fontFamily": "\"Hiragino Maru Gothic ProN\", \"Hiragino Sans\", \"Yu Gothic\", \"Meiryo\", sans-serif",
+    "strokeWidth": "2px",
+    "strokeColor": "#000000",
+    "textShadow": "0 4px 8px rgba(0,0,0,0.6)",
+    "nameCard": {
+      "colors": ["#f4d56f", "#ffffff"],
+      "strokeWidth": "3px",
+      "strokeColor": "#1d1b1a",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.4)",
+      "background": "transparent"
+    },
+    "hook": {
+      "colors": ["#f4d56f", "#ffffff"],
+      "strokeWidth": "3px",
+      "strokeColor": "#1d1b1a",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.4)",
+      "background": "transparent"
+    }
+  }
+}

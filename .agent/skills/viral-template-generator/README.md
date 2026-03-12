@@ -13,7 +13,9 @@ input.mp4
   ↓
 [Layer 3] バズ構造解析     フック / パターンインタラプト / ループ
   ↓
-analysis.json
+[Layer 4] 字幕見た目補助解析 + スクショ抽出
+  ↓
+analysis.json + subtitle_style_samples/ + subtitle_style_template.json
   ↓
 Claude Code → Remotionテンプレート生成
 ```
@@ -31,7 +33,8 @@ Claude Code → Remotionテンプレート生成
 │   └── layers/
 │       ├── video_structure.py     # Layer 1
 │       ├── speech_analysis.py     # Layer 2
-│       └── viral_pattern.py       # Layer 3
+│       ├── viral_pattern.py       # Layer 3
+│       └── subtitle_visual.py     # Layer 4
 └── template/                      # Remotionベーステンプレート
     ├── package.json
     ├── tsconfig.json
@@ -75,15 +78,16 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py" \
   /absolute/path/to/input.mp4 \
-  --output-dir /absolute/path/to/output \
-  --platform tiktok
+  --platform tiktok \
+  --pattern-name パターン名
 ```
 
 オプション:
 | オプション | デフォルト | 説明 |
 |---|---|---|
 | `--platform` | `tiktok` | `tiktok` / `shorts` / `reels` |
-| `--output-dir` | `./analysis-output` | analysis.json の出力先 |
+| `--pattern-name` | 単体解析時は入力動画名 | 出力先の分析バッチ名。`[pattern-name]_[date]` で保存 |
+| `--output-dir` | `./analysis-output` | 旧形式の analysis.json 出力先（後方互換） |
 | `--skip-ocr` | false | OCRをスキップ（高速化） |
 
 ### Step 3: Remotionテンプレート生成
@@ -95,6 +99,7 @@ Claude Code に以下を伝える:
 ```
 
 Claude が `analysis.json` を読み、`/absolute/path/to/output/remotion/` にカスタマイズされたテンプレートを生成する。
+このとき字幕は `subtitle_style_template.json` を優先し、`analysis.json.subtitle_visual` は補助値として使う。
 
 ### Step 4: プレビュー・レンダリング
 
@@ -117,6 +122,9 @@ cd /absolute/path/to/output/remotion && npx remotion render \
   "duration": 15.2,          // 動画の長さ（秒）
   "fps": 30,
   "platform": "tiktok",      // tiktok / shorts / reels
+  "analyzed_date": "20260312",
+  "analysis_batch_name": "芸能人エンタメ_20260312",
+  "pattern_name": "芸能人エンタメ",
   "resolution": { "width": 1080, "height": 1920 },
 
   "video_structure": {
@@ -154,6 +162,18 @@ cd /absolute/path/to/output/remotion && npx remotion render \
     "loop_point": 14.5,
     "information_density": "high",      // low / medium / high
     "tone": "educational"               // educational / entertainment / curiosity / general
+  },
+
+  "subtitle_visual": {
+    "analysis_mode": "agent_review_preferred",
+    "text_color_hex": "#ebc1b9",
+    "stroke_detected": false,
+    "background_box_detected": true,
+    "agent_review": {
+      "review_status": "pending",
+      "manifest_path": "/absolute/path/to/output/subtitle_style_samples/manifest.json",
+      "review_template_path": "/absolute/path/to/output/subtitle_style_template.json"
+    }
   }
 }
 ```

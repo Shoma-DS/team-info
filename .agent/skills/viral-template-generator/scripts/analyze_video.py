@@ -3,30 +3,32 @@
 analyze-video: ショート動画3層解析 → analysis.json 生成
 
 起動フロー:
-  1. 新しく分析する  → 今日の日付フォルダ(YYYYMMDD)を作成して全動画を一括解析
-  2. 既存を使う      → タイムスタンプ一覧から選択してそのまま使う
-  3. 上書き再解析    → タイムスタンプ一覧から選択して全動画を再解析
+  1. 新しく分析する  → パターン名_日付フォルダ(例: 芸能人エンタメ_20260312)を作成して全動画を一括解析
+  2. 既存を使う      → 既存の分析バッチ一覧から選択してそのまま使う
+  3. 上書き再解析    → 既存の分析バッチ一覧から選択して全動画を再解析
 
 出力構造:
   inputs/viral-analysis/output/
-  └── YYYYMMDD/
+  └── パターン名_YYYYMMDD/
       ├── {動画名}/
-      │   └── analysis.json
-      └── {テンプレ名}/        ← Phase A 以降（Claude が生成）
-          ├── viral_patterns.md
-          └── ...
+      │   ├── analysis.json
+      │   ├── subtitle_style_template.json
+      │   └── subtitle_style_samples/
+      ├── viral_patterns.md     ← Phase A 以降（Claude が生成）
+      └── ...
 
 Usage:
   # 対話モード（推奨）
   python3 analyze_video.py
 
   # 直接指定（非対話 / CI 用）
-  python3 analyze_video.py /path/to/video.mp4 --platform shorts --date 20260311
-  python3 analyze_video.py --all --platform shorts --date 20260311
+  python3 analyze_video.py /path/to/video.mp4 --platform shorts --pattern-name 芸能人エンタメ --date 20260311
+  python3 analyze_video.py --all --platform shorts --pattern-name 芸能人エンタメ --date 20260311
 """
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import date
@@ -52,6 +54,15 @@ _SETUP_FLAG = get_config_dir("viral-template-generator") / ".setup_done"
 
 # 対応動画拡張子
 _VIDEO_EXTS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
+
+# 新旧どちらの分析バッチフォルダ名も受け入れる:
+#   - 20260312
+#   - 20260312_2
+#   - 芸能人エンタメ_20260312
+#   - 芸能人エンタメ_20260312_2
+_BATCH_DIR_RE = re.compile(
+    r"^(?:(?P<pattern>.+)_)?(?P<date>\d{8})(?:_(?P<suffix>\d+))?$"
+)
 
 
 # ─── クロスプラットフォーム通知 ──────────────────────────────────────────────
@@ -135,15 +146,61 @@ def _scan_inbox() -> list[Path]:
     )
 
 
+def _parse_batch_dir_name(name: str) -> dict | None:
+    match = _BATCH_DIR_RE.fullmatch(name)
+    if not match:
+        return None
+    return {
+        "pattern_name": match.group("pattern"),
+        "date": match.group("date"),
+        "suffix": int(match.group("suffix") or "1"),
+    }
+
+
+def _normalize_pattern_name(name: str) -> str:
+    cleaned = re.sub(r"[\\/]+", "-", name).strip()
+    cleaned = re.sub(r"\s+", "_", cleaned)
+    cleaned = cleaned.strip("._-")
+    if not cleaned:
+        raise ValueError("パターン名が空です。")
+    return cleaned
+
+
+def _build_batch_dir_name(pattern_name: str, date_token: str, suffix: int | None = None) -> str:
+    base = f"{_normalize_pattern_name(pattern_name)}_{date_token}"
+    if suffix and suffix > 1:
+        return f"{base}_{suffix}"
+    return base
+
+
+def _extract_batch_meta(ts_dir: Path) -> dict:
+    parsed = _parse_batch_dir_name(ts_dir.name)
+    if parsed is None:
+        return {
+            "analysis_batch_name": ts_dir.name,
+            "pattern_name": None,
+            "date": ts_dir.name,
+        }
+    return {
+        "analysis_batch_name": ts_dir.name,
+        "pattern_name": parsed["pattern_name"],
+        "date": parsed["date"],
+    }
+
+
 def _scan_timestamp_dirs() -> list[Path]:
-    """output/ 以下のタイムスタンプフォルダ（YYYYMMDD）を新しい順で返す"""
+    """output/ 以下の分析バッチフォルダを新しい順で返す（旧 YYYYMMDD 形式も含む）"""
     OUTPUT_BASE.mkdir(parents=True, exist_ok=True)
-    dirs = sorted(
-        (d for d in OUTPUT_BASE.iterdir()
-         if d.is_dir() and d.name.isdigit() and len(d.name) == 8),
-        reverse=True,
-    )
-    return dirs
+    candidates = []
+    for directory in OUTPUT_BASE.iterdir():
+        if not directory.is_dir():
+            continue
+        parsed = _parse_batch_dir_name(directory.name)
+        if not parsed:
+            continue
+        candidates.append((parsed["date"], parsed["suffix"], directory.name, directory))
+    candidates.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
+    return [item[3] for item in candidates]
 
 
 def _choose_int(prompt: str, lo: int, hi: int) -> int:
@@ -167,13 +224,35 @@ def _choose_platform() -> str:
     return platforms[idx - 1]
 
 
+def _choose_pattern_name(default: str | None = None) -> str:
+    prompt = "  パターン名を入力 > "
+    if default:
+        prompt = f"  パターン名を入力 [{default}] > "
+    while True:
+        try:
+            raw = input(prompt).strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n中断しました。")
+            sys.exit(0)
+        if not raw and default:
+            raw = default
+        try:
+            return _normalize_pattern_name(raw)
+        except ValueError:
+            print("  ⚠️  パターン名を入力してください")
+
+
 def _summarize_timestamp_dir(ts_dir: Path) -> str:
-    """タイムスタンプフォルダの概要（動画数・analysis.json数）を返す"""
+    """分析バッチフォルダの概要（動画数・analysis.json数）を返す"""
     video_dirs = [
         d for d in ts_dir.iterdir()
         if d.is_dir() and (d / "analysis.json").exists()
     ]
-    return f"{len(video_dirs)} 本の analysis.json"
+    meta = _extract_batch_meta(ts_dir)
+    label = meta["date"]
+    if meta["pattern_name"]:
+        label = f"{meta['pattern_name']} / {meta['date']}"
+    return f"{len(video_dirs)} 本の analysis.json | {label}"
 
 
 # ─── 起動フロー選択 ───────────────────────────────────────────────────────────
@@ -183,7 +262,7 @@ def _interactive_startup() -> tuple[str, Path, list[Path], str]:
     対話式で起動モードを選ぶ。
     Returns:
         mode: "new" | "use_existing" | "overwrite"
-        ts_dir: 対象タイムスタンプフォルダ
+        ts_dir: 対象分析バッチフォルダ
         videos: 解析する動画リスト（use_existing のときは空）
         platform: プラットフォーム文字列
     """
@@ -192,7 +271,7 @@ def _interactive_startup() -> tuple[str, Path, list[Path], str]:
     print("\n" + "═" * 56)
     print("  viral-template-generator — 起動モード選択")
     print("═" * 56)
-    print("  [1] 新しく分析する  （今日の日付でフォルダを作成）")
+    print("  [1] 新しく分析する  （パターン名_今日の日付でフォルダを作成）")
     if existing_ts:
         print("  [2] 既存の分析を使う（Phase A の統合分析へスキップ）")
         print("  [3] 既存の分析を上書きする（再解析）")
@@ -204,18 +283,22 @@ def _interactive_startup() -> tuple[str, Path, list[Path], str]:
     # ── [1] 新規 ──────────────────────────────────────────────────────────────
     if choice == 1:
         today = date.today().strftime("%Y%m%d")
-        ts_dir = OUTPUT_BASE / today
-        # 同日に複数回実行する場合は _2, _3 と連番を付ける
-        if ts_dir.exists():
-            suffix = 2
-            while (OUTPUT_BASE / f"{today}_{suffix}").exists():
-                suffix += 1
-            ts_dir = OUTPUT_BASE / f"{today}_{suffix}"
-
         videos = _scan_inbox()
         if not videos:
             print(f"\n❌ 解析できる動画がありません。{INBOX_DIR} に動画を配置してください。")
             sys.exit(1)
+
+        default_pattern = None
+        if len(videos) == 1:
+            default_pattern = videos[0].stem
+        pattern_name = _choose_pattern_name(default_pattern)
+        ts_dir = OUTPUT_BASE / _build_batch_dir_name(pattern_name, today)
+        # 同日に複数回実行する場合は _2, _3 と連番を付ける
+        if ts_dir.exists():
+            suffix = 2
+            while (OUTPUT_BASE / _build_batch_dir_name(pattern_name, today, suffix)).exists():
+                suffix += 1
+            ts_dir = OUTPUT_BASE / _build_batch_dir_name(pattern_name, today, suffix)
 
         print(f"\n  📁 出力フォルダ: {ts_dir.name}")
         print(f"  🎬 解析対象 ({len(videos)} 本):")
@@ -260,8 +343,8 @@ def _interactive_startup() -> tuple[str, Path, list[Path], str]:
 
 
 def _select_timestamp_dir(existing_ts: list[Path], verb: str) -> Path:
-    """既存タイムスタンプフォルダの一覧を表示して選ばせる"""
-    print(f"\n  {verb}タイムスタンプフォルダを選んでください:")
+    """既存分析バッチフォルダの一覧を表示して選ばせる"""
+    print(f"\n  {verb}分析バッチフォルダを選んでください:")
     print("  " + "─" * 50)
     for i, d in enumerate(existing_ts, 1):
         summary = _summarize_timestamp_dir(d)
@@ -325,7 +408,10 @@ def _analyze_one(input_path: Path, ts_dir: Path, platform: str, skip_ocr: bool) 
 
     # Layer 4: 字幕ビジュアルスタイル解析
     print("\n🎨 [4/4] Layer4: 字幕ビジュアルスタイル解析...")
-    from layers.subtitle_visual import analyze_subtitle_visual_style
+    from layers.subtitle_visual import (
+        analyze_subtitle_visual_style,
+        export_subtitle_style_review_assets,
+    )
     import cv2 as _cv2
     _cap4 = _cv2.VideoCapture(str(input_path))
     _res = video_data.get("resolution", {})
@@ -336,21 +422,39 @@ def _analyze_one(input_path: Path, ts_dir: Path, platform: str, skip_ocr: bool) 
         video_width=_res.get("width", 1080),
         video_height=_res.get("height", 1920),
     )
+    subtitle_style_review = export_subtitle_style_review_assets(
+        _cap4,
+        video_data["fps"],
+        video_data["video_structure"].get("cuts", []),
+        video_data["video_structure"].get("text_regions", []),
+        video_width=_res.get("width", 1080),
+        video_height=_res.get("height", 1920),
+        output_dir=output_dir,
+        source_video=str(input_path),
+    )
     _cap4.release()
+    subtitle_visual_data["analysis_mode"] = "agent_review_preferred"
+    subtitle_visual_data["agent_review"] = subtitle_style_review
     print(f"   ✓ 文字色              : {subtitle_visual_data.get('text_color_hex', '?')}")
     print(f"   ✓ 縁取り              : {'あり ' + str(subtitle_visual_data.get('stroke_width_px', 0)) + 'px' if subtitle_visual_data.get('stroke_detected') else 'なし'}")
     print(f"   ✓ グロー              : {'あり' if subtitle_visual_data.get('glow_detected') else 'なし'}")
     print(f"   ✓ 座布団              : {'あり' if subtitle_visual_data.get('background_box_detected') else 'なし'}")
     print(f"   ✓ 行ごと色違い        : {'あり' if subtitle_visual_data.get('multicolor_lines') else 'なし'}")
     print(f"   ✓ フォントサイズ推定  : {subtitle_visual_data.get('font_size_px', 0)}px (信頼度: {subtitle_visual_data.get('confidence', '?')})")
+    print(f"   ✓ レビュー用スクショ  : {subtitle_style_review.get('sample_count', 0)} 枚")
+    if subtitle_style_review.get("review_template_path"):
+        print(f"   ✓ レビュー雛形        : {subtitle_style_review.get('review_template_path')}")
 
     # analysis.json 生成
+    batch_meta = _extract_batch_meta(ts_dir)
     analysis = {
         "duration": video_data["duration"],
         "fps": video_data["fps"],
         "platform": platform,
         "source_file": str(input_path),
-        "analyzed_date": ts_dir.name,
+        "analyzed_date": batch_meta["date"],
+        "analysis_batch_name": batch_meta["analysis_batch_name"],
+        "pattern_name": batch_meta["pattern_name"],
         "resolution": video_data.get("resolution", {}),
         "video_structure": video_data["video_structure"],
         "speech_structure": speech_data,
@@ -387,7 +491,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--date", default=None,
-        help="タイムスタンプフォルダ名（例: 20260311）。省略すると今日の日付"
+        help="日付トークン（例: 20260311）。省略すると今日の日付"
+    )
+    parser.add_argument(
+        "--pattern-name", default=None,
+        help="分析バッチのパターン名。出力フォルダは [pattern-name]_[date] になる"
     )
     parser.add_argument(
         "--output-dir", default=None,
@@ -421,9 +529,6 @@ def main() -> None:
 
     # ── 非対話モード（--all または input 直接指定）────────────────────────────
     if args.input is not None or args.all:
-        ts_name = args.date or date.today().strftime("%Y%m%d")
-        ts_dir = OUTPUT_BASE / ts_name
-        ts_dir.mkdir(parents=True, exist_ok=True)
         platform = args.platform or "shorts"
 
         if args.all:
@@ -431,12 +536,20 @@ def main() -> None:
             if not videos:
                 print(f"❌ 解析できる動画がありません。{INBOX_DIR} に動画を配置してください。")
                 sys.exit(1)
+            if not args.pattern_name:
+                print("❌ --all を使う場合は --pattern-name を指定してください。", file=sys.stderr)
+                sys.exit(1)
         else:
             input_path = Path(args.input).resolve()
             if not input_path.exists():
                 print(f"❌ ファイルが見つかりません: {input_path}", file=sys.stderr)
                 sys.exit(1)
             videos = [input_path]
+
+        date_token = args.date or date.today().strftime("%Y%m%d")
+        pattern_name = args.pattern_name or videos[0].stem
+        ts_dir = OUTPUT_BASE / _build_batch_dir_name(pattern_name, date_token)
+        ts_dir.mkdir(parents=True, exist_ok=True)
 
         print(f"\n🚀 一括解析モード | フォルダ: {ts_dir.name} | {len(videos)} 本")
         for i, v in enumerate(videos, 1):

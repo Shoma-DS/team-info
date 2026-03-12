@@ -4,6 +4,7 @@ import { AcoRielLyricCover } from "./AcoRielLyricCover";
 import { CanvaSlideshow } from "./CanvaSlideshow";
 import chiseigakuSlides from "../public/assets/slide_images/地政学/manifest.json";
 import { ViralVideo } from "./viral/ViralVideo_芸能人エンタメ_20260310";
+import { ViralVideo as ViralVideoStyle } from "./viral/ViralVideo_スタイル反則アイドル3選_20260312";
 
 // Each <Composition> is an entry in the sidebar!
 
@@ -58,6 +59,14 @@ export const RemotionRoot: React.FC = () => {
           id="Viral-shorts-20260310"
           component={ViralVideo}
           durationInFrames={1620}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="Viral-shorts-20260312"
+          component={ViralVideoStyle}
+          durationInFrames={1545}
           fps={30}
           width={1080}
           height={1920}

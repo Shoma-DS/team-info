@@ -271,10 +271,84 @@ def parse_script(script_path: Path) -> list[dict]:
 
 # ─── メイン処理 ──────────────────────────────────────────────────────────────
 
+DEFAULT_PROFILE = "aoyama_ryuusei_normal"
+
+
+def list_all_speakers() -> list[dict]:
+    """VOICEVOX から全スピーカー一覧を取得する"""
+    r = requests.get(f"{VOICEVOX_BASE}/speakers", timeout=10)
+    result = []
+    for sp in r.json():
+        for style in sp["styles"]:
+            result.append({"id": style["id"], "name": sp["name"], "style": style["name"]})
+    return result
+
+
+def select_speaker_interactive(config: dict) -> tuple[int, dict]:
+    """
+    対話式でスピーカーを選択し (speaker_id, profile_dict) を返す。
+    Enter のみでデフォルト（青山龍星/ノーマル）を使用する。
+    """
+    profiles = {k: v for k, v in config.items()}
+    default_key = DEFAULT_PROFILE if DEFAULT_PROFILE in profiles else list(profiles.keys())[0]
+    default_p = profiles[default_key]
+
+    print("\n" + "─" * 52)
+    print("スピーカーを選択してください")
+    print(f"（Enterで {default_p['speaker_name']} / {default_p['style_name']} を使用）")
+    print("─" * 52)
+    print("【プリセット】")
+    profile_keys = list(profiles.keys())
+    for i, key in enumerate(profile_keys, 1):
+        p = profiles[key]
+        marker = " ← デフォルト" if key == default_key else ""
+        print(f"  [{i}] {key:<28} {p['speaker_name']} / {p['style_name']}{marker}")
+    print("  [s] スピーカーID直接指定（全スピーカー一覧を表示）")
+    print("─" * 52)
+
+    choice = input("番号または 's' > ").strip()
+
+    if choice == "":
+        sid = get_speaker_id(default_p["speaker_name"], default_p["style_name"])
+        if sid is None:
+            raise SystemExit(f"スピーカー '{default_p['speaker_name']} / {default_p['style_name']}' が見つかりません。")
+        return sid, default_p
+
+    if choice.lower() == "s":
+        all_speakers = list_all_speakers()
+        print("\n【全スピーカー一覧】")
+        for sp in all_speakers:
+            print(f"  id={sp['id']:>4}  {sp['name']} / {sp['style']}")
+        sid = int(input("スピーカーID > ").strip())
+        matched = next((sp for sp in all_speakers if sp["id"] == sid), None)
+        if not matched:
+            raise SystemExit(f"ID {sid} のスピーカーが見つかりません。")
+        base = profiles.get("narrator_male", list(profiles.values())[0])
+        profile = dict(base)
+        profile["speaker_name"] = matched["name"]
+        profile["style_name"] = matched["style"]
+        return sid, profile
+
+    try:
+        idx = int(choice) - 1
+        if not (0 <= idx < len(profile_keys)):
+            raise ValueError
+    except ValueError:
+        raise SystemExit(f"無効な入力: '{choice}'")
+
+    key = profile_keys[idx]
+    profile = profiles[key]
+    sid = get_speaker_id(profile["speaker_name"], profile["style_name"])
+    if sid is None:
+        raise SystemExit(f"スピーカー '{profile['speaker_name']} / {profile['style_name']}' が見つかりません。")
+    return sid, profile
+
+
 def run(
     script_path: Path,
     output_dir: Path,
-    profile_name: str,
+    profile_name: str | None,
+    speaker_id_direct: int | None,
     target_seconds: float | None,
     timeline_ts_path: Path | None,
     skip_subtitle_sync: bool,
@@ -285,16 +359,33 @@ def run(
 
     # 2. 設定読み込み
     config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
-    profile = config.get(profile_name)
-    if not profile:
-        raise SystemExit(f"プロファイル '{profile_name}' が voice_config.json に見つかりません。\n"
-                         f"利用可能: {list(config.keys())}")
 
-    speaker_id = get_speaker_id(profile["speaker_name"], profile["style_name"])
-    if speaker_id is None:
-        raise SystemExit(f"スピーカー '{profile['speaker_name']} / {profile['style_name']}' が見つかりません。")
-
-    print(f"スピーカー: {profile['speaker_name']} / {profile['style_name']} (id={speaker_id})")
+    # 3. スピーカー決定
+    if speaker_id_direct is not None:
+        # --speaker-id 直接指定
+        all_speakers = list_all_speakers()
+        matched = next((sp for sp in all_speakers if sp["id"] == speaker_id_direct), None)
+        if not matched:
+            raise SystemExit(f"ID {speaker_id_direct} のスピーカーが見つかりません。")
+        speaker_id = speaker_id_direct
+        profile = dict(config.get("narrator_male", list(config.values())[0]))
+        profile["speaker_name"] = matched["name"]
+        profile["style_name"] = matched["style"]
+        print(f"スピーカー: {matched['name']} / {matched['style']} (id={speaker_id})")
+    elif profile_name is not None:
+        # --profile 指定
+        profile = config.get(profile_name)
+        if not profile:
+            raise SystemExit(f"プロファイル '{profile_name}' が voice_config.json に見つかりません。\n"
+                             f"利用可能: {list(config.keys())}")
+        speaker_id = get_speaker_id(profile["speaker_name"], profile["style_name"])
+        if speaker_id is None:
+            raise SystemExit(f"スピーカー '{profile['speaker_name']} / {profile['style_name']}' が見つかりません。")
+        print(f"スピーカー: {profile['speaker_name']} / {profile['style_name']} (id={speaker_id})")
+    else:
+        # --profile も --speaker-id も未指定 → 対話式選択
+        speaker_id, profile = select_speaker_interactive(config)
+        print(f"スピーカー: {profile['speaker_name']} / {profile['style_name']} (id={speaker_id})")
 
     # 3. script.md パース
     sections = parse_script(script_path)
@@ -421,8 +512,10 @@ def main():
                         help="script.md の絶対パス")
     parser.add_argument("--output-dir", "-o", type=Path, required=False,
                         help="出力先ディレクトリ（例: remotion/public/audio）")
-    parser.add_argument("--profile", "-p", type=str, default="narrator_female",
-                        help="voice_config.json のプロファイル名 (default: narrator_female)")
+    parser.add_argument("--profile", "-p", type=str, default=None,
+                        help="voice_config.json のプロファイル名。省略すると対話式選択（デフォルト: aoyama_ryuusei_normal）")
+    parser.add_argument("--speaker-id", type=int, default=None,
+                        help="VOICEVOX スピーカーID を直接指定（--profile より優先）")
     parser.add_argument("--target-seconds", type=float, default=None,
                         help="目標尺（秒）。省略時は隣接する subtitles.json から自動推定")
     parser.add_argument("--timeline-ts", type=Path, default=None,
@@ -481,6 +574,7 @@ def main():
         script_path,
         output_dir,
         args.profile,
+        args.speaker_id,
         target_seconds,
         args.timeline_ts,
         args.skip_subtitle_sync,

@@ -216,6 +216,54 @@ function Get-NvmSymlink {
     return $null
 }
 
+function Resolve-NodeAndNpmCommand {
+    param(
+        [string]$nvmExe,
+        [string]$nodeVersion,
+        [string]$nodeSymlink
+    )
+
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    $npmCommand = Get-Command npm -ErrorAction SilentlyContinue
+
+    if ($nodeCommand -and $npmCommand) {
+        return [PSCustomObject]@{
+            Node = $nodeCommand.Source
+            Npm = $npmCommand.Source
+        }
+    }
+
+    $candidates = @()
+    if ($nodeSymlink) {
+        $candidates += $nodeSymlink
+    }
+
+    if ($nvmExe) {
+        $nvmHome = Split-Path -Parent $nvmExe
+        $normalizedNodeVersion = $nodeVersion
+        if ($normalizedNodeVersion -notmatch '^v') {
+            $normalizedNodeVersion = "v$normalizedNodeVersion"
+        }
+        $candidates += (Join-Path $nvmHome $normalizedNodeVersion)
+    }
+
+    foreach ($dir in ($candidates | Where-Object { $_ } | Select-Object -Unique)) {
+        $nodeExe = Join-Path $dir "node.exe"
+        $npmCmd = Join-Path $dir "npm.cmd"
+        if ((Test-Path $nodeExe) -and (Test-Path $npmCmd)) {
+            if ($env:Path -notlike "*$dir*") {
+                $env:Path = "$dir;$env:Path"
+            }
+            return [PSCustomObject]@{
+                Node = $nodeExe
+                Npm = $npmCmd
+            }
+        }
+    }
+
+    return $null
+}
+
 # ── 1. winget 確認 ────────────────────────────────────────────────────────
 Write-Step "1. winget (パッケージマネージャ) 確認"
 if (-not (Test-Command winget)) {
@@ -420,7 +468,18 @@ if ($NvmExe) {
         $env:Path = "$NodeSymlink;$env:Path"
     }
 
-    Write-Info "Node.js: $(node --version), npm: $(npm --version)"
+    $nodeAndNpm = Resolve-NodeAndNpmCommand -nvmExe $NvmExe -nodeVersion $NodeVersion -nodeSymlink $NodeSymlink
+    if ($nodeAndNpm) {
+        $nodeVersionText = (& $nodeAndNpm.Node --version 2>$null | Select-Object -First 1)
+        $npmVersionText = (& $nodeAndNpm.Npm --version 2>$null | Select-Object -First 1)
+        if ($nodeVersionText -and $npmVersionText) {
+            Write-Info "Node.js: $nodeVersionText, npm: $npmVersionText"
+        } else {
+            Write-Warn "Node/npm のバージョン確認に失敗しました。PowerShell を再起動して確認してください。"
+        }
+    } else {
+        Write-Warn "node/npm が見つかりません。PowerShell を再起動してから再実行してください。"
+    }
 } else {
     Write-Warn "nvm を見つけられませんでした。PowerShell を再起動してから再実行してください。"
 }
