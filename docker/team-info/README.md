@@ -8,6 +8,11 @@
 - 各PCの差（OS・ローカル設定差）を減らす
 - Pythonやスクリプトを伴うスキルを、基本的にコンテナ内で実行する運用にする
 
+## 事前準備
+
+- Docker Desktop または Docker Engine + Compose v2 をインストール
+- `TEAM_INFO_ROOT` をこのリポジトリの絶対パスに設定
+
 ## 使い方
 
 ### 1) イメージを作る
@@ -52,3 +57,9 @@ docker compose -f "$TEAM_INFO_ROOT/docker/team-info/docker-compose.yml" run --rm
 - リポジトリ本体は `../..:/workspace/team-info` でマウントするため、コンテナ内で作った変更はそのままホスト側に反映されます。
 - 依存のダウンロードキャッシュ（pip / npm）はDockerボリュームに保存されます。
 - GPUを使う処理やVOICEVOX本体など、ホスト依存の道具は必要に応じて追加設定してください。
+
+
+## 補足（改善点）
+
+- ルートの `.dockerignore` で不要ファイルのビルド転送を減らし、ビルド時間を短縮しています。
+- `scripts/docker-skill-run.sh` は `TEAM_INFO_ROOT` 未設定時にリポジトリ位置を自動推定します。

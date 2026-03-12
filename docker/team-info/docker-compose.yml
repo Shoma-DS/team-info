@@ -4,7 +4,6 @@ services:
       context: ../..
       dockerfile: docker/team-info/Dockerfile
     image: team-info/dev:latest
-    container_name: team-info-dev
     working_dir: /workspace/team-info
     environment:
       TEAM_INFO_ROOT: /workspace/team-info

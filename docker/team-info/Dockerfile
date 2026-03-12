@@ -4,7 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    TEAM_INFO_ROOT=/workspace/team-info
+    TEAM_INFO_ROOT=/workspace/team-info \
+    PATH=/opt/team-info-venv/bin:${PATH}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -30,9 +31,9 @@ RUN mkdir -p /etc/apt/keyrings \
 WORKDIR /workspace/team-info
 
 COPY setup/requirements.txt /tmp/requirements.txt
-RUN python3 -m pip install --break-system-packages --upgrade pip setuptools wheel \
-  && python3 -m pip install --break-system-packages -r /tmp/requirements.txt \
-  && npm install -g npm@latest
+RUN python3 -m venv /opt/team-info-venv \
+  && /opt/team-info-venv/bin/pip install --upgrade pip setuptools wheel \
+  && /opt/team-info-venv/bin/pip install -r /tmp/requirements.txt
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["bash"]

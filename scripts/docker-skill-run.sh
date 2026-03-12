@@ -7,9 +7,8 @@ if [ "$#" -eq 0 ]; then
 fi
 
 if [ -z "${TEAM_INFO_ROOT:-}" ]; then
-  echo "TEAM_INFO_ROOT が未設定です。"
-  echo "例: export TEAM_INFO_ROOT=/absolute/path/to/team-info"
-  exit 1
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  TEAM_INFO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
 
 docker compose -f "$TEAM_INFO_ROOT/docker/team-info/docker-compose.yml" run --rm team-info "$@"

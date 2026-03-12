@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Node
+**/node_modules
+**/.npm
+
+# Python
+**/__pycache__
+**/.pytest_cache
+**/.venv
+
+# Generated assets
+outputs
+inputs/viral-analysis/output
+
+# Editor / OS
+.vscode
+.cursor
+.DS_Store
