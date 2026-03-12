@@ -71,23 +71,22 @@ description: ショート動画を3層解析し、複数動画のパターンを
 
 ```
 inputs/viral-analysis/output/
-└── YYYYMMDD/                          ← 分析日タイムスタンプ（同日2回目は YYYYMMDD_2）
+[パターン名]_YYYYMMDD/                 ← 分析バッチ（同日2回目は [パターン名]_YYYYMMDD_2）
     ├── [参照動画1タイトル]/            ← Phase 1 の出力（analyze_video.py が生成）
     │   └── analysis.json
     ├── [参照動画2タイトル]/
     │   └── analysis.json
-    └── [テンプレ名]/                   ← Phase A 以降の出力（ユーザーが名前を決める）
-        ├── viral_patterns.md           ← Phase A: 統合分析レポート
-        ├── script.md                   ← Phase D: 台本
-        ├── subtitles.json              ← Phase D: 字幕タイムライン
-        ├── materials/                  ← Phase E: 素材フォルダ
-        │   ├── 00_hook.jpg
-        │   └── ...
-        └── （Remotion は my-video に統合）
+    ├── viral_patterns.md               ← Phase A: 統合分析レポート
+    ├── script.md                       ← Phase D: 台本
+    ├── subtitles.json                  ← Phase D: 字幕タイムライン
+    ├── materials/                      ← Phase E: 素材フォルダ
+    │   ├── 00_hook.jpg
+    │   └── ...
+    └── （Remotion は my-video に統合）
 ```
 
-**重要**: analysis.json は `output/YYYYMMDD/{動画名}/analysis.json` に格納される。
-Phase A では使用するタイムスタンプフォルダをユーザーに確認してから読み込む。
+**重要**: analysis.json は `output/[パターン名]_YYYYMMDD/{動画名}/analysis.json` に格納される。
+Phase A では使用する分析バッチフォルダをユーザーに確認してから読み込む。
 
 ---
 
@@ -95,24 +94,24 @@ Phase A では使用するタイムスタンプフォルダをユーザーに確
 
 起動時に `inputs/viral-analysis/output/` を確認し、フェーズを決定する。
 
-**タイムスタンプフォルダの確認:**
+**分析バッチフォルダの確認:**
 
 ```
 output/
-├── 20260310/    ← 古い分析（analysis.json あり）
-└── 20260311/    ← 新しい分析（analysis.json あり）
+├── 芸能人エンタメ_20260310/    ← 古い分析（analysis.json あり）
+└── 芸能人エンタメ_20260311/    ← 新しい分析（analysis.json あり）
 ```
 
 **判定フロー:**
-1. タイムスタンプフォルダ（YYYYMMDD）が **ない** → Phase 1 へ（動画解析から開始）
-2. タイムスタンプフォルダが **ある** → どのフォルダを使うかユーザーに確認する
-3. 選択したフォルダ内に `viral_patterns.md` がない → Phase A へ（統合分析）
+1. 分析バッチフォルダ（`[パターン名]_YYYYMMDD`）が **ない** → Phase 1 へ（動画解析から開始）
+2. 分析バッチフォルダが **ある** → どのフォルダを使うかユーザーに確認する
+3. 選択したフォルダ直下に `viral_patterns.md` がない → Phase A へ（統合分析）
 4. `viral_patterns.md` がある → その中の状態を確認してスキップ
    - `script.md` なし → Phase C（テーマ提案）
    - `script.md` あり、`materials/` に画像なし → Phase E（素材収集）
    - `materials/` に画像あり → Phase F（Remotion生成）
 
-**分析対象のタイムスタンプフォルダを確認してから先に進む。**
+**分析対象の分析バッチフォルダを確認してから先に進む。**
 
 ---
 
@@ -146,7 +145,8 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py" \
-  --all --platform [tiktok|shorts|reels]
+  --all --platform [tiktok|shorts|reels] \
+  --pattern-name [パターン名]
 ```
 
 **単体指定（非対話）:**
@@ -156,12 +156,13 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/analyze_video.py" \
   "[入力動画の絶対パス]" \
   --platform [tiktok|shorts|reels] \
+  --pattern-name [パターン名] \
   --date [YYYYMMDD]   # 省略すると今日の日付
 ```
 
 完了したら「終わりました」と伝えるよう案内する。
 
-**出力先**: `inputs/viral-analysis/output/YYYYMMDD/{動画名}/analysis.json`
+**出力先**: `inputs/viral-analysis/output/[パターン名]_YYYYMMDD/{動画名}/analysis.json`
 
 ### クロスプラットフォーム通知
 
@@ -177,25 +178,25 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 
 **目的**: 複数の analysis.json を横断的に分析し、バズ動画の共通パターンを抽出して `viral_patterns.md` を生成する。
 
-### Step A-0: タイムスタンプフォルダの確認
+### Step A-0: 分析バッチフォルダの確認
 
-Phase 0 の判定で選択されたタイムスタンプフォルダ（例: `20260311`）を使う。
+Phase 0 の判定で選択された分析バッチフォルダ（例: `芸能人エンタメ_20260311`）を使う。
 ユーザーに確認してからそのフォルダ内の analysis.json を読み込む。
 
 ```
-inputs/viral-analysis/output/YYYYMMDD/
+inputs/viral-analysis/output/[パターン名]_YYYYMMDD/
 ├── 動画1/analysis.json
 ├── 動画2/analysis.json
 └── ...
 ```
 
-また、**テンプレ名**をユーザーに確認する（例: `芸能人エンタメ_バズパターン`）。
-テンプレ名フォルダ（`output/YYYYMMDD/[テンプレ名]/`）に Phase A 以降の出力を保存する。
+Phase A 以降の出力（`viral_patterns.md`, `script.md`, `subtitles.json`, `materials/` など）は
+**同じ分析バッチフォルダ直下**に保存する。
 
 ### Step A-1: analysis.json を全件読み込む
 
-`inputs/viral-analysis/output/YYYYMMDD/` 以下のすべての `analysis.json` を Read ツールで読み込む。
-（タイムスタンプフォルダ内の直下サブフォルダを対象とする。テンプレ名フォルダは除く）
+`inputs/viral-analysis/output/[パターン名]_YYYYMMDD/` 以下のすべての `analysis.json` を Read ツールで読み込む。
+（分析バッチフォルダ内の直下サブフォルダを対象とする）
 
 各ファイルから以下を抽出する:
 - `duration`, `fps`, `platform`
@@ -213,26 +214,19 @@ inputs/viral-analysis/output/YYYYMMDD/
 - `audio_scene.music_coverage` → BGMが占める割合（0-1）
 - `audio_scene.energy_timeline` → 音量の時系列（0.5秒ごと）
 
-**字幕スタイル解析（text_regions から）:**
+**字幕スタイル解析（AIレビュー優先）:**
 
-以下の Python ロジックで字幕の位置を推定する:
+`analyze_video.py` は各動画フォルダに以下を出力する:
 
-```python
-# 字幕らしい text_region を抽出（信頼度 60 以上 & 複数文字）
-subtitle_regions = [r for r in text_regions if r["confidence"] >= 60 and len(r["text"]) >= 2]
+- `subtitle_style_samples/manifest.json`
+  字幕スタイルが変わった可能性が高いカットごとの代表スクショ一覧
+- `subtitle_style_samples/REVIEW.md`
+  画像パスと確認ポイント
+- `subtitle_style_template.json`
+  AIエージェントが実際に見て埋める雛形
 
-# Y座標の平均（0=上端, 1=下端）→ 字幕の垂直位置
-avg_y = sum(r["y"] for r in subtitle_regions) / len(subtitle_regions) if subtitle_regions else 0.75
-subtitle_y_percent = avg_y * 100  # 0〜100 のパーセント値
-
-# 字幕が上寄り / 中央 / 下寄りの判定
-if avg_y < 0.35:
-    subtitle_zone = "top"
-elif avg_y < 0.65:
-    subtitle_zone = "middle"
-else:
-    subtitle_zone = "bottom"
-```
+`subtitle_visual` の数値（色・ストローク・座布団・Y位置）は**補助情報**として使ってよい。
+ただし `fontFamily` / `fontWeight` / `fontSize` は、必ずスクショを見て判断する。
 
 ### Step A-2: 統計計算
 
@@ -250,8 +244,11 @@ else:
 | 字幕平均表示時間 | 全セグメントの (end-start) の平均 |
 | 字幕最短表示時間 | min(end-start) |
 | 字幕最長表示時間 | max(end-start) |
-| 字幕Y位置（画面内% 0=上 100=下）| text_regions の avg_y × 100 |
+| 字幕Y位置（text_regions avg_y × 100） | subtitle_visual.yPercent が取れない場合のみ使う（後述） |
 | 字幕配置ゾーン | top / middle / bottom |
+| **座布団ありの動画数** | background_box_detected=true の本数 |
+| **ストロークありの動画数** | stroke_detected=true の本数 |
+| **推奨字幕スタイル** | 下記ルールで決定（後述） |
 | 話速（wpm） | speech_structure.words_per_minute |
 | 感情強度 | speech_structure.emotional_intensity |
 | BGM区間数 | audio_scene.bgm_segments.length |
@@ -272,9 +269,7 @@ else:
 
 ### Step A-4: viral_patterns.md を生成
 
-**出力先**: `inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/viral_patterns.md`
-
-テンプレ名は Step A-0 でユーザーに確認済みの名前を使う。
+**出力先**: `inputs/viral-analysis/output/[パターン名]_YYYYMMDD/viral_patterns.md`
 
 生成内容のテンプレート:
 
@@ -346,65 +341,74 @@ else:
 | 配置ゾーン | top / middle / bottom |
 | 水平位置 | center（中央揃え） |
 
-### ビジュアルスタイル（Layer 4 解析結果を最優先で使う）
+### ビジュアルスタイル（スタイルテンプレートを使う）
 
-**Layer 4 (`subtitle_visual`) が analysis.json に含まれる場合は、推測ではなく実測値を直接使う。**
+**重要: フォント系の最終判断は `subtitle_style_template.json` を見て行う。`subtitle_visual` は補助であり、固定フォントを決め打ちしない。**
 
-`analysis.json` の `subtitle_visual` キーから以下を読み取る:
+#### Step 1: 各動画のレビュー雛形を確認する
 
-| フィールド | 内容 | TSX での使用先 |
-|---|---|---|
-| `text_color_hex` | 文字色 (例 `"#ffffff"`) | `SUBTITLE_STYLE.color` / 行ごと色 |
-| `stroke_detected` | 縁取りの有無 | `WebkitTextStroke` を付けるか |
-| `stroke_width_px` | 縁取り幅 (px) | `WebkitTextStroke: "Npx #..."` |
-| `stroke_color_hex` | 縁取り色 | `WebkitTextStroke` の色 |
-| `glow_detected` | グロー効果の有無 | `textShadow` にグロー追加 |
-| `glow_color_hex` | グロー色 | `textShadow` の glow 色 |
-| `background_box_detected` | 座布団の有無 | `background: "rgba(...)"` を付けるか |
-| `background_box_rgba` | 座布団の色+透明度文字列 | `background` に直接使う |
-| `font_size_px` | フォントサイズ推定 (px) | `fontSize` の参考値 |
-| `multicolor_lines` | 行ごと色違いか | 行ごとに `color` を変える |
-| `line_colors_hex` | 行ごとの色リスト | 1行目/2行目... の `color` |
-| `confidence` | 検出信頼度 | `"low"` のときは tone 推測で補完 |
+各 `analysis.json` と同じフォルダにある `subtitle_style_template.json` を開く。
+`status != approved` のときは、同フォルダの `subtitle_style_samples/manifest.json` と `subtitle_style_samples/REVIEW.md` を読み、
+代表スクショ (`*_crop.jpg` / `*_full.jpg`) を見て以下を埋める:
 
-**ビジュアルスタイルの再現ルール:**
+- `subtitle.fontFamily`
+- `subtitle.fontWeight`
+- `subtitle.fontSizePx1920h`
+- `subtitle.textColor`
+- `subtitle.strokeWidthPx` / `subtitle.strokeColor`
+- `subtitle.background`
+- `subtitle.paddingH` / `subtitle.paddingV` / `subtitle.borderRadius`
+- `subtitle.yPercent`
+- `subtitle.lineColors`
+- 必要なら `hook.*`
 
+レビューが終わったら `status: approved` に更新する。
+
+#### Step 2: スタイルテンプレートの選択
+
+全動画のレビュー済み `subtitle_style_template.json` を集計し、最も多い字幕本文スタイルをベースにする。
+ただし hook / name card は別スタイルなら分離してよい。
+
+テンプレートファイル: `$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/config/subtitle_styles.json`
+
+既存テンプレートに近い場合:
+- `background` が多数派 → `bg_box_entertainment`
+- `strokeWidthPx` が多数派で `background` なし → `stroke_entertainment`
+- どちらでもない → `plain_light`
+
+既存テンプレートに合わない場合:
+- `viral_patterns.md` に「新規カスタムスタイル」として明記し、
+- Phase F ではレビュー済み値をそのまま `SUBTITLE_STYLE` に反映する
+
+#### Step 3: 数値の決定ルール
+
+- `fontFamily`: スクショを見て判断した最頻値を採用
+- `fontSize`: `subtitle.fontSizePx1920h` の中央値
+- `yPercent`: `subtitle.yPercent` の中央値
+- `color`: `subtitle.textColor` の最頻値
+- `background`: `subtitle.background` の最頻値
+- `strokeWidth` / `strokeColor`: レビュー済み値の中央値 / 最頻値
+- `lineColors`: 交互配色がある場合のみ採用
+
+空欄が残る場合のみ `subtitle_visual` の実測値で補完してよい。
+それも取れない場合だけ platform default を使う。
+
+#### 適用例（viral_patterns.md に記載する）
+
+```markdown
+## 11. 推奨字幕スタイル
+
+- **テンプレート**: `bg_box_entertainment`
+- **レビュー元**: 7本中5本の `subtitle_style_template.json`
+- **フォント**: Hiragino Sans
+- **フォントサイズ**: 48px
+- **文字色**: #ebc1b9
+- **座布団色**: rgba(22,14,14,0.88)
+- **Y位置**: 70%
+- **補足**: hook は角ゴ・交互配色で別管理
 ```
-stroke_detected=true, stroke_width_px=4, stroke_color_hex="#000000"
-  → WebkitTextStroke: "4px #000000"
 
-glow_detected=true, glow_color_hex="#ffffff"
-  → textShadow に "0 0 20px rgba(255,255,255,0.8)" を追加
-
-background_box_detected=true, background_box_rgba="rgba(0,0,0,0.65)"
-  → 字幕 span/div の background に設定
-  → padding / borderRadius を追加
-
-multicolor_lines=true, line_colors_hex=["#f4d56f","#ffffff"]
-  → 各行の <div> に個別の color を設定（行インデックスで COLORS 配列を引く）
-```
-
-**TSX での行ごと色実装パターン（必須）:**
-```typescript
-// multicolor_lines=true のとき。行ごとに分割して色を当てる
-const LINE_COLORS = ["#f4d56f", "#ffb1bf", "#f2deff", "#ffffff"]; // 実測値を入れる
-const lines = entry.text.split("\n");
-// SubtitleTrack内で:
-{lines.map((line, index) => (
-  <div key={index} style={{ color: LINE_COLORS[index] ?? "#ffffff", whiteSpace: "nowrap" }}>
-    {line}
-  </div>
-))}
-```
-
-**confidence が "low" のとき（字幕テキスト領域が少なかった場合）は tone + emotional_intensity で補完:**
-
-| tone / intensity | フォントウェイト | テキスト色 | 座布団 |
-|---|---|---|---|
-| entertainment + high | 900 | #ffffff | rgba(0,0,0,0.65) |
-| entertainment + medium | 700 | #ffffff | rgba(0,0,0,0.55) |
-| educational + any | 600 | #ffffff | rgba(0,0,0,0.5) |
-| curiosity + high | 800 | #fff700 | rgba(0,0,0,0.6) |
+**Phase F の TSX 生成では必ずこのセクションと `subtitle_style_template.json` を見てから `SUBTITLE_STYLE` を生成すること。**
 
 ---
 
@@ -485,6 +489,32 @@ const lines = entry.text.split("\n");
 - テンポX BPMの[アップビート/落ち着いた/ドラマチック]な楽曲
 - 新規動画の推奨BGM: [雰囲気・ジャンルの指定]
 - 推奨SFXセット: [必要な効果音の種類と挿入タイミング]
+
+---
+
+## 11. 推奨字幕スタイル
+
+> Phase F の TSX 生成時に必ずここを読み込んで `SUBTITLE_STYLE` を組み立てること。
+
+### スタイルテンプレート選択
+
+- 座布団あり動画数: X / N本
+- ストロークあり動画数: X / N本
+- **→ 採用テンプレート: `[bg_box_entertainment / stroke_entertainment / plain_light]`**
+  （`$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/config/subtitle_styles.json` 参照）
+
+### 適用パラメータ
+
+| パラメータ | 値 | 根拠 |
+|---|---|---|
+| テンプレート名 | `[テンプレート名]` | レビュー済み template の多数派 |
+| fontSize | Xpx | `subtitle_style_template.json` の中央値 |
+| color | `#XXXXXX` | レビュー済み textColor の最頻値 |
+| background | `rgba(R,G,B,A)` | レビュー済み background の最頻値 |
+| yPercent | X% | レビュー済み yPercent の中央値 |
+| fontFamily | `[実際のフォント名]` | スクショレビューで判断 |
+| strokeWidth | Xpx or null | レビュー済み strokeWidthPx |
+| strokeColor | `#XXXXXX` or null | レビュー済み strokeColor |
 ```
 
 ---
@@ -507,7 +537,7 @@ const lines = entry.text.split("\n");
 以下のフォルダとファイルを作成する:
 
 ```
-inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/
+inputs/viral-analysis/output/[パターン名]_YYYYMMDD/
 └── materials/
     └── README.md    ← 収集ガイド
 ```
@@ -581,7 +611,7 @@ inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/
 
 ### Step D-1: script.md を生成
 
-**出力先**: `inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/script.md`
+**出力先**: `inputs/viral-analysis/output/[パターン名]_YYYYMMDD/script.md`
 
 生成フォーマット:
 ```markdown
@@ -700,7 +730,7 @@ Claude が以下の観点で script.md を読んでレビューする:
 
 ### Step D-4: subtitles.json を生成
 
-**出力先**: `inputs/viral-analysis/output/YYYYMMDD/[テンプレ名]/subtitles.json`
+**出力先**: `inputs/viral-analysis/output/[パターン名]_YYYYMMDD/subtitles.json`
 
 字幕タイミングの計算方法:
 - 参照動画の平均話速（words_per_minute）から1文字あたりの表示時間を算出
@@ -772,7 +802,7 @@ subtitles.json 生成後、必ず `split_subtitles.py` で **2行以内** に収
 | `narrator_male` | 雨晴はう・ノーマル | 落ち着いた男性ナレーター |
 | `aoyama_ryuusei_normal` | 青山龍星・ノーマル | 重厚な男性ナレーター |
 
-ユーザーに確認するか、「推奨で進めます」と伝えてデフォルト（`narrator_female`）を使う。
+ユーザーに確認するか、「推奨で進めます」と伝えてデフォルト（`aoyama_ryuusei_normal`）を使う。
 
 #### Step D-4-2: 音源生成コマンド
 
@@ -843,30 +873,53 @@ import { Audio, staticFile } from "remotion";
 
 ## Phase E: 素材収集
 
-**目的**: 生成した台本と素材一覧に基づき、ユーザーが materials/ に画像・動画を入れるのをサポートする。
+**目的**: Wikipedia/Wikimedia Commons から合法な CC ライセンス画像を自動取得し、取得できなかった分だけユーザーに手動配置を依頼する。
 
-### Step E-1: 素材リストの提示
+### Step E-1: 自動取得（必ず最初に実行）
 
-script.md の各セクションに対して、以下の形式で必要素材を提示する:
+script.md の登場人物名（3名）を `--names` に渡して自動取得を実行する:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/fetch_materials.py" \
+  --materials-dir "[materials/の絶対パス]" \
+  --names "人物1,人物2,人物3"
+```
+
+または script.md から自動抽出する場合:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/fetch_materials.py" \
+  --materials-dir "[materials/の絶対パス]" \
+  --script "[script.mdの絶対パス]"
+```
+
+- Wikipedia 記事のメイン画像を優先取得（CC/PD ライセンスのみ）
+- 同一人物のスロットでは検索クエリを変えて重複を回避
+- 取得できなかったスロットのみ「手動配置が必要」として出力される
+
+### Step E-2: 失敗分のみユーザーに手動依頼
+
+スクリプトの出力で **「手動配置が必要なスロット」** に列挙されたファイルだけを提示する:
 
 ```
-## 素材収集リスト
+⚠ 手動配置が必要なスロット (N件):
+  02_s1_2.jpg  ← 「橋本環奈」の画像を手動で配置してください
+  ...
+```
 
-### 00_hook.jpg — フック背景
-- シーン: [台本のフック内容]
+提示形式（失敗したスロットのみ）:
+```
+### [ファイル名] — [用途]
 - 推奨イメージ: [具体的な描写]
-- 検索キーワード(英語): "[keyword1] [keyword2]"
-- 推奨サイト: Unsplash / Pexels / Pixabay
-
-### 01_opening.jpg — 予告背景
-[同様]
-
-...（以下全素材分）
+- 検索キーワード(英語): "[keyword]"
+- 推奨サイト: Wikimedia Commons / Pexels / Unsplash
 ```
 
-### Step E-2: 素材収集の完了確認
+### Step E-3: 素材確認
 
-ユーザーが「素材を入れました」と言ったら materials/ フォルダを確認する。不足素材があれば追加を依頼する。
+ユーザーが「素材を入れました」または「自動取得完了」と伝えたら materials/ フォルダを確認する。不足があれば追加を依頼する。
 
 ---
 
@@ -994,17 +1047,24 @@ const ImageSceneTrack: React.FC = () => {
 
 **字幕スタイル（SUBTITLE_STYLE）:**
 
-`analysis.json` の `subtitle_visual` キーを **最優先** で読み取り、`SUBTITLE_STYLE` オブジェクトをハードコードする。
-`subtitle_visual.confidence` が `"low"` の場合のみ tone + emotional_intensity で補完する（SKILL.md Phase A「5. 字幕スタイル詳細分析」参照）。
+`subtitle_style_template.json` が **approved** ならそれを最優先で使う。
+未レビューまたは空欄がある場合のみ `analysis.json.subtitle_visual` を補助的に参照する。
 
-- `yPercent`: `text_regions` の `avg_y × 100`
-- `fontSize`: `font_size_px` を参考に PLATFORM_CONFIG 基準値で調整
-- `fontWeight`: `"900"` 固定（エンタメ系）またはtone推測
-- `color`: `text_color_hex`（実測）
-- `textShadow`: `glow_detected=true` ならグローシャドウを追加
-- `strokeWidth` / `strokeColor`: `stroke_width_px` と `stroke_color_hex`（実測）
-- `background`: `background_box_rgba`（座布団あり時）または `undefined`（なし時）
-- 行ごと色違い: `multicolor_lines=true` なら `line_colors_hex` を `LINE_COLORS` 配列に使う
+- `fontFamily`: `subtitle_style_template.json.subtitle.fontFamily`
+- `fontSize`: `subtitle_style_template.json.subtitle.fontSizePx1920h`
+- `fontWeight`: `subtitle_style_template.json.subtitle.fontWeight`
+- `color`: `subtitle_style_template.json.subtitle.textColor`
+- `background`: `subtitle_style_template.json.subtitle.background`
+- `paddingH` / `paddingV` / `borderRadius`: 同テンプレ値
+- `yPercent`: `subtitle_style_template.json.subtitle.yPercent`
+- `strokeWidth` / `strokeColor`: `subtitle_style_template.json.subtitle.strokeWidthPx` / `strokeColor`
+- `lineColors`: `subtitle_style_template.json.subtitle.lineColors`
+- `textShadow`: レビュー値がなければ `glow_detected=true` のときだけ補完
+
+**禁止事項:**
+- `fontFamily` を「どうせ丸ゴだろう」で固定しない
+- `fontSize` を `font_size_px=0` なのに独自値で決め打ちしない
+- スクショレビュー未実施なのに reference 動画と同じと断定しない
 
 **字幕トラック:**
 - `subtitles.json` の segments を `SUBTITLE_TIMELINE` 配列として定義（`\n` 折り返し済みのテキストをそのまま使う）
@@ -1035,7 +1095,21 @@ const SFX_EVENTS = [
 
 **フック演出:**
 - `<Sequence from={0} durationInFrames={hookDurationFrames}>` + `<Hook>` コンポーネント
-- Hook の text に `\n` が含まれる場合は `.replace("\n", " ")` でスペースに変換する
+- Hook の text は **1行あたり最大11文字** になるよう分割して渡す（Hook コンポーネントは maxWidth:82%=885px で 72/84px フォントを使うため、11文字×84px≈924px がギリギリ上限）
+- `.replace("\n", " ")` で1行化するのは**禁止**（長い行が変な位置で折り返す）
+- `\n\n` は `\n` に折りたたみ、各行が11文字超なら中央で分割する `splitHookText` ヘルパーを必ず使う:
+```typescript
+const splitHookText = (raw: string): string => {
+  const MAX = 11;
+  return raw.replace(/\n+/g, "\n").split("\n")
+    .flatMap((line) => {
+      if (line.length <= MAX) return [line];
+      const mid = Math.round(line.length / 2);
+      return [line.slice(0, mid), line.slice(mid)];
+    }).join("\n");
+};
+// 使い方: text={splitHookText(SUBTITLE_TIMELINE[0]?.text ?? "")}
+```
 - `hookDurationFrames = Math.round(3 * fps)` を `ViralVideo` コンポーネント内で定義し、`SubtitleTrack` でも同じ値を使って冒頭スキップする（`Math.round(3 * fps)` と直書きしてよい）
 
 **パターンインタラプト:**
@@ -1118,6 +1192,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 | `narration_jetcut.wav` | 無音短縮済み音声（新規生成） |
 | `generated/[xxx]Subtitles.ts` | `SUBTITLE_TIMELINE` の from/to フレーム番号を再計算 |
 | `ViralVideo_[タイトル].tsx` | `SCENE_TIMELINE` / `INTERRUPT_FRAMES` / `SFX_EVENTS.from` / `totalFrames` / audio src を再計算 |
+| `Remotion/my-video/src/Root.tsx` | 対象 Composition の `durationInFrames` を最新尺へ同期 |
 
 ### Step G-3: lint 確認 & プレビュー
 

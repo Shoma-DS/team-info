@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import cv2
 import numpy as np
+import json
+from pathlib import Path
 
 try:
     from tqdm import tqdm
@@ -57,6 +59,174 @@ def _dominant_color(pixels: np.ndarray, k: int = 3) -> np.ndarray:
 def _luminance(bgr: np.ndarray) -> np.ndarray:
     """BGR 配列のピクセルごとに輝度 (0–255) を返す。"""
     return (0.114 * bgr[..., 0] + 0.587 * bgr[..., 1] + 0.299 * bgr[..., 2]).astype(np.uint8)
+
+
+def _normalize_bbox_value(value: float | int, full_size: int) -> int:
+    if value <= 1.0:
+        return int(round(float(value) * full_size))
+    return int(round(float(value)))
+
+
+def _region_to_bbox(
+    region: dict,
+    video_width: int,
+    video_height: int,
+) -> tuple[int, int, int, int]:
+    text = str(region.get("text", "")).strip()
+    fallback_w = min(video_width, max(120, int(len(text) * video_height * 0.02)))
+    fallback_h = max(40, int(video_height * 0.035))
+
+    width = _normalize_bbox_value(region.get("width", fallback_w), video_width) if "width" in region else fallback_w
+    height = _normalize_bbox_value(region.get("height", fallback_h), video_height) if "height" in region else fallback_h
+    width = max(40, width)
+    height = max(24, height)
+
+    if "left" in region and "top" in region:
+        left = _normalize_bbox_value(region.get("left", 0), video_width)
+        top = _normalize_bbox_value(region.get("top", 0), video_height)
+    else:
+        x_center = _normalize_bbox_value(region.get("x", 0), video_width)
+        y_center = _normalize_bbox_value(region.get("y", 0), video_height)
+        left = x_center - width // 2
+        top = y_center - height // 2
+
+    left = max(0, min(video_width - 1, left))
+    top = max(0, min(video_height - 1, top))
+    width = min(width, video_width - left)
+    height = min(height, video_height - top)
+    return left, top, width, height
+
+
+def _combine_regions_bbox(
+    regions: list[dict],
+    video_width: int,
+    video_height: int,
+) -> tuple[int, int, int, int]:
+    boxes = [_region_to_bbox(region, video_width, video_height) for region in regions]
+    x1 = min(box[0] for box in boxes)
+    y1 = min(box[1] for box in boxes)
+    x2 = max(box[0] + box[2] for box in boxes)
+    y2 = max(box[1] + box[3] for box in boxes)
+    return x1, y1, max(1, x2 - x1), max(1, y2 - y1)
+
+
+def _quantize_hex_color(hex_color: str | None, step: int = 32) -> str:
+    if not hex_color:
+        return "none"
+    raw = hex_color.lstrip("#")
+    if len(raw) != 6:
+        return hex_color
+    channels = []
+    for idx in range(0, 6, 2):
+        value = int(raw[idx:idx + 2], 16)
+        quantized = min(255, int(round(value / step) * step))
+        channels.append(f"{quantized:02x}")
+    return "#" + "".join(channels)
+
+
+def _subtitle_zone_label(y_percent: float) -> str:
+    if y_percent < 35:
+        return "top"
+    if y_percent < 65:
+        return "middle"
+    return "bottom"
+
+
+def _build_style_signature(
+    feature: dict,
+    bbox: tuple[int, int, int, int],
+    video_height: int,
+) -> str:
+    _, y1, _, h1 = bbox
+    y_percent = ((y1 + h1 / 2) / max(video_height, 1)) * 100
+    stroke_width = int(round(feature.get("stroke_width_px", 0) or 0))
+    stroke_bucket = "0" if stroke_width <= 0 else "2" if stroke_width <= 2 else "4"
+    parts = [
+        f"zone:{_subtitle_zone_label(y_percent)}",
+        f"bg:{int(bool(feature.get('background_box_detected')))}",
+        f"stroke:{int(bool(feature.get('stroke_detected')))}:{stroke_bucket}",
+        f"multi:{int(bool(feature.get('multicolor_lines')))}",
+        f"text:{_quantize_hex_color(feature.get('text_color_hex'))}",
+        f"box:{_quantize_hex_color(feature.get('background_box_color_hex'))}",
+    ]
+    return "|".join(parts)
+
+
+def _write_review_template(
+    template_path: Path,
+    manifest_path: Path,
+    source_video: str | None,
+    samples: list[dict],
+) -> None:
+    template = {
+        "status": "pending_agent_review",
+        "mode": "agent_review_preferred",
+        "source_video": source_video,
+        "manifest_path": str(manifest_path),
+        "reviewed_sample_ids": [sample["id"] for sample in samples],
+        "subtitle": {
+            "template_name": None,
+            "fontFamily": None,
+            "fontWeight": None,
+            "fontSizePx1920h": None,
+            "letterSpacing": None,
+            "lineHeight": None,
+            "textColor": None,
+            "lineColors": [],
+            "strokeWidthPx": None,
+            "strokeColor": None,
+            "textShadow": None,
+            "background": None,
+            "paddingH": None,
+            "paddingV": None,
+            "borderRadius": None,
+            "yPercent": None,
+            "alignment": "center",
+            "notes": None,
+        },
+        "hook": {
+            "fontFamily": None,
+            "fontWeight": None,
+            "fontSizePx1920h": None,
+            "lineColors": [],
+            "strokeWidthPx": None,
+            "strokeColor": None,
+            "textShadow": None,
+            "notes": None,
+        },
+    }
+    template_path.write_text(
+        json.dumps(template, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def _write_review_readme(
+    readme_path: Path,
+    template_path: Path,
+    samples: list[dict],
+) -> None:
+    lines = [
+        "# Subtitle Style Review",
+        "",
+        "AIエージェントは `subtitle_crop_path` を優先して見て、必要なら `full_frame_path` も確認する。",
+        f"レビュー結果は `{template_path.name}` に保存する。",
+        "",
+        "## Samples",
+        "",
+    ]
+    for sample in samples:
+        lines.extend([
+            f"### {sample['id']}",
+            f"- cut: {sample['cut_range']}",
+            f"- frame: {sample['frame']} ({sample['time_seconds']}s)",
+            f"- text_preview: {sample['text_preview']}",
+            f"- full_frame_path: {sample['full_frame_path']}",
+            f"- subtitle_crop_path: {sample['subtitle_crop_path']}",
+            f"- heuristic_signature: {sample['style_signature']}",
+            "",
+        ])
+    readme_path.write_text("\n".join(lines), encoding="utf-8")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -264,6 +434,192 @@ def _detect_multicolor_lines(
     return {
         "multicolor_lines": multicolor,
         "line_colors_hex": [_bgr_to_hex(top_color), _bgr_to_hex(bot_color)] if multicolor else [],
+    }
+
+
+def export_subtitle_style_review_assets(
+    cap: cv2.VideoCapture,
+    fps: float,
+    cuts: list[dict],
+    text_regions: list[dict],
+    video_width: int,
+    video_height: int,
+    output_dir: Path,
+    source_video: str | None = None,
+    max_samples: int = 12,
+) -> dict:
+    """
+    字幕スタイルの変化がありそうなカットごとに、代表スクリーンショットと crop を保存する。
+
+    Returns:
+        analysis.json に埋め込める review メタデータ。
+    """
+    samples_dir = output_dir / "subtitle_style_samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+
+    subtitle_regions = [
+        region for region in text_regions
+        if region.get("confidence", 0) >= 60 and len(str(region.get("text", "")).strip()) >= 2
+    ]
+    if not subtitle_regions or not cuts:
+        return {
+            "preferred_source": "heuristic_only",
+            "review_status": "skipped",
+            "reason": "no_subtitle_regions",
+            "samples_dir": str(samples_dir),
+            "sample_count": 0,
+            "manifest_path": None,
+            "review_template_path": None,
+        }
+
+    candidates: list[dict] = []
+    for cut_index, cut in enumerate(cuts):
+        start_frame = int(cut.get("start_frame", 0))
+        end_frame = int(cut.get("end_frame", start_frame))
+        cut_regions = [
+            region for region in subtitle_regions
+            if start_frame <= int(region.get("frame", -1)) < end_frame
+        ]
+        if not cut_regions:
+            continue
+
+        regions_by_frame: dict[int, list[dict]] = {}
+        for region in cut_regions:
+            frame_number = int(region.get("frame", 0))
+            regions_by_frame.setdefault(frame_number, []).append(region)
+
+        if not regions_by_frame:
+            continue
+
+        cut_mid_frame = (start_frame + end_frame) / 2
+
+        def _frame_score(item: tuple[int, list[dict]]) -> tuple[float, float, float]:
+            frame_number, frame_regions = item
+            confidence_sum = sum(float(r.get("confidence", 0)) for r in frame_regions)
+            text_len = sum(len(str(r.get("text", ""))) for r in frame_regions)
+            distance_penalty = abs(frame_number - cut_mid_frame)
+            return (confidence_sum, text_len, -distance_penalty)
+
+        representative_frame, frame_regions = max(regions_by_frame.items(), key=_frame_score)
+        bbox = _combine_regions_bbox(frame_regions, video_width, video_height)
+
+        cap.set(cv2.CAP_PROP_POS_FRAMES, representative_frame)
+        ret, frame = cap.read()
+        if not ret:
+            continue
+
+        feature = _analyze_frame_region(frame, *bbox)
+        multicolor = _detect_multicolor_lines(frame, *bbox)
+        feature.update(multicolor)
+        feature["text_color_hex"] = _bgr_to_hex(tuple(feature.get("text_color", [255, 255, 255])))
+        bg_box_color = feature.get("background_box_color")
+        feature["background_box_color_hex"] = (
+            _bgr_to_hex(tuple(bg_box_color))
+            if feature.get("background_box_detected") and bg_box_color is not None
+            else None
+        )
+
+        signature = _build_style_signature(feature, bbox, video_height)
+        x1, y1, w1, h1 = bbox
+        text_preview = " ".join(str(r.get("text", "")).strip() for r in frame_regions if str(r.get("text", "")).strip())
+        time_seconds = round(representative_frame / max(fps, 1.0), 3)
+        y_percent = round(((y1 + h1 / 2) / max(video_height, 1)) * 100, 1)
+
+        candidates.append({
+            "cut_index": cut_index,
+            "start_frame": start_frame,
+            "end_frame": end_frame,
+            "frame": representative_frame,
+            "time_seconds": time_seconds,
+            "bbox": bbox,
+            "frame_image": frame.copy(),
+            "style_signature": signature,
+            "text_preview": text_preview[:120],
+            "heuristic": {
+                "zone": _subtitle_zone_label(y_percent),
+                "yPercent": y_percent,
+                "text_color_hex": feature.get("text_color_hex"),
+                "stroke_detected": bool(feature.get("stroke_detected")),
+                "stroke_width_px": int(feature.get("stroke_width_px", 0) or 0),
+                "stroke_color_hex": _bgr_to_hex(tuple(feature.get("stroke_color", [0, 0, 0])))
+                if feature.get("stroke_detected") else None,
+                "background_box_detected": bool(feature.get("background_box_detected")),
+                "background_box_color_hex": feature.get("background_box_color_hex"),
+                "multicolor_lines": bool(feature.get("multicolor_lines")),
+                "line_colors_hex": feature.get("line_colors_hex", []),
+            },
+        })
+
+    selected: list[dict] = []
+    last_signature: str | None = None
+    for candidate in candidates:
+        if candidate["style_signature"] == last_signature:
+            continue
+        selected.append(candidate)
+        last_signature = candidate["style_signature"]
+        if len(selected) >= max_samples:
+            break
+
+    if not selected and candidates:
+        selected = [candidates[0]]
+
+    samples: list[dict] = []
+    for index, candidate in enumerate(selected, start=1):
+        sample_id = f"style_{index:02d}"
+        frame_image = candidate.pop("frame_image")
+        x1, y1, w1, h1 = candidate["bbox"]
+        crop_pad = 24
+        x_start = max(0, x1 - crop_pad)
+        y_start = max(0, y1 - crop_pad)
+        x_end = min(video_width, x1 + w1 + crop_pad)
+        y_end = min(video_height, y1 + h1 + crop_pad)
+        crop = frame_image[y_start:y_end, x_start:x_end]
+
+        full_frame_path = samples_dir / f"{sample_id}_full.jpg"
+        crop_path = samples_dir / f"{sample_id}_crop.jpg"
+        cv2.imwrite(str(full_frame_path), frame_image)
+        cv2.imwrite(str(crop_path), crop)
+
+        samples.append({
+            "id": sample_id,
+            "cut_index": candidate["cut_index"],
+            "cut_range": f"{candidate['start_frame']}-{candidate['end_frame']}",
+            "frame": candidate["frame"],
+            "time_seconds": candidate["time_seconds"],
+            "text_preview": candidate["text_preview"],
+            "style_signature": candidate["style_signature"],
+            "heuristic": candidate["heuristic"],
+            "full_frame_path": str(full_frame_path),
+            "subtitle_crop_path": str(crop_path),
+        })
+
+    manifest_path = samples_dir / "manifest.json"
+    review_template_path = output_dir / "subtitle_style_template.json"
+    readme_path = samples_dir / "REVIEW.md"
+
+    manifest = {
+        "version": 1,
+        "mode": "agent_review_preferred",
+        "selection_rule": "first subtitle cut after coarse visual signature change",
+        "source_video": source_video,
+        "sample_count": len(samples),
+        "samples": samples,
+    }
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    _write_review_template(review_template_path, manifest_path, source_video, samples)
+    _write_review_readme(readme_path, review_template_path, samples)
+
+    return {
+        "preferred_source": "agent_review",
+        "review_status": "pending",
+        "samples_dir": str(samples_dir),
+        "sample_count": len(samples),
+        "manifest_path": str(manifest_path),
+        "review_template_path": str(review_template_path),
+        "review_readme_path": str(readme_path),
     }
 
 

@@ -195,29 +195,72 @@ def extract_names_from_section(section_text: str) -> list[str]:
 
 # ─── メイン処理 ──────────────────────────────────────────────────────────────
 
-def fetch_for_name(name: str, slot: str, materials_dir: Path) -> bool:
+# スロットごとに使う検索クエリのサフィックス（同一人物で異なる画像を取得するため）
+SLOT_QUERY_SUFFIXES: dict[str, str] = {
+    "00_hook":    "",
+    "01_opening": "",
+    "02_s1_1":    "",
+    "02_s1_2":    " event stage",
+    "02_s1_3":    " fashion",
+    "03_s2_1":    "",
+    "03_s2_2":    " event stage",
+    "03_s2_3":    " fashion",
+    "04_s3_1":    "",
+    "04_s3_2":    " event stage",
+    "04_s3_3":    " fashion",
+    "99_cta":     "",
+}
+
+
+def fetch_for_name(
+    name: str,
+    slot: str,
+    materials_dir: Path,
+    used_urls: set[str],
+) -> bool:
     """
     1人分の画像を取得して materials_dir/[slot].jpg に保存する。
+    used_urls に既出の URL は使わず、別の候補を探す。
     戻り値: 成功したか
     """
-    print(f"\n  [{slot}] 「{name}」を検索中...")
+    suffix = SLOT_QUERY_SUFFIXES.get(slot, "")
+    query = f"{name}{suffix}"
+    print(f"\n  [{slot}] 「{query}」を検索中...")
 
-    # 1. Wikipedia から直接取得を試みる
-    url, lic = search_wikipedia_image(name)
+    candidate_urls: list[tuple[str, str]] = []
 
-    # 2. なければ Commons で検索
-    if not url:
-        candidates = search_commons(f"{name} portrait", limit=8)
-        for candidate in candidates:
-            url, lic = get_image_url(candidate)
-            if url:
+    # 1. Wikipedia から取得を試みる（suffix なしの場合のみ）
+    if not suffix:
+        url, lic = search_wikipedia_image(name)
+        if url and url not in used_urls:
+            candidate_urls.append((url, lic or ""))
+
+    # 2. Commons で複数候補を取得
+    commons_candidates = search_commons(query, limit=10)
+    for candidate in commons_candidates:
+        url, lic = get_image_url(candidate)
+        if url and url not in used_urls:
+            candidate_urls.append((url, lic or ""))
+            if len(candidate_urls) >= 3:
                 break
 
-    if not url:
+    if not candidate_urls:
+        # suffix なしで再試行
+        if suffix:
+            fallback_candidates = search_commons(name, limit=10)
+            for candidate in fallback_candidates:
+                url, lic = get_image_url(candidate)
+                if url and url not in used_urls:
+                    candidate_urls.append((url, lic or ""))
+                    break
+
+    if not candidate_urls:
         print(f"  → 取得できる画像が見つかりませんでした（手動で配置してください）")
         return False
 
-    # 拡張子を元URLから判定
+    url, lic = candidate_urls[0]
+    used_urls.add(url)
+
     ext = Path(urllib.parse.urlparse(url).path).suffix.lower()
     if ext not in (".jpg", ".jpeg", ".png", ".webp"):
         ext = ".jpg"
@@ -232,7 +275,6 @@ def fetch_for_name(name: str, slot: str, materials_dir: Path) -> bool:
 
 def run(materials_dir: Path, names: list[str], script_path: Path | None):
     materials_dir.mkdir(parents=True, exist_ok=True)
-    attribution_log = []
 
     # script.md がある場合は人物名を補完
     if script_path and script_path.exists() and not names:
@@ -252,16 +294,13 @@ def run(materials_dir: Path, names: list[str], script_path: Path | None):
     print(f"スロット数: {len(SLOT_NAMES)}（本編3名 × 3枚 + hook/opening/cta）")
 
     # スロットへのマッピング
-    # 00_hook, 01_opening → names[0] のイメージ
-    # 02_s1_* → names[0], 03_s2_* → names[1], 04_s3_* → names[2]
-    # 99_cta → シンプル背景（人物なし検索）
     slot_name_map: dict[str, str] = {}
     if len(names) >= 1:
-        slot_name_map["00_hook"] = names[0]
+        slot_name_map["00_hook"]    = names[0]
         slot_name_map["01_opening"] = names[0]
-        slot_name_map["02_s1_1"] = names[0]
-        slot_name_map["02_s1_2"] = names[0]
-        slot_name_map["02_s1_3"] = names[0]
+        slot_name_map["02_s1_1"]    = names[0]
+        slot_name_map["02_s1_2"]    = names[0]
+        slot_name_map["02_s1_3"]    = names[0]
     if len(names) >= 2:
         slot_name_map["03_s2_1"] = names[1]
         slot_name_map["03_s2_2"] = names[1]
@@ -270,14 +309,18 @@ def run(materials_dir: Path, names: list[str], script_path: Path | None):
         slot_name_map["04_s3_1"] = names[2]
         slot_name_map["04_s3_2"] = names[2]
         slot_name_map["04_s3_3"] = names[2]
-    slot_name_map["99_cta"] = "stage spotlight"  # CTA は汎用背景
+    slot_name_map["99_cta"] = "stage spotlight background"
+
+    # 人物ごとに used_urls を管理して重複を防ぐ
+    used_urls_per_person: dict[str, set[str]] = {}
 
     success, failed = [], []
     for slot in SLOT_NAMES:
         search_name = slot_name_map.get(slot)
         if not search_name:
             continue
-        ok = fetch_for_name(search_name, slot, materials_dir)
+        used_urls = used_urls_per_person.setdefault(search_name, set())
+        ok = fetch_for_name(search_name, slot, materials_dir, used_urls)
         if ok:
             success.append(slot)
         else:
@@ -289,13 +332,15 @@ def run(materials_dir: Path, names: list[str], script_path: Path | None):
     print("=" * 60)
     print(f"成功: {len(success)} / {len(SLOT_NAMES)} スロット")
     if failed:
-        print(f"\n手動配置が必要なスロット ({len(failed)}件):")
+        print(f"\n⚠ 手動配置が必要なスロット ({len(failed)}件):")
         for slot, name in failed:
             print(f"  {slot}.jpg  ← 「{name}」の画像を手動で配置してください")
         print("\n推奨素材サイト:")
         print("  https://commons.wikimedia.org/")
         print("  https://www.pexels.com/")
         print("  https://unsplash.com/")
+    else:
+        print("\n全スロットの自動取得に成功しました！")
 
     print("\n⚠ 注意: CC ライセンス画像はクレジット表記が必要な場合があります。")
     print("  利用前に各画像のライセンスを必ず確認してください。")

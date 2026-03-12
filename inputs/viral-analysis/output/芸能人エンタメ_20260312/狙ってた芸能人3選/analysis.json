@@ -1,0 +1,4868 @@
+{
+  "duration": 59.4,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/狙ってた芸能人3選.mp4",
+  "analyzed_date": "20260312",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 3.0,
+        "start_frame": 0,
+        "end_frame": 90,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      },
+      {
+        "start": 3.0,
+        "end": 3.033,
+        "start_frame": 90,
+        "end_frame": 91,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 3.033,
+        "end": 3.067,
+        "start_frame": 91,
+        "end_frame": 92,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 3.067,
+        "end": 3.1,
+        "start_frame": 92,
+        "end_frame": 93,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 3.1,
+        "end": 3.133,
+        "start_frame": 93,
+        "end_frame": 94,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 3.133,
+        "end": 4.867,
+        "start_frame": 94,
+        "end_frame": 146,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 4.867,
+        "end": 5.0,
+        "start_frame": 146,
+        "end_frame": 150,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      },
+      {
+        "start": 5.0,
+        "end": 5.033,
+        "start_frame": 150,
+        "end_frame": 151,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      },
+      {
+        "start": 5.033,
+        "end": 6.267,
+        "start_frame": 151,
+        "end_frame": 188,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 6.267,
+        "end": 9.8,
+        "start_frame": 188,
+        "end_frame": 294,
+        "motion_type": "pan_left",
+        "motion_intensity": 1.0,
+        "origin_x": 0.7,
+        "origin_y": 0.5
+      },
+      {
+        "start": 9.8,
+        "end": 14.3,
+        "start_frame": 294,
+        "end_frame": 429,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 14.3,
+        "end": 18.533,
+        "start_frame": 429,
+        "end_frame": 556,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 18.533,
+        "end": 20.8,
+        "start_frame": 556,
+        "end_frame": 624,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 20.8,
+        "end": 23.433,
+        "start_frame": 624,
+        "end_frame": 703,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 23.433,
+        "end": 26.6,
+        "start_frame": 703,
+        "end_frame": 798,
+        "motion_type": "shake",
+        "motion_intensity": 1.33,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.6,
+        "end": 26.633,
+        "start_frame": 798,
+        "end_frame": 799,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.633,
+        "end": 26.667,
+        "start_frame": 799,
+        "end_frame": 800,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.667,
+        "end": 26.7,
+        "start_frame": 800,
+        "end_frame": 801,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.7,
+        "end": 26.733,
+        "start_frame": 801,
+        "end_frame": 802,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.733,
+        "end": 26.767,
+        "start_frame": 802,
+        "end_frame": 803,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.767,
+        "end": 26.8,
+        "start_frame": 803,
+        "end_frame": 804,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 26.8,
+        "end": 27.633,
+        "start_frame": 804,
+        "end_frame": 829,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 27.633,
+        "end": 30.133,
+        "start_frame": 829,
+        "end_frame": 904,
+        "motion_type": "pan_right",
+        "motion_intensity": 1.0,
+        "origin_x": 0.3,
+        "origin_y": 0.5
+      },
+      {
+        "start": 30.133,
+        "end": 32.133,
+        "start_frame": 904,
+        "end_frame": 964,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 32.133,
+        "end": 34.433,
+        "start_frame": 964,
+        "end_frame": 1033,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 34.433,
+        "end": 36.467,
+        "start_frame": 1033,
+        "end_frame": 1094,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 36.467,
+        "end": 37.967,
+        "start_frame": 1094,
+        "end_frame": 1139,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 37.967,
+        "end": 40.067,
+        "start_frame": 1139,
+        "end_frame": 1202,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 40.067,
+        "end": 41.167,
+        "start_frame": 1202,
+        "end_frame": 1235,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      },
+      {
+        "start": 41.167,
+        "end": 43.8,
+        "start_frame": 1235,
+        "end_frame": 1314,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      },
+      {
+        "start": 43.8,
+        "end": 47.267,
+        "start_frame": 1314,
+        "end_frame": 1418,
+        "motion_type": "shake",
+        "motion_intensity": 2.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 47.267,
+        "end": 47.833,
+        "start_frame": 1418,
+        "end_frame": 1435,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 47.833,
+        "end": 50.733,
+        "start_frame": 1435,
+        "end_frame": 1522,
+        "motion_type": "pan_left",
+        "motion_intensity": 2.0,
+        "origin_x": 0.7,
+        "origin_y": 0.5
+      },
+      {
+        "start": 50.733,
+        "end": 52.9,
+        "start_frame": 1522,
+        "end_frame": 1587,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      },
+      {
+        "start": 52.9,
+        "end": 55.767,
+        "start_frame": 1587,
+        "end_frame": 1673,
+        "motion_type": "pan_right",
+        "motion_intensity": 1.33,
+        "origin_x": 0.3,
+        "origin_y": 0.5
+      },
+      {
+        "start": 55.767,
+        "end": 57.5,
+        "start_frame": 1673,
+        "end_frame": 1725,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 57.5,
+        "end": 58.733,
+        "start_frame": 1725,
+        "end_frame": 1762,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      },
+      {
+        "start": 58.733,
+        "end": 59.4,
+        "start_frame": 1762,
+        "end_frame": 1782,
+        "motion_type": "zoom_in",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.4
+      }
+    ],
+    "faces": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.499,
+        "y": 0.298,
+        "size": 0.191,
+        "confidence": 0.891
+      },
+      {
+        "frame": 15,
+        "time": 0.5,
+        "x": 0.494,
+        "y": 0.293,
+        "size": 0.192,
+        "confidence": 0.915
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.493,
+        "y": 0.295,
+        "size": 0.19,
+        "confidence": 0.907
+      },
+      {
+        "frame": 45,
+        "time": 1.5,
+        "x": 0.497,
+        "y": 0.298,
+        "size": 0.19,
+        "confidence": 0.914
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.497,
+        "y": 0.302,
+        "size": 0.185,
+        "confidence": 0.903
+      },
+      {
+        "frame": 75,
+        "time": 2.5,
+        "x": 0.491,
+        "y": 0.307,
+        "size": 0.178,
+        "confidence": 0.902
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.478,
+        "y": 0.305,
+        "size": 0.154,
+        "confidence": 0.901
+      },
+      {
+        "frame": 105,
+        "time": 3.5,
+        "x": 0.512,
+        "y": 0.256,
+        "size": 0.128,
+        "confidence": 0.746
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.503,
+        "y": 0.256,
+        "size": 0.126,
+        "confidence": 0.659
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.459,
+        "y": 0.246,
+        "size": 0.138,
+        "confidence": 0.617
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.487,
+        "y": 0.631,
+        "size": 0.189,
+        "confidence": 0.512
+      },
+      {
+        "frame": 165,
+        "time": 5.5,
+        "x": 0.5,
+        "y": 0.301,
+        "size": 0.136,
+        "confidence": 0.956
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.501,
+        "y": 0.301,
+        "size": 0.136,
+        "confidence": 0.957
+      },
+      {
+        "frame": 195,
+        "time": 6.5,
+        "x": 0.61,
+        "y": 0.257,
+        "size": 0.09,
+        "confidence": 0.908
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.605,
+        "y": 0.262,
+        "size": 0.085,
+        "confidence": 0.941
+      },
+      {
+        "frame": 225,
+        "time": 7.5,
+        "x": 0.609,
+        "y": 0.265,
+        "size": 0.084,
+        "confidence": 0.947
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.606,
+        "y": 0.265,
+        "size": 0.078,
+        "confidence": 0.947
+      },
+      {
+        "frame": 255,
+        "time": 8.5,
+        "x": 0.604,
+        "y": 0.27,
+        "size": 0.07,
+        "confidence": 0.947
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.599,
+        "y": 0.271,
+        "size": 0.073,
+        "confidence": 0.945
+      },
+      {
+        "frame": 285,
+        "time": 9.5,
+        "x": 0.607,
+        "y": 0.271,
+        "size": 0.075,
+        "confidence": 0.942
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.539,
+        "y": 0.298,
+        "size": 0.187,
+        "confidence": 0.898
+      },
+      {
+        "frame": 315,
+        "time": 10.5,
+        "x": 0.549,
+        "y": 0.301,
+        "size": 0.188,
+        "confidence": 0.873
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.556,
+        "y": 0.3,
+        "size": 0.187,
+        "confidence": 0.886
+      },
+      {
+        "frame": 345,
+        "time": 11.5,
+        "x": 0.56,
+        "y": 0.297,
+        "size": 0.19,
+        "confidence": 0.883
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.565,
+        "y": 0.299,
+        "size": 0.186,
+        "confidence": 0.887
+      },
+      {
+        "frame": 375,
+        "time": 12.5,
+        "x": 0.567,
+        "y": 0.297,
+        "size": 0.197,
+        "confidence": 0.894
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.576,
+        "y": 0.297,
+        "size": 0.185,
+        "confidence": 0.892
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.576,
+        "y": 0.301,
+        "size": 0.186,
+        "confidence": 0.902
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.59,
+        "y": 0.301,
+        "size": 0.183,
+        "confidence": 0.889
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.457,
+        "y": 0.291,
+        "size": 0.167,
+        "confidence": 0.953
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.457,
+        "y": 0.284,
+        "size": 0.168,
+        "confidence": 0.965
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.459,
+        "y": 0.279,
+        "size": 0.169,
+        "confidence": 0.975
+      },
+      {
+        "frame": 480,
+        "time": 16.0,
+        "x": 0.455,
+        "y": 0.273,
+        "size": 0.163,
+        "confidence": 0.975
+      },
+      {
+        "frame": 495,
+        "time": 16.5,
+        "x": 0.456,
+        "y": 0.263,
+        "size": 0.162,
+        "confidence": 0.973
+      },
+      {
+        "frame": 510,
+        "time": 17.0,
+        "x": 0.453,
+        "y": 0.261,
+        "size": 0.165,
+        "confidence": 0.974
+      },
+      {
+        "frame": 525,
+        "time": 17.5,
+        "x": 0.455,
+        "y": 0.255,
+        "size": 0.162,
+        "confidence": 0.967
+      },
+      {
+        "frame": 540,
+        "time": 18.0,
+        "x": 0.457,
+        "y": 0.25,
+        "size": 0.158,
+        "confidence": 0.957
+      },
+      {
+        "frame": 555,
+        "time": 18.5,
+        "x": 0.456,
+        "y": 0.239,
+        "size": 0.156,
+        "confidence": 0.952
+      },
+      {
+        "frame": 570,
+        "time": 19.0,
+        "x": 0.128,
+        "y": 0.302,
+        "size": 0.077,
+        "confidence": 0.885
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.124,
+        "y": 0.306,
+        "size": 0.068,
+        "confidence": 0.868
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.929,
+        "y": 0.628,
+        "size": 0.047,
+        "confidence": 0.707
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.915,
+        "y": 0.637,
+        "size": 0.049,
+        "confidence": 0.846
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.077,
+        "y": 0.309,
+        "size": 0.076,
+        "confidence": 0.788
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.898,
+        "y": 0.639,
+        "size": 0.055,
+        "confidence": 0.93
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.06,
+        "y": 0.309,
+        "size": 0.079,
+        "confidence": 0.676
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.454,
+        "y": 0.301,
+        "size": 0.181,
+        "confidence": 0.903
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.462,
+        "y": 0.299,
+        "size": 0.188,
+        "confidence": 0.897
+      },
+      {
+        "frame": 660,
+        "time": 22.0,
+        "x": 0.464,
+        "y": 0.305,
+        "size": 0.179,
+        "confidence": 0.915
+      },
+      {
+        "frame": 675,
+        "time": 22.5,
+        "x": 0.47,
+        "y": 0.304,
+        "size": 0.183,
+        "confidence": 0.916
+      },
+      {
+        "frame": 690,
+        "time": 23.0,
+        "x": 0.485,
+        "y": 0.303,
+        "size": 0.188,
+        "confidence": 0.883
+      }
+    ],
+    "text_regions": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.517,
+        "y": 0.607,
+        "text": "が",
+        "confidence": 90
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.608,
+        "y": 0.607,
+        "text": "つ",
+        "confidence": 88
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.299,
+        "y": 0.711,
+        "text": "女性",
+        "confidence": 56
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.594,
+        "y": 0.711,
+        "text": "芸能",
+        "confidence": 93
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.638,
+        "y": 0.725,
+        "text": "Bt",
+        "confidence": 85
+      },
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.501,
+        "y": 0.833,
+        "text": "33",
+        "confidence": 55
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.551,
+        "y": 0.361,
+        "text": "ペー",
+        "confidence": 54
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.434,
+        "y": 0.699,
+        "text": "女性",
+        "confidence": 95
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.592,
+        "y": 0.705,
+        "text": "芸能",
+        "confidence": 94
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.43,
+        "y": 0.833,
+        "text": "3",
+        "confidence": 93
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.542,
+        "y": 0.833,
+        "text": "選",
+        "confidence": 65
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.91,
+        "y": 0.802,
+        "text": "\\",
+        "confidence": 66
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.892,
+        "y": 0.977,
+        "text": "\\",
+        "confidence": 87
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.628,
+        "y": 0.135,
+        "text": "NW",
+        "confidence": 58
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.375,
+        "y": 0.476,
+        "text": "谷",
+        "confidence": 89
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.639,
+        "y": 0.501,
+        "text": "bd",
+        "confidence": 52
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.927,
+        "y": 0.533,
+        "text": "-@",
+        "confidence": 63
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.517,
+        "y": 0.607,
+        "text": "が",
+        "confidence": 95
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.66,
+        "y": 0.607,
+        "text": "つぐ",
+        "confidence": 67
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.781,
+        "y": 0.607,
+        "text": "の",
+        "confidence": 70
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.852,
+        "y": 0.6,
+        "text": "に",
+        "confidence": 89
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.549,
+        "y": 0.659,
+        "text": "Ny",
+        "confidence": 70
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.339,
+        "y": 0.711,
+        "text": "女性",
+        "confidence": 95
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.649,
+        "y": 0.724,
+        "text": "芸能",
+        "confidence": 96
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.803,
+        "y": 0.683,
+        "text": "人",
+        "confidence": 96
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.429,
+        "y": 0.833,
+        "text": "3",
+        "confidence": 93
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.542,
+        "y": 0.833,
+        "text": "選",
+        "confidence": 92
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.997,
+        "y": 0.795,
+        "text": "|",
+        "confidence": 63
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.245,
+        "y": 0.498,
+        "text": "大",
+        "confidence": 93
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.39,
+        "y": 0.499,
+        "text": "谷",
+        "confidence": 92
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.585,
+        "y": 0.498,
+        "text": "翔",
+        "confidence": 78
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.742,
+        "y": 0.499,
+        "text": "平",
+        "confidence": 88
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.792,
+        "y": 0.51,
+        "text": "と",
+        "confidence": 96
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.2,
+        "y": 0.602,
+        "text": "ヤリ",
+        "confidence": 93
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.392,
+        "y": 0.603,
+        "text": "た",
+        "confidence": 88
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.553,
+        "y": 0.601,
+        "text": "が",
+        "confidence": 94
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.612,
+        "y": 0.605,
+        "text": "っ",
+        "confidence": 96
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.728,
+        "y": 0.604,
+        "text": "て",
+        "confidence": 96
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.849,
+        "y": 0.603,
+        "text": "た",
+        "confidence": 64
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.335,
+        "y": 0.711,
+        "text": "女性",
+        "confidence": 96
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.599,
+        "y": 0.723,
+        "text": "芸能",
+        "confidence": 91
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.429,
+        "y": 0.833,
+        "text": "3",
+        "confidence": 93
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.542,
+        "y": 0.833,
+        "text": "選",
+        "confidence": 66
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.517,
+        "y": 0.477,
+        "text": "は",
+        "confidence": 63
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.67,
+        "y": 0.499,
+        "text": "に",
+        "confidence": 89
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.219,
+        "y": 0.525,
+        "text": "あの",
+        "confidence": 51
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.328,
+        "y": 0.523,
+        "text": "前",
+        "confidence": 93
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.41,
+        "y": 0.525,
+        "text": "が",
+        "confidence": 68
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.463,
+        "y": 0.525,
+        "text": "よ",
+        "confidence": 92
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.54,
+        "y": 0.52,
+        "text": "の",
+        "confidence": 91
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.624,
+        "y": 0.523,
+        "text": "代",
+        "confidence": 92
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.321,
+        "y": 0.463,
+        "text": "i=",
+        "confidence": 91
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.385,
+        "y": 0.463,
+        "text": "FA",
+        "confidence": 75
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.201,
+        "y": 0.524,
+        "text": "お",
+        "confidence": 92
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.333,
+        "y": 0.508,
+        "text": "前",
+        "confidence": 96
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.406,
+        "y": 0.513,
+        "text": "か",
+        "confidence": 89
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.462,
+        "y": 0.525,
+        "text": "よ",
+        "confidence": 93
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.539,
+        "y": 0.524,
+        "text": "の",
+        "confidence": 94
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.713,
+        "y": 0.515,
+        "text": "代表",
+        "confidence": 93
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.81,
+        "y": 0.509,
+        "text": "格",
+        "confidence": 92
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.254,
+        "y": 0.499,
+        "text": "1",
+        "confidence": 93
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.689,
+        "y": 0.498,
+        "text": "綾子",
+        "confidence": 92
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.122,
+        "y": 0.48,
+        "text": "Kk",
+        "confidence": 61
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.922,
+        "y": 0.196,
+        "text": "]",
+        "confidence": 88
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.588,
+        "y": 0.517,
+        "text": "実力",
+        "confidence": 82
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.662,
+        "y": 0.523,
+        "text": "派",
+        "confidence": 85
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.503,
+        "y": 0.946,
+        "text": "に",
+        "confidence": 51
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.506,
+        "y": 0.491,
+        "text": "Un",
+        "confidence": 57
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.66,
+        "y": 0.825,
+        "text": "〆",
+        "confidence": 85
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.984,
+        "y": 0.962,
+        "text": "ト",
+        "confidence": 74
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.948,
+        "y": 0.197,
+        "text": "N",
+        "confidence": 81
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.428,
+        "y": 0.52,
+        "text": "も",
+        "confidence": 64
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.496,
+        "y": 0.52,
+        "text": "最",
+        "confidence": 92
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.8,
+        "y": 0.988,
+        "text": "=",
+        "confidence": 73
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.983,
+        "y": 0.205,
+        "text": "W",
+        "confidence": 85
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.286,
+        "y": 0.52,
+        "text": "評判",
+        "confidence": 68
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.413,
+        "y": 0.525,
+        "text": "も",
+        "confidence": 93
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.503,
+        "y": 0.5,
+        "text": "最",
+        "confidence": 93
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.759,
+        "y": 0.521,
+        "text": "で",
+        "confidence": 91
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.554,
+        "y": 0.983,
+        "text": "id",
+        "confidence": 61
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.268,
+        "y": 0.479,
+        "text": "私",
+        "confidence": 92
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.312,
+        "y": 0.486,
+        "text": "生",
+        "confidence": 92
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.353,
+        "y": 0.471,
+        "text": "活",
+        "confidence": 90
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.458,
+        "y": 0.479,
+        "text": "の",
+        "confidence": 92
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.512,
+        "y": 0.481,
+        "text": "7",
+        "confidence": 60
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.615,
+        "y": 0.48,
+        "text": "三",
+        "confidence": 57
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.634,
+        "y": 0.479,
+        "text": "ド",
+        "confidence": 90
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.667,
+        "y": 0.479,
+        "text": "リ",
+        "confidence": 54
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.808,
+        "y": 0.519,
+        "text": "彼女",
+        "confidence": 93
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.901,
+        "y": 0.986,
+        "text": "=.",
+        "confidence": 53
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.973,
+        "y": 0.11,
+        "text": "!",
+        "confidence": 80
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.99,
+        "y": 0.19,
+        "text": "N",
+        "confidence": 89
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.245,
+        "y": 0.477,
+        "text": "私",
+        "confidence": 91
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.294,
+        "y": 0.484,
+        "text": "生",
+        "confidence": 93
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.379,
+        "y": 0.511,
+        "text": "へ",
+        "confidence": 59
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.524,
+        "y": 0.477,
+        "text": "舌",
+        "confidence": 67
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.46,
+        "y": 0.477,
+        "text": "の",
+        "confidence": 91
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.602,
+        "y": 0.477,
+        "text": "三",
+        "confidence": 89
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.642,
+        "y": 0.477,
+        "text": "ド",
+        "confidence": 92
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.193,
+        "y": 0.521,
+        "text": "低い",
+        "confidence": 95
+      }
+    ],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 3.0,
+        "end": 3.333
+      },
+      {
+        "type": "pan_left",
+        "start": 3.5,
+        "end": 3.5
+      },
+      {
+        "type": "shake",
+        "start": 5.167,
+        "end": 5.333
+      },
+      {
+        "type": "shake",
+        "start": 6.333,
+        "end": 6.333
+      },
+      {
+        "type": "pan_left",
+        "start": 6.5,
+        "end": 6.5
+      },
+      {
+        "type": "zoom",
+        "start": 8.0,
+        "end": 8.0
+      },
+      {
+        "type": "pan_left",
+        "start": 8.167,
+        "end": 8.167
+      },
+      {
+        "type": "shake",
+        "start": 9.833,
+        "end": 9.833
+      },
+      {
+        "type": "tilt_up",
+        "start": 11.833,
+        "end": 11.833
+      },
+      {
+        "type": "shake",
+        "start": 14.333,
+        "end": 14.333
+      },
+      {
+        "type": "shake",
+        "start": 18.667,
+        "end": 18.667
+      },
+      {
+        "type": "pan_left",
+        "start": 18.833,
+        "end": 18.833
+      },
+      {
+        "type": "shake",
+        "start": 20.833,
+        "end": 20.833
+      },
+      {
+        "type": "shake",
+        "start": 23.5,
+        "end": 23.5
+      },
+      {
+        "type": "pan_left",
+        "start": 24.833,
+        "end": 24.833
+      },
+      {
+        "type": "shake",
+        "start": 26.5,
+        "end": 26.833
+      },
+      {
+        "type": "pan_right",
+        "start": 28.0,
+        "end": 28.0
+      },
+      {
+        "type": "static",
+        "start": 29.5,
+        "end": 29.5
+      },
+      {
+        "type": "shake",
+        "start": 30.167,
+        "end": 30.167
+      },
+      {
+        "type": "shake",
+        "start": 32.167,
+        "end": 32.167
+      },
+      {
+        "type": "pan_right",
+        "start": 32.5,
+        "end": 32.5
+      },
+      {
+        "type": "shake",
+        "start": 34.5,
+        "end": 34.5
+      },
+      {
+        "type": "shake",
+        "start": 36.5,
+        "end": 36.5
+      },
+      {
+        "type": "shake",
+        "start": 38.0,
+        "end": 38.0
+      },
+      {
+        "type": "shake",
+        "start": 41.167,
+        "end": 41.167
+      },
+      {
+        "type": "shake",
+        "start": 43.833,
+        "end": 43.833
+      },
+      {
+        "type": "shake",
+        "start": 47.333,
+        "end": 47.333
+      },
+      {
+        "type": "pan_right",
+        "start": 47.5,
+        "end": 47.5
+      },
+      {
+        "type": "pan_left",
+        "start": 48.167,
+        "end": 48.167
+      },
+      {
+        "type": "shake",
+        "start": 53.0,
+        "end": 53.0
+      },
+      {
+        "type": "pan_right",
+        "start": 53.167,
+        "end": 53.167
+      },
+      {
+        "type": "pan_right",
+        "start": 54.833,
+        "end": 54.833
+      },
+      {
+        "type": "shake",
+        "start": 55.833,
+        "end": 55.833
+      },
+      {
+        "type": "zoom",
+        "start": 56.0,
+        "end": 56.0
+      },
+      {
+        "type": "shake",
+        "start": 57.5,
+        "end": 57.667
+      },
+      {
+        "type": "zoom",
+        "start": 58.667,
+        "end": 58.667
+      }
+    ],
+    "important_frames": [
+      0,
+      15,
+      30,
+      45,
+      60,
+      75,
+      90,
+      91,
+      92,
+      93,
+      94,
+      105,
+      120,
+      135,
+      146,
+      150,
+      151,
+      165,
+      180,
+      188,
+      210,
+      240,
+      270,
+      294,
+      300,
+      315,
+      330,
+      345,
+      360,
+      375
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 2.9,
+        "text": "大谷翔平とやりたがってた女性芸能人参戦",
+        "words": [
+          {
+            "word": "大",
+            "start": 0.0,
+            "end": 0.2
+          },
+          {
+            "word": "谷",
+            "start": 0.2,
+            "end": 0.42
+          },
+          {
+            "word": "翔",
+            "start": 0.42,
+            "end": 0.66
+          },
+          {
+            "word": "平",
+            "start": 0.66,
+            "end": 0.84
+          },
+          {
+            "word": "と",
+            "start": 0.84,
+            "end": 1.0
+          },
+          {
+            "word": "や",
+            "start": 1.0,
+            "end": 1.1
+          },
+          {
+            "word": "り",
+            "start": 1.1,
+            "end": 1.16
+          },
+          {
+            "word": "た",
+            "start": 1.16,
+            "end": 1.24
+          },
+          {
+            "word": "が",
+            "start": 1.24,
+            "end": 1.34
+          },
+          {
+            "word": "って",
+            "start": 1.34,
+            "end": 1.48
+          },
+          {
+            "word": "た",
+            "start": 1.48,
+            "end": 1.62
+          },
+          {
+            "word": "女",
+            "start": 1.62,
+            "end": 1.74
+          },
+          {
+            "word": "性",
+            "start": 1.74,
+            "end": 1.92
+          },
+          {
+            "word": "芸",
+            "start": 1.92,
+            "end": 2.14
+          },
+          {
+            "word": "能",
+            "start": 2.14,
+            "end": 2.26
+          },
+          {
+            "word": "人",
+            "start": 2.26,
+            "end": 2.44
+          },
+          {
+            "word": "参",
+            "start": 2.44,
+            "end": 2.72
+          },
+          {
+            "word": "戦",
+            "start": 2.72,
+            "end": 2.9
+          }
+        ]
+      },
+      {
+        "start": 2.9,
+        "end": 4.8,
+        "text": "最後はまたお前かよの代表格",
+        "words": [
+          {
+            "word": "最後",
+            "start": 2.9,
+            "end": 3.26
+          },
+          {
+            "word": "は",
+            "start": 3.26,
+            "end": 3.5
+          },
+          {
+            "word": "また",
+            "start": 3.5,
+            "end": 3.68
+          },
+          {
+            "word": "お",
+            "start": 3.68,
+            "end": 3.84
+          },
+          {
+            "word": "前",
+            "start": 3.84,
+            "end": 3.96
+          },
+          {
+            "word": "か",
+            "start": 3.96,
+            "end": 4.06
+          },
+          {
+            "word": "よ",
+            "start": 4.06,
+            "end": 4.16
+          },
+          {
+            "word": "の",
+            "start": 4.16,
+            "end": 4.28
+          },
+          {
+            "word": "代",
+            "start": 4.28,
+            "end": 4.42
+          },
+          {
+            "word": "表",
+            "start": 4.42,
+            "end": 4.62
+          },
+          {
+            "word": "格",
+            "start": 4.62,
+            "end": 4.8
+          }
+        ]
+      },
+      {
+        "start": 4.8,
+        "end": 6.12,
+        "text": "1.加藤彩子",
+        "words": [
+          {
+            "word": "1.",
+            "start": 4.8,
+            "end": 5.2
+          },
+          {
+            "word": "加",
+            "start": 5.4,
+            "end": 5.62
+          },
+          {
+            "word": "藤",
+            "start": 5.62,
+            "end": 5.76
+          },
+          {
+            "word": "彩",
+            "start": 5.76,
+            "end": 5.96
+          },
+          {
+            "word": "子",
+            "start": 5.96,
+            "end": 6.12
+          }
+        ]
+      },
+      {
+        "start": 6.12,
+        "end": 9.7,
+        "text": "加藤パンの愛称で情報番組からバラエティまでこなす実力派",
+        "words": [
+          {
+            "word": "加",
+            "start": 6.12,
+            "end": 6.34
+          },
+          {
+            "word": "藤",
+            "start": 6.34,
+            "end": 6.48
+          },
+          {
+            "word": "パ",
+            "start": 6.48,
+            "end": 6.64
+          },
+          {
+            "word": "ン",
+            "start": 6.64,
+            "end": 6.64
+          },
+          {
+            "word": "の",
+            "start": 6.64,
+            "end": 6.76
+          },
+          {
+            "word": "愛",
+            "start": 6.76,
+            "end": 6.94
+          },
+          {
+            "word": "称",
+            "start": 6.94,
+            "end": 7.06
+          },
+          {
+            "word": "で",
+            "start": 7.06,
+            "end": 7.26
+          },
+          {
+            "word": "情",
+            "start": 7.26,
+            "end": 7.36
+          },
+          {
+            "word": "報",
+            "start": 7.36,
+            "end": 7.56
+          },
+          {
+            "word": "番",
+            "start": 7.56,
+            "end": 7.74
+          },
+          {
+            "word": "組",
+            "start": 7.74,
+            "end": 7.92
+          },
+          {
+            "word": "から",
+            "start": 7.92,
+            "end": 8.14
+          },
+          {
+            "word": "バ",
+            "start": 8.14,
+            "end": 8.32
+          },
+          {
+            "word": "ラ",
+            "start": 8.32,
+            "end": 8.44
+          },
+          {
+            "word": "エ",
+            "start": 8.44,
+            "end": 8.48
+          },
+          {
+            "word": "テ",
+            "start": 8.48,
+            "end": 8.56
+          },
+          {
+            "word": "ィ",
+            "start": 8.56,
+            "end": 8.62
+          },
+          {
+            "word": "まで",
+            "start": 8.62,
+            "end": 8.72
+          },
+          {
+            "word": "こ",
+            "start": 8.72,
+            "end": 8.88
+          },
+          {
+            "word": "な",
+            "start": 8.88,
+            "end": 8.98
+          },
+          {
+            "word": "す",
+            "start": 8.98,
+            "end": 9.06
+          },
+          {
+            "word": "実",
+            "start": 9.06,
+            "end": 9.22
+          },
+          {
+            "word": "力",
+            "start": 9.22,
+            "end": 9.48
+          },
+          {
+            "word": "派",
+            "start": 9.48,
+            "end": 9.7
+          }
+        ]
+      },
+      {
+        "start": 9.7,
+        "end": 14.12,
+        "text": "スタッフからの評判も最上級で私生活のハードルは低いと公言している彼女",
+        "words": [
+          {
+            "word": "ス",
+            "start": 9.7,
+            "end": 9.88
+          },
+          {
+            "word": "タ",
+            "start": 9.88,
+            "end": 10.06
+          },
+          {
+            "word": "ッ",
+            "start": 10.06,
+            "end": 10.06
+          },
+          {
+            "word": "フ",
+            "start": 10.06,
+            "end": 10.16
+          },
+          {
+            "word": "から",
+            "start": 10.16,
+            "end": 10.32
+          },
+          {
+            "word": "の",
+            "start": 10.32,
+            "end": 10.5
+          },
+          {
+            "word": "評",
+            "start": 10.5,
+            "end": 10.64
+          },
+          {
+            "word": "判",
+            "start": 10.64,
+            "end": 10.84
+          },
+          {
+            "word": "も",
+            "start": 10.84,
+            "end": 10.98
+          },
+          {
+            "word": "最",
+            "start": 10.98,
+            "end": 11.14
+          },
+          {
+            "word": "上",
+            "start": 11.14,
+            "end": 11.34
+          },
+          {
+            "word": "級",
+            "start": 11.34,
+            "end": 11.52
+          },
+          {
+            "word": "で",
+            "start": 11.52,
+            "end": 11.66
+          },
+          {
+            "word": "私",
+            "start": 11.66,
+            "end": 11.72
+          },
+          {
+            "word": "生活",
+            "start": 11.72,
+            "end": 12.0
+          },
+          {
+            "word": "の",
+            "start": 12.0,
+            "end": 12.26
+          },
+          {
+            "word": "ハ",
+            "start": 12.26,
+            "end": 12.36
+          },
+          {
+            "word": "ード",
+            "start": 12.36,
+            "end": 12.5
+          },
+          {
+            "word": "ル",
+            "start": 12.5,
+            "end": 12.66
+          },
+          {
+            "word": "は",
+            "start": 12.66,
+            "end": 12.74
+          },
+          {
+            "word": "低",
+            "start": 12.74,
+            "end": 12.9
+          },
+          {
+            "word": "い",
+            "start": 12.9,
+            "end": 13.04
+          },
+          {
+            "word": "と",
+            "start": 13.04,
+            "end": 13.12
+          },
+          {
+            "word": "公",
+            "start": 13.12,
+            "end": 13.28
+          },
+          {
+            "word": "言",
+            "start": 13.28,
+            "end": 13.42
+          },
+          {
+            "word": "して",
+            "start": 13.42,
+            "end": 13.64
+          },
+          {
+            "word": "いる",
+            "start": 13.64,
+            "end": 13.8
+          },
+          {
+            "word": "彼",
+            "start": 13.8,
+            "end": 13.96
+          },
+          {
+            "word": "女",
+            "start": 13.96,
+            "end": 14.12
+          }
+        ]
+      },
+      {
+        "start": 14.12,
+        "end": 18.36,
+        "text": "大谷がメジャー移籍後のインタビュアーに各局がエース級の女子アナを投入",
+        "words": [
+          {
+            "word": "大",
+            "start": 14.12,
+            "end": 14.42
+          },
+          {
+            "word": "谷",
+            "start": 14.42,
+            "end": 14.66
+          },
+          {
+            "word": "が",
+            "start": 14.66,
+            "end": 14.8
+          },
+          {
+            "word": "メ",
+            "start": 14.8,
+            "end": 14.9
+          },
+          {
+            "word": "ジャ",
+            "start": 14.9,
+            "end": 15.06
+          },
+          {
+            "word": "ー",
+            "start": 15.06,
+            "end": 15.08
+          },
+          {
+            "word": "移",
+            "start": 15.08,
+            "end": 15.22
+          },
+          {
+            "word": "籍",
+            "start": 15.22,
+            "end": 15.34
+          },
+          {
+            "word": "後",
+            "start": 15.34,
+            "end": 15.52
+          },
+          {
+            "word": "の",
+            "start": 15.52,
+            "end": 15.64
+          },
+          {
+            "word": "イ",
+            "start": 15.64,
+            "end": 15.7
+          },
+          {
+            "word": "ンタ",
+            "start": 15.7,
+            "end": 15.84
+          },
+          {
+            "word": "ビ",
+            "start": 15.84,
+            "end": 15.98
+          },
+          {
+            "word": "ュ",
+            "start": 15.98,
+            "end": 16.06
+          },
+          {
+            "word": "ア",
+            "start": 16.06,
+            "end": 16.08
+          },
+          {
+            "word": "ー",
+            "start": 16.08,
+            "end": 16.2
+          },
+          {
+            "word": "に",
+            "start": 16.2,
+            "end": 16.22
+          },
+          {
+            "word": "各",
+            "start": 16.22,
+            "end": 16.4
+          },
+          {
+            "word": "局",
+            "start": 16.4,
+            "end": 16.62
+          },
+          {
+            "word": "が",
+            "start": 16.62,
+            "end": 16.84
+          },
+          {
+            "word": "エ",
+            "start": 16.84,
+            "end": 16.98
+          },
+          {
+            "word": "ー",
+            "start": 16.98,
+            "end": 17.04
+          },
+          {
+            "word": "ス",
+            "start": 17.04,
+            "end": 17.04
+          },
+          {
+            "word": "級",
+            "start": 17.04,
+            "end": 17.26
+          },
+          {
+            "word": "の",
+            "start": 17.26,
+            "end": 17.42
+          },
+          {
+            "word": "女",
+            "start": 17.42,
+            "end": 17.52
+          },
+          {
+            "word": "子",
+            "start": 17.52,
+            "end": 17.62
+          },
+          {
+            "word": "ア",
+            "start": 17.62,
+            "end": 17.74
+          },
+          {
+            "word": "ナ",
+            "start": 17.74,
+            "end": 17.84
+          },
+          {
+            "word": "を",
+            "start": 17.84,
+            "end": 17.98
+          },
+          {
+            "word": "投",
+            "start": 17.98,
+            "end": 18.14
+          },
+          {
+            "word": "入",
+            "start": 18.14,
+            "end": 18.36
+          }
+        ]
+      },
+      {
+        "start": 18.36,
+        "end": 20.66,
+        "text": "もちろん加藤パンもその中の一人であったが",
+        "words": [
+          {
+            "word": "も",
+            "start": 18.36,
+            "end": 18.62
+          },
+          {
+            "word": "ち",
+            "start": 18.62,
+            "end": 18.72
+          },
+          {
+            "word": "ろ",
+            "start": 18.72,
+            "end": 18.84
+          },
+          {
+            "word": "ん",
+            "start": 18.84,
+            "end": 18.94
+          },
+          {
+            "word": "加",
+            "start": 18.94,
+            "end": 19.06
+          },
+          {
+            "word": "藤",
+            "start": 19.06,
+            "end": 19.16
+          },
+          {
+            "word": "パ",
+            "start": 19.16,
+            "end": 19.32
+          },
+          {
+            "word": "ン",
+            "start": 19.32,
+            "end": 19.34
+          },
+          {
+            "word": "も",
+            "start": 19.34,
+            "end": 19.4
+          },
+          {
+            "word": "その",
+            "start": 19.4,
+            "end": 19.6
+          },
+          {
+            "word": "中",
+            "start": 19.6,
+            "end": 19.8
+          },
+          {
+            "word": "の",
+            "start": 19.8,
+            "end": 19.98
+          },
+          {
+            "word": "一",
+            "start": 19.98,
+            "end": 20.06
+          },
+          {
+            "word": "人",
+            "start": 20.06,
+            "end": 20.22
+          },
+          {
+            "word": "で",
+            "start": 20.22,
+            "end": 20.32
+          },
+          {
+            "word": "あ",
+            "start": 20.32,
+            "end": 20.38
+          },
+          {
+            "word": "った",
+            "start": 20.38,
+            "end": 20.52
+          },
+          {
+            "word": "が",
+            "start": 20.52,
+            "end": 20.66
+          }
+        ]
+      },
+      {
+        "start": 20.66,
+        "end": 23.2,
+        "text": "恋沙汰を露骨に聞きすぎてまさかのできんそち",
+        "words": [
+          {
+            "word": "恋",
+            "start": 20.66,
+            "end": 20.96
+          },
+          {
+            "word": "沙",
+            "start": 20.96,
+            "end": 21.12
+          },
+          {
+            "word": "汰",
+            "start": 21.12,
+            "end": 21.18
+          },
+          {
+            "word": "を",
+            "start": 21.18,
+            "end": 21.34
+          },
+          {
+            "word": "露",
+            "start": 21.34,
+            "end": 21.46
+          },
+          {
+            "word": "骨",
+            "start": 21.46,
+            "end": 21.58
+          },
+          {
+            "word": "に",
+            "start": 21.58,
+            "end": 21.76
+          },
+          {
+            "word": "聞",
+            "start": 21.76,
+            "end": 21.88
+          },
+          {
+            "word": "き",
+            "start": 21.88,
+            "end": 21.98
+          },
+          {
+            "word": "す",
+            "start": 21.98,
+            "end": 22.0
+          },
+          {
+            "word": "ぎ",
+            "start": 22.0,
+            "end": 22.12
+          },
+          {
+            "word": "て",
+            "start": 22.12,
+            "end": 22.26
+          },
+          {
+            "word": "ま",
+            "start": 22.26,
+            "end": 22.36
+          },
+          {
+            "word": "さ",
+            "start": 22.36,
+            "end": 22.46
+          },
+          {
+            "word": "か",
+            "start": 22.46,
+            "end": 22.6
+          },
+          {
+            "word": "ので",
+            "start": 22.6,
+            "end": 22.74
+          },
+          {
+            "word": "き",
+            "start": 22.74,
+            "end": 22.94
+          },
+          {
+            "word": "ん",
+            "start": 22.94,
+            "end": 22.96
+          },
+          {
+            "word": "そ",
+            "start": 22.96,
+            "end": 23.08
+          },
+          {
+            "word": "ち",
+            "start": 23.08,
+            "end": 23.2
+          }
+        ]
+      },
+      {
+        "start": 23.2,
+        "end": 26.48,
+        "text": "フジテレビのアンダ製造機がまさかの空振り三振であった",
+        "words": [
+          {
+            "word": "フ",
+            "start": 23.2,
+            "end": 23.42
+          },
+          {
+            "word": "ジ",
+            "start": 23.42,
+            "end": 23.56
+          },
+          {
+            "word": "テ",
+            "start": 23.56,
+            "end": 23.68
+          },
+          {
+            "word": "レ",
+            "start": 23.68,
+            "end": 23.8
+          },
+          {
+            "word": "ビ",
+            "start": 23.8,
+            "end": 23.92
+          },
+          {
+            "word": "の",
+            "start": 23.92,
+            "end": 24.0
+          },
+          {
+            "word": "ア",
+            "start": 24.0,
+            "end": 24.1
+          },
+          {
+            "word": "ンダ",
+            "start": 24.1,
+            "end": 24.24
+          },
+          {
+            "word": "製",
+            "start": 24.24,
+            "end": 24.48
+          },
+          {
+            "word": "造",
+            "start": 24.48,
+            "end": 24.64
+          },
+          {
+            "word": "機",
+            "start": 24.64,
+            "end": 24.74
+          },
+          {
+            "word": "が",
+            "start": 24.74,
+            "end": 24.92
+          },
+          {
+            "word": "ま",
+            "start": 24.92,
+            "end": 25.0
+          },
+          {
+            "word": "さ",
+            "start": 25.0,
+            "end": 25.08
+          },
+          {
+            "word": "か",
+            "start": 25.08,
+            "end": 25.24
+          },
+          {
+            "word": "の",
+            "start": 25.24,
+            "end": 25.32
+          },
+          {
+            "word": "空",
+            "start": 25.32,
+            "end": 25.46
+          },
+          {
+            "word": "振",
+            "start": 25.46,
+            "end": 25.66
+          },
+          {
+            "word": "り",
+            "start": 25.66,
+            "end": 25.76
+          },
+          {
+            "word": "三",
+            "start": 25.76,
+            "end": 25.86
+          },
+          {
+            "word": "振",
+            "start": 25.86,
+            "end": 26.12
+          },
+          {
+            "word": "で",
+            "start": 26.12,
+            "end": 26.24
+          },
+          {
+            "word": "あ",
+            "start": 26.24,
+            "end": 26.32
+          },
+          {
+            "word": "った",
+            "start": 26.32,
+            "end": 26.48
+          }
+        ]
+      },
+      {
+        "start": 26.48,
+        "end": 27.34,
+        "text": "2.森霞",
+        "words": [
+          {
+            "word": "2.",
+            "start": 26.48,
+            "end": 26.82
+          },
+          {
+            "word": "森",
+            "start": 26.88,
+            "end": 27.14
+          },
+          {
+            "word": "霞",
+            "start": 27.14,
+            "end": 27.34
+          }
+        ]
+      },
+      {
+        "start": 27.34,
+        "end": 32.0,
+        "text": "2024年タレントランキングでは堂々のに異名は令和のあざと女王の彼女だが",
+        "words": [
+          {
+            "word": "20",
+            "start": 27.34,
+            "end": 27.72
+          },
+          {
+            "word": "24",
+            "start": 27.72,
+            "end": 28.24
+          },
+          {
+            "word": "年",
+            "start": 28.24,
+            "end": 28.48
+          },
+          {
+            "word": "タ",
+            "start": 28.48,
+            "end": 28.62
+          },
+          {
+            "word": "レ",
+            "start": 28.62,
+            "end": 28.7
+          },
+          {
+            "word": "ント",
+            "start": 28.7,
+            "end": 28.8
+          },
+          {
+            "word": "ラ",
+            "start": 28.8,
+            "end": 28.96
+          },
+          {
+            "word": "ン",
+            "start": 28.96,
+            "end": 28.98
+          },
+          {
+            "word": "キ",
+            "start": 28.98,
+            "end": 29.08
+          },
+          {
+            "word": "ング",
+            "start": 29.08,
+            "end": 29.22
+          },
+          {
+            "word": "では",
+            "start": 29.22,
+            "end": 29.44
+          },
+          {
+            "word": "堂",
+            "start": 29.44,
+            "end": 29.7
+          },
+          {
+            "word": "々",
+            "start": 29.7,
+            "end": 29.78
+          },
+          {
+            "word": "の",
+            "start": 29.78,
+            "end": 29.88
+          },
+          {
+            "word": "に",
+            "start": 29.88,
+            "end": 30.02
+          },
+          {
+            "word": "異",
+            "start": 30.02,
+            "end": 30.26
+          },
+          {
+            "word": "名",
+            "start": 30.26,
+            "end": 30.36
+          },
+          {
+            "word": "は",
+            "start": 30.36,
+            "end": 30.5
+          },
+          {
+            "word": "令",
+            "start": 30.5,
+            "end": 30.64
+          },
+          {
+            "word": "和",
+            "start": 30.64,
+            "end": 30.74
+          },
+          {
+            "word": "の",
+            "start": 30.74,
+            "end": 30.9
+          },
+          {
+            "word": "あ",
+            "start": 30.9,
+            "end": 30.98
+          },
+          {
+            "word": "ざ",
+            "start": 30.98,
+            "end": 31.02
+          },
+          {
+            "word": "と",
+            "start": 31.02,
+            "end": 31.12
+          },
+          {
+            "word": "女",
+            "start": 31.12,
+            "end": 31.28
+          },
+          {
+            "word": "王",
+            "start": 31.28,
+            "end": 31.42
+          },
+          {
+            "word": "の",
+            "start": 31.42,
+            "end": 31.52
+          },
+          {
+            "word": "彼",
+            "start": 31.52,
+            "end": 31.66
+          },
+          {
+            "word": "女",
+            "start": 31.66,
+            "end": 31.76
+          },
+          {
+            "word": "だ",
+            "start": 31.76,
+            "end": 31.84
+          },
+          {
+            "word": "が",
+            "start": 31.84,
+            "end": 32.0
+          }
+        ]
+      },
+      {
+        "start": 32.0,
+        "end": 34.26,
+        "text": "ひろゆきとの対談で大谷について問われると",
+        "words": [
+          {
+            "word": "ひ",
+            "start": 32.0,
+            "end": 32.2
+          },
+          {
+            "word": "ろ",
+            "start": 32.2,
+            "end": 32.28
+          },
+          {
+            "word": "ゆ",
+            "start": 32.28,
+            "end": 32.38
+          },
+          {
+            "word": "き",
+            "start": 32.38,
+            "end": 32.48
+          },
+          {
+            "word": "と",
+            "start": 32.48,
+            "end": 32.58
+          },
+          {
+            "word": "の",
+            "start": 32.58,
+            "end": 32.64
+          },
+          {
+            "word": "対",
+            "start": 32.64,
+            "end": 32.8
+          },
+          {
+            "word": "談",
+            "start": 32.8,
+            "end": 32.96
+          },
+          {
+            "word": "で",
+            "start": 32.96,
+            "end": 33.1
+          },
+          {
+            "word": "大",
+            "start": 33.1,
+            "end": 33.2
+          },
+          {
+            "word": "谷",
+            "start": 33.2,
+            "end": 33.38
+          },
+          {
+            "word": "に",
+            "start": 33.38,
+            "end": 33.52
+          },
+          {
+            "word": "つ",
+            "start": 33.52,
+            "end": 33.6
+          },
+          {
+            "word": "いて",
+            "start": 33.6,
+            "end": 33.76
+          },
+          {
+            "word": "問",
+            "start": 33.76,
+            "end": 33.9
+          },
+          {
+            "word": "わ",
+            "start": 33.9,
+            "end": 34.0
+          },
+          {
+            "word": "れる",
+            "start": 34.0,
+            "end": 34.12
+          },
+          {
+            "word": "と",
+            "start": 34.12,
+            "end": 34.26
+          }
+        ]
+      },
+      {
+        "start": 34.26,
+        "end": 37.86,
+        "text": "当初は否定的だったが掘られていくうちに人間として興味ありますよ",
+        "words": [
+          {
+            "word": "当",
+            "start": 34.26,
+            "end": 34.54
+          },
+          {
+            "word": "初",
+            "start": 34.54,
+            "end": 34.66
+          },
+          {
+            "word": "は",
+            "start": 34.66,
+            "end": 34.78
+          },
+          {
+            "word": "否",
+            "start": 34.78,
+            "end": 34.88
+          },
+          {
+            "word": "定",
+            "start": 34.88,
+            "end": 35.0
+          },
+          {
+            "word": "的",
+            "start": 35.0,
+            "end": 35.12
+          },
+          {
+            "word": "だ",
+            "start": 35.12,
+            "end": 35.26
+          },
+          {
+            "word": "った",
+            "start": 35.26,
+            "end": 35.38
+          },
+          {
+            "word": "が",
+            "start": 35.38,
+            "end": 35.52
+          },
+          {
+            "word": "掘",
+            "start": 35.52,
+            "end": 35.64
+          },
+          {
+            "word": "ら",
+            "start": 35.64,
+            "end": 35.72
+          },
+          {
+            "word": "れて",
+            "start": 35.72,
+            "end": 35.84
+          },
+          {
+            "word": "いく",
+            "start": 35.84,
+            "end": 36.02
+          },
+          {
+            "word": "う",
+            "start": 36.02,
+            "end": 36.12
+          },
+          {
+            "word": "ち",
+            "start": 36.12,
+            "end": 36.2
+          },
+          {
+            "word": "に",
+            "start": 36.2,
+            "end": 36.36
+          },
+          {
+            "word": "人",
+            "start": 36.36,
+            "end": 36.56
+          },
+          {
+            "word": "間",
+            "start": 36.56,
+            "end": 36.76
+          },
+          {
+            "word": "と",
+            "start": 36.76,
+            "end": 36.9
+          },
+          {
+            "word": "して",
+            "start": 36.9,
+            "end": 37.06
+          },
+          {
+            "word": "興",
+            "start": 37.06,
+            "end": 37.22
+          },
+          {
+            "word": "味",
+            "start": 37.22,
+            "end": 37.42
+          },
+          {
+            "word": "あります",
+            "start": 37.42,
+            "end": 37.62
+          },
+          {
+            "word": "よ",
+            "start": 37.62,
+            "end": 37.86
+          }
+        ]
+      },
+      {
+        "start": 37.86,
+        "end": 39.9,
+        "text": "と告白し投稿に注目されていたが",
+        "words": [
+          {
+            "word": "と",
+            "start": 37.86,
+            "end": 38.08
+          },
+          {
+            "word": "告",
+            "start": 38.08,
+            "end": 38.22
+          },
+          {
+            "word": "白",
+            "start": 38.22,
+            "end": 38.38
+          },
+          {
+            "word": "し",
+            "start": 38.38,
+            "end": 38.56
+          },
+          {
+            "word": "投",
+            "start": 38.56,
+            "end": 38.66
+          },
+          {
+            "word": "稿",
+            "start": 38.66,
+            "end": 38.8
+          },
+          {
+            "word": "に",
+            "start": 38.8,
+            "end": 38.98
+          },
+          {
+            "word": "注",
+            "start": 38.98,
+            "end": 39.12
+          },
+          {
+            "word": "目",
+            "start": 39.12,
+            "end": 39.3
+          },
+          {
+            "word": "さ",
+            "start": 39.3,
+            "end": 39.42
+          },
+          {
+            "word": "れて",
+            "start": 39.42,
+            "end": 39.56
+          },
+          {
+            "word": "いた",
+            "start": 39.56,
+            "end": 39.72
+          },
+          {
+            "word": "が",
+            "start": 39.72,
+            "end": 39.9
+          }
+        ]
+      },
+      {
+        "start": 39.9,
+        "end": 43.74,
+        "text": "大谷の両親は女子アナとは結婚させないと直球を投げており",
+        "words": [
+          {
+            "word": "大",
+            "start": 39.9,
+            "end": 40.18
+          },
+          {
+            "word": "谷",
+            "start": 40.18,
+            "end": 40.42
+          },
+          {
+            "word": "の",
+            "start": 40.42,
+            "end": 40.54
+          },
+          {
+            "word": "両",
+            "start": 40.54,
+            "end": 40.72
+          },
+          {
+            "word": "親",
+            "start": 40.72,
+            "end": 40.84
+          },
+          {
+            "word": "は",
+            "start": 40.84,
+            "end": 41.04
+          },
+          {
+            "word": "女",
+            "start": 41.04,
+            "end": 41.28
+          },
+          {
+            "word": "子",
+            "start": 41.28,
+            "end": 41.36
+          },
+          {
+            "word": "ア",
+            "start": 41.36,
+            "end": 41.48
+          },
+          {
+            "word": "ナ",
+            "start": 41.48,
+            "end": 41.56
+          },
+          {
+            "word": "と",
+            "start": 41.56,
+            "end": 41.66
+          },
+          {
+            "word": "は",
+            "start": 41.66,
+            "end": 41.8
+          },
+          {
+            "word": "結",
+            "start": 41.8,
+            "end": 41.9
+          },
+          {
+            "word": "婚",
+            "start": 41.9,
+            "end": 42.14
+          },
+          {
+            "word": "さ",
+            "start": 42.14,
+            "end": 42.28
+          },
+          {
+            "word": "せ",
+            "start": 42.28,
+            "end": 42.4
+          },
+          {
+            "word": "ない",
+            "start": 42.4,
+            "end": 42.52
+          },
+          {
+            "word": "と",
+            "start": 42.52,
+            "end": 42.72
+          },
+          {
+            "word": "直",
+            "start": 42.72,
+            "end": 42.9
+          },
+          {
+            "word": "球",
+            "start": 42.9,
+            "end": 43.1
+          },
+          {
+            "word": "を",
+            "start": 43.1,
+            "end": 43.22
+          },
+          {
+            "word": "投",
+            "start": 43.22,
+            "end": 43.34
+          },
+          {
+            "word": "げ",
+            "start": 43.34,
+            "end": 43.4
+          },
+          {
+            "word": "て",
+            "start": 43.4,
+            "end": 43.5
+          },
+          {
+            "word": "お",
+            "start": 43.5,
+            "end": 43.6
+          },
+          {
+            "word": "り",
+            "start": 43.6,
+            "end": 43.74
+          }
+        ]
+      },
+      {
+        "start": 43.74,
+        "end": 47.08,
+        "text": "強力女子アナ打線ラインナップはことごとくフルスイング三振した",
+        "words": [
+          {
+            "word": "強",
+            "start": 43.74,
+            "end": 43.96
+          },
+          {
+            "word": "力",
+            "start": 43.96,
+            "end": 44.18
+          },
+          {
+            "word": "女",
+            "start": 44.18,
+            "end": 44.34
+          },
+          {
+            "word": "子",
+            "start": 44.34,
+            "end": 44.42
+          },
+          {
+            "word": "ア",
+            "start": 44.42,
+            "end": 44.52
+          },
+          {
+            "word": "ナ",
+            "start": 44.52,
+            "end": 44.64
+          },
+          {
+            "word": "打",
+            "start": 44.64,
+            "end": 44.68
+          },
+          {
+            "word": "線",
+            "start": 44.68,
+            "end": 44.82
+          },
+          {
+            "word": "ライ",
+            "start": 44.82,
+            "end": 45.06
+          },
+          {
+            "word": "ンナ",
+            "start": 45.06,
+            "end": 45.24
+          },
+          {
+            "word": "ップ",
+            "start": 45.24,
+            "end": 45.34
+          },
+          {
+            "word": "は",
+            "start": 45.34,
+            "end": 45.5
+          },
+          {
+            "word": "こと",
+            "start": 45.5,
+            "end": 45.68
+          },
+          {
+            "word": "ご",
+            "start": 45.68,
+            "end": 45.74
+          },
+          {
+            "word": "と",
+            "start": 45.74,
+            "end": 45.84
+          },
+          {
+            "word": "く",
+            "start": 45.84,
+            "end": 46.0
+          },
+          {
+            "word": "フ",
+            "start": 46.0,
+            "end": 46.06
+          },
+          {
+            "word": "ル",
+            "start": 46.06,
+            "end": 46.18
+          },
+          {
+            "word": "ス",
+            "start": 46.18,
+            "end": 46.24
+          },
+          {
+            "word": "イ",
+            "start": 46.24,
+            "end": 46.36
+          },
+          {
+            "word": "ング",
+            "start": 46.36,
+            "end": 46.52
+          },
+          {
+            "word": "三",
+            "start": 46.52,
+            "end": 46.66
+          },
+          {
+            "word": "振",
+            "start": 46.66,
+            "end": 46.88
+          },
+          {
+            "word": "した",
+            "start": 46.88,
+            "end": 47.08
+          }
+        ]
+      },
+      {
+        "start": 47.08,
+        "end": 50.56,
+        "text": "最後は芸人アントニーからの密告で超有名女優Nが",
+        "words": [
+          {
+            "word": "最後",
+            "start": 47.08,
+            "end": 47.52
+          },
+          {
+            "word": "は",
+            "start": 47.52,
+            "end": 47.72
+          },
+          {
+            "word": "芸",
+            "start": 47.72,
+            "end": 48.04
+          },
+          {
+            "word": "人",
+            "start": 48.04,
+            "end": 48.14
+          },
+          {
+            "word": "ア",
+            "start": 48.14,
+            "end": 48.34
+          },
+          {
+            "word": "ント",
+            "start": 48.34,
+            "end": 48.48
+          },
+          {
+            "word": "ニ",
+            "start": 48.48,
+            "end": 48.6
+          },
+          {
+            "word": "ー",
+            "start": 48.6,
+            "end": 48.68
+          },
+          {
+            "word": "から",
+            "start": 48.68,
+            "end": 48.8
+          },
+          {
+            "word": "の",
+            "start": 48.8,
+            "end": 48.94
+          },
+          {
+            "word": "密",
+            "start": 48.94,
+            "end": 49.1
+          },
+          {
+            "word": "告",
+            "start": 49.1,
+            "end": 49.24
+          },
+          {
+            "word": "で",
+            "start": 49.24,
+            "end": 49.42
+          },
+          {
+            "word": "超",
+            "start": 49.42,
+            "end": 49.58
+          },
+          {
+            "word": "有",
+            "start": 49.58,
+            "end": 49.74
+          },
+          {
+            "word": "名",
+            "start": 49.74,
+            "end": 49.92
+          },
+          {
+            "word": "女",
+            "start": 49.92,
+            "end": 50.08
+          },
+          {
+            "word": "優",
+            "start": 50.08,
+            "end": 50.2
+          },
+          {
+            "word": "N",
+            "start": 50.2,
+            "end": 50.4
+          },
+          {
+            "word": "が",
+            "start": 50.4,
+            "end": 50.56
+          }
+        ]
+      },
+      {
+        "start": 50.56,
+        "end": 52.68,
+        "text": "帰国したら是非ご飯を行きたいと伝えるも",
+        "words": [
+          {
+            "word": "帰",
+            "start": 50.56,
+            "end": 50.9
+          },
+          {
+            "word": "国",
+            "start": 50.9,
+            "end": 50.98
+          },
+          {
+            "word": "した",
+            "start": 50.98,
+            "end": 51.16
+          },
+          {
+            "word": "ら",
+            "start": 51.16,
+            "end": 51.3
+          },
+          {
+            "word": "是",
+            "start": 51.3,
+            "end": 51.36
+          },
+          {
+            "word": "非",
+            "start": 51.36,
+            "end": 51.48
+          },
+          {
+            "word": "ご",
+            "start": 51.48,
+            "end": 51.56
+          },
+          {
+            "word": "飯",
+            "start": 51.56,
+            "end": 51.72
+          },
+          {
+            "word": "を",
+            "start": 51.72,
+            "end": 51.88
+          },
+          {
+            "word": "行",
+            "start": 51.88,
+            "end": 52.0
+          },
+          {
+            "word": "き",
+            "start": 52.0,
+            "end": 52.06
+          },
+          {
+            "word": "たい",
+            "start": 52.06,
+            "end": 52.2
+          },
+          {
+            "word": "と",
+            "start": 52.2,
+            "end": 52.32
+          },
+          {
+            "word": "伝",
+            "start": 52.32,
+            "end": 52.48
+          },
+          {
+            "word": "える",
+            "start": 52.48,
+            "end": 52.62
+          },
+          {
+            "word": "も",
+            "start": 52.62,
+            "end": 52.68
+          }
+        ]
+      },
+      {
+        "start": 52.68,
+        "end": 55.66,
+        "text": "大谷は女優さんには興味ないのでと提唱にお断り",
+        "words": [
+          {
+            "word": "大",
+            "start": 52.68,
+            "end": 53.0
+          },
+          {
+            "word": "谷",
+            "start": 53.0,
+            "end": 53.24
+          },
+          {
+            "word": "は",
+            "start": 53.24,
+            "end": 53.36
+          },
+          {
+            "word": "女",
+            "start": 53.36,
+            "end": 53.46
+          },
+          {
+            "word": "優",
+            "start": 53.46,
+            "end": 53.66
+          },
+          {
+            "word": "さん",
+            "start": 53.66,
+            "end": 53.8
+          },
+          {
+            "word": "には",
+            "start": 53.8,
+            "end": 53.96
+          },
+          {
+            "word": "興",
+            "start": 53.96,
+            "end": 54.16
+          },
+          {
+            "word": "味",
+            "start": 54.16,
+            "end": 54.36
+          },
+          {
+            "word": "ない",
+            "start": 54.36,
+            "end": 54.48
+          },
+          {
+            "word": "ので",
+            "start": 54.48,
+            "end": 54.64
+          },
+          {
+            "word": "と",
+            "start": 54.64,
+            "end": 54.76
+          },
+          {
+            "word": "提",
+            "start": 54.76,
+            "end": 54.88
+          },
+          {
+            "word": "唱",
+            "start": 54.88,
+            "end": 55.08
+          },
+          {
+            "word": "に",
+            "start": 55.08,
+            "end": 55.22
+          },
+          {
+            "word": "お",
+            "start": 55.22,
+            "end": 55.26
+          },
+          {
+            "word": "断",
+            "start": 55.26,
+            "end": 55.48
+          },
+          {
+            "word": "り",
+            "start": 55.48,
+            "end": 55.66
+          }
+        ]
+      },
+      {
+        "start": 55.66,
+        "end": 57.36,
+        "text": "圧巻の一言とぶれない姿勢と",
+        "words": [
+          {
+            "word": "圧",
+            "start": 55.66,
+            "end": 55.96
+          },
+          {
+            "word": "巻",
+            "start": 55.96,
+            "end": 56.16
+          },
+          {
+            "word": "の",
+            "start": 56.16,
+            "end": 56.28
+          },
+          {
+            "word": "一",
+            "start": 56.28,
+            "end": 56.34
+          },
+          {
+            "word": "言",
+            "start": 56.34,
+            "end": 56.56
+          },
+          {
+            "word": "と",
+            "start": 56.56,
+            "end": 56.64
+          },
+          {
+            "word": "ぶ",
+            "start": 56.64,
+            "end": 56.74
+          },
+          {
+            "word": "れない",
+            "start": 56.74,
+            "end": 56.86
+          },
+          {
+            "word": "姿",
+            "start": 56.86,
+            "end": 57.14
+          },
+          {
+            "word": "勢",
+            "start": 57.14,
+            "end": 57.24
+          },
+          {
+            "word": "と",
+            "start": 57.24,
+            "end": 57.36
+          }
+        ]
+      },
+      {
+        "start": 57.36,
+        "end": 59.3,
+        "text": "その疑惑の女優は長野芽衣",
+        "words": [
+          {
+            "word": "その",
+            "start": 57.36,
+            "end": 57.7
+          },
+          {
+            "word": "疑",
+            "start": 57.7,
+            "end": 57.9
+          },
+          {
+            "word": "惑",
+            "start": 57.9,
+            "end": 58.02
+          },
+          {
+            "word": "の",
+            "start": 58.02,
+            "end": 58.1
+          },
+          {
+            "word": "女",
+            "start": 58.1,
+            "end": 58.24
+          },
+          {
+            "word": "優",
+            "start": 58.24,
+            "end": 58.4
+          },
+          {
+            "word": "は",
+            "start": 58.4,
+            "end": 58.56
+          },
+          {
+            "word": "長",
+            "start": 58.56,
+            "end": 58.92
+          },
+          {
+            "word": "野",
+            "start": 58.92,
+            "end": 59.02
+          },
+          {
+            "word": "芽",
+            "start": 59.02,
+            "end": 59.22
+          },
+          {
+            "word": "衣",
+            "start": 59.22,
+            "end": 59.3
+          }
+        ]
+      }
+    ],
+    "full_text": "大谷翔平とやりたがってた女性芸能人参戦 最後はまたお前かよの代表格 1.加藤彩子 加藤パンの愛称で情報番組からバラエティまでこなす実力派 スタッフからの評判も最上級で私生活のハードルは低いと公言している彼女 大谷がメジャー移籍後のインタビュアーに各局がエース級の女子アナを投入 もちろん加藤パンもその中の一人であったが 恋沙汰を露骨に聞きすぎてまさかのできんそち フジテレビのアンダ製造機がまさかの空振り三振であった 2.森霞 2024年タレントランキングでは堂々のに異名は令和のあざと女王の彼女だが ひろゆきとの対談で大谷について問われると 当初は否定的だったが掘られていくうちに人間として興味ありますよ と告白し投稿に注目されていたが 大谷の両親は女子アナとは結婚させないと直球を投げており 強力女子アナ打線ラインナップはことごとくフルスイング三振した 最後は芸人アントニーからの密告で超有名女優Nが 帰国したら是非ご飯を行きたいと伝えるも 大谷は女優さんには興味ないのでと提唱にお断り 圧巻の一言とぶれない姿勢と その疑惑の女優は長野芽衣",
+    "words_per_minute": 457.3,
+    "keywords": [
+      "大谷翔平とやりたがってた女性芸能人参戦",
+      "最後はまたお前かよの代表格",
+      "加藤彩子",
+      "加藤パンの愛称で情報番組からバラエティまでこなす実力派",
+      "スタッフからの評判も最上級で私生活のハ",
+      "ドルは低いと公言している彼女",
+      "大谷がメジャ",
+      "移籍後のインタビュア",
+      "に各局がエ",
+      "ス級の女子アナを投入"
+    ],
+    "emotional_intensity": "high",
+    "pauses": []
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 6.46,
+        "end": 7.01,
+        "energy": "low"
+      },
+      {
+        "start": 7.55,
+        "end": 8.08,
+        "energy": "medium"
+      },
+      {
+        "start": 15.39,
+        "end": 16.3,
+        "energy": "medium"
+      },
+      {
+        "start": 23.61,
+        "end": 24.15,
+        "energy": "medium"
+      },
+      {
+        "start": 30.21,
+        "end": 31.58,
+        "energy": "medium"
+      },
+      {
+        "start": 32.76,
+        "end": 33.3,
+        "energy": "medium"
+      },
+      {
+        "start": 44.84,
+        "end": 45.35,
+        "energy": "medium"
+      },
+      {
+        "start": 48.07,
+        "end": 48.79,
+        "energy": "medium"
+      },
+      {
+        "start": 54.2,
+        "end": 54.73,
+        "energy": "medium"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.186,
+        "type": "impact",
+        "energy": 0.4
+      },
+      {
+        "time": 0.859,
+        "type": "whoosh",
+        "energy": 0.6
+      },
+      {
+        "time": 3.204,
+        "type": "whoosh",
+        "energy": 0.515
+      },
+      {
+        "time": 4.458,
+        "type": "whoosh",
+        "energy": 0.489
+      },
+      {
+        "time": 5.759,
+        "type": "transition",
+        "energy": 0.843
+      },
+      {
+        "time": 6.362,
+        "type": "whoosh",
+        "energy": 0.45
+      },
+      {
+        "time": 9.033,
+        "type": "whoosh",
+        "energy": 0.352
+      },
+      {
+        "time": 9.474,
+        "type": "impact",
+        "energy": 0.258
+      },
+      {
+        "time": 10.031,
+        "type": "whoosh",
+        "energy": 0.453
+      },
+      {
+        "time": 10.333,
+        "type": "whoosh",
+        "energy": 0.581
+      },
+      {
+        "time": 10.681,
+        "type": "whoosh",
+        "energy": 0.694
+      },
+      {
+        "time": 11.355,
+        "type": "whoosh",
+        "energy": 0.566
+      },
+      {
+        "time": 11.912,
+        "type": "whoosh",
+        "energy": 0.53
+      },
+      {
+        "time": 12.469,
+        "type": "whoosh",
+        "energy": 0.669
+      },
+      {
+        "time": 12.98,
+        "type": "whoosh",
+        "energy": 0.449
+      },
+      {
+        "time": 13.723,
+        "type": "whoosh",
+        "energy": 0.371
+      },
+      {
+        "time": 15.557,
+        "type": "impact",
+        "energy": 0.636
+      },
+      {
+        "time": 16.115,
+        "type": "whoosh",
+        "energy": 0.627
+      },
+      {
+        "time": 19.319,
+        "type": "whoosh",
+        "energy": 0.549
+      },
+      {
+        "time": 22.129,
+        "type": "whoosh",
+        "energy": 0.474
+      },
+      {
+        "time": 23.522,
+        "type": "whoosh",
+        "energy": 0.316
+      },
+      {
+        "time": 24.497,
+        "type": "whoosh",
+        "energy": 0.595
+      },
+      {
+        "time": 26.796,
+        "type": "whoosh",
+        "energy": 0.387
+      },
+      {
+        "time": 27.121,
+        "type": "whoosh",
+        "energy": 0.588
+      },
+      {
+        "time": 27.794,
+        "type": "whoosh",
+        "energy": 0.395
+      },
+      {
+        "time": 34.992,
+        "type": "whoosh",
+        "energy": 0.543
+      },
+      {
+        "time": 35.294,
+        "type": "whoosh",
+        "energy": 0.519
+      },
+      {
+        "time": 35.689,
+        "type": "impact",
+        "energy": 0.469
+      },
+      {
+        "time": 38.243,
+        "type": "whoosh",
+        "energy": 0.45
+      },
+      {
+        "time": 38.684,
+        "type": "whoosh",
+        "energy": 0.605
+      },
+      {
+        "time": 39.52,
+        "type": "whoosh",
+        "energy": 0.458
+      },
+      {
+        "time": 40.705,
+        "type": "whoosh",
+        "energy": 0.562
+      },
+      {
+        "time": 41.285,
+        "type": "whoosh",
+        "energy": 0.28
+      },
+      {
+        "time": 42.144,
+        "type": "impact",
+        "energy": 0.44
+      },
+      {
+        "time": 42.469,
+        "type": "impact",
+        "energy": 0.32
+      },
+      {
+        "time": 42.887,
+        "type": "whoosh",
+        "energy": 0.414
+      },
+      {
+        "time": 44.025,
+        "type": "whoosh",
+        "energy": 0.653
+      },
+      {
+        "time": 45.743,
+        "type": "impact",
+        "energy": 0.442
+      },
+      {
+        "time": 47.438,
+        "type": "whoosh",
+        "energy": 0.588
+      },
+      {
+        "time": 50.968,
+        "type": "whoosh",
+        "energy": 0.485
+      },
+      {
+        "time": 52.222,
+        "type": "whoosh",
+        "energy": 0.497
+      },
+      {
+        "time": 55.89,
+        "type": "whoosh",
+        "energy": 0.387
+      },
+      {
+        "time": 57.214,
+        "type": "whoosh",
+        "energy": 0.259
+      },
+      {
+        "time": 58.886,
+        "type": "whoosh",
+        "energy": 0.489
+      }
+    ],
+    "beat_times": [
+      0.232,
+      0.882,
+      1.579,
+      2.159,
+      2.67,
+      3.204,
+      3.692,
+      4.249,
+      4.807,
+      5.317,
+      5.805,
+      6.385,
+      6.92,
+      7.407,
+      7.941,
+      8.475,
+      9.033,
+      9.59,
+      10.054,
+      10.542,
+      11.029,
+      11.54,
+      12.074,
+      12.608,
+      13.166,
+      13.746,
+      14.28,
+      14.838,
+      15.348,
+      15.929,
+      16.417,
+      16.997,
+      17.554,
+      18.135,
+      18.646,
+      19.203,
+      19.807,
+      20.364,
+      20.921,
+      21.571,
+      22.129,
+      22.663,
+      23.266,
+      23.777,
+      24.335,
+      24.938,
+      25.472,
+      26.006,
+      26.54,
+      27.144,
+      27.818,
+      28.352,
+      28.909,
+      29.443,
+      30.0,
+      30.557,
+      31.138,
+      31.672,
+      32.276,
+      32.833,
+      33.39,
+      33.948,
+      34.505,
+      34.992,
+      35.48,
+      36.037,
+      36.595,
+      37.152,
+      37.64,
+      38.127,
+      38.684,
+      39.149,
+      39.66,
+      40.217,
+      40.751,
+      41.308,
+      41.935,
+      42.539,
+      43.096,
+      43.607,
+      44.188,
+      44.768,
+      45.279,
+      45.836,
+      46.37,
+      46.904,
+      47.462,
+      48.019,
+      48.576,
+      49.273,
+      49.807,
+      50.364,
+      50.875,
+      51.432,
+      51.989,
+      52.547,
+      53.081,
+      53.638,
+      54.195,
+      54.729,
+      55.287,
+      55.914,
+      56.471,
+      57.075,
+      57.678,
+      58.305,
+      58.909
+    ],
+    "dominant_tempo": 107.7,
+    "music_coverage": 0.104,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.421
+      },
+      {
+        "time": 1.0,
+        "energy": 0.335
+      },
+      {
+        "time": 1.5,
+        "energy": 0.132
+      },
+      {
+        "time": 2.0,
+        "energy": 0.476
+      },
+      {
+        "time": 2.5,
+        "energy": 0.479
+      },
+      {
+        "time": 3.0,
+        "energy": 0.044
+      },
+      {
+        "time": 3.5,
+        "energy": 0.391
+      },
+      {
+        "time": 4.0,
+        "energy": 0.397
+      },
+      {
+        "time": 4.5,
+        "energy": 0.378
+      },
+      {
+        "time": 5.0,
+        "energy": 0.052
+      },
+      {
+        "time": 5.5,
+        "energy": 0.029
+      },
+      {
+        "time": 6.0,
+        "energy": 0.369
+      },
+      {
+        "time": 6.5,
+        "energy": 0.573
+      },
+      {
+        "time": 7.0,
+        "energy": 0.184
+      },
+      {
+        "time": 7.5,
+        "energy": 0.257
+      },
+      {
+        "time": 8.0,
+        "energy": 0.355
+      },
+      {
+        "time": 8.5,
+        "energy": 0.306
+      },
+      {
+        "time": 9.0,
+        "energy": 0.382
+      },
+      {
+        "time": 9.5,
+        "energy": 0.096
+      },
+      {
+        "time": 10.0,
+        "energy": 0.379
+      },
+      {
+        "time": 10.5,
+        "energy": 0.286
+      },
+      {
+        "time": 11.0,
+        "energy": 0.465
+      },
+      {
+        "time": 11.5,
+        "energy": 0.321
+      },
+      {
+        "time": 12.0,
+        "energy": 0.229
+      },
+      {
+        "time": 12.5,
+        "energy": 0.502
+      },
+      {
+        "time": 13.0,
+        "energy": 0.506
+      },
+      {
+        "time": 13.5,
+        "energy": 0.386
+      },
+      {
+        "time": 14.0,
+        "energy": 0.337
+      },
+      {
+        "time": 14.5,
+        "energy": 0.595
+      },
+      {
+        "time": 15.0,
+        "energy": 0.24
+      },
+      {
+        "time": 15.5,
+        "energy": 0.61
+      },
+      {
+        "time": 16.0,
+        "energy": 0.213
+      },
+      {
+        "time": 16.5,
+        "energy": 0.325
+      },
+      {
+        "time": 17.0,
+        "energy": 0.438
+      },
+      {
+        "time": 17.5,
+        "energy": 0.171
+      },
+      {
+        "time": 18.0,
+        "energy": 0.183
+      },
+      {
+        "time": 18.5,
+        "energy": 0.032
+      },
+      {
+        "time": 19.0,
+        "energy": 0.277
+      },
+      {
+        "time": 19.5,
+        "energy": 0.214
+      },
+      {
+        "time": 20.0,
+        "energy": 0.221
+      },
+      {
+        "time": 20.5,
+        "energy": 0.042
+      },
+      {
+        "time": 21.0,
+        "energy": 0.658
+      },
+      {
+        "time": 21.5,
+        "energy": 0.141
+      },
+      {
+        "time": 22.0,
+        "energy": 0.261
+      },
+      {
+        "time": 22.5,
+        "energy": 0.315
+      },
+      {
+        "time": 23.0,
+        "energy": 0.334
+      },
+      {
+        "time": 23.5,
+        "energy": 0.316
+      },
+      {
+        "time": 24.0,
+        "energy": 0.416
+      },
+      {
+        "time": 24.5,
+        "energy": 0.604
+      },
+      {
+        "time": 25.0,
+        "energy": 0.32
+      },
+      {
+        "time": 25.5,
+        "energy": 0.376
+      },
+      {
+        "time": 26.0,
+        "energy": 0.226
+      },
+      {
+        "time": 26.5,
+        "energy": 0.151
+      },
+      {
+        "time": 27.0,
+        "energy": 0.081
+      },
+      {
+        "time": 27.5,
+        "energy": 0.242
+      },
+      {
+        "time": 28.0,
+        "energy": 0.679
+      },
+      {
+        "time": 28.5,
+        "energy": 0.471
+      },
+      {
+        "time": 29.0,
+        "energy": 0.425
+      },
+      {
+        "time": 29.5,
+        "energy": 0.345
+      },
+      {
+        "time": 30.0,
+        "energy": 0.31
+      },
+      {
+        "time": 30.5,
+        "energy": 0.742
+      },
+      {
+        "time": 31.0,
+        "energy": 0.328
+      },
+      {
+        "time": 31.5,
+        "energy": 0.462
+      },
+      {
+        "time": 32.0,
+        "energy": 0.165
+      },
+      {
+        "time": 32.5,
+        "energy": 0.166
+      },
+      {
+        "time": 33.0,
+        "energy": 0.397
+      },
+      {
+        "time": 33.5,
+        "energy": 0.513
+      },
+      {
+        "time": 34.0,
+        "energy": 0.318
+      },
+      {
+        "time": 34.5,
+        "energy": 0.419
+      },
+      {
+        "time": 35.0,
+        "energy": 0.563
+      },
+      {
+        "time": 35.5,
+        "energy": 0.302
+      },
+      {
+        "time": 36.0,
+        "energy": 0.133
+      },
+      {
+        "time": 36.5,
+        "energy": 0.059
+      },
+      {
+        "time": 37.0,
+        "energy": 0.218
+      },
+      {
+        "time": 37.5,
+        "energy": 0.315
+      },
+      {
+        "time": 38.0,
+        "energy": 0.039
+      },
+      {
+        "time": 38.5,
+        "energy": 0.204
+      },
+      {
+        "time": 39.0,
+        "energy": 0.462
+      },
+      {
+        "time": 39.5,
+        "energy": 0.458
+      },
+      {
+        "time": 40.0,
+        "energy": 0.064
+      },
+      {
+        "time": 40.5,
+        "energy": 0.568
+      },
+      {
+        "time": 41.0,
+        "energy": 0.204
+      },
+      {
+        "time": 41.5,
+        "energy": 0.718
+      },
+      {
+        "time": 42.0,
+        "energy": 0.17
+      },
+      {
+        "time": 42.5,
+        "energy": 0.294
+      },
+      {
+        "time": 43.0,
+        "energy": 0.039
+      },
+      {
+        "time": 43.5,
+        "energy": 0.221
+      },
+      {
+        "time": 44.0,
+        "energy": 0.555
+      },
+      {
+        "time": 44.5,
+        "energy": 0.482
+      },
+      {
+        "time": 45.0,
+        "energy": 0.561
+      },
+      {
+        "time": 45.5,
+        "energy": 0.378
+      },
+      {
+        "time": 46.0,
+        "energy": 0.108
+      },
+      {
+        "time": 46.5,
+        "energy": 0.411
+      },
+      {
+        "time": 47.0,
+        "energy": 0.15
+      },
+      {
+        "time": 47.5,
+        "energy": 0.673
+      },
+      {
+        "time": 48.0,
+        "energy": 0.528
+      },
+      {
+        "time": 48.5,
+        "energy": 0.234
+      },
+      {
+        "time": 49.0,
+        "energy": 0.38
+      },
+      {
+        "time": 49.5,
+        "energy": 0.109
+      },
+      {
+        "time": 50.0,
+        "energy": 0.268
+      },
+      {
+        "time": 50.5,
+        "energy": 0.309
+      },
+      {
+        "time": 51.0,
+        "energy": 0.39
+      },
+      {
+        "time": 51.5,
+        "energy": 0.333
+      },
+      {
+        "time": 52.0,
+        "energy": 0.237
+      },
+      {
+        "time": 52.5,
+        "energy": 0.254
+      },
+      {
+        "time": 53.0,
+        "energy": 0.405
+      },
+      {
+        "time": 53.5,
+        "energy": 0.415
+      },
+      {
+        "time": 54.0,
+        "energy": 0.499
+      },
+      {
+        "time": 54.5,
+        "energy": 0.513
+      },
+      {
+        "time": 55.0,
+        "energy": 0.256
+      },
+      {
+        "time": 55.5,
+        "energy": 0.307
+      },
+      {
+        "time": 56.0,
+        "energy": 0.019
+      },
+      {
+        "time": 56.5,
+        "energy": 0.193
+      },
+      {
+        "time": 57.0,
+        "energy": 0.272
+      },
+      {
+        "time": 57.5,
+        "energy": 0.053
+      },
+      {
+        "time": 58.0,
+        "energy": 0.439
+      },
+      {
+        "time": 58.5,
+        "energy": 0.262
+      },
+      {
+        "time": 59.0,
+        "energy": 0.52
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [
+      3.0,
+      3.033,
+      3.067,
+      3.1,
+      4.867,
+      5.0,
+      26.6,
+      26.633,
+      26.667,
+      26.7,
+      26.733,
+      26.767,
+      26.8,
+      47.267
+    ],
+    "loop_point": 58.733,
+    "information_density": "high",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ebc1b9",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": null,
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": true,
+    "background_box_color_hex": "#130a0b",
+    "background_box_rgba": "rgba(19,10,11,0.93)",
+    "background_box_opacity": 0.93,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "samples_analyzed": 12,
+    "confidence": "high"
+  },
+  "analysis_batch_name": "芸能人エンタメ_20260312",
+  "pattern_name": "芸能人エンタメ"
+}

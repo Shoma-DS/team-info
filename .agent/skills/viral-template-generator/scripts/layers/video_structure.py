@@ -152,13 +152,21 @@ def detect_text_regions(
                 for i, text in enumerate(data["text"]):
                     conf = int(data["conf"][i])
                     if text.strip() and conf > 50:
-                        x_c = (data["left"][i] + data["width"][i] / 2) / w
-                        y_c = (data["top"][i] + data["height"][i] / 2) / h
+                        left = data["left"][i]
+                        top = data["top"][i]
+                        width_box = data["width"][i]
+                        height_box = data["height"][i]
+                        x_c = (left + width_box / 2) / w
+                        y_c = (top + height_box / 2) / h
                         text_regions.append({
                             "frame": frame_idx,
                             "time": round(frame_idx / fps, 3),
                             "x": round(x_c, 3),
                             "y": round(y_c, 3),
+                            "left": round(left / w, 4),
+                            "top": round(top / h, 4),
+                            "width": round(width_box / w, 4),
+                            "height": round(height_box / h, 4),
                             "text": text.strip(),
                             "confidence": conf,
                         })

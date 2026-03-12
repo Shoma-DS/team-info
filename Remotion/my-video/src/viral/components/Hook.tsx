@@ -9,8 +9,9 @@ import {
 
 type HookType = "question" | "statement" | "visual" | "unknown";
 const HOOK_FONT_FAMILY =
-  '"Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif';
-const HOOK_LINE_COLORS = ["#f4d56f", "#ffb1bf", "#f2deff", "#ffffff"];
+  '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif';
+// 白→黄→白→黄 の交互配色（参考動画に合わせた標準パターン）
+const HOOK_LINE_COLORS = ["#ffffff", "#f4d56f", "#ffffff", "#f4d56f"];
 
 interface HookProps {
   hookType: HookType;
@@ -89,13 +90,21 @@ export const Hook: React.FC<HookProps> = ({
             key={`${line}-${index}`}
             style={{
               fontFamily: HOOK_FONT_FAMILY,
-              fontSize: index === lines.length - 1 ? 84 : 72,
+              fontSize: 76,
               fontWeight: 900,
               color: HOOK_LINE_COLORS[index] ?? "#ffffff",
               lineHeight: 1.02,
               letterSpacing: "0.01em",
-              WebkitTextStroke: "6px #000000",
-              textShadow: "0 5px 0 rgba(0,0,0,0.28), 0 10px 18px rgba(0,0,0,0.28)",
+              // 縁取りは細くして色が見えるようにする。
+              // paint-order: stroke fill で塗り順を「縁→塗り」にするとより効果的だが
+              // ReactのCSSプロパティ型に含まれないため textShadow で代替。
+              WebkitTextStroke: "3px #000000",
+              textShadow: [
+                "0 0 4px #000",
+                "0 0 4px #000",
+                "0 5px 0 rgba(0,0,0,0.35)",
+                "0 10px 18px rgba(0,0,0,0.3)",
+              ].join(", "),
               marginTop: index === 0 ? 0 : -6,
             }}
           >
