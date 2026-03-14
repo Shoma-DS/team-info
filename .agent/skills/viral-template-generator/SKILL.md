@@ -90,28 +90,117 @@ Phase A では使用する分析バッチフォルダをユーザーに確認し
 
 ---
 
+## 動画フォルダ構成
+
+```
+inputs/viral-analysis/
+├── 未分析/          ← 参考にしたいバズ動画をここに置く（分析前）
+├── 分析済み/        ← 解析完了した動画をテンプレ名ごとに格納
+│   ├── アダルトアフィリ/
+│   │   ├── 参考動画A.mp4
+│   │   └── 参考動画B.mp4
+│   └── 芸能人エンタメ/
+│       └── 参考動画C.mp4
+└── output/          ← 分析結果・台本・字幕・素材
+    └── [パターン名]_YYYYMMDD/
+```
+
+- 動画を `inputs/viral-analysis/未分析/` に置くだけで候補として認識される
+- 解析完了後、`分析済み/[パターン名]/` フォルダに移動する（フォルダがなければ自動作成）
+- パターン名は Phase 1 実行時に確定したものを使う
+
+---
+
 ## Phase 0: 起動判定
 
-起動時に `inputs/viral-analysis/output/` を確認し、フェーズを決定する。
+起動時に各フォルダをスキャンし、状態をユーザーに提示してから何をするか選ばせる。
 
-**分析バッチフォルダの確認:**
+**Step 0-1: 状態を自動スキャン**
+
+以下を確認する:
+
+1. `inputs/viral-analysis/未分析/` 内の動画ファイル一覧（`.mp4` / `.mov` 等）
+2. `inputs/viral-analysis/分析済み/` 内の動画ファイル一覧
+3. `inputs/viral-analysis/output/` 内の分析バッチフォルダ一覧と各状態
+   （`viral_patterns.md` / `script.md` / `materials/` 内の画像 があるか）
+4. `Remotion/my-video/src/viral/` 内の既存 TSX ファイル一覧
+
+**Step 0-2: 状態をユーザーに提示して選択させる**
 
 ```
-output/
-├── 芸能人エンタメ_20260310/    ← 古い分析（analysis.json あり）
-└── 芸能人エンタメ_20260311/    ← 新しい分析（analysis.json あり）
+📊 現在の状態:
+
+【既存テンプレ（すぐ使える）】
+  - アダルトアフィリ/ガチで脱いだ女性芸能人3選_20260313.tsx
+  - ...
+
+【分析バッチ】
+  - アダルトアフィリ_20260312/ ✅ viral_patterns.md あり / ❌ script.md なし
+  - ...
+
+【未分析の動画】（inputs/viral-analysis/未分析/）
+  - 参考動画A.mp4
+  - 参考動画B.mp4
+  - ...（なければ「なし」と表示）
+
+---
+
+何をしますか？
+
+  A) 既存テンプレで新規動画を作る
+  B) 分析を上書きする（既存テンプレを選んで分析からやり直し）
+  C) 新しい分析から動画を作る（未分析フォルダの動画を解析）
+  D) 途中から再開する（フェーズを選んでやり直し）
 ```
 
-**判定フロー:**
-1. 分析バッチフォルダ（`[パターン名]_YYYYMMDD`）が **ない** → Phase 1 へ（動画解析から開始）
-2. 分析バッチフォルダが **ある** → どのフォルダを使うかユーザーに確認する
-3. 選択したフォルダ直下に `viral_patterns.md` がない → Phase A へ（統合分析）
-4. `viral_patterns.md` がある → その中の状態を確認してスキップ
-   - `script.md` なし → Phase C（テーマ提案）
-   - `script.md` あり、`materials/` に画像なし → Phase E（素材収集）
-   - `materials/` に画像あり → Phase F（Remotion生成）
+**A を選んだ場合:**
 
-**分析対象の分析バッチフォルダを確認してから先に進む。**
+1. 既存テンプレ一覧を提示して選ばせる
+2. 新しい動画のテーマ・タイトルを聞く
+3. プラットフォーム（tiktok / shorts / reels）を確認
+
+確認後、Phase C へ進む。
+
+**B を選んだ場合:**
+
+1. 既存テンプレ一覧を提示して、上書きするテンプレを選ばせる
+2. 未分析フォルダの動画一覧を提示して、解析する動画を選ばせる
+3. パターン名（分析バッチ名）を確認
+
+確認後、Phase 1 → Phase A と実行し、既存の分析バッチを上書き。
+
+**C を選んだ場合:**
+
+1. 未分析フォルダの動画一覧を提示して、解析する動画を選ばせる
+   （複数選択可。「全部」と言えば全件）
+2. パターン名と対象プラットフォームを確認
+
+確認後、Phase 1 → 全フロー実行。解析完了した動画は `分析済み/[パターン名]/` へ移動する。
+
+**D を選んだ場合:**
+
+1. どの分析バッチ / 既存テンプレを対象にするかを選ばせる
+2. 全フェーズのステップ一覧をユーザーに提示する:
+
+```
+📋 フェーズ一覧:
+
+  Phase A  — 統合分析（analysis.json → viral_patterns.md 生成）
+  Phase B  — 素材フォルダ作成（materials/ と README.md）
+  Phase C  — テーマ提案・選択
+  Phase D1 — 台本生成（script.md）
+  Phase D2 — ひらがな台本生成・辞書登録（script_hiragana.md）
+  Phase D3 — 字幕生成（subtitles.json）
+  Phase D4 — 音声生成（VOICEVOX → narration.wav）
+  Phase E  — 素材収集（Wikimedia自動取得 + 手動配置）
+  Phase F  — Remotionテンプレート生成（TSX + Root.tsx）
+  Phase G  — ジェットカット（無音短縮）
+  Phase H  — レンダリング
+
+どのフェーズからやり直しますか？（例: "Phase E から" / "D3から"）
+```
+
+3. 指定されたフェーズから処理を再開する。それより前のフェーズの成果物はそのまま引き継ぐ。
 
 ---
 
@@ -163,6 +252,22 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 完了したら「終わりました」と伝えるよう案内する。
 
 **出力先**: `inputs/viral-analysis/output/[パターン名]_YYYYMMDD/{動画名}/analysis.json`
+
+### Step 1-2: 解析完了後 — 動画を分析済みフォルダへ移動
+
+解析が完了したら、対象動画を `分析済み/[パターン名]/` へ移動する。
+フォルダが存在しない場合は自動作成する。
+
+```bash
+PATTERN_NAME="[パターン名]"  # 例: アダルトアフィリ
+SRC="$TEAM_INFO_ROOT/inputs/viral-analysis/未分析/[動画ファイル名]"
+DEST_DIR="$TEAM_INFO_ROOT/inputs/viral-analysis/分析済み/$PATTERN_NAME"
+
+mkdir -p "$DEST_DIR"
+mv "$SRC" "$DEST_DIR/"
+```
+
+複数動画を解析した場合は、選択した全動画に対して同じ移動処理を行う。
 
 ### クロスプラットフォーム通知
 
@@ -753,6 +858,40 @@ subtitles.json 生成後、必ず `split_subtitles.py` で **2行以内** に収
 - フック以外で3行以上になる場合 → **2行以内で次の字幕セグメントへ持ち越す**
 - split モードは各行を独立した時間セグメントにする
 
+#### Step D-4-0.5: 固有名詞ルール（必須）
+
+**人名・映画名・作品名などの固有名詞は、必ず1エントリ（1画面）に収める。**
+複数エントリに分割してはならない。
+
+| ルール | 詳細 |
+|---|---|
+| 1エントリ完結 | 人名・映画名・作品名が1エントリを跨いではいけない。名前の一部が前のエントリ、残りが次のエントリに分かれるのは禁止 |
+| 括弧「」の改行位置 | `「` の直後で改行しない。`「` は改行後の行頭に来るよう、改行は `「` の手前に入れる |
+| 括弧付き固有名詞が長すぎる場合 | 括弧「」を付けると1行に収まらない場合は、括弧を省略してよい（字幕で括弧は必須ではない） |
+
+**判定フロー:**
+
+```
+固有名詞を検出 → 1エントリに入る？
+  ├─ YES → そのまま
+  └─ NO → 1エントリに結合し、必要なら \n で2行以内に分割
+           └─ 1行に収まらない文字列に「が含まれる場合:
+               ├─ 括弧を行頭に移動して改行を調整
+               └─ それでも収まらなければ括弧を省略
+```
+
+**悪い例 / 良い例:**
+
+```
+# NG: 映画タイトルが2エントリに分割されている
+{ from: 642, to: 677, text: "映画\n「愛の" },      ← 「愛の」だけ
+{ from: 677, to: 733, text: "流刑地」\nで見せた" }, ← 「流刑地」だけ
+
+# OK: 映画タイトルが1エントリに収まっている（括弧を省略）
+{ from: 642, to: 710, text: "映画\n愛の流刑地" },   ← タイトル全体が1画面
+{ from: 710, to: 733, text: "で見せた" },
+```
+
 生成フォーマット:
 ```json
 {
@@ -874,7 +1013,7 @@ import { Audio, staticFile } from "remotion";
 
 ## Phase E: 素材収集
 
-**目的**: Wikipedia/Wikimedia Commons から合法な CC ライセンス画像を自動取得し、取得できなかった分だけユーザーに手動配置を依頼する。
+**目的**: Wikipedia / Wikidata / Wikimedia Commons / Openverse から合法な CC 系ライセンス画像を自動取得し、取得できなかった分だけユーザーに手動配置を依頼する。
 
 ### Step E-1: 自動取得（必ず最初に実行）
 
@@ -896,8 +1035,11 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
   --script "[script.mdの絶対パス]"
 ```
 
-- Wikipedia 記事のメイン画像を優先取得（CC/PD ライセンスのみ）
-- 同一人物のスロットでは検索クエリを変えて重複を回避
+- `--candidates-per-person 10` で人物ごとの候補ダウンロード枚数を増やせる
+- Wikipedia 記事のメイン画像と Wikidata の P18 を優先取得する
+- Wikidata の Commons category / `haswbstatement:P180=Q...` 検索も使って候補を増やす
+- 同一人物のスロットでは別名・英語名・検索クエリを変えて重複を回避する
+- `materials/[人物名]/metadata.json` に取得元とライセンス情報を保存する
 - 取得できなかったスロットのみ「手動配置が必要」として出力される
 
 ### Step E-2: 失敗分のみユーザーに手動依頼
@@ -915,7 +1057,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 ### [ファイル名] — [用途]
 - 推奨イメージ: [具体的な描写]
 - 検索キーワード(英語): "[keyword]"
-- 推奨サイト: Wikimedia Commons / Pexels / Unsplash
+- 推奨サイト: Wikimedia Commons / Openverse / Pexels / Unsplash
 ```
 
 ### Step E-3: 素材確認
@@ -1116,6 +1258,27 @@ const splitHookText = (raw: string): string => {
 // 使い方: text={splitHookText(SUBTITLE_TIMELINE[0]?.text ?? "")}
 ```
 - `hookDurationFrames = Math.round(3 * fps)` を `ViralVideo` コンポーネント内で定義し、`SubtitleTrack` でも同じ値を使って冒頭スキップする（`Math.round(3 * fps)` と直書きしてよい）
+
+**フック行色の自動割り当て（必須）:**
+
+`splitHookText` で改行位置を確定した後、行数に応じて以下の順で色を割り当てる:
+
+| 行インデックス | 色 | カラーコード |
+|---|---|---|
+| 0（1行目） | 黄 | `#f4d56f` |
+| 1（2行目） | サーモン | `#f4a898` |
+| 2（3行目） | ライトピンク | `#f0c8d8` |
+| 3以降 | 白 | `#ffffff` |
+
+```typescript
+// 参考動画5本（狙ってた芸能人3選・女優魂・食べちまった・バナナ・アスリート）から抽出した定番配色
+const HOOK_LINE_COLORS = ["#f4d56f", "#f4a898", "#f0c8d8", "#ffffff"];
+// 行数が4を超える場合は末尾を #ffffff で埋める
+// lineColors={HOOK_LINE_COLORS} を Hook コンポーネントに渡す
+```
+
+行数が増えても `HOOK_LINE_COLORS[index] ?? "#ffffff"` で対応できるため、配列は4要素で固定してよい。
+チャンネルが `adult_affiliate_retro` テンプレート使用時は必ずこの配色を使う。
 
 **パターンインタラプト:**
 - `INTERRUPT_FRAMES` 配列を定義

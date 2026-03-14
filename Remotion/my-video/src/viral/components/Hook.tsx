@@ -31,6 +31,8 @@ interface HookProps {
   strokeColor?: string;
   /** text-shadow を上書き */
   textShadow?: string;
+  /** フック全体の上部余白（縦位置調整）。省略時は "18%" */
+  paddingTop?: string;
 }
 
 /** 最初の3秒に表示するフック演出コンポーネント */
@@ -46,6 +48,7 @@ export const Hook: React.FC<HookProps> = ({
   strokeWidth = "8px",
   strokeColor = "#000000",
   textShadow,
+  paddingTop = "18%",
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -90,8 +93,8 @@ export const Hook: React.FC<HookProps> = ({
   const resolvedTextShadow = textShadow ?? [
     "0 0 4px #000",
     "0 0 4px #000",
-    "0 5px 0 rgba(0,0,0,0.35)",
-    "0 10px 18px rgba(0,0,0,0.3)",
+    "0 5px 0 rgba(0,0,0,0.65)",
+    "0 10px 18px rgba(0,0,0,0.55)",
   ].join(", ");
 
   return (
@@ -101,7 +104,7 @@ export const Hook: React.FC<HookProps> = ({
         alignItems: "center",
         pointerEvents: "none",
         opacity,
-        paddingTop: "18%",
+        paddingTop,
       }}
     >
       <div
@@ -119,11 +122,11 @@ export const Hook: React.FC<HookProps> = ({
               fontSize,
               fontWeight: 900,
               color: resolvedLineColors[index] ?? "#ffffff",
-              lineHeight: 1.02,
+              lineHeight: 1.1,
               letterSpacing: "0.01em",
               WebkitTextStroke: `${strokeWidth} ${strokeColor}`,
               textShadow: resolvedTextShadow,
-              marginTop: index === 0 ? 0 : -6,
+              marginTop: index === 0 ? 0 : 4,
             }}
           >
             {line}

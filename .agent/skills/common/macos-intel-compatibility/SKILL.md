@@ -35,7 +35,10 @@ PyTorch 2.2.x は NumPy 2.x と互換性がない。
 ### 4. `numba` / `llvmlite` のビルド失敗
 Intel Mac では `llvmlite` のビルドに `llvm-config` が必要だが、通常インストールされていない。
 
-**解決策**: `numba` を依存関係から除外し、JIT デコレータをコメントアウト
+**解決策**:
+- まず `numba` と `llvmlite` を、Intel Mac 用 wheel がある組み合わせに固定する
+  - 例: `numba==0.62.1`, `llvmlite==0.45.1`
+- それでもだめなときだけ、`numba` を依存関係から外し、JIT デコレータをコメントアウトする
 
 ### 5. `torchao` の互換性
 `torchao` は PyTorch 2.2.x と互換性がない。

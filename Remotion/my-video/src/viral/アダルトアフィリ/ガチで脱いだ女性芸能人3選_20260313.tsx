@@ -23,36 +23,30 @@ import {
 import { SUBTITLE_TIMELINE } from "../generated/gachiNuida20260313Subtitles";
 
 const TITLE = "ガチで脱いだ女性芸能人3選_20260313";
-const RETRO_RED = "#ff5148";
-const RETRO_STROKE = "#f5dcc9";
-const RETRO_SHADOW = [
-  "0 3px 0 rgba(157,43,39,0.96)",
-  "0 6px 0 rgba(125,32,29,0.92)",
-  "0 12px 18px rgba(83,20,20,0.28)",
-].join(", ");
+const TEXT_COLOR = "#ffffff";
+const STROKE_COLOR = "#000000";
+const TEXT_SHADOW = "0 4px 0 rgba(0,0,0,0.85), 0 8px 20px rgba(0,0,0,0.65)";
 
-// 字幕スタイル（style_04_crop.jpg 顔のみで戦う芸能人 + style_03_full 女優魂 で照合）
-// ストロークのみ・背景ボックスなし（参照: 顔のみ style_04 に合わせた）
-// フォント: Mochiy Pop One / 168px / 赤 / クリーム縁 / 赤影 / Y=52%
+// 字幕スタイル（参考画像: 大谷翔平とヤリたがってた女性芸能人3選 に合わせて更新）
+// 白文字 / 黒枠 / 半透明黒影 / 背景ボックスなし / Y=52%
 const SUBTITLE_STYLE = {
-  yPercent: 52,  // style_03_full.jpg 実測（テキスト上端 ~52%）
-  fontSize: 168,
+  yPercent: 55,
+  fontSize: 140,
   fontWeight: "900" as const,
-  color: RETRO_RED,
-  background: undefined,  // ボックスなし（stroke_entertainment スタイル）
+  color: TEXT_COLOR,
+  background: undefined,
   paddingH: 0,
   paddingV: 0,
   borderRadius: 0,
-  strokeWidth: "4px",
-  strokeColor: RETRO_STROKE,
-  textShadow: RETRO_SHADOW,
+  strokeWidth: "2.5px",
+  strokeColor: STROKE_COLOR,
+  textShadow: TEXT_SHADOW,
   fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 };
 
-// 名前カード（1人目/2人目/3人目）とフックは強調色（黄→ピンク交互）
-// フック: 黄 → サーモン → 淡ピンク（video1/2/6 スクショで3色を確認）
-const HOOK_LINE_COLORS = [RETRO_RED, RETRO_RED, RETRO_RED];
-const NAME_COLORS = [RETRO_RED, RETRO_RED];
+// フック行色: 黄 → サーモン → ライトピンク → 白（参考動画5本から抽出）
+const HOOK_LINE_COLORS = ["#f4d56f", "#f4a898", "#f0c8d8", "#ffffff"];
+const NAME_COLORS = [TEXT_COLOR, TEXT_COLOR];
 
 const getLineColors = (text: string, from: number): string[] => {
   const lines = text.split("\n");
@@ -71,18 +65,18 @@ const SCENE_TIMELINE: {
   from: number; to: number; src: string;
   motionType?: string; motionIntensity?: number; originX?: number; originY?: number;
 }[] = [
-  { from: 0,    to: 90,   src: staticFile(`viral/${TITLE}/materials/00_hook.jpg`),   motionType: "zoom_in",  motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-  { from: 90,   to: 258,  src: staticFile(`viral/${TITLE}/materials/02_s1_1.jpg`),  motionType: "shake",    motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
-  { from: 258,  to: 462,  src: staticFile(`viral/${TITLE}/materials/02_s1_2.jpg`),  motionType: "zoom_in",  motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-  { from: 462,  to: 586,  src: staticFile(`viral/${TITLE}/materials/02_s1_3.jpg`),  motionType: "pan_right", motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
-  { from: 586,  to: 733,  src: staticFile(`viral/${TITLE}/materials/03_s2_1.jpg`),  motionType: "shake",    motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
-  { from: 733,  to: 1036, src: staticFile(`viral/${TITLE}/materials/03_s2_2.jpg`),  motionType: "zoom_in",  motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-  { from: 1036, to: 1153, src: staticFile(`viral/${TITLE}/materials/03_s2_3.jpg`),  motionType: "pan_left", motionIntensity: 1.2, originX: 0.7, originY: 0.5 },
-  { from: 1153, to: 1333, src: staticFile(`viral/${TITLE}/materials/04_s3_1.jpg`),  motionType: "shake",    motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
-  { from: 1333, to: 1481, src: staticFile(`viral/${TITLE}/materials/04_s3_2.jpg`),  motionType: "zoom_out", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-  { from: 1481, to: 1617, src: staticFile(`viral/${TITLE}/materials/04_s3_3.jpg`),  motionType: "pan_right", motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
-  { from: 1617, to: 1887, src: staticFile(`viral/${TITLE}/materials/99_cta.jpg`),   motionType: "zoom_in",  motionIntensity: 0.5, originX: 0.5, originY: 0.5 },
-];
+    { from: 0, to: 90, src: staticFile(`viral/${TITLE}/materials/00_hook.jpg`), motionType: "zoom_in", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
+    { from: 90, to: 258, src: staticFile(`viral/${TITLE}/materials/02_s1_1.jpg`), motionType: "shake", motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
+    { from: 258, to: 462, src: staticFile(`viral/${TITLE}/materials/02_s1_2.jpg`), motionType: "zoom_in", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
+    { from: 462, to: 586, src: staticFile(`viral/${TITLE}/materials/02_s1_3.jpg`), motionType: "pan_right", motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
+    { from: 586, to: 733, src: staticFile(`viral/${TITLE}/materials/03_s2_1.jpg`), motionType: "shake", motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
+    { from: 733, to: 1036, src: staticFile(`viral/${TITLE}/materials/03_s2_2.jpg`), motionType: "zoom_in", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
+    { from: 1036, to: 1153, src: staticFile(`viral/${TITLE}/materials/03_s2_3.jpg`), motionType: "pan_left", motionIntensity: 1.2, originX: 0.7, originY: 0.5 },
+    { from: 1153, to: 1333, src: staticFile(`viral/${TITLE}/materials/04_s3_1.jpg`), motionType: "shake", motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
+    { from: 1333, to: 1481, src: staticFile(`viral/${TITLE}/materials/04_s3_2.jpg`), motionType: "zoom_out", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
+    { from: 1481, to: 1617, src: staticFile(`viral/${TITLE}/materials/04_s3_3.jpg`), motionType: "pan_right", motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
+    { from: 1617, to: 1887, src: staticFile(`viral/${TITLE}/materials/99_cta.jpg`), motionType: "zoom_in", motionIntensity: 0.5, originX: 0.5, originY: 0.5 },
+  ];
 
 // パターンインタラプト（エピソード切り替え: 3s=90f / 19.5s=586f / 38.4s=1153f）
 const INTERRUPT_FRAMES: number[] = [90, 586, 1153];
@@ -138,7 +132,7 @@ const SubtitleTrack: React.FC = () => {
           left: "50%",
           transform: `translateX(-50%) scale(${scale})`,
           opacity,
-          maxWidth: "92%",
+          width: "100%",
           textAlign: "center",
         }}
       >
@@ -169,9 +163,7 @@ const SubtitleTrack: React.FC = () => {
                     : "0",
                   borderRadius: useBox ? SUBTITLE_STYLE.borderRadius : 0,
                   marginTop: index === 0 ? 0 : 2,
-                  WebkitTextStroke: isNameCard
-                    ? `4px ${SUBTITLE_STYLE.strokeColor}`
-                    : `${SUBTITLE_STYLE.strokeWidth} ${SUBTITLE_STYLE.strokeColor}`,
+                  WebkitTextStroke: `${SUBTITLE_STYLE.strokeWidth} ${SUBTITLE_STYLE.strokeColor}`,
                   textShadow: SUBTITLE_STYLE.textShadow,
                 }}
               >
@@ -219,7 +211,7 @@ export const ViralVideo: React.FC = () => {
     Math.round(3 * fps),
     SUBTITLE_TIMELINE[0]?.to ?? Math.round(3 * fps)
   );
-  const hookText = splitHookText(SUBTITLE_TIMELINE[0]?.text ?? "");
+  const hookText = SUBTITLE_TIMELINE[0]?.text ?? ""; // 手動改行を使うため自動分割をバイパス
 
   return (
     <AbsoluteFill style={{ background: "#000" }}>
@@ -236,11 +228,12 @@ export const ViralVideo: React.FC = () => {
           endFrame={hookOverlayEndFrames}
           durationFrames={hookOverlayEndFrames}
           fontFamily={VIRAL_ADULT_AFFILIATE_FONT_FAMILY}
-          fontSize={240}
-          strokeWidth="4px"
-          strokeColor={RETRO_STROKE}
-          textShadow={RETRO_SHADOW}
+          fontSize={160}
+          strokeWidth="3px"
+          strokeColor={STROKE_COLOR}
+          textShadow={TEXT_SHADOW}
           lineColors={HOOK_LINE_COLORS}
+          paddingTop="65%"
         />
       </Sequence>
       {/* パターンインタラプト */}

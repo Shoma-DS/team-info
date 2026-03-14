@@ -72,6 +72,49 @@
     }
   },
 
+  "adult_affiliate_retro": {
+    "description": "白文字黒枠スタイル。アダルトアフィリ系チャンネル専用。Mochiy Pop One / 168px / 白 / 黒ストローク / 半透明黒影。背景なし。頻繁に字幕を切り替える高速スタイル。",
+    "trigger": "チャンネル = アダルトアフィリ のとき最優先で採用",
+    "yPercent": 52,
+    "fontSize": 168,
+    "fontWeight": "900",
+    "color": "#ffffff",
+    "background": null,
+    "paddingH": 0,
+    "paddingV": 0,
+    "borderRadius": 0,
+    "letterSpacing": "0",
+    "fontFamily": "\"Mochiy Pop One\", \"Hiragino Maru Gothic ProN\", \"Hiragino Sans\", \"Yu Gothic\", \"Meiryo\", sans-serif",
+    "fontLoader": "@remotion/google-fonts/MochiyPopOne",
+    "strokeWidth": "6px",
+    "strokeColor": "#000000",
+    "textShadow": "0 4px 0 rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.35)",
+    "containerWidth": "100%",
+    "_note_containerWidth": "position:absolute + left:50% の場合は maxWidth でなく width:100% を使うこと（幅が半分になるバグ回避）",
+    "subtitleRules": {
+      "maxLinesPerEntry": 2,
+      "maxCharsPerLine": 5,
+      "changeFrequency": "high",
+      "keepWordsAndParticlesTogether": true
+    },
+    "nameCard": {
+      "colors": ["#ffffff", "#ffffff"],
+      "strokeWidth": "6px",
+      "strokeColor": "#000000",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.35)",
+      "background": "transparent"
+    },
+    "hook": {
+      "fontSize": 240,
+      "colors": ["#f4d56f", "#f4a898", "#f0c8d8", "#ffffff"],
+      "_note_colors": "黄→サーモン→ライトピンク→白のグラデーション（参考動画5本から抽出）",
+      "strokeWidth": "6px",
+      "strokeColor": "#000000",
+      "textShadow": "0 4px 0 rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.35)",
+      "background": "transparent"
+    }
+  },
+
   "plain_light": {
     "description": "シンプルスタイル。座布団もストロークも少ない場合。白テキスト＋影。",
     "trigger": "background_box_detected と stroke_detected がともに少数",

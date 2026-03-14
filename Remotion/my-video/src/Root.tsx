@@ -54,7 +54,7 @@ export const RemotionRoot: React.FC = () => {
       </Folder>
 
       <Folder name="Viral">
-        <Folder name="adult-affili">
+        <Folder name="アダルトアフィリ">
           <Composition
             id="gachi-nuida-20260313"
             component={ViralVideoGachi}

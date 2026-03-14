@@ -26,6 +26,9 @@ ml_dtypes==0.5.4
 pillow==12.1.1
 matplotlib==3.10.8
 av==16.1.0
+# librosa が引く numba / llvmlite は、Intel Mac で wheel がある組み合わせに固定する
+numba==0.62.1
+llvmlite==0.45.1
 
 # AI / HuggingFace
 huggingface_hub==1.4.1

@@ -8,36 +8,36 @@
     "style_02"
   ],
   "subtitle": {
-    "template_name": "bg_box_entertainment",
-    "fontFamily": "M PLUS Rounded 1c",
+    "template_name": "adult_affiliate_retro",
+    "fontFamily": "Mochiy Pop One",
     "fontWeight": 900,
-    "fontSizePx1920h": 54,
-    "letterSpacing": null,
+    "fontSizePx1920h": 168,
+    "letterSpacing": "0",
     "lineHeight": 1.2,
-    "textColor": "#c5b1b0",
+    "textColor": "#ffffff",
     "lineColors": [],
-    "strokeWidthPx": 4,
-    "strokeColor": "#171313",
-    "textShadow": null,
-    "background": "rgba(23,17,18,0.83)",
-    "paddingH": 16,
-    "paddingV": 8,
-    "borderRadius": 4,
-    "yPercent": 68,
+    "strokeWidthPx": 6,
+    "strokeColor": "#000000",
+    "textShadow": "0 4px 0 rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.35)",
+    "background": null,
+    "paddingH": 0,
+    "paddingV": 0,
+    "borderRadius": 0,
+    "yPercent": 52,
     "alignment": "center",
-    "notes": "丸ゴシック感が強い。style_02でピンク系大文字を確認"
+    "notes": "白文字+黒枠+半透明黒影。背景ボックスなし。参考画像に合わせて更新。"
   },
   "hook": {
-    "fontFamily": "M PLUS Rounded 1c",
+    "fontFamily": "Mochiy Pop One",
     "fontWeight": 900,
-    "fontSizePx1920h": 68,
+    "fontSizePx1920h": 240,
     "lineColors": [
-      "#f5c8c8",
-      "#f5d03a"
+      "#ffffff",
+      "#ffffff"
     ],
-    "strokeWidthPx": 5,
-    "strokeColor": "#171313",
-    "textShadow": null,
-    "notes": "フックはピンク→黄の交互配色(style_01 full-frameで確認)"
+    "strokeWidthPx": 6,
+    "strokeColor": "#000000",
+    "textShadow": "0 4px 0 rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.35)",
+    "notes": "フックも白文字+黒枠+半透明黒影で統一"
   }
 }
