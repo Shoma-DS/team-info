@@ -46,11 +46,12 @@ const SUBTITLE_STYLE = {
 
 // フック行色: 黄 → サーモン → ライトピンク → 白（参考動画5本から抽出）
 const HOOK_LINE_COLORS = ["#f4d56f", "#f4a898", "#f0c8d8", "#ffffff"];
-const NAME_COLORS = [TEXT_COLOR, TEXT_COLOR];
+const NAME_COLOR = "#FFE400"; // 参考画像スタイル: 鮮黄色
+const NAME_COLORS = [NAME_COLOR, NAME_COLOR];
 
 const getLineColors = (text: string, from: number): string[] => {
   const lines = text.split("\n");
-  const isNameCard = /^[123]人目は/.test(text.trim());
+  const isNameCard = /^[1-3]\./.test(text.trim());
   if (isNameCard) {
     return lines.map((_, i) => NAME_COLORS[i] ?? "#ffffff");
   }
@@ -60,45 +61,66 @@ const getLineColors = (text: string, from: number): string[] => {
   return lines.map(() => SUBTITLE_STYLE.color);
 };
 
-// 背景画像タイムライン
+// 背景画像タイムライン（落ち着いたテンポ: 基本静止 / 要所だけ超低速ズーム or ゆるいパン）
+const FADE_FRAMES = 12; // フェード長: 0.4秒
 const SCENE_TIMELINE: {
   from: number; to: number; src: string;
-  motionType?: string; motionIntensity?: number; originX?: number; originY?: number;
+  motionType?: string; motionIntensity?: number;
+  motionProfile?: "standard" | "gentle" | "still";
+  originX?: number; originY?: number;
 }[] = [
-    { from: 0, to: 90, src: staticFile(`viral/${TITLE}/materials/00_hook.jpg`), motionType: "zoom_in", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-    { from: 90, to: 258, src: staticFile(`viral/${TITLE}/materials/02_s1_1.jpg`), motionType: "shake", motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
-    { from: 258, to: 462, src: staticFile(`viral/${TITLE}/materials/02_s1_2.jpg`), motionType: "zoom_in", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-    { from: 462, to: 586, src: staticFile(`viral/${TITLE}/materials/02_s1_3.jpg`), motionType: "pan_right", motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
-    { from: 586, to: 733, src: staticFile(`viral/${TITLE}/materials/03_s2_1.jpg`), motionType: "shake", motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
-    { from: 733, to: 1036, src: staticFile(`viral/${TITLE}/materials/03_s2_2.jpg`), motionType: "zoom_in", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-    { from: 1036, to: 1153, src: staticFile(`viral/${TITLE}/materials/03_s2_3.jpg`), motionType: "pan_left", motionIntensity: 1.2, originX: 0.7, originY: 0.5 },
-    { from: 1153, to: 1333, src: staticFile(`viral/${TITLE}/materials/04_s3_1.jpg`), motionType: "shake", motionIntensity: 1.5, originX: 0.5, originY: 0.5 },
-    { from: 1333, to: 1481, src: staticFile(`viral/${TITLE}/materials/04_s3_2.jpg`), motionType: "zoom_out", motionIntensity: 1.0, originX: 0.5, originY: 0.4 },
-    { from: 1481, to: 1617, src: staticFile(`viral/${TITLE}/materials/04_s3_3.jpg`), motionType: "pan_right", motionIntensity: 1.2, originX: 0.3, originY: 0.5 },
-    { from: 1617, to: 1887, src: staticFile(`viral/${TITLE}/materials/99_cta.jpg`), motionType: "zoom_in", motionIntensity: 0.5, originX: 0.5, originY: 0.5 },
+    // hook: 超低速ズームで視線を引き込む
+    { from: 0,    to: 90,   src: staticFile(`viral/${TITLE}/materials/00_hook.png`),  motionType: "zoom_in",  motionProfile: "gentle", motionIntensity: 0.5, originX: 0.5, originY: 0.4 },
+    // s1: 静止 → ゆるいパン → 静止
+    { from: 90,   to: 258,  src: staticFile(`viral/${TITLE}/materials/02_s1_1.png`),  motionType: "static",   motionProfile: "still",  motionIntensity: 0,   originX: 0.5, originY: 0.5 },
+    { from: 258,  to: 462,  src: staticFile(`viral/${TITLE}/materials/02_s1_2.png`),  motionType: "pan_right",motionProfile: "gentle", motionIntensity: 0.4, originX: 0.4, originY: 0.5 },
+    { from: 462,  to: 586,  src: staticFile(`viral/${TITLE}/materials/02_s1_3.png`),  motionType: "static",   motionProfile: "still",  motionIntensity: 0,   originX: 0.5, originY: 0.5 },
+    // s2: 超低速ズーム → 静止 → ゆるいパン
+    { from: 586,  to: 733,  src: staticFile(`viral/${TITLE}/materials/03_s2_1.png`),  motionType: "zoom_in",  motionProfile: "gentle", motionIntensity: 0.4, originX: 0.5, originY: 0.4 },
+    { from: 733,  to: 1036, src: staticFile(`viral/${TITLE}/materials/03_s2_2.png`),  motionType: "static",   motionProfile: "still",  motionIntensity: 0,   originX: 0.5, originY: 0.5 },
+    { from: 1036, to: 1153, src: staticFile(`viral/${TITLE}/materials/03_s2_3.png`),  motionType: "pan_left", motionProfile: "gentle", motionIntensity: 0.4, originX: 0.6, originY: 0.5 },
+    // s3: 静止 → 超低速ズームアウト → ゆるいパン
+    { from: 1153, to: 1333, src: staticFile(`viral/${TITLE}/materials/04_s3_1.png`),  motionType: "static",   motionProfile: "still",  motionIntensity: 0,   originX: 0.5, originY: 0.5 },
+    { from: 1333, to: 1481, src: staticFile(`viral/${TITLE}/materials/04_s3_2.png`),  motionType: "zoom_out", motionProfile: "gentle", motionIntensity: 0.4, originX: 0.5, originY: 0.4 },
+    { from: 1481, to: 1617, src: staticFile(`viral/${TITLE}/materials/04_s3_3.png`),  motionType: "pan_right",motionProfile: "gentle", motionIntensity: 0.4, originX: 0.4, originY: 0.5 },
+    // CTA: 静止
+    { from: 1617, to: 1887, src: staticFile(`viral/${TITLE}/materials/99_cta.png`),   motionType: "static",   motionProfile: "still",  motionIntensity: 0,   originX: 0.5, originY: 0.5 },
   ];
 
 // パターンインタラプト（エピソード切り替え: 3s=90f / 19.5s=586f / 38.4s=1153f）
 const INTERRUPT_FRAMES: number[] = [90, 586, 1153];
 
+const SceneImage: React.FC<{ entry: typeof SCENE_TIMELINE[0] }> = ({ entry }) => (
+  <ImageScene
+    src={entry.src}
+    motionType={(entry.motionType as "zoom_in" | "zoom_out" | "pan_right" | "pan_left" | "tilt_up" | "tilt_down" | "shake" | "static") ?? "static"}
+    motionProfile={entry.motionProfile ?? "still"}
+    motionIntensity={entry.motionIntensity ?? 0}
+    originX={entry.originX ?? 0.5}
+    originY={entry.originY ?? 0.5}
+  />
+);
+
 const ImageSceneTrack: React.FC = () => {
   const frame = useCurrentFrame();
-  const entry =
-    SCENE_TIMELINE.find((s) => frame >= s.from && frame < s.to) ??
-    SCENE_TIMELINE[SCENE_TIMELINE.length - 1];
+  const idx = SCENE_TIMELINE.findIndex((s) => frame >= s.from && frame < s.to);
+  const current = idx >= 0 ? SCENE_TIMELINE[idx] : SCENE_TIMELINE[SCENE_TIMELINE.length - 1];
+  const prev = idx > 0 ? SCENE_TIMELINE[idx - 1] : null;
+
+  const relFrame = idx >= 0 ? frame - current.from : 0;
+  const isFading = prev !== null && relFrame < FADE_FRAMES;
+  const fadeOpacity = isFading ? relFrame / FADE_FRAMES : 1;
+
   return (
     <AbsoluteFill>
-      <ImageScene
-        src={entry.src}
-        motionType={
-          (entry.motionType as
-            | "zoom_in" | "zoom_out" | "pan_right" | "pan_left"
-            | "tilt_up" | "tilt_down" | "shake" | "static") ?? "zoom_in"
-        }
-        motionIntensity={entry.motionIntensity ?? 1.0}
-        originX={entry.originX ?? 0.5}
-        originY={entry.originY ?? 0.4}
-      />
+      {isFading && (
+        <AbsoluteFill style={{ opacity: 1 - fadeOpacity }}>
+          <SceneImage entry={prev!} />
+        </AbsoluteFill>
+      )}
+      <AbsoluteFill style={{ opacity: fadeOpacity }}>
+        <SceneImage entry={current} />
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
@@ -121,7 +143,7 @@ const SubtitleTrack: React.FC = () => {
   const scale = interpolate(progress, [0, 1], [0.88, 1]);
   const lines = entry.text.split("\n");
   const lineColors = getLineColors(entry.text, entry.from);
-  const isNameCard = /^[123]人目は/.test(entry.text.trim());
+  const isNameCard = /^[1-3]\./.test(entry.text.trim());
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
@@ -152,7 +174,7 @@ const SubtitleTrack: React.FC = () => {
                 key={`${entry.from}-${index}-${line}`}
                 style={{
                   fontFamily: SUBTITLE_STYLE.fontFamily,
-                  fontSize: SUBTITLE_STYLE.fontSize,
+                  fontSize: isNameCard ? 170 : SUBTITLE_STYLE.fontSize,
                   fontWeight: SUBTITLE_STYLE.fontWeight,
                   color: lineColors[index] ?? SUBTITLE_STYLE.color,
                   lineHeight: 0.96,
@@ -186,20 +208,6 @@ const FlashTrack: React.FC = () => {
       style={{ background: "white", opacity: 0.3, pointerEvents: "none" }}
     />
   );
-};
-
-const splitHookText = (raw: string): string => {
-  const MAX = 4;
-  const splitLine = (line: string): string[] => {
-    if (line.length <= MAX) return [line];
-    const mid = Math.round(line.length / 2);
-    return [line.slice(0, mid), line.slice(mid)];
-  };
-  return raw
-    .replace(/\n+/g, "\n")
-    .split("\n")
-    .flatMap(splitLine)
-    .join("\n");
 };
 
 export const ViralVideo: React.FC = () => {

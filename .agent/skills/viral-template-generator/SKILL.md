@@ -1013,7 +1013,7 @@ import { Audio, staticFile } from "remotion";
 
 ## Phase E: 素材収集
 
-**目的**: Wikipedia / Wikidata / Wikimedia Commons / Openverse から合法な CC 系ライセンス画像を自動取得し、取得できなかった分だけユーザーに手動配置を依頼する。
+**目的**: Wikipedia / Wikidata / Wikimedia Commons / Openverse から合法な CC 系ライセンス画像を自動取得し、取得できなかった分だけユーザーに手動配置を依頼し、最後に採用画像を一括でローカル補正する。
 
 ### Step E-1: 自動取得（必ず最初に実行）
 
@@ -1063,6 +1063,24 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 ### Step E-3: 素材確認
 
 ユーザーが「素材を入れました」または「自動取得完了」と伝えたら materials/ フォルダを確認する。不足があれば追加を依頼する。
+
+### Step E-4: 素材が揃った後に一括画質アップ
+
+手動配置も含めて `materials/` の採用画像が揃ったら、**最後に1回だけ** ローカル処理で一括補正する。
+この処理は無料・ローカル完結で、OpenCV ベースの拡大 + 軽いコントラスト補正 + シャープ化を行う。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/upscale_materials.py" \
+  --materials-dir "[materials/の絶対パス]"
+```
+
+- デフォルトでは `materials/` 直下の採用画像スロットだけを処理する
+- 未検出スロットがあっても、フォルダ内に存在する採用画像だけを処理する
+- ただし、本来使うはずのスロットが欠けている可能性もあるため、実行前に materials/ の中身は確認する
+- 元画像は `materials/_upscale_backup/[timestamp]/` に退避される
+- 結果は `materials/upscale_report.json` に保存される
+- 追加で拡大率を抑えたい/強めたい場合は `--target-long-side` と `--max-scale` を調整する
 
 ---
 
@@ -1294,6 +1312,11 @@ const HOOK_LINE_COLORS = ["#f4d56f", "#f4a898", "#f0c8d8", "#ffffff"];
 - コンポジション source は `Remotion/my-video/src/viral/[テンプレ名]/[テーマ]_[yyyyMMdd].tsx` に置く
 - `Root.tsx` では `Folder` を使って `Viral相当 / テンプレ名 / テーマごとのComposition` の階層にする
 - このリポジトリでは `Remotion/my-video/scripts/patch_remotion_japanese_support.mjs` により、`Folder name` と `Composition id` でも日本語を使える前提で運用する
+- **Composition の `id` は必ず日本語（タイトル＋日付）にする**。英語・ローマ字は使わない。
+  - 使用可能文字: `a-z`, `A-Z`, `0-9`, 日本語, `-`（ハイフン）のみ。`_`（アンダースコア）は**使用不可**。
+  - 例: `id="ガチで脱いだ女性芸能人3選-20260313"` ← OK（ハイフン区切り）
+  - 例: `id="ガチで脱いだ女性芸能人3選_20260313"` ← NG（アンダースコア不可）
+  - 例: `id="gachi-nuida-20260313"` ← NG（英語不可）
 
 ```typescript
 // import に追加

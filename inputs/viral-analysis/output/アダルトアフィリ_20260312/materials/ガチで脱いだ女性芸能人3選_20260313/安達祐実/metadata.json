@@ -1,0 +1,84 @@
+{
+  "canonical_name": "安達祐実",
+  "wikidata_id": "Q2663922",
+  "aliases": [
+    "安達祐実",
+    "Yumi Adachi",
+    "井戸田祐実",
+    "安達裕実",
+    "安達裕美",
+    "安達祐美",
+    "長谷川祐実",
+    "Adachi Yumi"
+  ],
+  "commons_queries": [
+    "安達祐実",
+    "安達祐実 ポートレート",
+    "安達祐実 イベント",
+    "安達祐実 会見",
+    "安達祐実 インタビュー",
+    "Yumi Adachi",
+    "Yumi Adachi portrait",
+    "Yumi Adachi headshot",
+    "Yumi Adachi event",
+    "Yumi Adachi interview",
+    "Yumi Adachi red carpet",
+    "井戸田祐実",
+    "井戸田祐実 ポートレート",
+    "井戸田祐実 イベント",
+    "井戸田祐実 会見",
+    "井戸田祐実 インタビュー",
+    "安達裕実",
+    "安達裕実 ポートレート"
+  ],
+  "commons_categories": [
+    "Yumi Adachi (actress)"
+  ],
+  "depicts_queries": [
+    "haswbstatement:P180=Q2663922"
+  ],
+  "openverse_queries": [
+    "Yumi Adachi",
+    "Yumi Adachi portrait",
+    "Yumi Adachi headshot",
+    "Yumi Adachi event",
+    "Yumi Adachi interview",
+    "Yumi Adachi red carpet",
+    "Adachi Yumi",
+    "Adachi Yumi portrait",
+    "Adachi Yumi headshot",
+    "Adachi Yumi event",
+    "Adachi Yumi interview",
+    "Adachi Yumi red carpet",
+    "安達祐実",
+    "井戸田祐実",
+    "安達裕実",
+    "安達裕美"
+  ],
+  "downloaded_count": 2,
+  "candidate_pool_count": 25,
+  "downloaded": [
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/27th_Tokyo_International_Film_Festival-_Adachi_Yumi_from_A_Courtesan_with_Flowered_Skin.jpg",
+      "license": "CC BY 2.0 cc-by-2.0",
+      "source": "wikipedia",
+      "title": "安達祐実",
+      "query": "安達祐実",
+      "creator": "",
+      "source_url": "https://ja.wikipedia.org/wiki/%E5%AE%89%E9%81%94%E7%A5%90%E5%AE%9F",
+      "provider": "",
+      "local_path": "01.jpg"
+    },
+    {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/27th_Tokyo_International_Film_Festival-_Adachi_Yumi_from_A_Courtesan_with_Flowered_Skin_%2815622802592%29.jpg",
+      "license": "CC BY 2.0 cc-by-2.0",
+      "source": "commons_category",
+      "title": "27th Tokyo International Film Festival- Adachi Yumi from A Courtesan with Flowered Skin (15622802592).jpg",
+      "query": "Yumi Adachi (actress)",
+      "creator": "",
+      "source_url": "https://commons.wikimedia.org/wiki/File:27th_Tokyo_International_Film_Festival-_Adachi_Yumi_from_A_Courtesan_with_Flowered_Skin_%2815622802592%29.jpg",
+      "provider": "",
+      "local_path": "02.jpg"
+    }
+  ]
+}

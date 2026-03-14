@@ -56,7 +56,7 @@ export const RemotionRoot: React.FC = () => {
       <Folder name="Viral">
         <Folder name="アダルトアフィリ">
           <Composition
-            id="gachi-nuida-20260313"
+            id="ガチで脱いだ女性芸能人3選-20260313"
             component={ViralVideoGachi}
             durationInFrames={1887}
             fps={30}

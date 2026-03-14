@@ -4,7 +4,7 @@ export const SUBTITLE_TIMELINE: { from: number; to: number; text: string }[] = [
   { from: 0,    to: 82,   text: "ガチで\n脱いだ\n女性芸能人\n3選" },
 
   // 1人目：釈由美子（90-138）
-  { from: 90,   to: 138,  text: "1人目は\n釈由美子。" },
+  { from: 90,   to: 138,  text: "1.釈由美子" },
 
   // デビュー直後から過激なグラビアを連発し、（138-258）
   { from: 138,  to: 186,  text: "デビュー\n直後から" },
@@ -13,7 +13,7 @@ export const SUBTITLE_TIMELINE: { from: number; to: number; text: string }[] = [
 
   // 写真集の売上は100万部を突破。（258-348）
   { from: 258,  to: 303,  text: "写真集の\n売上は" },
-  { from: 303,  to: 348,  text: "100万\n部を突破。" },
+  { from: 303,  to: 348,  text: "100万部\nを突破。" },
 
   // あの清純そうな顔で何をやっていたのか。（348-462）
   { from: 348,  to: 405,  text: "あの清純\nそうな顔で" },
@@ -25,7 +25,7 @@ export const SUBTITLE_TIMELINE: { from: number; to: number; text: string }[] = [
   { from: 545,  to: 586,  text: "取引されて\nいる。" },
 
   // 2人目：杉本彩（586-642）
-  { from: 586,  to: 642,  text: "2人目は\n杉本彩。" },
+  { from: 586,  to: 642,  text: "2.杉本彩" },
 
   // 映画「愛の流刑地」で見せた（642-733）
   { from: 642,  to: 710,  text: "映画\n愛の流刑地" },
@@ -46,7 +46,7 @@ export const SUBTITLE_TIMELINE: { from: number; to: number; text: string }[] = [
   { from: 1117, to: 1153, text: "ない。" },
 
   // 3人目：安達祐実（1153-1209）
-  { from: 1153, to: 1209, text: "3人目は\n安達祐実。" },
+  { from: 1153, to: 1209, text: "3.安達祐実" },
 
   // 子役出身の清純派といういメージが強いが、（1209-1333）
   { from: 1209, to: 1250, text: "子役出身の\n清純派と" },

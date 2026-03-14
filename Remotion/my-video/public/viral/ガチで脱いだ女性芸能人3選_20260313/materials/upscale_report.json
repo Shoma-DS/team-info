@@ -1,0 +1,107 @@
+{
+  "materials_dir": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials",
+  "target_long_side": 2160,
+  "max_scale": 2.0,
+  "processed_count": 11,
+  "processed": [
+    {
+      "file": "00_hook.png",
+      "original_width": 550,
+      "original_height": 366,
+      "output_width": 1100,
+      "output_height": 732,
+      "scale_applied": 2.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/00_hook.png"
+    },
+    {
+      "file": "02_s1_1.png",
+      "original_width": 550,
+      "original_height": 366,
+      "output_width": 1100,
+      "output_height": 732,
+      "scale_applied": 2.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/02_s1_1.png"
+    },
+    {
+      "file": "02_s1_2.png",
+      "original_width": 1859,
+      "original_height": 2560,
+      "output_width": 1859,
+      "output_height": 2560,
+      "scale_applied": 1.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/02_s1_2.png"
+    },
+    {
+      "file": "02_s1_3.png",
+      "original_width": 518,
+      "original_height": 388,
+      "output_width": 1036,
+      "output_height": 776,
+      "scale_applied": 2.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/02_s1_3.png"
+    },
+    {
+      "file": "03_s2_1.png",
+      "original_width": 1876,
+      "original_height": 2560,
+      "output_width": 1876,
+      "output_height": 2560,
+      "scale_applied": 1.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/03_s2_1.png"
+    },
+    {
+      "file": "03_s2_2.png",
+      "original_width": 2160,
+      "original_height": 2160,
+      "output_width": 2160,
+      "output_height": 2160,
+      "scale_applied": 1.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/03_s2_2.png"
+    },
+    {
+      "file": "03_s2_3.png",
+      "original_width": 1760,
+      "original_height": 1174,
+      "output_width": 2160,
+      "output_height": 1441,
+      "scale_applied": 1.2273,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/03_s2_3.png"
+    },
+    {
+      "file": "04_s3_1.png",
+      "original_width": 1240,
+      "original_height": 1240,
+      "output_width": 2160,
+      "output_height": 2160,
+      "scale_applied": 1.7419,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/04_s3_1.png"
+    },
+    {
+      "file": "04_s3_2.png",
+      "original_width": 388,
+      "original_height": 518,
+      "output_width": 776,
+      "output_height": 1036,
+      "scale_applied": 2.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/04_s3_2.png"
+    },
+    {
+      "file": "04_s3_3.png",
+      "original_width": 2160,
+      "original_height": 1215,
+      "output_width": 2160,
+      "output_height": 1215,
+      "scale_applied": 1.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/04_s3_3.png"
+    },
+    {
+      "file": "99_cta.png",
+      "original_width": 366,
+      "original_height": 550,
+      "output_width": 732,
+      "output_height": 1100,
+      "scale_applied": 2.0,
+      "backup_path": "/workspace/team-info/Remotion/my-video/public/viral/ガチで脱いだ女性芸能人3選_20260313/materials/_upscale_backup/20260314-124549/99_cta.png"
+    }
+  ]
+}

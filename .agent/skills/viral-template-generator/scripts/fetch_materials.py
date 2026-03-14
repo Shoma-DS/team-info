@@ -723,8 +723,13 @@ def run(
     names: list[str],
     script_path: Path | None,
     candidates_per_person: int = 10,
+    composition_id: str = "",
 ):
     materials_dir.mkdir(parents=True, exist_ok=True)
+
+    # コンポジションIDフォルダ: materials/{composition_id}/ にまとめる
+    candidate_base = materials_dir / composition_id if composition_id else materials_dir
+    candidate_base.mkdir(parents=True, exist_ok=True)
 
     if script_path and script_path.exists() and not names:
         parsed = parse_script(script_path)
@@ -737,16 +742,22 @@ def run(
         sys.exit(1)
 
     print(f"\n取得対象: {names}")
-    print(f"出力先: {materials_dir}")
+    print(f"候補画像の保管先: {candidate_base}")
+    print(f"スロット配置先: {materials_dir}")
 
     # ─── Step 1: 人物ごとサブフォルダに候補をダウンロード ───────────────
     print("\n" + "=" * 60)
     print("Step 1: 人物ごとに候補画像を取得")
     print("=" * 60)
 
+    # hook 用フォルダを事前作成
+    hook_dir = candidate_base / "hook"
+    hook_dir.mkdir(exist_ok=True)
+    print(f"  [hook] フォルダ準備: {hook_dir}")
+
     person_candidates: dict[str, list[Path]] = {}
     for name in names:
-        person_dir = materials_dir / name
+        person_dir = candidate_base / name
         person_candidates[name] = fetch_candidates_for_person(
             name,
             person_dir,
@@ -754,7 +765,7 @@ def run(
         )
 
     # CTA 背景
-    cta_dir = materials_dir / "_cta"
+    cta_dir = candidate_base / "_cta"
     cta_dir.mkdir(exist_ok=True)
     print("\n  [CTA背景] 検索中...")
     cta_file: Path | None = None
@@ -851,14 +862,16 @@ def run(
         print("\n  推奨サイト: Wikimedia Commons / Openverse / Pexels / Unsplash")
 
     print("\n人物別サブフォルダ（候補画像の保管場所）:")
+    print(f"  hook/  → {hook_dir}")
     for name in names:
-        person_dir = materials_dir / name
+        person_dir = candidate_base / name
         count = count_image_files(person_dir) if person_dir.exists() else 0
         print(f"  {person_dir}  ({count}枚 + metadata.json)")
 
     print("\n⚠  ライセンス: CC 画像はクレジット表記が必要な場合があります。")
     print("⚠  Openverse のライセンス情報は出典側で要再確認です。")
     print("⚠  肖像権: 日本の芸能人画像は別途権利確認が必要です。")
+    print("次の手順: 不足分を手動配置し、素材が揃ったら upscale_materials.py で一括補正してください。")
     print("=" * 60)
 
 
@@ -872,6 +885,7 @@ def main():
     parser.add_argument("--names", type=str, default="")
     parser.add_argument("--script", type=Path)
     parser.add_argument("--output-title", type=str, default="")
+    parser.add_argument("--composition-id", type=str, default="", help="コンポジションID（日本語）。materials直下にこの名前のフォルダを作成する。")
     parser.add_argument("--candidates-per-person", type=int, default=10)
     args = parser.parse_args()
 
@@ -886,7 +900,13 @@ def main():
         materials_dir = Path(input("> ").strip())
 
     names = [name.strip() for name in args.names.split(",") if name.strip()] if args.names else []
-    run(materials_dir, names, args.script, candidates_per_person=max(args.candidates_per_person, 1))
+    run(
+        materials_dir,
+        names,
+        args.script,
+        candidates_per_person=max(args.candidates_per_person, 1),
+        composition_id=args.composition_id,
+    )
 
 
 if __name__ == "__main__":
