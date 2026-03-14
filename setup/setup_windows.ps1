@@ -282,6 +282,15 @@ if (Test-Command git) {
     Install-WithWinget "Git.Git" "Git"
 }
 
+try {
+    Invoke-NativeOrThrow "git lfs install" {
+        git lfs install --skip-repo | Out-Null
+    }
+    Write-Ok "git lfs を初期化しました"
+} catch {
+    Write-Warn "git lfs の初期化に失敗しました。必要なら 'git lfs install --skip-repo' を手動で実行してください。"
+}
+
 # ── 3. Python ─────────────────────────────────────────────────────────────
 Write-Step "3. Python $PythonVersion"
 

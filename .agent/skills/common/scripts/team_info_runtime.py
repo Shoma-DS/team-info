@@ -11,8 +11,11 @@ from runtime_common import (
     build_python_runtime_image,
     clear_worked_before,
     clear_owner_machine,
+    configure_repo_git_hooks,
     detect_shared_root,
     ensure_remotion_venv,
+    format_bytes_for_humans,
+    get_git_lfs_free_plan_status,
     get_python_runtime_image,
     get_python_runtime_mode,
     get_worked_before_path,
@@ -59,6 +62,64 @@ def _format_shell_export(repo_root: Path, shell_name: str) -> str:
     return f'export TEAM_INFO_ROOT="{repo_root_str}"'
 
 
+def _print_git_lfs_free_plan_status(*, remote_name: str, remote_url: str | None, pre_push_lines: list[str] | None) -> int:
+    try:
+        status = get_git_lfs_free_plan_status(
+            remote_name=remote_name,
+            remote_url=remote_url,
+            pre_push_lines=pre_push_lines,
+        )
+    except RuntimeError as exc:
+        print(f"Git LFS 無料枠チェックに失敗しました: {exc}", file=sys.stderr)
+        return 1
+
+    target_remote = status.remote_url or status.remote_name
+    print("Git LFS 無料枠チェック", file=sys.stderr)
+    print(f"- リモート: {target_remote}", file=sys.stderr)
+    print(
+        f"- 無料枠: {format_bytes_for_humans(status.free_storage_bytes)}"
+        f" / 予約分: {format_bytes_for_humans(status.reserved_bytes)}"
+        f" / 利用可能: {format_bytes_for_humans(status.available_bytes)}",
+        file=sys.stderr,
+    )
+    print(
+        f"- 現在の推定総量: {format_bytes_for_humans(status.current_bytes)}"
+        f" ({status.current_object_count} 個)",
+        file=sys.stderr,
+    )
+    print(
+        f"- 今回の push で増える見込み: {format_bytes_for_humans(status.incoming_bytes)}"
+        f" ({status.incoming_object_count} 個)",
+        file=sys.stderr,
+    )
+    print(
+        f"- push 後の推定総量: {format_bytes_for_humans(status.projected_bytes)}"
+        f" ({status.projected_object_count} 個)",
+        file=sys.stderr,
+    )
+
+    if not status.has_lfs_content:
+        print("- LFS ポインタは見つかりませんでした。", file=sys.stderr)
+        return 0
+
+    if status.warning:
+        print(f"警告: {status.warning}", file=sys.stderr)
+
+    if status.within_budget:
+        print("結果: push 可能です。", file=sys.stderr)
+        return 0
+
+    print("結果: push を拒否しました。", file=sys.stderr)
+    if status.rejection_reason:
+        print(f"理由: {status.rejection_reason}", file=sys.stderr)
+    print("対策:", file=sys.stderr)
+    print("- LFS に入れる大きいファイルを減らす。", file=sys.stderr)
+    print("- 既存の LFS 履歴を整理して容量を下げる。", file=sys.stderr)
+    print("- 同じ GitHub アカウントで他の LFS を使うなら、予約分を設定する。", file=sys.stderr)
+    print("- 有料枠を使わない方針なら、LFS 以外の置き場へ逃がす。", file=sys.stderr)
+    return 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Resolve cross-platform paths used by team-info skills."
@@ -86,6 +147,15 @@ def main() -> int:
     subparsers.add_parser("clear-worked-before")
     subparsers.add_parser("mark-owner-machine")
     subparsers.add_parser("clear-owner-machine")
+    subparsers.add_parser("install-git-hooks")
+
+    git_lfs_status_parser = subparsers.add_parser("git-lfs-free-plan-status")
+    git_lfs_status_parser.add_argument("--remote-name", default="origin")
+    git_lfs_status_parser.add_argument("--remote-url")
+
+    git_lfs_guard_parser = subparsers.add_parser("git-lfs-pre-push-guard")
+    git_lfs_guard_parser.add_argument("--remote-name", default="origin")
+    git_lfs_guard_parser.add_argument("--remote-url")
 
     setup_parser = subparsers.add_parser("setup-local-machine")
     setup_parser.add_argument(
@@ -229,11 +299,35 @@ def main() -> int:
         print("cleared")
         return 0
 
+    if args.command == "install-git-hooks":
+        try:
+            print(configure_repo_git_hooks())
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+        return 0
+
+    if args.command == "git-lfs-free-plan-status":
+        return _print_git_lfs_free_plan_status(
+            remote_name=args.remote_name,
+            remote_url=args.remote_url,
+            pre_push_lines=None,
+        )
+
+    if args.command == "git-lfs-pre-push-guard":
+        pre_push_lines = [line.rstrip("\n") for line in sys.stdin]
+        return _print_git_lfs_free_plan_status(
+            remote_name=args.remote_name,
+            remote_url=args.remote_url,
+            pre_push_lines=pre_push_lines,
+        )
+
     if args.command == "setup-local-machine":
         repo_root = save_repo_root(args.repo_root)
         print(f"Saved repo root: {repo_root}")
         print(f"Local state: {get_local_state_path()}")
         print(f"Worked before file: {mark_worked_before()}")
+        print(f"Git hooks: {configure_repo_git_hooks(repo_root)}")
 
         if args.owner:
             save_owner_machine()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import hashlib
 import json
 import os
@@ -27,6 +28,32 @@ VOICEVOX_ENGINE_CONTAINER = "team-info-voicevox-engine"
 CONTAINER_REPO_ROOT = PurePosixPath("/workspace/team-info")
 CONTAINER_SHARED_ROOT = PurePosixPath("/workspace/team-info-shared")
 CONTAINER_HOME = PurePosixPath("/tmp/team-info-home")
+REPO_GIT_HOOKS_DIRNAME = ".githooks"
+GIT_LFS_POINTER_VERSION = "version https://git-lfs.github.com/spec/v1"
+GITHUB_FREE_GIT_LFS_STORAGE_BYTES = 10 * 1024**3
+MAX_GIT_LFS_POINTER_BLOB_BYTES = 2048
+GIT_LFS_RESERVED_BYTES_ENV = "TEAM_INFO_GIT_LFS_RESERVED_BYTES"
+GIT_LFS_FREE_STORAGE_BYTES_ENV = "TEAM_INFO_GIT_LFS_FREE_STORAGE_BYTES"
+
+
+@dataclass(frozen=True)
+class GitLfsFreePlanStatus:
+    remote_name: str
+    remote_url: str | None
+    free_storage_bytes: int
+    reserved_bytes: int
+    available_bytes: int
+    current_bytes: int
+    incoming_bytes: int
+    projected_bytes: int
+    current_object_count: int
+    incoming_object_count: int
+    projected_object_count: int
+    has_lfs_content: bool
+    git_lfs_installed: bool
+    within_budget: bool
+    rejection_reason: str | None
+    warning: str | None
 
 
 def get_config_dir(app_name: str) -> Path:
@@ -839,3 +866,431 @@ def detect_shared_root() -> Path | None:
         if resolved.exists():
             return resolved
     return None
+
+
+def get_repo_git_hooks_path(repo_root: Path | None = None) -> Path:
+    root = repo_root or get_repo_root()
+    return root / REPO_GIT_HOOKS_DIRNAME
+
+
+def configure_repo_git_hooks(repo_root: Path | None = None) -> Path:
+    root = repo_root or get_repo_root()
+    hooks_dir = get_repo_git_hooks_path(root)
+    if not hooks_dir.is_dir():
+        raise RuntimeError(f"Git hooks directory was not found: {hooks_dir}")
+
+    try:
+        subprocess.run(
+            ["git", "-C", str(root), "config", "core.hooksPath", REPO_GIT_HOOKS_DIRNAME],
+            check=True,
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+    return hooks_dir
+
+
+def _git_config_value(repo_root: Path, key: str) -> str | None:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "config", "--get", key],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+
+    if completed.returncode != 0:
+        return None
+    value = completed.stdout.strip()
+    return value or None
+
+
+def _git_config_int(repo_root: Path, key: str) -> int | None:
+    value = _git_config_value(repo_root, key)
+    if value is None:
+        return None
+    try:
+        parsed = int(value)
+    except ValueError:
+        return None
+    return parsed if parsed >= 0 else None
+
+
+def _git_remote_url(repo_root: Path, remote_name: str) -> str | None:
+    if not remote_name:
+        return None
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "remote", "get-url", remote_name],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+
+    if completed.returncode != 0:
+        return None
+    remote_url = completed.stdout.strip()
+    return remote_url or None
+
+
+def _git_for_each_ref(repo_root: Path, *patterns: str) -> list[str]:
+    if not patterns:
+        return []
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "for-each-ref", "--format=%(refname)", *patterns],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+    if completed.returncode != 0:
+        return []
+
+    refs: list[str] = []
+    for line in completed.stdout.splitlines():
+        ref_name = line.strip()
+        if ref_name:
+            refs.append(ref_name)
+    return refs
+
+
+def _git_rev_list_objects(repo_root: Path, refs: list[str]) -> set[str]:
+    if not refs:
+        return set()
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-list", "--objects", *refs],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip() or "git rev-list failed"
+        raise RuntimeError(message)
+
+    object_ids: set[str] = set()
+    for line in completed.stdout.splitlines():
+        if not line:
+            continue
+        object_id = line.split(" ", 1)[0].strip()
+        if object_id:
+            object_ids.add(object_id)
+    return object_ids
+
+
+def _git_blob_size_map(repo_root: Path, object_ids: set[str]) -> dict[str, int]:
+    if not object_ids:
+        return {}
+
+    try:
+        completed = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo_root),
+                "cat-file",
+                "--batch-check=%(objectname) %(objecttype) %(objectsize)",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            input="".join(f"{object_id}\n" for object_id in sorted(object_ids)),
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip() or "git cat-file --batch-check failed"
+        raise RuntimeError(message)
+
+    blob_sizes: dict[str, int] = {}
+    for line in completed.stdout.splitlines():
+        parts = line.strip().split()
+        if len(parts) != 3:
+            continue
+        object_id, object_type, object_size = parts
+        if object_type != "blob":
+            continue
+        try:
+            size = int(object_size)
+        except ValueError:
+            continue
+        if size <= MAX_GIT_LFS_POINTER_BLOB_BYTES:
+            blob_sizes[object_id] = size
+    return blob_sizes
+
+
+def _git_blob_contents(repo_root: Path, blob_sizes: dict[str, int]) -> dict[str, bytes]:
+    if not blob_sizes:
+        return {}
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), "cat-file", "--batch"],
+            check=False,
+            capture_output=True,
+            input="".join(f"{object_id}\n" for object_id in sorted(blob_sizes)).encode("ascii"),
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+    if completed.returncode != 0:
+        stderr = completed.stderr.decode("utf-8", errors="replace").strip()
+        stdout = completed.stdout.decode("utf-8", errors="replace").strip()
+        message = stderr or stdout or "git cat-file --batch failed"
+        raise RuntimeError(message)
+
+    payload = completed.stdout
+    contents: dict[str, bytes] = {}
+    offset = 0
+    total = len(payload)
+    while offset < total:
+        header_end = payload.find(b"\n", offset)
+        if header_end < 0:
+            break
+        header = payload[offset:header_end].decode("ascii", errors="replace")
+        offset = header_end + 1
+
+        parts = header.split()
+        if len(parts) != 3:
+            break
+        object_id, object_type, size_text = parts
+        if object_type != "blob":
+            break
+        try:
+            size = int(size_text)
+        except ValueError:
+            break
+
+        blob = payload[offset : offset + size]
+        offset += size
+        if offset < total and payload[offset : offset + 1] == b"\n":
+            offset += 1
+        contents[object_id] = blob
+
+    return contents
+
+
+def _parse_git_lfs_pointer(blob: bytes) -> tuple[str, int] | None:
+    try:
+        text = blob.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+    normalized = text.replace("\r\n", "\n").strip()
+    if not normalized.startswith(GIT_LFS_POINTER_VERSION):
+        return None
+
+    pointer_oid: str | None = None
+    pointer_size: int | None = None
+    for line in normalized.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("oid sha256:"):
+            candidate_oid = stripped.removeprefix("oid sha256:")
+            if re.fullmatch(r"[0-9a-f]{64}", candidate_oid):
+                pointer_oid = candidate_oid
+        elif stripped.startswith("size "):
+            try:
+                candidate_size = int(stripped.removeprefix("size "))
+            except ValueError:
+                continue
+            if candidate_size >= 0:
+                pointer_size = candidate_size
+
+    if pointer_oid is None or pointer_size is None:
+        return None
+    return pointer_oid, pointer_size
+
+
+def _collect_git_lfs_pointer_sizes(repo_root: Path, refs: list[str]) -> dict[str, int]:
+    object_ids = _git_rev_list_objects(repo_root, refs)
+    blob_sizes = _git_blob_size_map(repo_root, object_ids)
+    blob_contents = _git_blob_contents(repo_root, blob_sizes)
+
+    lfs_pointer_sizes: dict[str, int] = {}
+    for blob in blob_contents.values():
+        pointer = _parse_git_lfs_pointer(blob)
+        if pointer is None:
+            continue
+        pointer_oid, pointer_size = pointer
+        lfs_pointer_sizes[pointer_oid] = pointer_size
+    return lfs_pointer_sizes
+
+
+def _is_zero_git_object_id(value: str) -> bool:
+    stripped = value.strip()
+    return not stripped or set(stripped) == {"0"}
+
+
+def _resolve_remote_url(repo_root: Path, remote_name: str, remote_url: str | None) -> str | None:
+    if remote_url:
+        return remote_url
+    return _git_remote_url(repo_root, remote_name)
+
+
+def _is_github_remote(remote_url: str | None) -> bool:
+    if not remote_url:
+        return False
+    lowered = remote_url.lower()
+    return (
+        "github.com/" in lowered
+        or "github.com:" in lowered
+        or lowered.startswith("ssh://git@github.com/")
+        or lowered.startswith("https://github.com/")
+    )
+
+
+def _git_lfs_installed() -> bool:
+    try:
+        completed = subprocess.run(
+            ["git", "lfs", "version"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return False
+    return completed.returncode == 0
+
+
+def _git_lfs_free_storage_bytes(repo_root: Path) -> int:
+    env_value = os.environ.get(GIT_LFS_FREE_STORAGE_BYTES_ENV)
+    if env_value:
+        try:
+            parsed = int(env_value)
+        except ValueError:
+            parsed = 0
+        if parsed > 0:
+            return parsed
+
+    configured = _git_config_int(repo_root, "team-info.lfsFreeStorageBytes")
+    if configured is not None and configured > 0:
+        return configured
+    return GITHUB_FREE_GIT_LFS_STORAGE_BYTES
+
+
+def _git_lfs_reserved_bytes(repo_root: Path) -> int:
+    env_value = os.environ.get(GIT_LFS_RESERVED_BYTES_ENV)
+    if env_value:
+        try:
+            parsed = int(env_value)
+        except ValueError:
+            parsed = 0
+        if parsed >= 0:
+            return parsed
+
+    configured = _git_config_int(repo_root, "team-info.lfsReservedBytes")
+    if configured is not None and configured >= 0:
+        return configured
+    return 0
+
+
+def format_bytes_for_humans(size: int) -> str:
+    units = ("B", "KiB", "MiB", "GiB", "TiB")
+    value = float(size)
+    unit_index = 0
+    while value >= 1024 and unit_index < len(units) - 1:
+        value /= 1024
+        unit_index += 1
+    if unit_index == 0:
+        return f"{int(value)} {units[unit_index]}"
+    return f"{value:.2f} {units[unit_index]}"
+
+
+def get_git_lfs_free_plan_status(
+    remote_name: str = "origin",
+    remote_url: str | None = None,
+    pre_push_lines: list[str] | None = None,
+) -> GitLfsFreePlanStatus:
+    repo_root = get_repo_root()
+    resolved_remote_url = _resolve_remote_url(repo_root, remote_name, remote_url)
+    free_storage_bytes = _git_lfs_free_storage_bytes(repo_root)
+    reserved_bytes = min(_git_lfs_reserved_bytes(repo_root), free_storage_bytes)
+    available_bytes = max(free_storage_bytes - reserved_bytes, 0)
+
+    current_refs = _git_for_each_ref(repo_root, f"refs/remotes/{remote_name}", "refs/tags")
+    current_pointer_sizes = _collect_git_lfs_pointer_sizes(repo_root, current_refs)
+
+    incoming_refs: list[str] = []
+    for line in pre_push_lines or []:
+        parts = line.strip().split()
+        if len(parts) != 4:
+            continue
+        local_ref, local_object_id, _remote_ref, _remote_object_id = parts
+        if not local_ref or _is_zero_git_object_id(local_object_id):
+            continue
+        incoming_refs.append(local_object_id)
+
+    incoming_pointer_sizes = _collect_git_lfs_pointer_sizes(repo_root, incoming_refs)
+    projected_pointer_sizes = dict(current_pointer_sizes)
+    projected_pointer_sizes.update(incoming_pointer_sizes)
+
+    current_bytes = sum(current_pointer_sizes.values())
+    projected_bytes = sum(projected_pointer_sizes.values())
+    incoming_bytes = sum(
+        size
+        for pointer_oid, size in incoming_pointer_sizes.items()
+        if pointer_oid not in current_pointer_sizes
+    )
+    has_lfs_content = bool(projected_pointer_sizes)
+    git_lfs_installed = _git_lfs_installed()
+
+    rejection_reason: str | None = None
+    warning: str | None = None
+
+    if has_lfs_content and not git_lfs_installed:
+        rejection_reason = (
+            "Git LFS のポインタを検出しましたが、`git lfs` が見つかりません。"
+            " `git lfs install --skip-repo` を実行してから push してください。"
+        )
+    elif has_lfs_content and not _is_github_remote(resolved_remote_url):
+        rejection_reason = (
+            "GitHub 以外の Git LFS 無料枠は自動判定できません。"
+            " 課金を避けるため、この push を止めました。"
+        )
+    elif has_lfs_content and projected_bytes > available_bytes:
+        rejection_reason = (
+            "推定される Git LFS 保存量が無料枠を超えます。"
+            f" 見込み {format_bytes_for_humans(projected_bytes)} /"
+            f" 利用可能 {format_bytes_for_humans(available_bytes)}。"
+        )
+    elif has_lfs_content and reserved_bytes == 0:
+        warning = (
+            "この判定は今のリポジトリで見える LFS オブジェクトを基準にしています。"
+            " 同じ GitHub アカウントで他の LFS を使うなら、"
+            " `team-info.lfsReservedBytes` か"
+            f" `{GIT_LFS_RESERVED_BYTES_ENV}` を設定してください。"
+        )
+
+    return GitLfsFreePlanStatus(
+        remote_name=remote_name,
+        remote_url=resolved_remote_url,
+        free_storage_bytes=free_storage_bytes,
+        reserved_bytes=reserved_bytes,
+        available_bytes=available_bytes,
+        current_bytes=current_bytes,
+        incoming_bytes=incoming_bytes,
+        projected_bytes=projected_bytes,
+        current_object_count=len(current_pointer_sizes),
+        incoming_object_count=len(
+            [
+                pointer_oid
+                for pointer_oid in incoming_pointer_sizes
+                if pointer_oid not in current_pointer_sizes
+            ]
+        ),
+        projected_object_count=len(projected_pointer_sizes),
+        has_lfs_content=has_lfs_content,
+        git_lfs_installed=git_lfs_installed,
+        within_budget=rejection_reason is None,
+        rejection_reason=rejection_reason,
+        warning=warning,
+    )

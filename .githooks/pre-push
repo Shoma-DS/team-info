@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+set -eu
+
+remote_name="${1:-origin}"
+remote_url="${2:-}"
+
+repo_root="$(git rev-parse --show-toplevel)"
+runtime_script="$repo_root/.agent/skills/common/scripts/team_info_runtime.py"
+
+if [ ! -f "$runtime_script" ]; then
+  exit 0
+fi
+
+stdin_file="${TMPDIR:-/tmp}/team-info-pre-push-$$.txt"
+trap 'rm -f "$stdin_file"' EXIT HUP INT TERM
+cat > "$stdin_file"
+
+run_runtime() {
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$runtime_script" "$@"
+    return
+  fi
+
+  if command -v python >/dev/null 2>&1; then
+    python "$runtime_script" "$@"
+    return
+  fi
+
+  if command -v py >/dev/null 2>&1; then
+    py -3 "$runtime_script" "$@"
+    return
+  fi
+
+  echo "push を止めました: Python が見つからないため Git LFS 無料枠チェックを実行できません。" >&2
+  return 1
+}
+
+if ! run_runtime git-lfs-pre-push-guard --remote-name "$remote_name" --remote-url "$remote_url" < "$stdin_file"; then
+  exit 1
+fi
+
+if command -v git >/dev/null 2>&1 && git lfs version >/dev/null 2>&1; then
+  git lfs pre-push "$remote_name" "$remote_url" < "$stdin_file"
+fi

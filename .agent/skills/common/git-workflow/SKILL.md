@@ -15,6 +15,28 @@ description: 変更内容をリモートリポジトリに反映するためのG
 ## 事前確認 (Pre-flight Check)
 スキル実行前に必ず `git -C "$TEAM_INFO_ROOT" status` を確認し、未コミットの変更があるか把握すること。
 
+## Git LFS 無料枠ルール（必須）
+- Git LFS を使う push は、GitHub Free の無料枠を超えそうなら**必ず拒否**する。
+- push の前に、次を実行して結果を確認する。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin
+```
+
+- 上のコマンドが非 0 で終わったら、push してはいけない。
+- 拒否時は、ユーザーへ次の 3 点を必ず伝える。
+  1. 何が原因で止まったか
+  2. いまの見込み容量がどれくらいか
+  3. どう直せば無料枠のまま進められるか
+- `setup-local-machine` 後は `.githooks/pre-push` が自動で有効になる前提で扱う。手元で `git push` しても同じ判定で止まる。
+- 同じ GitHub アカウントで他のリポジトリでも LFS を使うときは、予約分を差し引いて判定する。
+
+```bash
+git -C "$TEAM_INFO_ROOT" config team-info.lfsReservedBytes <バイト数>
+```
+
+- 予約分を一時的に環境変数で渡すなら、macOS / Linux は `TEAM_INFO_GIT_LFS_RESERVED_BYTES`、Windows は `$env:TEAM_INFO_GIT_LFS_RESERVED_BYTES` を使う。
+
 ## コミットメッセージのルール (厳守)
 
 コミットメッセージは以下のフォーマットで作成すること。
@@ -166,6 +188,8 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 ### 4. リモートへの反映 (`git push`)
 - push の前に、手元とリモートの差を確認する。
 - 必要なら `git -C "$TEAM_INFO_ROOT" fetch` や `git -C "$TEAM_INFO_ROOT" pull --rebase` を使って、コンフリクトがあるか確かめる。
+- push の前に、必ず `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin` を実行する。
+- その結果が非 0 なら、push を止める。ユーザーには、無料枠を超える見込みか、無料枠を安全に確認できないため止めたことを、小学生にもわかる言葉で説明する。
 - **オーナー機のとき**:
   - `git -C "$TEAM_INFO_ROOT" push`（または `git -C "$TEAM_INFO_ROOT" push -u ...`）を実行して良いか確認し、承認を得てから実行する。
 - **オーナー機ではないとき**:

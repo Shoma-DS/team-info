@@ -80,6 +80,41 @@ def _check_host_commands(failures: list[str]) -> None:
             failures.append(f"{command} が見つかりません。")
 
 
+def _check_git_lfs(failures: list[str]) -> None:
+    _print_heading("Git LFS")
+    if shutil.which("git") is None:
+        print("[NG] git lfs: git command not found")
+        failures.append("git が見つからないため git lfs を確認できません。")
+        return
+
+    completed = _run(["git", "lfs", "version"])
+    if completed.returncode == 0:
+        print(f"[OK] git lfs: {completed.stdout.strip()}")
+        return
+
+    message = _truncate(completed.stderr or completed.stdout or "git lfs version failed")
+    print(f"[NG] git lfs: {message}")
+    failures.append("git lfs が使えません。")
+
+
+def _check_repo_git_hooks(repo_root: Path, failures: list[str]) -> None:
+    _print_heading("Git Hooks")
+    completed = _run(["git", "-C", str(repo_root), "config", "--get", "core.hooksPath"])
+    hooks_path = completed.stdout.strip()
+    if completed.returncode == 0 and hooks_path == ".githooks":
+        print(f"[OK] core.hooksPath: {hooks_path}")
+    else:
+        print(f"[NG] core.hooksPath: {hooks_path or '(empty)'}")
+        failures.append("Git hooks の置き場が .githooks に設定されていません。")
+
+    pre_push = repo_root / ".githooks" / "pre-push"
+    if pre_push.exists():
+        print(f"[OK] pre-push hook: {pre_push}")
+    else:
+        print(f"[NG] pre-push hook: {pre_push}")
+        failures.append("Git LFS 無料枠を守る pre-push hook が見つかりません。")
+
+
 def _host_python_path(repo_root: Path) -> Path:
     candidates = [
         repo_root / "Remotion" / ".venv" / "bin" / "python",
@@ -425,6 +460,8 @@ def main() -> int:
     print(f"repo: {repo_root}")
 
     _check_host_commands(failures)
+    _check_git_lfs(failures)
+    _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
     _check_host_python(repo_root, failures)
     _check_node_projects(repo_root, failures, warnings)

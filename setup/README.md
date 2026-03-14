@@ -10,7 +10,7 @@
 | Python パッケージ | Whisper, OpenCV, MediaPipe, JAX, Remotion スクリプト等を Docker イメージへ固定 |
 | Node.js | 22.17.1 と Dify 用 Node 24 系 (`nvm` / `nvm-windows` 経由) |
 | npm パッケージ | Codex CLI, Remotion, VOICEVOX MCP, Canva補助, Dify Web/SDK |
-| その他 | Git, FFmpeg, Tesseract OCR, macOS では `tesseract-lang`, `uv`, Docker, VOICEVOX Engine コンテナ |
+| その他 | Git, Git LFS, FFmpeg, Tesseract OCR, macOS では `tesseract-lang`, `uv`, Docker, VOICEVOX Engine コンテナ |
 
 ---
 
@@ -39,6 +39,7 @@ bash ./setup/setup_all.cmd
 - 最後に共通の `verify_setup.py` を走らせ、依存関係と Docker ランタイムまで確認します
 - 検証に失敗した場合は、`setup_all.cmd` 全体が非 0 で終了します
 - `TEAM_INFO_ROOT` もあわせて保存します
+- Git の `core.hooksPath` を `.githooks` にそろえ、LFS 無料枠ガード付きの `pre-push` を有効化します
 - macOS では `~/.config/team-info/env.sh`、シェル初期化ファイル、`launchctl` に保存します
 - Windows ではユーザー環境変数として保存します
 - Windows では内部で PowerShell を `Bypass` 付きで呼ぶため、まずはこの入口だけで進められます
@@ -56,11 +57,11 @@ bash ./setup/setup_all.cmd
 bash "[team-info を置いた絶対パス]/setup/setup_mac.sh"
 ```
 
-- Homebrew → pyenv → Python 3.11.9 → Docker ランタイム → nvm → Node.js → npm → `Codex CLI` の順で自動インストール
+- Homebrew → Git LFS 初期化 → pyenv → Python 3.11.9 → Docker ランタイム → nvm → Node.js → npm → `Codex CLI` の順で自動インストール
 - Apple Silicon (M1/M2/M3) は `jax[metal]`、Intel Mac は `jax[cpu]` を自動選択
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `tesseract-lang` も追加で入れます
-- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`codex`、host venv、npm 依存、Docker runtime import を検証します
+- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`git lfs`、Git hooks、`codex`、host venv、npm 依存、Docker runtime import を検証します
 
 ### Windows
 
@@ -71,11 +72,11 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 & "[team-info を置いた絶対パス]\setup\setup_windows.ps1"
 ```
 
-- winget → pyenv-win → Python 3.11.9 → Docker ランタイム → nvm-windows → Node.js → npm → `Codex CLI` の順で自動インストール
+- Git → Git LFS 初期化 → pyenv-win → Python 3.11.9 → Docker ランタイム → nvm-windows → Node.js → npm → `Codex CLI` の順で自動インストール
 - `jax[cpu]` をインストール
 - `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
 - `uv` は Python 経由で入れます
-- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`codex`、host venv、npm 依存、Docker runtime import を検証します
+- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`git lfs`、Git hooks、`codex`、host venv、npm 依存、Docker runtime import を検証します
 
 ---
 
