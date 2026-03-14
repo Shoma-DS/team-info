@@ -20,12 +20,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-jpn \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /tmp/build
 COPY setup/requirements.txt /tmp/build/requirements.txt
 
 RUN python -m pip install --upgrade pip setuptools wheel \
     && python -m pip install -r /tmp/build/requirements.txt \
-    && python -m pip install "jax[cpu]==0.4.38"
+    && python -m pip install "jax[cpu]==0.4.38" \
+    && rm -rf /tmp/build /root/.cache/pip
 
 WORKDIR /workspace/team-info
 CMD ["python", "--version"]

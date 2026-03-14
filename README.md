@@ -20,7 +20,7 @@ Windows:
 - Docker Desktop 未インストールなら案内を表示して Enter 待ちする
 - Docker Engine が未起動なら Docker Desktop の起動を試みる
 - Docker Engine が利用可能になるまで待機する
-- `docker compose up` を実行する
+- `docker compose` を実行する
 
 ## compose 対象の決まり方
 
@@ -29,6 +29,7 @@ Windows:
   - `docker/n8n`
   - `docker/dify/docker`
 - `--project n8n` または `--project dify` を付けると、対象を固定できる
+- `--action up|down|stop|start|restart|ps` を付けると、同じ入口から停止や状態確認もできる
 
 ## 補足
 
@@ -40,6 +41,8 @@ Mac / Linux:
 ```bash
 ./run.sh -d
 ./run.sh --project dify -d
+./run.sh --project dify --action down
+./run.sh --project dify --action ps
 ```
 
 Windows:
@@ -47,4 +50,6 @@ Windows:
 ```powershell
 ./run.ps1 -d
 ./run.ps1 -Project dify -d
+./run.ps1 -Project dify -Action down
+./run.ps1 -Project dify -Action ps
 ```

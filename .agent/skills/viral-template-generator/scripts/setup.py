@@ -21,6 +21,9 @@ PYTHON_MODULES_REQUIRED = [
     "pytesseract",
     "faster_whisper",
     "pykakasi",
+    "spacy",
+    "ginza",
+    "ja_ginza",
 ]
 
 # 任意 Python モジュール

@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/食べちまった芸能人3選.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/食べちまった芸能人3選/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "bg_box_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 68,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#ddbdb7",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#1d1311",
+    "textShadow": null,
+    "background": "rgba(29,22,19,0.82)",
+    "paddingH": 16,
+    "paddingV": 8,
+    "borderRadius": 4,
+    "yPercent": 70,
+    "alignment": "center",
+    "notes": "淡ピンク文字。暗茶の座布団。strokeあり(ヒューリスティック未検出だが視覚確認)"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 78,
+    "lineColors": [
+      "#f5e840",
+      "#f5c0c0"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#1d1311",
+    "textShadow": null,
+    "notes": null
+  }
+}

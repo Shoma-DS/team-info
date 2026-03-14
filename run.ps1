@@ -2,6 +2,9 @@ param(
     [ValidateSet("auto", "current", "n8n", "dify")]
     [string]$Project = "auto",
 
+    [ValidateSet("up", "down", "stop", "start", "restart", "ps")]
+    [string]$Action = "up",
+
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$ComposeArgs
 )
@@ -187,7 +190,7 @@ function Select-ComposeProject {
     }
 
     Notify-User
-    Write-Host "docker compose up の対象を選んでください。"
+    Write-Host "docker compose $Action の対象を選んでください。"
     for ($i = 0; $i -lt $validCandidates.Count; $i++) {
         $relative = Resolve-Path -Relative $validCandidates[$i]
         Write-Host ("  {0}. {1}" -f ($i + 1), $relative)
@@ -215,14 +218,14 @@ if (-not (Test-DockerEngine)) {
 }
 
 $ProjectDir = Select-ComposeProject -ProjectName $Project
-Write-Info "docker compose up を実行します: $ProjectDir"
+Write-Info "docker compose $Action を実行します: $ProjectDir"
 
 Push-Location $ProjectDir
 try {
     if ($ComposeArgs.Count -gt 0) {
-        & docker compose up @ComposeArgs
+        & docker compose $Action @ComposeArgs
     } else {
-        & docker compose up
+        & docker compose $Action
     }
     exit $LASTEXITCODE
 } finally {

@@ -1,0 +1,160 @@
+{
+  "fps": 30,
+  "total_duration_seconds": 62.891,
+  "total_frames": 1887,
+  "segments": [
+    {
+      "id": 1,
+      "section": "hook",
+      "from_time": 0.0,
+      "to_time": 2.731,
+      "from_frame": 0,
+      "to_frame": 82,
+      "text": "ガチで脱いだ女性芸能人3選"
+    },
+    {
+      "id": 2,
+      "section": "s1",
+      "from_time": 3.0,
+      "to_time": 4.6,
+      "from_frame": 90,
+      "to_frame": 138,
+      "text": "1人目は釈由美子。"
+    },
+    {
+      "id": 3,
+      "section": "s1",
+      "from_time": 4.6,
+      "to_time": 8.6,
+      "from_frame": 138,
+      "to_frame": 258,
+      "text": "デビュー直後から過激な\nグラビアを連発し、"
+    },
+    {
+      "id": 4,
+      "section": "s1",
+      "from_time": 8.6,
+      "to_time": 11.6,
+      "from_frame": 258,
+      "to_frame": 348,
+      "text": "写真集の売上は\n100万部を突破。"
+    },
+    {
+      "id": 5,
+      "section": "s1",
+      "from_time": 11.6,
+      "to_time": 15.4,
+      "from_frame": 348,
+      "to_frame": 462,
+      "text": "あの清純そうな顔で\n何をやっていたのか。"
+    },
+    {
+      "id": 6,
+      "section": "s1",
+      "from_time": 15.4,
+      "to_time": 19.52,
+      "from_frame": 462,
+      "to_frame": 586,
+      "text": "当時の写真集は今でも\n高値で取引されている。"
+    },
+    {
+      "id": 7,
+      "section": "s2",
+      "from_time": 19.52,
+      "to_time": 21.4,
+      "from_frame": 586,
+      "to_frame": 642,
+      "text": "2人目は杉本彩。"
+    },
+    {
+      "id": 8,
+      "section": "s2",
+      "from_time": 21.4,
+      "to_time": 24.45,
+      "from_frame": 642,
+      "to_frame": 733,
+      "text": "映画「愛の流刑地」で見せた"
+    },
+    {
+      "id": 9,
+      "section": "s2",
+      "from_time": 24.45,
+      "to_time": 28.67,
+      "from_frame": 733,
+      "to_frame": 860,
+      "text": "全力の脱ぎっぷりは\n業界を震撼させた。"
+    },
+    {
+      "id": 10,
+      "section": "s2",
+      "from_time": 28.67,
+      "to_time": 34.53,
+      "from_frame": 860,
+      "to_frame": 1036,
+      "text": "美しすぎる40代の裸体が\n話題となり、作品は大ヒット。"
+    },
+    {
+      "id": 11,
+      "section": "s2",
+      "from_time": 34.53,
+      "to_time": 38.44,
+      "from_frame": 1036,
+      "to_frame": 1153,
+      "text": "今でもその潔さを\n称える声が後を絶たない。"
+    },
+    {
+      "id": 12,
+      "section": "s3",
+      "from_time": 38.44,
+      "to_time": 40.30,
+      "from_frame": 1153,
+      "to_frame": 1209,
+      "text": "3人目は安達祐実。"
+    },
+    {
+      "id": 13,
+      "section": "s3",
+      "from_time": 40.30,
+      "to_time": 44.42,
+      "from_frame": 1209,
+      "to_frame": 1333,
+      "text": "子役出身の清純派と\nいうイメージが強いが、"
+    },
+    {
+      "id": 14,
+      "section": "s3",
+      "from_time": 44.42,
+      "to_time": 49.37,
+      "from_frame": 1333,
+      "to_frame": 1481,
+      "text": "20代で発売した写真集は\nグラビア界に衝撃を与えた。"
+    },
+    {
+      "id": 15,
+      "section": "s3",
+      "from_time": 49.37,
+      "to_time": 53.90,
+      "from_frame": 1481,
+      "to_frame": 1617,
+      "text": "ギャップの大きさが\n話題を呼び、完売が相次いだ。"
+    },
+    {
+      "id": 16,
+      "section": "cta",
+      "from_time": 53.90,
+      "to_time": 57.32,
+      "from_frame": 1617,
+      "to_frame": 1720,
+      "text": "以上、ガチで脱いだ\n女性芸能人3選でした。"
+    },
+    {
+      "id": 17,
+      "section": "cta",
+      "from_time": 57.32,
+      "to_time": 62.891,
+      "from_frame": 1720,
+      "to_frame": 1887,
+      "text": "他にも気になる芸能人がいたら\nフォローして確認してみてください。"
+    }
+  ]
+}

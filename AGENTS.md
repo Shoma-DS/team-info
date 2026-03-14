@@ -29,6 +29,10 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - 既存のコード規約、アーキテクチャ、スタイルを尊重する。
 - 要求タスクだけでなく、必要な付随作業や品質改善も実施または提案する。
 - 重要な変更やコマンド実行の前には、目的と影響を簡潔に説明する。
+- 30秒以上かかる可能性が高いコマンド、待ち時間が長い解析・レンダリング・重いテスト・常駐プロセス起動は、原則としてエージェントが勝手に実行せず、ユーザー実行に切り替える。
+- 長時間コマンドをユーザーに依頼する場合は、目的を短く添えたうえで、コピーしやすい絶対パスのコマンドをそのまま渡し、実行完了の報告を待ってから次に進む。
+- Docker / VOICEVOX などの常駐系は、原則として必要なときだけ起動し、不要になったら停止してPC負荷を戻す運用を優先する。
+- Docker Compose プロジェクトは、短時間の中断なら `stop`、その作業で不要になったら `down` を優先し、常時起動のまま放置しない。
 - 明確な範囲を超える変更や影響の大きい変更は、必ずユーザー確認を取る。
 - ユーザーとの対話は原則日本語で行う。
 - ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
@@ -48,8 +52,16 @@ From now on, this repository uses only `.agent/skills` as the skills source.
   - npm: `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" ...`
   - リポジトリ内Python: `python "$TEAM_INFO_ROOT/..."`
   - Docker 起動: `bash "$TEAM_INFO_ROOT/run.sh" --project [n8n|dify] ...`
+  - Docker 停止/状態確認: `bash "$TEAM_INFO_ROOT/run.sh" --project [n8n|dify] --action [stop|down|start|restart|ps] ...`
   - Windows の Docker 起動: `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project [n8n|dify] ...`
+  - Windows の Docker 停止/状態確認: `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project [n8n|dify] -Action [Stop|Down|Start|Restart|Ps] ...`
 - ユーザー指定の入力/出力パスが入る場合も、`"$TEAM_INFO_ROOT/..."` や `"[出力先の絶対パス]"` のように絶対パス前提で案内する。
+
+## Docker Lifecycle Rule
+- `dify` や `n8n` などの compose プロジェクトは、必要時に `up` / `start` し、使い終わったら `stop` または `down` する。
+- 単発の解析・検証用 Docker コンテナは、処理完了後または不要と判断した時点で停止する。
+- `VOICEVOX` は必要時のみ起動し、使い終わったら `team_info_runtime.py stop-voicevox-engine` で停止する。
+- `image` や `volume` は再利用前提で保持してよく、通常運用では `docker image prune` や `docker system prune` を前提にしない。
 
 ## New Machine Rule
 - 作業開始時は、まず `team_info_runtime.py worked-before-status` 相当で、そのパソコンが過去に `team-info` で作業したことがあるかを確認する。
@@ -61,32 +73,28 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - それでもユーザーがわからない場合は、止まった画面のスクリーンショットを添えて次の Discord へ質問するよう案内する。
 - Discord 案内先: `https://discord.com/channels/1478351976168165511/1479287635535990794`
 
-### Available skills
+### Skill Discovery Policy
 
-スキルは `.agent/skills/` 配下のフォルダで管理しています。
-タスクに該当するスキルが不明な場合は **skill-finder** スキル (`.agent/skills/skill-finder/SKILL.md`) を起動して特定してください。
-
-フォルダ構成:
-- `acoriel/`                   — アコリエルチャンネル（リリックビデオ・概要欄）
-- `remotion/`                  — Remotion動画制作（寝ながらトラベル・台本・音声）
-- `jmty/`                      — ジモティー投稿
-- `common/`                    — 共通ユーティリティ（Git・note記事・macOS互換）
-- `web-design/`                — Webフロントエンド（GSAP・UI制作）
-- `canva/`                     — Canva連携
-- `viral-template-generator/`  — バズ動画テンプレ自動生成
-- `skill-finder/`              — スキル検索（上記から最適スキルを特定）
+- `AGENTS.md` には個別スキル一覧を詳細に持たない。最新のスキル索引は `.agent/skills/skill-finder/SKILL.md` とする。
+- `/コマンド` は上の固定マッピングに従って対応する。
+- `/コマンド` 以外で、ユーザーがスキル利用を明示した場合は、まず `skill-finder` を使って該当スキルを特定する。
+- ユーザーがスキル利用を明示していない場合は、先に「スキルを使うか」を確認する。
+- ユーザーがスキルを使わないと答えた場合は、`skill-finder` を開かず、スキル探索もせずに通常対応する。
+- ユーザーがスキルを使うと答えた場合のみ、`skill-finder` を使って該当スキルを探す。
 
 ### Skill maintenance rules
+- `.agent/skills/skill-finder/SKILL.md` を、このリポジトリのスキル索引の正本として扱う。
 - 新しいスキルを `.agent/skills/` に追加したときは、**必ず** `.agent/skills/skill-finder/SKILL.md` のスキル一覧とガイドを更新すること。
-- 既存スキルの概要・パスが変わったときも同様に更新すること。
+- 既存スキルの概要・パス・用途が変わったとき、またはスキルを削除したときも同様に更新すること。
+- スキル作成・更新タスクでは、完了前に `skill-finder` の内容が `.agent/skills/**/SKILL.md` の実態と一致しているか確認すること。
 
 ### How to use skills
-- Discovery: Open the relevant `SKILL.md` and read only what is needed for the current task.
-- Trigger rules: If the user names a skill (with `$SkillName` or plain text), use that skill in the same turn.
-- Path resolution: Resolve relative paths from each skill directory first.
-- Reuse first: Prefer scripts/templates/assets inside the skill over recreating artifacts.
-- Coordination: If multiple skills apply, use the minimal set and state the order briefly.
-- Fallback: If a skill is missing or unclear, state the issue briefly and continue with the best practical approach.
+- Discovery: スキルを使うと決まったときだけ `skill-finder` を開き、該当スキルを特定する。
+- Loading: 特定後は対象の `SKILL.md` を開き、現在のタスクに必要な範囲だけ読む。
+- Path resolution: 相対パスは各スキルディレクトリ基準で解決する。
+- Reuse first: スキル内の scripts/templates/assets を優先して再利用する。
+- Coordination: 複数スキルが必要な場合は最小構成に絞り、使う順番を短く示す。
+- Fallback: スキルが見つからない、または不明瞭な場合は、その旨を短く伝えて実用的な代替手段で進める。
 
 ### Tool Execution Security Rules
 

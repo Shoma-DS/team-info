@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/狙ってた芸能人3選.mp4",
+  "sample_count": 6,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 0,
+      "cut_range": "0-90",
+      "frame": 60,
+      "time_seconds": 2.0,
+      "text_preview": "-@ つぐ Ny 女性 芸能",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:1|text:#ffe0e0|box:#202020",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 64.5,
+        "text_color_hex": "#f1d8d8",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#170a09",
+        "background_box_detected": true,
+        "background_box_color_hex": "#221517",
+        "multicolor_lines": true,
+        "line_colors_hex": [
+          "#d59d7e",
+          "#f3d5dd"
+        ]
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_01_crop.jpg"
+    },
+    {
+      "id": "style_02",
+      "cut_index": 1,
+      "cut_range": "90-91",
+      "frame": 90,
+      "time_seconds": 3.0,
+      "text_preview": "ヤリ 女性 芸能",
+      "style_signature": "zone:bottom|bg:1|stroke:1:4|multi:1|text:#ffe0e0|box:#200000",
+      "heuristic": {
+        "zone": "bottom",
+        "yPercent": 67.1,
+        "text_color_hex": "#f4d2ec",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#0f0305",
+        "background_box_detected": true,
+        "background_box_color_hex": "#130c0c",
+        "multicolor_lines": true,
+        "line_colors_hex": [
+          "#efa28b",
+          "#f4d2ec"
+        ]
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_02_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_02_crop.jpg"
+    },
+    {
+      "id": "style_03",
+      "cut_index": 7,
+      "cut_range": "150-151",
+      "frame": 150,
+      "time_seconds": 5.0,
+      "text_preview": "i= FA 代表",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:0|text:#e080a0|box:#200000",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 49.8,
+        "text_color_hex": "#e980ab",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#160105",
+        "background_box_detected": true,
+        "background_box_color_hex": "#11070d",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_03_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_03_crop.jpg"
+    },
+    {
+      "id": "style_04",
+      "cut_index": 8,
+      "cut_range": "151-188",
+      "frame": 180,
+      "time_seconds": 6.0,
+      "text_preview": "綾子",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:0|text:#e0ff20|box:#000000",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 49.8,
+        "text_color_hex": "#ebfc14",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#070b00",
+        "background_box_detected": true,
+        "background_box_color_hex": "#100b06",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_04_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_04_crop.jpg"
+    },
+    {
+      "id": "style_05",
+      "cut_index": 9,
+      "cut_range": "188-294",
+      "frame": 240,
+      "time_seconds": 8.0,
+      "text_preview": "実力",
+      "style_signature": "zone:middle|bg:0|stroke:0:0|multi:0|text:#ffffff|box:none",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 51.7,
+        "text_color_hex": "#f7f1fa",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": false,
+        "background_box_color_hex": null,
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_05_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_05_crop.jpg"
+    },
+    {
+      "id": "style_06",
+      "cut_index": 10,
+      "cut_range": "294-429",
+      "frame": 330,
+      "time_seconds": 11.0,
+      "text_preview": "評判 id",
+      "style_signature": "zone:bottom|bg:1|stroke:1:4|multi:0|text:#c0a0c0|box:#200000",
+      "heuristic": {
+        "zone": "bottom",
+        "yPercent": 74.6,
+        "text_color_hex": "#bfafb8",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#211b1b",
+        "background_box_detected": true,
+        "background_box_color_hex": "#160f10",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_06_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/style_06_crop.jpg"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/女優魂を見せた芸能人3選.mp4",
+  "sample_count": 5,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 0,
+      "cut_range": "0-70",
+      "frame": 60,
+      "time_seconds": 2.0,
+      "text_preview": "Hic Cz イカ Tz att こち",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:1|text:#ffc0c0|box:#200000",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 61.1,
+        "text_color_hex": "#f1c5b1",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#110505",
+        "background_box_detected": true,
+        "background_box_color_hex": "#1a1010",
+        "multicolor_lines": true,
+        "line_colors_hex": [
+          "#eec591",
+          "#ab7f77"
+        ]
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_01_crop.jpg"
+    },
+    {
+      "id": "style_02",
+      "cut_index": 5,
+      "cut_range": "75-154",
+      "frame": 150,
+      "time_seconds": 5.0,
+      "text_preview": "1. 光輝",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:0|text:#e0ff20|box:#200000",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 54.3,
+        "text_color_hex": "#e8fb17",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#0a0f01",
+        "background_box_detected": true,
+        "background_box_color_hex": "#160f0c",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_02_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_02_crop.jpg"
+    },
+    {
+      "id": "style_03",
+      "cut_index": 7,
+      "cut_range": "179-294",
+      "frame": 210,
+      "time_seconds": 7.0,
+      "text_preview": "閉塞 漂う ah",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:0|text:#ffe0c0|box:#200000",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 50.6,
+        "text_color_hex": "#f2e6cb",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#0b0703",
+        "background_box_detected": true,
+        "background_box_color_hex": "#150f0d",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_03_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_03_crop.jpg"
+    },
+    {
+      "id": "style_04",
+      "cut_index": 8,
+      "cut_range": "294-380",
+      "frame": 330,
+      "time_seconds": 11.0,
+      "text_preview": "NN 池脇 演じ",
+      "style_signature": "zone:top|bg:1|stroke:1:4|multi:0|text:#e0c0c0|box:#402020",
+      "heuristic": {
+        "zone": "top",
+        "yPercent": 34.5,
+        "text_color_hex": "#e9bcb3",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#806159",
+        "background_box_detected": true,
+        "background_box_color_hex": "#362528",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_04_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_04_crop.jpg"
+    },
+    {
+      "id": "style_05",
+      "cut_index": 9,
+      "cut_range": "380-439",
+      "frame": 420,
+      "time_seconds": 14.0,
+      "text_preview": "ce 誰か 必要",
+      "style_signature": "zone:top|bg:1|stroke:1:4|multi:0|text:#808060|box:#202020",
+      "heuristic": {
+        "zone": "top",
+        "yPercent": 30.7,
+        "text_color_hex": "#89746d",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#5f4b48",
+        "background_box_detected": true,
+        "background_box_color_hex": "#251b1b",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_05_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/style_05_crop.jpg"
+    }
+  ]
+}

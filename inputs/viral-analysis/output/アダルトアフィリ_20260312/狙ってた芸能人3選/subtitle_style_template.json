@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/狙ってた芸能人3選.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/狙ってた芸能人3選/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "bg_box_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 66,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#e7c0b5",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#211311",
+    "textShadow": null,
+    "background": "rgba(19,11,11,0.90)",
+    "paddingH": 16,
+    "paddingV": 8,
+    "borderRadius": 4,
+    "yPercent": 70,
+    "alignment": "center",
+    "notes": "淡いピンク文字。ほぼ黒の座布団"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 76,
+    "lineColors": [
+      "#f5e840",
+      "#f5c0d0"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#211311",
+    "textShadow": null,
+    "notes": null
+  }
+}

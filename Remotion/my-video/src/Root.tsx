@@ -3,8 +3,7 @@ import { SleepTravelLong } from "./SleepTravelLong";
 import { AcoRielLyricCover } from "./AcoRielLyricCover";
 import { CanvaSlideshow } from "./CanvaSlideshow";
 import chiseigakuSlides from "../public/assets/slide_images/地政学/manifest.json";
-import { ViralVideo } from "./viral/ViralVideo_芸能人エンタメ_20260310";
-import { ViralVideo as ViralVideoStyle } from "./viral/ViralVideo_スタイル反則アイドル3選_20260312";
+import { ViralVideo as ViralVideoGachi } from "./viral/アダルトアフィリ/ガチで脱いだ女性芸能人3選_20260313";
 
 // Each <Composition> is an entry in the sidebar!
 
@@ -55,22 +54,16 @@ export const RemotionRoot: React.FC = () => {
       </Folder>
 
       <Folder name="Viral">
-        <Composition
-          id="Viral-shorts-20260310"
-          component={ViralVideo}
-          durationInFrames={1620}
-          fps={30}
-          width={1080}
-          height={1920}
-        />
-        <Composition
-          id="Viral-shorts-20260312"
-          component={ViralVideoStyle}
-          durationInFrames={1545}
-          fps={30}
-          width={1080}
-          height={1920}
-        />
+        <Folder name="アダルトアフィリ">
+          <Composition
+            id="ガチで脱いだ女性芸能人3選-20260313"
+            component={ViralVideoGachi}
+            durationInFrames={1887}
+            fps={30}
+            width={1080}
+            height={1920}
+          />
+        </Folder>
       </Folder>
 
     </>

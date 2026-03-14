@@ -47,6 +47,9 @@ tqdm==4.67.3
 
 # Japanese text
 pykakasi==2.3.0
+spacy>=3.7,<3.8
+ginza==5.2.0
+ja_ginza==5.2.0
 
 # Data
 PyYAML==6.0.3

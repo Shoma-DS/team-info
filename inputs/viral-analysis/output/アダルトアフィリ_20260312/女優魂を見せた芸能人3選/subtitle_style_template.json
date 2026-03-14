@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/女優魂を見せた芸能人3選.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/女優魂を見せた芸能人3選/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "bg_box_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 82,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#d3c285",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#120d09",
+    "textShadow": null,
+    "background": "rgba(27,16,17,0.93)",
+    "paddingH": 16,
+    "paddingV": 8,
+    "borderRadius": 4,
+    "yPercent": 70,
+    "alignment": "center",
+    "notes": "ゴールド系文字。濃い暗茶の座布団。ストロークあり"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 88,
+    "lineColors": [
+      "#f5e840",
+      "#f5e840"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#120d09",
+    "textShadow": null,
+    "notes": "フックは黄色1色。style_02で確認"
+  }
+}

@@ -8,8 +8,7 @@ LABEL maintainer="takatost@gmail.com"
 # if you located in China, you can use taobao registry to speed up
 # RUN npm config set registry https://registry.npmmirror.com
 
-RUN apk add --no-cache tzdata
-RUN corepack enable
+RUN apk add --no-cache tzdata && corepack enable
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ARG NEXT_PUBLIC_BASE_PATH=""
@@ -24,9 +23,7 @@ WORKDIR /app/web
 COPY package.json pnpm-lock.yaml /app/web/
 
 # Use packageManager from package.json
-RUN corepack install
-
-RUN pnpm install --frozen-lockfile
+RUN corepack install && pnpm install --frozen-lockfile
 
 # build resources
 FROM base AS builder
@@ -55,10 +52,8 @@ ENV PM2_INSTANCES=2
 # set timezone
 ENV TZ=UTC
 RUN ln -s /usr/share/zoneinfo/${TZ} /etc/localtime \
-    && echo ${TZ} > /etc/timezone
-
-# global runtime packages
-RUN pnpm add -g pm2
+    && echo ${TZ} > /etc/timezone \
+    && pnpm add -g pm2
 
 
 # Create non-root user

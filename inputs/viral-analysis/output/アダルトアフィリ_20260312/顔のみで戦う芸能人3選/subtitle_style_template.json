@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/顔のみで戦う芸能人3選.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/顔のみで戦う芸能人3選/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "bg_box_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 54,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#c5b1b0",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#171313",
+    "textShadow": null,
+    "background": "rgba(23,17,18,0.83)",
+    "paddingH": 16,
+    "paddingV": 8,
+    "borderRadius": 4,
+    "yPercent": 68,
+    "alignment": "center",
+    "notes": "丸ゴシック感が強い。style_02でピンク系大文字を確認"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 68,
+    "lineColors": [
+      "#f5c8c8",
+      "#f5d03a"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#171313",
+    "textShadow": null,
+    "notes": "フックはピンク→黄の交互配色(style_01 full-frameで確認)"
+  }
+}

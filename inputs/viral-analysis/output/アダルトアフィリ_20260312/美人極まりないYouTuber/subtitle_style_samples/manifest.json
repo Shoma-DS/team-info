@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/美人極まりないYouTuber.mp4",
+  "sample_count": 5,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 7,
+      "cut_range": "118-142",
+      "frame": 120,
+      "time_seconds": 4.0,
+      "text_preview": "7/ ゆり",
+      "style_signature": "zone:top|bg:1|stroke:0:0|multi:0|text:#e0c0a0|box:#402020",
+      "heuristic": {
+        "zone": "top",
+        "yPercent": 32.5,
+        "text_color_hex": "#d7b2ad",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": true,
+        "background_box_color_hex": "#332525",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_01_crop.jpg"
+    },
+    {
+      "id": "style_02",
+      "cut_index": 8,
+      "cut_range": "142-169",
+      "frame": 150,
+      "time_seconds": 5.0,
+      "text_preview": "WW//",
+      "style_signature": "zone:top|bg:0|stroke:0:0|multi:0|text:#a08080|box:none",
+      "heuristic": {
+        "zone": "top",
+        "yPercent": 14.1,
+        "text_color_hex": "#a7847c",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": false,
+        "background_box_color_hex": null,
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_02_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_02_crop.jpg"
+    },
+    {
+      "id": "style_03",
+      "cut_index": 9,
+      "cut_range": "169-227",
+      "frame": 210,
+      "time_seconds": 7.0,
+      "text_preview": "ング SS 喋り 笑顔",
+      "style_signature": "zone:top|bg:1|stroke:1:4|multi:0|text:#a08080|box:#402020",
+      "heuristic": {
+        "zone": "top",
+        "yPercent": 31.4,
+        "text_color_hex": "#a28a75",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#564242",
+        "background_box_detected": true,
+        "background_box_color_hex": "#3c2f2e",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_03_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_03_crop.jpg"
+    },
+    {
+      "id": "style_04",
+      "cut_index": 10,
+      "cut_range": "227-290",
+      "frame": 270,
+      "time_seconds": 9.0,
+      "text_preview": "ダグ Re 目線 NN",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:0|text:#e0c0a0|box:#202000",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 50.8,
+        "text_color_hex": "#d2b29e",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#71564a",
+        "background_box_detected": true,
+        "background_box_color_hex": "#221510",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_04_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_04_crop.jpg"
+    },
+    {
+      "id": "style_05",
+      "cut_index": 11,
+      "cut_range": "290-345",
+      "frame": 300,
+      "time_seconds": 10.0,
+      "text_preview": "Ca 距離 カメ ラリ",
+      "style_signature": "zone:middle|bg:1|stroke:1:4|multi:1|text:#a06060|box:#202020",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 45.5,
+        "text_color_hex": "#946a62",
+        "stroke_detected": true,
+        "stroke_width_px": 4,
+        "stroke_color_hex": "#1f130a",
+        "background_box_detected": true,
+        "background_box_color_hex": "#2f1e1e",
+        "multicolor_lines": true,
+        "line_colors_hex": [
+          "#95675f",
+          "#dfccb6"
+        ]
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_05_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/style_05_crop.jpg"
+    }
+  ]
+}

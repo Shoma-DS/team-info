@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/美人極まりないアスリート.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないアスリート/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "bg_box_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 44,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#c9b9b8",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#171515",
+    "textShadow": null,
+    "background": "rgba(18,17,23,0.83)",
+    "paddingH": 16,
+    "paddingV": 8,
+    "borderRadius": 4,
+    "yPercent": 65,
+    "alignment": "center",
+    "notes": "やや小さめフォント。暗青紫の座布団"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 56,
+    "lineColors": [
+      "#f5e840",
+      "#f5c0d0"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#171515",
+    "textShadow": null,
+    "notes": null
+  }
+}

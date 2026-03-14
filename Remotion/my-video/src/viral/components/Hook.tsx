@@ -9,7 +9,7 @@ import {
 
 type HookType = "question" | "statement" | "visual" | "unknown";
 const HOOK_FONT_FAMILY =
-  '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif';
+  '"Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif';
 // 白→黄→白→黄 の交互配色（参考動画に合わせた標準パターン）
 const HOOK_LINE_COLORS = ["#ffffff", "#f4d56f", "#ffffff", "#f4d56f"];
 
@@ -19,6 +19,18 @@ interface HookProps {
   durationFrames?: number;
   startFrame?: number;
   endFrame?: number;
+  /** フォントファミリーを上書き（省略時は HOOK_FONT_FAMILY） */
+  fontFamily?: string;
+  /** 行ごとの文字色を上書き（省略時は HOOK_LINE_COLORS） */
+  lineColors?: string[];
+  /** 文字サイズを上書き（省略時は 120） */
+  fontSize?: number;
+  /** 縁取り幅を上書き（省略時は 8px） */
+  strokeWidth?: string;
+  /** 縁取り色を上書き（省略時は黒） */
+  strokeColor?: string;
+  /** text-shadow を上書き */
+  textShadow?: string;
 }
 
 /** 最初の3秒に表示するフック演出コンポーネント */
@@ -28,6 +40,12 @@ export const Hook: React.FC<HookProps> = ({
   durationFrames = 90,
   startFrame = 0,
   endFrame,
+  fontFamily,
+  lineColors,
+  fontSize = 120,
+  strokeWidth = "8px",
+  strokeColor = "#000000",
+  textShadow,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -67,6 +85,14 @@ export const Hook: React.FC<HookProps> = ({
 
   const isQuestion = hookType === "question";
   const lines = text.split("\n");
+  const resolvedFontFamily = fontFamily ?? HOOK_FONT_FAMILY;
+  const resolvedLineColors = lineColors ?? HOOK_LINE_COLORS;
+  const resolvedTextShadow = textShadow ?? [
+    "0 0 4px #000",
+    "0 0 4px #000",
+    "0 5px 0 rgba(0,0,0,0.35)",
+    "0 10px 18px rgba(0,0,0,0.3)",
+  ].join(", ");
 
   return (
     <AbsoluteFill
@@ -89,22 +115,14 @@ export const Hook: React.FC<HookProps> = ({
           <div
             key={`${line}-${index}`}
             style={{
-              fontFamily: HOOK_FONT_FAMILY,
-              fontSize: 76,
+              fontFamily: resolvedFontFamily,
+              fontSize,
               fontWeight: 900,
-              color: HOOK_LINE_COLORS[index] ?? "#ffffff",
+              color: resolvedLineColors[index] ?? "#ffffff",
               lineHeight: 1.02,
               letterSpacing: "0.01em",
-              // 縁取りは細くして色が見えるようにする。
-              // paint-order: stroke fill で塗り順を「縁→塗り」にするとより効果的だが
-              // ReactのCSSプロパティ型に含まれないため textShadow で代替。
-              WebkitTextStroke: "3px #000000",
-              textShadow: [
-                "0 0 4px #000",
-                "0 0 4px #000",
-                "0 5px 0 rgba(0,0,0,0.35)",
-                "0 10px 18px rgba(0,0,0,0.3)",
-              ].join(", "),
+              WebkitTextStroke: `${strokeWidth} ${strokeColor}`,
+              textShadow: resolvedTextShadow,
               marginTop: index === 0 ? 0 : -6,
             }}
           >
@@ -114,11 +132,11 @@ export const Hook: React.FC<HookProps> = ({
         {isQuestion && (
           <div
             style={{
-              fontFamily: HOOK_FONT_FAMILY,
-              fontSize: 70,
+              fontFamily: resolvedFontFamily,
+              fontSize: Math.round(fontSize * 0.92),
               fontWeight: 900,
               color: "#ffffff",
-              WebkitTextStroke: "5px #000000",
+              WebkitTextStroke: `${Math.max(3, Math.round(parseFloat(strokeWidth) * 0.625))}px ${strokeColor}`,
               marginTop: 4,
             }}
           >

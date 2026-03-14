@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WAIT_SECONDS="${DOCKER_ENGINE_WAIT_SECONDS:-180}"
 SLEEP_SECONDS="${DOCKER_ENGINE_POLL_SECONDS:-2}"
 PROJECT_NAME="auto"
+ACTION="up"
 COMPOSE_ARGS=()
 
 log() {
@@ -27,12 +28,13 @@ notify() {
 usage() {
   cat <<'EOF'
 Usage:
-  ./run.sh [--project auto|current|n8n|dify] [docker compose up args...]
+  ./run.sh [--project auto|current|n8n|dify] [--action up|down|stop|start|restart|ps] [docker compose args...]
 
 Examples:
   ./run.sh
   ./run.sh --project dify -d
   ./run.sh --project n8n
+  ./run.sh --project dify --action down
 EOF
 }
 
@@ -190,7 +192,7 @@ select_compose_project() {
   fi
 
   notify
-  printf 'docker compose up の対象を選んでください。\n'
+  printf 'docker compose %s の対象を選んでください。\n' "$ACTION"
   local i=1
   local selection
   for selection in "${labels[@]}"; do
@@ -214,6 +216,18 @@ parse_args() {
       --project)
         [[ $# -ge 2 ]] || error "--project には値が必要です。"
         PROJECT_NAME="$2"
+        shift 2
+        ;;
+      --action)
+        [[ $# -ge 2 ]] || error "--action には値が必要です。"
+        ACTION="$2"
+        case "$ACTION" in
+          up|down|stop|start|restart|ps)
+            ;;
+          *)
+            error "不明な action です: $ACTION"
+            ;;
+        esac
         shift 2
         ;;
       -h|--help)
@@ -243,11 +257,15 @@ main() {
 
   local project_dir
   project_dir="$(select_compose_project "$PROJECT_NAME")"
-  log "docker compose up を実行します: $project_dir"
+  log "docker compose $ACTION を実行します: $project_dir"
 
   (
     cd "$project_dir"
-    docker compose up "${COMPOSE_ARGS[@]}"
+    if (( ${#COMPOSE_ARGS[@]} > 0 )); then
+      docker compose "$ACTION" "${COMPOSE_ARGS[@]}"
+    else
+      docker compose "$ACTION"
+    fi
   )
 }
 

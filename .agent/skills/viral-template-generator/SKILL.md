@@ -749,8 +749,9 @@ subtitles.json 生成後、必ず `split_subtitles.py` で **2行以内** に収
 ```
 
 - 13文字以内 → そのまま
-- 14文字以上 → BudouX で文節区切り → **最大2行**（3行以上になる場合は均等2分割）
-- split モードは自動で2行制限をかける（各セグメントが1行になる）
+- 14文字以上 → **GiNZA で文/文節区切り** → 改行を入れる
+- フック以外で3行以上になる場合 → **2行以内で次の字幕セグメントへ持ち越す**
+- split モードは各行を独立した時間セグメントにする
 
 生成フォーマット:
 ```json
@@ -864,7 +865,7 @@ import { Audio, staticFile } from "remotion";
 
 生成後、ユーザーに以下を伝える:
 - `script.md`（校正済み台本）
-- `subtitles.json`（BudouX 折り返し済み）
+- `subtitles.json`（GiNZA 折り返し済み）
 - `remotion/public/audio/narration.wav`（VOICEVOX 音源）
 
 「修正がある場合は教えてください。問題なければ Phase E（素材収集）へ進みます」
@@ -1050,6 +1051,10 @@ const ImageSceneTrack: React.FC = () => {
 `subtitle_style_template.json` が **approved** ならそれを最優先で使う。
 未レビューまたは空欄がある場合のみ `analysis.json.subtitle_visual` を補助的に参照する。
 
+ユーザーからローカルフォントの明示指定がある場合は、その指定を優先してよい。
+その場合はフォントファイルを `Remotion/my-video/public/assets/fonts/` に配置し、
+`FontFace` で明示ロードしてから `fontFamily` に反映する。
+
 - `fontFamily`: `subtitle_style_template.json.subtitle.fontFamily`
 - `fontSize`: `subtitle_style_template.json.subtitle.fontSizePx1920h`
 - `fontWeight`: `subtitle_style_template.json.subtitle.fontWeight`
@@ -1122,20 +1127,28 @@ const splitHookText = (raw: string): string => {
 
 **出力先**: `Remotion/my-video/src/Root.tsx`
 
+**命名ルール**:
+- コンポジション source は `Remotion/my-video/src/viral/[テンプレ名]/[テーマ]_[yyyyMMdd].tsx` に置く
+- `Root.tsx` では `Folder` を使って `Viral相当 / テンプレ名 / テーマごとのComposition` の階層にする
+- このリポジトリでは `Remotion/my-video/scripts/patch_remotion_japanese_support.mjs` により、`Folder name` と `Composition id` でも日本語を使える前提で運用する
+
 ```typescript
 // import に追加
-import { ViralVideo } from "./viral/ViralVideo_[タイトル]";
+import { ViralVideo } from "./viral/[テンプレ名]/[タイトル]";
 
 // RemotionRoot 内に追加
-{/* === Viral Shorts === */}
-<Composition
-  id="Viral-[platform]-[yyyyMMdd]"
-  component={ViralVideo}
-  durationInFrames={[total_frames]}
-  fps={30}
-  width={1080}
-  height={1920}
-/>
+<Folder name="Viral">
+  <Folder name="[テンプレ名]">
+    <Composition
+      id="[テーマ]-[yyyyMMdd]"
+      component={ViralVideo}
+      durationInFrames={[total_frames]}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+  </Folder>
+</Folder>
 ```
 
 ### Step F-5: lint 確認

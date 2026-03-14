@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/美人極まりないYouTuber.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/美人極まりないYouTuber/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "stroke_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 52,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#b9968e",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#0f0c0b",
+    "textShadow": null,
+    "background": null,
+    "paddingH": null,
+    "paddingV": null,
+    "borderRadius": null,
+    "yPercent": 85,
+    "alignment": "center",
+    "notes": "テキスト最下部配置。背景ボックスなし。名前カードはstyle_01で黄色表示"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 60,
+    "lineColors": [
+      "#f5e840",
+      "#f5e840"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#0f0c0b",
+    "textShadow": null,
+    "notes": "名前カードは黄色太字"
+  }
+}

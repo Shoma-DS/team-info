@@ -1,0 +1,43 @@
+{
+  "status": "approved",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/他人のバナナが好きなアイドル.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/アダルトアフィリ_20260312/他人のバナナが好きなアイドル/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01",
+    "style_02"
+  ],
+  "subtitle": {
+    "template_name": "stroke_entertainment",
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 62,
+    "letterSpacing": null,
+    "lineHeight": 1.2,
+    "textColor": "#e2cabf",
+    "lineColors": [],
+    "strokeWidthPx": 4,
+    "strokeColor": "#1a0f0e",
+    "textShadow": null,
+    "background": null,
+    "paddingH": null,
+    "paddingV": null,
+    "borderRadius": null,
+    "yPercent": 72,
+    "alignment": "center",
+    "notes": "丸ゴシック系。strokeあり(ヒューリスティック未検出だが視覚確認)。背景ボックスなし"
+  },
+  "hook": {
+    "fontFamily": "M PLUS Rounded 1c",
+    "fontWeight": 900,
+    "fontSizePx1920h": 80,
+    "lineColors": [
+      "#f5d03a",
+      "#f5a0c0"
+    ],
+    "strokeWidthPx": 5,
+    "strokeColor": "#1a0f0e",
+    "textShadow": null,
+    "notes": "フックは黄→ピンクの交互配色"
+  }
+}

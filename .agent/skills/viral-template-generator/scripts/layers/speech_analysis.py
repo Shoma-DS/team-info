@@ -11,6 +11,7 @@ import json
 import re
 import subprocess
 import tempfile
+import wave
 from collections import Counter
 from pathlib import Path
 
@@ -32,25 +33,44 @@ def extract_audio(video_path: Path, output_dir: Path) -> Path:
 
 # ─── Whisper 書き起こし ───────────────────────────────────────────────────────
 
+_faster_whisper_model = None  # プロセス内で1回だけロードして使い回す
+
+
 def transcribe_with_faster_whisper(audio_path: Path) -> list[dict]:
     """faster-whisper で書き起こし（セグメント単位）"""
     try:
         from faster_whisper import WhisperModel
-        model = WhisperModel("large-v3", device="cpu", compute_type="int8")
+        global _faster_whisper_model
+        if _faster_whisper_model is None:
+            _faster_whisper_model = WhisperModel("large-v3", device="cpu", compute_type="int8")
+        model = _faster_whisper_model
         segments, _ = model.transcribe(str(audio_path), language="ja", word_timestamps=True)
+        # 音声の総時間を取得して進捗バーに使う
+        try:
+            with wave.open(str(audio_path), "rb") as wf:
+                total_seconds = wf.getnframes() / wf.getframerate()
+        except Exception:
+            total_seconds = 0.0
+        from tqdm import tqdm
         transcript = []
-        for seg in segments:
-            entry = {
-                "start": round(seg.start, 3),
-                "end": round(seg.end, 3),
-                "text": seg.text.strip(),
-            }
-            if hasattr(seg, "words") and seg.words:
-                entry["words"] = [
-                    {"word": w.word, "start": round(w.start, 3), "end": round(w.end, 3)}
-                    for w in seg.words
-                ]
-            transcript.append(entry)
+        with tqdm(total=int(total_seconds), unit="s", desc="    書き起こし", leave=False, ncols=60) as pbar:
+            prev_end = 0.0
+            for seg in segments:
+                entry = {
+                    "start": round(seg.start, 3),
+                    "end": round(seg.end, 3),
+                    "text": seg.text.strip(),
+                }
+                if hasattr(seg, "words") and seg.words:
+                    entry["words"] = [
+                        {"word": w.word, "start": round(w.start, 3), "end": round(w.end, 3)}
+                        for w in seg.words
+                    ]
+                transcript.append(entry)
+                advance = int(seg.end) - int(prev_end)
+                if advance > 0:
+                    pbar.update(advance)
+                prev_end = seg.end
         return transcript
     except ImportError:
         pass

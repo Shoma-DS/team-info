@@ -7,7 +7,9 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
-    "render:outputs": "bash ../scripts/render_to_outputs.sh"
+    "render:outputs": "bash ../scripts/render_to_outputs.sh",
+    "patch:remotion-japanese": "node ./scripts/patch_remotion_japanese_support.mjs",
+    "postinstall": "node ./scripts/patch_remotion_japanese_support.mjs"
   },
   "repository": {},
   "license": "UNLICENSED",
