@@ -1153,11 +1153,59 @@ staticFile("viral/[タイトル]/audio/narration.wav")
 staticFile("viral/[タイトル]/audio/sfx/whoosh.wav")
 ```
 
-**背景画像トラック:**
-- `SCENE_TIMELINE` 配列を定義（`{ from, to, src, motionType?, motionIntensity?, originX?, originY? }[]`）
-- 1本の `<Sequence from={0}>` + `ImageSceneTrack` コンポーネントで統合
-- `ImageSceneTrack` は `useCurrentFrame()` でアクティブ素材を選択
-- `<ImageScene>` コンポーネントに `motionType` と `motionIntensity` を渡してカメラワークを再現する
+**背景画像トラック（クロスフェード付き・必須）:**
+
+- `SCENE_TIMELINE` 配列を定義（`{ from, to, src, motionType?, motionIntensity?, motionProfile?, originX?, originY? }[]`）
+- `FADE_FRAMES = 12`（0.4秒 @ 30fps）でシーン間クロスフェード
+- `SceneImage` コンポーネントで1エントリを描画し、`ImageSceneTrack` でフェードを制御する
+- 1本の `<Sequence from={0}>` + `ImageSceneTrack` で統合する
+
+```typescript
+const FADE_FRAMES = 12;
+
+const SceneImage: React.FC<{ entry: typeof SCENE_TIMELINE[0] }> = ({ entry }) => (
+  <ImageScene
+    src={entry.src}
+    motionType={(entry.motionType as any) ?? "static"}
+    motionProfile={entry.motionProfile ?? "still"}
+    motionIntensity={entry.motionIntensity ?? 0}
+    originX={entry.originX ?? 0.5}
+    originY={entry.originY ?? 0.5}
+  />
+);
+
+const ImageSceneTrack: React.FC = () => {
+  const frame = useCurrentFrame();
+  const idx = SCENE_TIMELINE.findIndex((s) => frame >= s.from && frame < s.to);
+  const current = idx >= 0 ? SCENE_TIMELINE[idx] : SCENE_TIMELINE[SCENE_TIMELINE.length - 1];
+  const prev = idx > 0 ? SCENE_TIMELINE[idx - 1] : null;
+  const relFrame = idx >= 0 ? frame - current.from : 0;
+  const isFading = prev !== null && relFrame < FADE_FRAMES;
+  const fadeOpacity = isFading ? relFrame / FADE_FRAMES : 1;
+  return (
+    <AbsoluteFill>
+      {isFading && (
+        <AbsoluteFill style={{ opacity: 1 - fadeOpacity }}>
+          <SceneImage entry={prev!} />
+        </AbsoluteFill>
+      )}
+      <AbsoluteFill style={{ opacity: fadeOpacity }}>
+        <SceneImage entry={current} />
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+```
+
+**motionProfile（必須）:**
+
+| motionProfile | 説明 | 使いどころ |
+|---|---|---|
+| `"still"` | 完全静止 | 基本（大半のシーン） |
+| `"gentle"` | 超低速ズーム/パン | 必要なアクセントシーン |
+| `"standard"` | 標準速度 | 参照動画に激しい動きがある場合 |
+
+基本方針: **基本は static+still / 要所だけ zoom_in+gentle / ゆるいパンをたまに** という落ち着いたテンポを保つ。
 
 **カメラワークの再現（必須）:**
 
@@ -1231,15 +1279,47 @@ const ImageSceneTrack: React.FC = () => {
 - `fontSize` を `font_size_px=0` なのに独自値で決め打ちしない
 - スクショレビュー未実施なのに reference 動画と同じと断定しない
 
-**字幕トラック:**
+**字幕トラック（行ごと色設定・名前カード対応・必須）:**
+
 - `subtitles.json` の segments を `SUBTITLE_TIMELINE` 配列として定義（`\n` 折り返し済みのテキストをそのまま使う）
-- `whiteSpace` はテキストの内容に応じて動的に設定する（**必須**）:
-  `whiteSpace: entry.text.includes("\n") ? "pre-wrap" : "nowrap"`
-  `\n` ありの行 → `pre-wrap`（明示的改行を尊重）/ `\n` なしの行 → `nowrap`（CJK自動折り返し防止）
+- 長い動画では `src/viral/generated/[タイトル]Subtitles.ts` に分離して import してもよい
 - 1本の `<Sequence from={0}>` + `SubtitleTrack` コンポーネントで統合
-- **冒頭フック期間は必ず `return null`（二重表示防止）**:
-  `SubtitleTrack` の先頭で `if (frame < Math.round(3 * fps)) return null;` を入れる。
-  フック期間は `Hook` コンポーネントが字幕を担当するため、`SubtitleTrack` がそのまま動くと同じテキストが2重表示される。
+- **冒頭フック期間は必ず `return null`（二重表示防止）**: `SubtitleTrack` 先頭で `if (frame < hookOverlayEndFrames) return null;`
+- **行ごとに `<div>` を分けて個別に色を設定する**（`<span>` 1つで完結しない）
+- **名前カードルール（必須）**: `/^[1-3]\./.test(text.trim())` で検出し、色を `#FFE400`（鮮黄色）・フォントサイズを170px（通常字幕より大きく）にする
+- **名前カードの形式（必須）**: `"1.人物名"` — 「N人目は」形式ではなく `N.名前` 形式で統一する
+
+```typescript
+const NAME_COLOR = "#FFE400";
+const NAME_COLORS = [NAME_COLOR, NAME_COLOR];
+
+const getLineColors = (text: string, from: number): string[] => {
+  const lines = text.split("\n");
+  const isNameCard = /^[1-3]\./.test(text.trim());
+  if (isNameCard) return lines.map((_, i) => NAME_COLORS[i] ?? "#ffffff");
+  if (from < 90) return lines.map((_, i) => HOOK_LINE_COLORS[i] ?? HOOK_LINE_COLORS[0]);
+  return lines.map(() => SUBTITLE_STYLE.color);
+};
+
+// SubtitleTrack 内の行レンダリング
+{lines.map((line, index) => {
+  const isNameCard = /^[1-3]\./.test(entry.text.trim());
+  return (
+    <div
+      key={`${entry.from}-${index}-${line}`}
+      style={{
+        fontSize: isNameCard ? 170 : SUBTITLE_STYLE.fontSize,
+        color: lineColors[index] ?? SUBTITLE_STYLE.color,
+        whiteSpace: "pre-wrap",
+        WebkitTextStroke: `${SUBTITLE_STYLE.strokeWidth} ${SUBTITLE_STYLE.strokeColor}`,
+        textShadow: SUBTITLE_STYLE.textShadow,
+      }}
+    >
+      {line}
+    </div>
+  );
+})}
+```
 
 **音声トラック:**
 ```typescript
@@ -1259,10 +1339,30 @@ const SFX_EVENTS = [
 ```
 
 **フック演出:**
-- `<Sequence from={0} durationInFrames={hookDurationFrames}>` + `<Hook>` コンポーネント
-- Hook の text は **1行あたり最大11文字** になるよう分割して渡す（Hook コンポーネントは maxWidth:82%=885px で 72/84px フォントを使うため、11文字×84px≈924px がギリギリ上限）
+- `<Sequence from={0} durationInFrames={hookOverlayEndFrames}>` + `<Hook>` コンポーネント
+- `hookOverlayEndFrames = Math.max(Math.round(3 * fps), SUBTITLE_TIMELINE[0]?.to ?? Math.round(3 * fps))` — 字幕の最初のエントリが3秒以上の場合に合わせて延長する
+- Hook の text は SUBTITLE_TIMELINE[0]?.text をそのまま渡す（手動改行を尊重するため自動分割は不要）
+- Hook コンポーネントへの必須 props:
+
+```typescript
+<Hook
+  hookType="statement"
+  text={hookText}
+  startFrame={hookTextStartFrame}
+  endFrame={hookOverlayEndFrames}
+  durationFrames={hookOverlayEndFrames}
+  fontFamily={SUBTITLE_STYLE.fontFamily}
+  fontSize={160}
+  strokeWidth={SUBTITLE_STYLE.strokeWidth}
+  strokeColor={SUBTITLE_STYLE.strokeColor}
+  textShadow={SUBTITLE_STYLE.textShadow}
+  lineColors={HOOK_LINE_COLORS}
+  paddingTop="65%"
+/>
+```
+
 - `.replace("\n", " ")` で1行化するのは**禁止**（長い行が変な位置で折り返す）
-- `\n\n` は `\n` に折りたたみ、各行が11文字超なら中央で分割する `splitHookText` ヘルパーを必ず使う:
+- 必要な場合のみ `splitHookText` ヘルパーで分割する:
 ```typescript
 const splitHookText = (raw: string): string => {
   const MAX = 11;
