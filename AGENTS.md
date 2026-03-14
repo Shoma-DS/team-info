@@ -12,6 +12,7 @@
 | `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
 | `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
 | `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
+| `/gdrive` | `.agent/skills/common/gdrive-copy/SKILL.md` |
 
 ## Skills
 A skill is a set of local instructions stored in a `SKILL.md` file.
