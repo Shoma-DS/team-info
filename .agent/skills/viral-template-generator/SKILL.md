@@ -1444,11 +1444,37 @@ node /Users/deguchishouma/team-info/Remotion/my-video/node_modules/typescript/bi
   --noEmit --project /Users/deguchishouma/team-info/Remotion/my-video/tsconfig.json
 ```
 
-### Step F-6: ユーザーへの報告
+### Step F-6: サムネ用スクショ生成（必須）
+
+**目的**: フック字幕が画面に出ているタイミングで1フレームをレンダリングし、サムネイル候補として保存する。
+
+**フレームの決め方**: `SUBTITLE_TIMELINE[0]` の中間フレームを使う。
+- 計算式: `Math.round((from + to) / 2)`
+- 例: フック `{ from: 0, to: 82 }` → フレーム 41
+
+**保存先**: `outputs/viral/サムネ/[タイトル]/hook_frame[N].png`
+
+```bash
+COMP_ID="[Composition id（日本語・ハイフン区切り）]"
+TITLE="[タイトル（アンダースコア区切り）]"
+FRAME=[SUBTITLE_TIMELINE[0].from と .to の中間値]
+
+cd /Users/deguchishouma/team-info/Remotion/my-video && \
+  /Users/deguchishouma/.nvm/versions/node/v22.17.1/bin/npx remotion still \
+  "$COMP_ID" \
+  "/Users/deguchishouma/team-info/outputs/viral/サムネ/$TITLE/hook_frame${FRAME}.png" \
+  --frame=$FRAME
+```
+
+- 複数フレームを確認したい場合は `--frame` の値を変えて追加生成してよい
+- フック字幕が出るタイミングを狙うため、`from` より少し後（+5〜10f）で取るとアニメーションが落ち着いた状態になる
+
+### Step F-7: ユーザーへの報告
 
 以下を報告する:
 - 生成ファイル一覧
 - 字幕セグメント数・フック情報・素材数
+- サムネ保存先パス
 
 次に **Phase G（ジェットカット）** を実行する。
 

@@ -25,10 +25,14 @@ import { SUBTITLE_TIMELINE } from "../generated/gachiNuida20260313Subtitles";
 const TITLE = "ガチで脱いだ女性芸能人3選_20260313";
 const TEXT_COLOR = "#ffffff";
 const STROKE_COLOR = "#000000";
-const TEXT_SHADOW = "0 4px 0 rgba(0,0,0,0.85), 0 8px 20px rgba(0,0,0,0.65)";
+// 二重枠: テキストを2レイヤー重ねて WebkitTextStroke で白外枠・黒内枠を描く（角が滑らか）
+// 外枠層: WebkitTextStroke "20px #fff" → 約10px が外側に張り出す白リング
+// 内枠層: WebkitTextStroke "6px #000" → 約3px の黒リングで白と文字の境界を締める
+const OUTER_STROKE = "20px";
+const OUTER_STROKE_COLOR = "#ffffff";
+const DROP_SHADOW = "0 4px 0 rgba(0,0,0,0.85), 0 8px 20px rgba(0,0,0,0.65)";
 
-// 字幕スタイル（参考画像: 大谷翔平とヤリたがってた女性芸能人3選 に合わせて更新）
-// 白文字 / 黒枠 / 半透明黒影 / 背景ボックスなし / Y=52%
+// 字幕スタイル: 白文字 / 黒内枠 / 白外枠（2レイヤー重ね）/ 背景ボックスなし
 const SUBTITLE_STYLE = {
   yPercent: 55,
   fontSize: 140,
@@ -38,9 +42,8 @@ const SUBTITLE_STYLE = {
   paddingH: 0,
   paddingV: 0,
   borderRadius: 0,
-  strokeWidth: "2.5px",
+  strokeWidth: "1.5px",
   strokeColor: STROKE_COLOR,
-  textShadow: TEXT_SHADOW,
   fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 };
 
@@ -168,28 +171,42 @@ const SubtitleTrack: React.FC = () => {
           }}
         >
           {lines.map((line, index) => {
-            const useBox = !isNameCard && line.trim() !== "";
+            const fs = isNameCard ? 170 : SUBTITLE_STYLE.fontSize;
+            const outerStroke = isNameCard ? "22px" : OUTER_STROKE;
+            const sharedStyle = {
+              fontFamily: SUBTITLE_STYLE.fontFamily,
+              fontSize: fs,
+              fontWeight: SUBTITLE_STYLE.fontWeight,
+              lineHeight: 1.1,
+              whiteSpace: "pre-wrap" as const,
+            };
             return (
               <div
                 key={`${entry.from}-${index}-${line}`}
-                style={{
-                  fontFamily: SUBTITLE_STYLE.fontFamily,
-                  fontSize: isNameCard ? 170 : SUBTITLE_STYLE.fontSize,
-                  fontWeight: SUBTITLE_STYLE.fontWeight,
-                  color: lineColors[index] ?? SUBTITLE_STYLE.color,
-                  lineHeight: 0.96,
-                  whiteSpace: "pre-wrap",
-                  background: useBox ? SUBTITLE_STYLE.background : "transparent",
-                  padding: useBox
-                    ? `${SUBTITLE_STYLE.paddingV}px ${SUBTITLE_STYLE.paddingH}px`
-                    : "0",
-                  borderRadius: useBox ? SUBTITLE_STYLE.borderRadius : 0,
-                  marginTop: index === 0 ? 0 : 2,
-                  WebkitTextStroke: `${SUBTITLE_STYLE.strokeWidth} ${SUBTITLE_STYLE.strokeColor}`,
-                  textShadow: SUBTITLE_STYLE.textShadow,
-                }}
+                style={{ position: "relative", marginTop: index === 0 ? 0 : 12 }}
               >
-                {line}
+                {/* 外枠レイヤー: 白い太いストローク + ドロップシャドウ */}
+                <div style={{
+                  ...sharedStyle,
+                  color: OUTER_STROKE_COLOR,
+                  WebkitTextStroke: `${outerStroke} ${OUTER_STROKE_COLOR}`,
+                  textShadow: DROP_SHADOW,
+                }}>
+                  {line}
+                </div>
+                {/* 内枠レイヤー: 黒ストローク + 文字色（絶対配置で重ねる） */}
+                <div style={{
+                  ...sharedStyle,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  textAlign: "center",
+                  color: lineColors[index] ?? SUBTITLE_STYLE.color,
+                  WebkitTextStroke: `${SUBTITLE_STYLE.strokeWidth} ${SUBTITLE_STYLE.strokeColor}`,
+                }}>
+                  {line}
+                </div>
               </div>
             );
           })}
@@ -237,9 +254,9 @@ export const ViralVideo: React.FC = () => {
           durationFrames={hookOverlayEndFrames}
           fontFamily={VIRAL_ADULT_AFFILIATE_FONT_FAMILY}
           fontSize={160}
-          strokeWidth="3px"
+          strokeWidth="1.5px"
           strokeColor={STROKE_COLOR}
-          textShadow={TEXT_SHADOW}
+          textShadow={DROP_SHADOW}
           lineColors={HOOK_LINE_COLORS}
           paddingTop="65%"
         />

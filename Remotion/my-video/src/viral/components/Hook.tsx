@@ -25,11 +25,13 @@ interface HookProps {
   lineColors?: string[];
   /** 文字サイズを上書き（省略時は 120） */
   fontSize?: number;
-  /** 縁取り幅を上書き（省略時は 8px） */
+  /** 内枠（黒）の幅を上書き（省略時は "6px"） */
   strokeWidth?: string;
   /** 縁取り色を上書き（省略時は黒） */
   strokeColor?: string;
-  /** text-shadow を上書き */
+  /** 外枠（白）の幅を上書き（省略時は "20px"） */
+  outerStrokeWidth?: string;
+  /** ドロップシャドウを上書き */
   textShadow?: string;
   /** フック全体の上部余白（縦位置調整）。省略時は "18%" */
   paddingTop?: string;
@@ -45,8 +47,9 @@ export const Hook: React.FC<HookProps> = ({
   fontFamily,
   lineColors,
   fontSize = 120,
-  strokeWidth = "8px",
+  strokeWidth = "6px",
   strokeColor = "#000000",
+  outerStrokeWidth = "20px",
   textShadow,
   paddingTop = "18%",
 }) => {
@@ -114,24 +117,41 @@ export const Hook: React.FC<HookProps> = ({
           maxWidth: "82%",
         }}
       >
-        {lines.map((line, index) => (
-          <div
-            key={`${line}-${index}`}
-            style={{
-              fontFamily: resolvedFontFamily,
-              fontSize,
-              fontWeight: 900,
-              color: resolvedLineColors[index] ?? "#ffffff",
-              lineHeight: 1.1,
-              letterSpacing: "0.01em",
-              WebkitTextStroke: `${strokeWidth} ${strokeColor}`,
-              textShadow: resolvedTextShadow,
-              marginTop: index === 0 ? 0 : 4,
-            }}
-          >
-            {line}
-          </div>
-        ))}
+        {lines.map((line, index) => {
+          const sharedStyle = {
+            fontFamily: resolvedFontFamily,
+            fontSize,
+            fontWeight: 900 as const,
+            lineHeight: 1.1,
+            letterSpacing: "0.01em",
+          };
+          return (
+            <div key={`${line}-${index}`} style={{ position: "relative", marginTop: index === 0 ? 0 : 4 }}>
+              {/* 外枠レイヤー: 白い太いストローク + ドロップシャドウ */}
+              <div style={{
+                ...sharedStyle,
+                color: "#ffffff",
+                WebkitTextStroke: `${outerStrokeWidth} #ffffff`,
+                textShadow: resolvedTextShadow,
+              }}>
+                {line}
+              </div>
+              {/* 内枠レイヤー: 黒ストローク + 文字色 */}
+              <div style={{
+                ...sharedStyle,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                textAlign: "center",
+                color: resolvedLineColors[index] ?? "#ffffff",
+                WebkitTextStroke: `${strokeWidth} ${strokeColor}`,
+              }}>
+                {line}
+              </div>
+            </div>
+          );
+        })}
         {isQuestion && (
           <div
             style={{
