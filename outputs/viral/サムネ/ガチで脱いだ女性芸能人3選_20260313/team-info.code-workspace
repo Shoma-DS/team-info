@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../Downloads/k-font"
+		},
+		{
+			"path": "../../../../../Downloads/moz-3-anime-studio-1.0.0"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"composer.phar": "plaintext"
+		}
+	}
+}

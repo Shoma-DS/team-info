@@ -1013,74 +1013,75 @@ import { Audio, staticFile } from "remotion";
 
 ## Phase E: 素材収集
 
-**目的**: Wikipedia / Wikidata / Wikimedia Commons / Openverse から合法な CC 系ライセンス画像を自動取得し、取得できなかった分だけユーザーに手動配置を依頼し、最後に採用画像を一括でローカル補正する。
+**目的**: Bing 画像検索（`image_search_download.py`）で各人物の画像をダウンロードし、materials/ に配置する。最後に採用画像を一括でローカル補正する。
 
-### Step E-1: 自動取得（必ず最初に実行）
+### Step E-1: 人物ごとに画像を取得
 
-script.md の登場人物名（3名）を `--names` に渡して自動取得を実行する:
-
-```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
-  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/fetch_materials.py" \
-  --materials-dir "[materials/の絶対パス]" \
-  --names "人物1,人物2,人物3"
-```
-
-または script.md から自動抽出する場合:
+script.md の登場人物名ごとに以下を実行する（1人ずつ）:
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
-  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/fetch_materials.py" \
-  --materials-dir "[materials/の絶対パス]" \
-  --script "[script.mdの絶対パス]"
+"$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
+  "$TEAM_INFO_ROOT/scripts/image_search_download.py" \
+  "[人物名]" \
+  --count 5 \
+  --out "[materials/の絶対パス]/[人物名]"
 ```
 
-- `--candidates-per-person 10` で人物ごとの候補ダウンロード枚数を増やせる
-- Wikipedia 記事のメイン画像と Wikidata の P18 を優先取得する
-- Wikidata の Commons category / `haswbstatement:P180=Q...` 検索も使って候補を増やす
-- 同一人物のスロットでは別名・英語名・検索クエリを変えて重複を回避する
-- `materials/[人物名]/metadata.json` に取得元とライセンス情報を保存する
-- 取得できなかったスロットのみ「手動配置が必要」として出力される
+**例（3人の場合）:**
+```bash
+"$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
+  "$TEAM_INFO_ROOT/scripts/image_search_download.py" \
+  "橋本環奈" --count 5 \
+  --out "[materials/の絶対パス]/橋本環奈"
 
-### Step E-2: 失敗分のみユーザーに手動依頼
+"$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
+  "$TEAM_INFO_ROOT/scripts/image_search_download.py" \
+  "新垣結衣" --count 5 \
+  --out "[materials/の絶対パス]/新垣結衣"
 
-スクリプトの出力で **「手動配置が必要なスロット」** に列挙されたファイルだけを提示する:
+"$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
+  "$TEAM_INFO_ROOT/scripts/image_search_download.py" \
+  "石原さとみ" --count 5 \
+  --out "[materials/の絶対パス]/石原さとみ"
+```
+
+- ダウンロード結果は `materials/[人物名]/[人物名]_01.jpg` 〜 `_05.jpg` に保存される
+- キーワードに「インタビュー」「イベント」などを加えると絞り込みやすい（例: `"橋本環奈 インタビュー"`）
+- ⚠ Bing 経由の画像はライセンスが不明。個人・リサーチ用途で使用すること
+
+### Step E-2: スロットへの配置
+
+ダウンロードした画像の中からスロットに使う1枚を選び、`materials/` 直下に配置する:
 
 ```
-⚠ 手動配置が必要なスロット (N件):
-  02_s1_2.jpg  ← 「橋本環奈」の画像を手動で配置してください
-  ...
+materials/
+├── 00_hook.jpg      ← 人物1の画像をコピー or リネーム
+├── 01_opening.jpg   ← 人物1
+├── 02_s1_1.jpg      ← 人物1
+├── 02_s1_2.jpg      ← 人物1
+├── 02_s1_3.jpg      ← 人物1
+├── 03_s2_1.jpg      ← 人物2
+...
+├── 99_cta.jpg       ← CTA背景
+├── 橋本環奈/        ← ダウンロード候補（5枚）
+├── 新垣結衣/        ← ダウンロード候補（5枚）
+└── 石原さとみ/      ← ダウンロード候補（5枚）
 ```
 
-提示形式（失敗したスロットのみ）:
-```
-### [ファイル名] — [用途]
-- 推奨イメージ: [具体的な描写]
-- 検索キーワード(英語): "[keyword]"
-- 推奨サイト: Wikimedia Commons / Openverse / Pexels / Unsplash
+ユーザーに「画像をダウンロードしました。`materials/[人物名]/` の中から使いたい画像を選んでスロット名にリネームして `materials/` 直下に入れてください」と伝えて待つ。
+
+または Claude が自動で最初の1枚をスロットにコピーする（ユーザーが「自動で配置して」と言った場合）:
+
+```bash
+# 人物1（スロット 00_hook〜02_s1_3）に最初の画像を順番に割り当てる例
+cp "[materials/橋本環奈/橋本環奈_01.jpg]" "[materials/00_hook.jpg]"
+cp "[materials/橋本環奈/橋本環奈_02.jpg]" "[materials/01_opening.jpg]"
+# ...
 ```
 
 ### Step E-3: 素材確認
 
 ユーザーが「素材を入れました」または「自動取得完了」と伝えたら materials/ フォルダを確認する。不足があれば追加を依頼する。
-
-### Step E-4: 素材が揃った後に一括画質アップ
-
-手動配置も含めて `materials/` の採用画像が揃ったら、**最後に1回だけ** ローカル処理で一括補正する。
-この処理は無料・ローカル完結で、OpenCV ベースの拡大 + 軽いコントラスト補正 + シャープ化を行う。
-
-```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
-  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/upscale_materials.py" \
-  --materials-dir "[materials/の絶対パス]"
-```
-
-- デフォルトでは `materials/` 直下の採用画像スロットだけを処理する
-- 未検出スロットがあっても、フォルダ内に存在する採用画像だけを処理する
-- ただし、本来使うはずのスロットが欠けている可能性もあるため、実行前に materials/ の中身は確認する
-- 元画像は `materials/_upscale_backup/[timestamp]/` に退避される
-- 結果は `materials/upscale_report.json` に保存される
-- 追加で拡大率を抑えたい/強めたい場合は `--target-long-side` と `--max-scale` を調整する
 
 ---
 

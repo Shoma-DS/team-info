@@ -387,6 +387,62 @@ def search_openverse(query: str, limit: int = 10) -> list[CandidateImage]:
     return candidates
 
 
+# ─── Bing 画像検索フォールバック ─────────────────────────────────────────
+
+def _search_bing_images(query: str, need: int = 15) -> list[str]:
+    """
+    Playwright で Bing 画像検索し、画像 URL リストを返す。
+    Commons / Openverse で候補が不足した場合のフォールバック専用。
+    ⚠ Bing の画像は著作権が不明なため、ライセンス確認が必要。
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("  → playwright 未インストール。Bing フォールバックをスキップ。")
+        return []
+
+    urls: list[str] = []
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                user_agent=(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                ),
+                locale="ja-JP",
+            )
+            page = context.new_page()
+            search_url = (
+                "https://www.bing.com/images/search"
+                f"?q={urllib.parse.quote(query)}&form=HDRSC3&first=1"
+            )
+            page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
+            page.wait_for_timeout(2000)
+
+            import json as _json
+            for el in page.query_selector_all("a.iusc"):
+                if len(urls) >= need:
+                    break
+                try:
+                    m = el.get_attribute("m")
+                    if m:
+                        url = _json.loads(m).get("murl", "")
+                        if url.startswith("http"):
+                            ext = Path(urllib.parse.urlparse(url).path).suffix.lower()
+                            if ext not in NON_IMAGE_EXTENSIONS:
+                                urls.append(url)
+                except Exception:
+                    pass
+
+            browser.close()
+        print(f"  → Bing 検索: {len(urls)} 件のURLを取得")
+    except Exception as e:
+        print(f"  → Bing 検索に失敗: {e}")
+
+    return urls
+
+
 # ─── ダウンロード補助 ─────────────────────────────────────────────────────
 
 def is_image_url(url: str) -> bool:
@@ -606,6 +662,23 @@ def fetch_candidates_for_person(name: str, person_dir: Path, n_candidates: int =
             add_candidate(candidate)
             if len(candidate_pool) >= target_pool_size:
                 break
+
+    # ─── フォールバック: Bing 画像検索（Commons/Openverse で不足した場合）───
+    if len(candidate_pool) < n_candidates:
+        shortage = n_candidates - len(candidate_pool)
+        print(f"  → Commons/Openverse で {len(candidate_pool)}件のみ取得。Bing検索でフォールバック（不足: {shortage}枚）")
+        bing_urls = _search_bing_images(name, need=shortage * 3)
+        for url in bing_urls:
+            add_candidate(
+                CandidateImage(
+                    url=url,
+                    license="unknown (Bing fallback - 手動確認必要)",
+                    source="bing",
+                    title=name,
+                    query=name,
+                    source_url=url,
+                )
+            )
 
     source_counts: dict[str, int] = {}
     for candidate in candidate_pool:
