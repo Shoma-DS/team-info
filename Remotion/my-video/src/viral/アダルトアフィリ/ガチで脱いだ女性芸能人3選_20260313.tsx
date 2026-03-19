@@ -241,11 +241,11 @@ export const ViralVideo: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {/* 背景画像 */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="背景画像" durationInFrames={totalFrames}>
         <ImageSceneTrack />
       </Sequence>
       {/* フック演出（0〜3秒） */}
-      <Sequence from={0} durationInFrames={hookOverlayEndFrames}>
+      <Sequence name="フック テキスト" durationInFrames={hookOverlayEndFrames}>
         <Hook
           hookType="statement"
           text={hookText}
@@ -262,15 +262,15 @@ export const ViralVideo: React.FC = () => {
         />
       </Sequence>
       {/* パターンインタラプト */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="フラッシュ 演出" durationInFrames={totalFrames}>
         <FlashTrack />
       </Sequence>
       {/* 字幕 */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="字幕" durationInFrames={totalFrames}>
         <SubtitleTrack />
       </Sequence>
       {/* ナレーション（青山龍星 / VOICEVOX） */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="音声 ナレーション" durationInFrames={totalFrames}>
         <Audio src={staticFile(`viral/${TITLE}/audio/narration.wav`)} volume={1.0} />
       </Sequence>
     </AbsoluteFill>

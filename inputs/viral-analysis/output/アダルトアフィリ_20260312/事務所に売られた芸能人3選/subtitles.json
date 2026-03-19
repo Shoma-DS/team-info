@@ -1,0 +1,366 @@
+{
+  "fps": 30,
+  "total_duration_seconds": 54.0,
+  "total_frames": 1620,
+  "segments": [
+    {
+      "id": 1,
+      "section": "hook",
+      "from_time": 0.133,
+      "to_time": 1.8,
+      "from_frame": 4,
+      "to_frame": 54,
+      "text": "事務所に\n売られた\n芸能人\n3選"
+    },
+    {
+      "id": 2,
+      "section": "s1",
+      "from_time": 2.067,
+      "to_time": 4.2,
+      "from_frame": 62,
+      "to_frame": 126,
+      "text": "1.清水富美加"
+    },
+    {
+      "id": 3,
+      "section": "s1",
+      "from_time": 4.2,
+      "to_time": 5.2,
+      "from_frame": 126,
+      "to_frame": 156,
+      "text": "所属事務所から\n過密"
+    },
+    {
+      "id": 4,
+      "section": "s1",
+      "from_time": 5.2,
+      "to_time": 6.633,
+      "from_frame": 156,
+      "to_frame": 199,
+      "text": "スケジュールを\n強いられ続け"
+    },
+    {
+      "id": 5,
+      "section": "s1",
+      "from_time": 6.633,
+      "to_time": 7.867,
+      "from_frame": 199,
+      "to_frame": 236,
+      "text": "年間100本\n超えの仕事を"
+    },
+    {
+      "id": 6,
+      "section": "s1",
+      "from_time": 7.867,
+      "to_time": 8.967,
+      "from_frame": 236,
+      "to_frame": 269,
+      "text": "本人の意志とは\n無関係に"
+    },
+    {
+      "id": 7,
+      "section": "s1",
+      "from_time": 8.967,
+      "to_time": 10.633,
+      "from_frame": 269,
+      "to_frame": 319,
+      "text": "限界を超えた\n彼女は突如"
+    },
+    {
+      "id": 8,
+      "section": "s1",
+      "from_time": 10.633,
+      "to_time": 11.367,
+      "from_frame": 319,
+      "to_frame": 341,
+      "text": "引退を宣言"
+    },
+    {
+      "id": 9,
+      "section": "s1",
+      "from_time": 11.367,
+      "to_time": 14.733,
+      "from_frame": 341,
+      "to_frame": 442,
+      "text": "事務所との\n確執が世間を"
+    },
+    {
+      "id": 10,
+      "section": "s1",
+      "from_time": 14.733,
+      "to_time": 16.233,
+      "from_frame": 442,
+      "to_frame": 487,
+      "text": "震撼させた"
+    },
+    {
+      "id": 11,
+      "section": "s2",
+      "from_time": 16.467,
+      "to_time": 18.8,
+      "from_frame": 494,
+      "to_frame": 564,
+      "text": "2.能年玲奈"
+    },
+    {
+      "id": 12,
+      "section": "s2",
+      "from_time": 18.8,
+      "to_time": 20.867,
+      "from_frame": 564,
+      "to_frame": 626,
+      "text": "NHK朝ドラで\n国民的人気を"
+    },
+    {
+      "id": 13,
+      "section": "s2",
+      "from_time": 20.867,
+      "to_time": 21.5,
+      "from_frame": 626,
+      "to_frame": 645,
+      "text": "得た直後"
+    },
+    {
+      "id": 14,
+      "section": "s2",
+      "from_time": 21.5,
+      "to_time": 23.4,
+      "from_frame": 645,
+      "to_frame": 702,
+      "text": "事務所の意向で\n活動を徹底的に"
+    },
+    {
+      "id": 15,
+      "section": "s2",
+      "from_time": 23.4,
+      "to_time": 24.033,
+      "from_frame": 702,
+      "to_frame": 721,
+      "text": "制限された"
+    },
+    {
+      "id": 16,
+      "section": "s2",
+      "from_time": 24.033,
+      "to_time": 25.267,
+      "from_frame": 721,
+      "to_frame": 758,
+      "text": "本名すら\n使えなくなり"
+    },
+    {
+      "id": 17,
+      "section": "s2",
+      "from_time": 25.267,
+      "to_time": 26.467,
+      "from_frame": 758,
+      "to_frame": 794,
+      "text": "「のん」として\n再出発"
+    },
+    {
+      "id": 18,
+      "section": "s2",
+      "from_time": 26.467,
+      "to_time": 28.067,
+      "from_frame": 794,
+      "to_frame": 842,
+      "text": "業界の闇を\n全国に"
+    },
+    {
+      "id": 19,
+      "section": "s2",
+      "from_time": 28.067,
+      "to_time": 30.433,
+      "from_frame": 842,
+      "to_frame": 913,
+      "text": "知らしめた\n一件として今も"
+    },
+    {
+      "id": 20,
+      "section": "s2",
+      "from_time": 30.433,
+      "to_time": 32.033,
+      "from_frame": 913,
+      "to_frame": 961,
+      "text": "語り継がれて\nいる"
+    },
+    {
+      "id": 21,
+      "section": "s3",
+      "from_time": 32.3,
+      "to_time": 34.067,
+      "from_frame": 969,
+      "to_frame": 1022,
+      "text": "3.飯島直子"
+    },
+    {
+      "id": 22,
+      "section": "s3",
+      "from_time": 34.067,
+      "to_time": 35.033,
+      "from_frame": 1022,
+      "to_frame": 1051,
+      "text": "デビュー当初\nから過激な"
+    },
+    {
+      "id": 23,
+      "section": "s3",
+      "from_time": 35.033,
+      "to_time": 36.067,
+      "from_frame": 1051,
+      "to_frame": 1082,
+      "text": "グラビアを\n量産させられた"
+    },
+    {
+      "id": 24,
+      "section": "s3",
+      "from_time": 36.067,
+      "to_time": 37.5,
+      "from_frame": 1082,
+      "to_frame": 1125,
+      "text": "「やりたく\nなかった」と"
+    },
+    {
+      "id": 25,
+      "section": "s3",
+      "from_time": 37.5,
+      "to_time": 38.033,
+      "from_frame": 1125,
+      "to_frame": 1141,
+      "text": "後年告白"
+    },
+    {
+      "id": 26,
+      "section": "s3",
+      "from_time": 38.033,
+      "to_time": 40.3,
+      "from_frame": 1141,
+      "to_frame": 1209,
+      "text": "それでも\n生き残るために"
+    },
+    {
+      "id": 27,
+      "section": "s3",
+      "from_time": 40.3,
+      "to_time": 41.967,
+      "from_frame": 1209,
+      "to_frame": 1259,
+      "text": "従うしか\nなかった"
+    },
+    {
+      "id": 28,
+      "section": "s3",
+      "from_time": 41.967,
+      "to_time": 45.767,
+      "from_frame": 1259,
+      "to_frame": 1373,
+      "text": "芸能界の現実が\nそこにあった"
+    },
+    {
+      "id": 29,
+      "section": "cta",
+      "from_time": 45.967,
+      "to_time": 48.133,
+      "from_frame": 1379,
+      "to_frame": 1444,
+      "text": "以上、\n事務所に"
+    },
+    {
+      "id": 30,
+      "section": "cta",
+      "from_time": 48.133,
+      "to_time": 48.867,
+      "from_frame": 1444,
+      "to_frame": 1466,
+      "text": "売られた\n芸能人3選"
+    },
+    {
+      "id": 31,
+      "section": "cta",
+      "from_time": 48.867,
+      "to_time": 51.0,
+      "from_frame": 1466,
+      "to_frame": 1530,
+      "text": "フォローして\nチェックして"
+    },
+    {
+      "id": 32,
+      "section": "cta",
+      "from_time": 51.0,
+      "to_time": 51.667,
+      "from_frame": 1530,
+      "to_frame": 1550,
+      "text": "みてください"
+    }
+  ],
+  "audio_sync": {
+    "synced_at": "2026-03-16 08:37:36",
+    "narration_duration_seconds": 51.765,
+    "sections": [
+      {
+        "section": "hook",
+        "audio_file": "00_hook.wav",
+        "clip_start": 0.0,
+        "clip_end": 1.92,
+        "speech_start": 0.12,
+        "speech_end": 1.8,
+        "duration": 1.92,
+        "leading_silence": 0.12,
+        "trailing_silence": 0.11999999999999988,
+        "peak_rms": 5414.519280370142,
+        "threshold_rms": 433.16154242961136
+      },
+      {
+        "section": "s1",
+        "audio_file": "02_s1.wav",
+        "clip_start": 1.92,
+        "clip_end": 16.330666666666666,
+        "speech_start": 2.06,
+        "speech_end": 16.23,
+        "duration": 14.410666666666666,
+        "leading_silence": 0.14,
+        "trailing_silence": 0.10066666666666535,
+        "peak_rms": 6091.837049486797,
+        "threshold_rms": 487.3469639589438
+      },
+      {
+        "section": "s2",
+        "audio_file": "03_s2.wav",
+        "clip_start": 16.330666666666666,
+        "clip_end": 32.17066666666666,
+        "speech_start": 16.480666666666664,
+        "speech_end": 32.02066666666666,
+        "duration": 15.84,
+        "leading_silence": 0.15,
+        "trailing_silence": 0.15000000000000036,
+        "peak_rms": 6228.757127228513,
+        "threshold_rms": 498.3005701782811
+      },
+      {
+        "section": "s3",
+        "audio_file": "04_s3.wav",
+        "clip_start": 32.17066666666666,
+        "clip_end": 45.88799999999999,
+        "speech_start": 32.29066666666666,
+        "speech_end": 45.77066666666666,
+        "duration": 13.717333333333332,
+        "leading_silence": 0.12,
+        "trailing_silence": 0.11733333333333285,
+        "peak_rms": 5606.652998893368,
+        "threshold_rms": 448.53223991146945
+      },
+      {
+        "section": "cta",
+        "audio_file": "05_cta.wav",
+        "clip_start": 45.88799999999999,
+        "clip_end": 51.765333333333324,
+        "speech_start": 45.977999999999994,
+        "speech_end": 51.66799999999999,
+        "duration": 5.8773333333333335,
+        "leading_silence": 0.09,
+        "trailing_silence": 0.09733333333333327,
+        "peak_rms": 5181.928156262557,
+        "threshold_rms": 414.5542525010046
+      }
+    ]
+  }
+}

@@ -829,6 +829,7 @@ Claude が以下の観点で script.md を読んでレビューする:
 | 固有名詞 | 人名・地名・作品名が正しく読まれているか | - |
 
 誤変換を発見した場合は、まず辞書に登録し、そのうえで `script_hiragana.md` を再生成する。必要なら最終調整として `script_hiragana.md` を直接編集して修正する。
+**重要**: VOICEVOX 用の本文では、日本語の単語間に半角スペースを入れない。空白が残っていると発話が途切れ途切れになりやすい。
 修正後「ひらがな台本の確認が完了しました」と報告する。
 
 ---
@@ -842,23 +843,41 @@ Claude が以下の観点で script.md を読んでレビューする:
 - 1セグメントあたり平均X文字・Y秒を参考値とする
 - セクション境界（フック終わり、本編切り替え）でセグメントを分割する
 
-#### Step D-4-0: 字幕の行数制限（必須）
+#### Step D-4-0: 字幕カード整形（必須）
 
-subtitles.json 生成後、必ず `split_subtitles.py` で **2行以内** に収める:
+subtitles.json 生成後、必ず `split_subtitles.py` で **参照例と同じ短い字幕カード** に整形する:
 
 ```bash
 "$TEAM_INFO_ROOT/Remotion/.venv/bin/python3.11" \
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/split_subtitles.py" \
   --input "[subtitles.jsonの絶対パス]" \
-  --mode newline
+  --mode card
 ```
 
-- 13文字以内 → そのまま
-- 14文字以上 → **GiNZA で文/文節区切り** → 改行を入れる
-- フック以外で3行以上になる場合 → **2行以内で次の字幕セグメントへ持ち越す**
-- split モードは各行を独立した時間セグメントにする
+- hook は `ガチで / 脱いだ / 女性芸能人 / 3選` のように **3〜4行の短句** にする
+- 名前カードは必ず `1.人物名` 形式に変換する。`1人目は人物名` のまま残してはいけない
+- 本編と CTA は **1〜2行の短いフレーズカード** にし、1行あたり **4〜7文字前後** を目安にする
+- 3行以上になりそうな場合は、次の字幕カードへ持ち越す
+- 固有名詞・作品名は 1 カード内に収め、途中で分断しない
 
-#### Step D-4-0.5: 固有名詞ルール（必須）
+#### Step D-4-0.5: 改行レビュー（必須）
+
+`split_subtitles.py --mode card` 実行後、必ず参照例を見て改行をレビューする。
+
+**参照元**:
+- `"$TEAM_INFO_ROOT/Remotion/my-video/src/viral/generated/gachiNuida20260313Subtitles.ts"`
+- `"$TEAM_INFO_ROOT/Remotion/my-video/src/viral/アダルトアフィリ/ガチで脱いだ女性芸能人3選_20260313.tsx"`
+
+**レビュー観点**:
+- hook: 長文1枚ではなく、短い語句を積んだ 3〜4 行
+- 名前カード: `1.人物名` / `2.人物名` / `3.人物名`
+- 本編: 1カードごとの情報量を詰め込みすぎず、短い句を高速に送る
+- CTA: `以上、` の後も短いカードへ分ける
+- 固有名詞: 人名・作品名・肩書きがカード跨ぎで割れない
+
+自動整形で不足があれば、**Phase D のうちに `subtitles.json` を手動修正してから Phase D-4 以降へ進む。**
+
+#### Step D-4-1: 固有名詞ルール（必須）
 
 **人名・映画名・作品名などの固有名詞は、必ず1エントリ（1画面）に収める。**
 複数エントリに分割してはならない。
@@ -993,7 +1012,7 @@ remotion/public/audio/
 import { Audio, staticFile } from "remotion";
 
 // ViralVideo コンポーネント内に追加
-<Sequence from={0} durationInFrames={totalFrames}>
+<Sequence name="音声 ナレーション" from={0} durationInFrames={totalFrames}>
   <Audio src={staticFile("audio/narration.wav")} volume={1.0} />
 </Sequence>
 ```
@@ -1107,6 +1126,7 @@ Remotion/my-video/
 - `map(...<Sequence>...)` で非重複な同種素材を並べるテンプレートは生成しない。
 - 「1本の `<Sequence>` + タイムライン配列 + 現在フレームでアクティブ素材を選ぶ」構造を優先する。
 - 複数 `<Sequence>` を出力してよいのは、クロスフェードや同時表示など時間重複が必要な場合だけ。
+- 生成する **すべての `<Sequence>` に `name` を付ける。** 例: `背景画像`, `フック テキスト`, `フラッシュ 演出`, `字幕`, `音声 ナレーション`, `BGM`, `効果音`.
 
 ### Step F-1: 素材一覧を確認・public/viral/ に配置
 
@@ -1159,7 +1179,7 @@ staticFile("viral/[タイトル]/audio/sfx/whoosh.wav")
 - `SCENE_TIMELINE` 配列を定義（`{ from, to, src, motionType?, motionIntensity?, motionProfile?, originX?, originY? }[]`）
 - `FADE_FRAMES = 12`（0.4秒 @ 30fps）でシーン間クロスフェード
 - `SceneImage` コンポーネントで1エントリを描画し、`ImageSceneTrack` でフェードを制御する
-- 1本の `<Sequence from={0}>` + `ImageSceneTrack` で統合する
+- 1本の `<Sequence name="背景画像" from={0}>` + `ImageSceneTrack` で統合する
 
 ```typescript
 const FADE_FRAMES = 12;
@@ -1283,12 +1303,14 @@ const ImageSceneTrack: React.FC = () => {
 **字幕トラック（行ごと色設定・名前カード対応・必須）:**
 
 - `subtitles.json` の segments を `SUBTITLE_TIMELINE` 配列として定義（`\n` 折り返し済みのテキストをそのまま使う）
+- `SUBTITLE_TIMELINE` は `split_subtitles.py --mode card` 実行後の **短いカード字幕** をそのまま使う
 - 長い動画では `src/viral/generated/[タイトル]Subtitles.ts` に分離して import してもよい
-- 1本の `<Sequence from={0}>` + `SubtitleTrack` コンポーネントで統合
+- 1本の `<Sequence name="字幕" from={0}>` + `SubtitleTrack` コンポーネントで統合
 - **冒頭フック期間は必ず `return null`（二重表示防止）**: `SubtitleTrack` 先頭で `if (frame < hookOverlayEndFrames) return null;`
 - **行ごとに `<div>` を分けて個別に色を設定する**（`<span>` 1つで完結しない）
 - **名前カードルール（必須）**: `/^[1-3]\./.test(text.trim())` で検出し、色を `#FFE400`（鮮黄色）・フォントサイズを170px（通常字幕より大きく）にする
 - **名前カードの形式（必須）**: `"1.人物名"` — 「N人目は」形式ではなく `N.名前` 形式で統一する
+- **禁止**: `1人目は人物名` のまま描画する、またはランタイムで自動改行して参照例のカード構造を崩す
 
 ```typescript
 const NAME_COLOR = "#FFE400";
@@ -1325,11 +1347,11 @@ const getLineColors = (text: string, from: number): string[] => {
 **音声トラック:**
 ```typescript
 // BGM（ループ）
-<Sequence from={0} durationInFrames={totalFrames}>
+<Sequence name="BGM" from={0} durationInFrames={totalFrames}>
   <Audio src={staticFile("viral/[タイトル]/audio/bgm_generated.wav")} volume={0.18} loop />
 </Sequence>
 // ナレーション
-<Sequence from={0} durationInFrames={totalFrames}>
+<Sequence name="音声 ナレーション" from={0} durationInFrames={totalFrames}>
   <Audio src={staticFile("viral/[タイトル]/audio/narration.wav")} volume={1.0} />
 </Sequence>
 // SFX（セクション境界タイミング）
@@ -1340,7 +1362,7 @@ const SFX_EVENTS = [
 ```
 
 **フック演出:**
-- `<Sequence from={0} durationInFrames={hookOverlayEndFrames}>` + `<Hook>` コンポーネント
+- `<Sequence name="フック テキスト" from={0} durationInFrames={hookOverlayEndFrames}>` + `<Hook>` コンポーネント
 - `hookOverlayEndFrames = Math.max(Math.round(3 * fps), SUBTITLE_TIMELINE[0]?.to ?? Math.round(3 * fps))` — 字幕の最初のエントリが3秒以上の場合に合わせて延長する
 - Hook の text は SUBTITLE_TIMELINE[0]?.text をそのまま渡す（手動改行を尊重するため自動分割は不要）
 - Hook コンポーネントへの必須 props:
@@ -1401,7 +1423,7 @@ const HOOK_LINE_COLORS = ["#f4d56f", "#f4a898", "#f0c8d8", "#ffffff"];
 
 **パターンインタラプト:**
 - `INTERRUPT_FRAMES` 配列を定義
-- 1本の `<Sequence from={0}>` + `FlashTrack` コンポーネントで統合
+- 1本の `<Sequence name="フラッシュ 演出" from={0}>` + `FlashTrack` コンポーネントで統合
 
 **durationInFrames:** `Math.ceil(total_duration_seconds * fps)`
 
@@ -1477,7 +1499,7 @@ cd /Users/deguchishouma/team-info/Remotion/my-video && \
 - 字幕セグメント数・フック情報・素材数
 - サムネ保存先パス
 
-次に **Phase G（ジェットカット）** を実行する。
+**Phase G（ジェットカット）を自動で続けて実行する。ユーザーに確認せず即実行すること。**
 
 ---
 
@@ -1486,19 +1508,34 @@ cd /Users/deguchishouma/team-info/Remotion/my-video && \
 **目的**: narration.wav の無音期間を librosa で検出し、セグメント間の長い無音を食い気味（約 0.08s）に短縮する。
 音声・字幕・画像シーン・SFX の全タイムラインを連動して更新する。
 
-### Step G-1: ジェットカット実行
+**このフェーズは Phase F の直後に自動実行する。ユーザーへの確認は不要。**
+
+### Step G-1: dry-run → 本番の2ステップで自動実行
+
+**Step 1: dry-run を実行して結果を確認する**
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
   "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/jet_cut.py" \
   --audio  "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio/narration.wav" \
-  --tsx    "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/ViralVideo_[タイトル].tsx" \
-  [--min-silence 0.20] \
-  [--keep-silence 0.08] \
-  [--top-db 40]
+  --tsx    "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/[テンプレ名]/[タイトル]_YYYYMMDD.tsx" \
+  --dry-run
 ```
 
-**パラメータ説明:**
+dry-run の出力に応じて分岐する:
+- **「カット対象の無音なし」** → ジェットカット不要。「ジェットカット: カット対象なし（スキップ）」と報告して Step G-3 へ
+- **短縮効果あり（例: 53.9s → 51.2s）** → Step 2 へ進む
+
+**Step 2: 本番実行（カット対象ありの場合のみ）**
+
+```bash
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/jet_cut.py" \
+  --audio  "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio/narration.wav" \
+  --tsx    "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/[テンプレ名]/[タイトル]_YYYYMMDD.tsx"
+```
+
+**パラメータ説明（デフォルトで十分。必要なときのみ調整）:**
 
 | オプション | デフォルト | 説明 |
 |---|---|---|
@@ -1507,8 +1544,6 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 | `--top-db` | `40` | 無音判定の dB 閾値。大きいほど厳しく検出 |
 | `--dry-run` | — | ファイルを変更せず切りどころだけ確認 |
 
-**まず `--dry-run` で確認してから本番実行することを推奨。**
-
 ### Step G-2: 更新されるファイル
 
 スクリプトが自動的に以下を更新する（元ファイルは `.before_jetcut.*` でバックアップ）:
@@ -1516,11 +1551,115 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 | ファイル | 更新内容 |
 |---|---|
 | `narration_jetcut.wav` | 無音短縮済み音声（新規生成） |
-| `generated/[xxx]Subtitles.ts` | `SUBTITLE_TIMELINE` の from/to フレーム番号を再計算 |
-| `ViralVideo_[タイトル].tsx` | `SCENE_TIMELINE` / `INTERRUPT_FRAMES` / `SFX_EVENTS.from` / `totalFrames` / audio src を再計算 |
+| `generated/[タイトル].ts` | `SUBTITLE_TIMELINE` の from/to フレーム番号を再計算 |
+| `src/viral/[テンプレ名]/[タイトル]_YYYYMMDD.tsx` | `SCENE_TIMELINE` / `INTERRUPT_FRAMES` / `SFX_EVENTS.from` / `totalFrames` / audio src を再計算 |
 | `Remotion/my-video/src/Root.tsx` | 対象 Composition の `durationInFrames` を最新尺へ同期 |
 
-### Step G-3: lint 確認 & プレビュー
+### Step G-3: 音声タイミング同期（Forced Alignment）
+
+jet_cut 後の SUBTITLE_TIMELINE は、セクション内の字幕タイミングが文字数比例で配分されており、
+実際の発話タイミングとズレが生じやすい。faster-whisper の word_timestamps を使って修正する。
+
+#### Step G-3-1: dry-run で確認
+
+```bash
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/align_subtitles_to_audio.py" \
+  --audio  "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio/narration.wav" \
+  --ts     "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/generated/[タイトル].ts" \
+  --dry-run
+```
+
+#### Step G-3-2: 実行（問題なければ）
+
+```bash
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
+  "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/align_subtitles_to_audio.py" \
+  --audio  "$TEAM_INFO_ROOT/Remotion/my-video/public/viral/[タイトル]/audio/narration.wav" \
+  --ts     "$TEAM_INFO_ROOT/Remotion/my-video/src/viral/generated/[タイトル].ts"
+```
+
+**パラメータ説明:**
+
+| オプション | デフォルト | 説明 |
+|---|---|---|
+| `--model` | `small` | Whisperモデルサイズ。`tiny`（高速）〜`medium`（高精度） |
+| `--min-frames` | `30` | 字幕の最小表示フレーム数（30=1秒） |
+| `--search-window` | `3.0` | expected位置から探索する範囲（秒）|
+| `--dry-run` | — | 書き込みなし・差分表示のみ |
+
+**更新されるファイル:**
+| ファイル | 更新内容 |
+|---|---|
+| `generated/[タイトル].ts` | SUBTITLE_TIMELINE の from/to フレームを発話実測値に修正 |
+| `generated/[タイトル].ts.before_align` | バックアップ（自動生成） |
+
+---
+
+### Step G-4: 字幕構造チェック & 修正（必須）
+
+jet_cut + forced alignment の後、以下の3つを必ずチェックし問題があれば手動で修正する。
+
+#### チェック1: 短すぎる字幕セグメントの検出・境界調整
+
+`SUBTITLE_TIMELINE` の全エントリを確認し、`(to - from) < 30` フレーム（1秒未満）のものを修正する。
+
+**対処方針（テキストを結合してはいけない）:**
+- 短いセグメントは「隣接セグメントとの境界をずらす」方法で30フレーム以上に拡張する
+- 直前のセグメントを数フレーム短縮してその分を短いセグメントに回す（または次のセグメントの開始を後ろにずらす）
+- テキストの結合・マージは禁止。字幕は細かく1行〜2行を維持する
+- 名前カード（`/^[1-3]\./` パターン）は単独で保持し変更しない
+
+**例:**
+```typescript
+// NG: テキストを結合する
+{ from: 564, to: 645, text: "NHK朝ドラで\n国民的人気を得た直後" }  // 長すぎ
+
+// OK: 境界をずらして両方を30フレーム以上に保つ
+{ from: 564, to: 615, text: "NHK朝ドラで\n国民的人気を" }  // 51f
+{ from: 615, to: 645, text: "得た直後" }                    // 30f
+```
+
+#### チェック2: SCENE_TIMELINE のセクション境界ズレ修正（jet_cut 後に必須）
+
+jet_cut は `SUBTITLE_TIMELINE` のフレーム番号を更新するが、`SCENE_TIMELINE` のセクション境界は自動更新しない。
+名前カードの `from` フレームと背景画像の切り替えタイミングを一致させる。
+
+**修正対象の特定:**
+1. `SUBTITLE_TIMELINE` から名前カード（`/^[1-3]\./`）の `from` フレームを取得
+2. `SCENE_TIMELINE` の各セクション先頭フレームと比較
+3. ズレがあれば SCENE_TIMELINE のセクション境界と各画像範囲を再計算する
+
+**修正方法:**
+- 各セクション（s1/s2/s3）の範囲 = [名前カードの `from`] 〜 [次の名前カードの `from` - 1]
+- CTA の範囲 = [CTAセクション最初の字幕 `from`] 〜 [totalFrames]
+- hook の範囲 = 0 〜 [s1 名前カードの `from`]
+- セクション内の画像数で等分する（元のモーションタイプを維持）
+
+**`INTERRUPT_FRAMES` も同期する:**
+```typescript
+// 名前カードの from フレームと一致させる
+const INTERRUPT_FRAMES: number[] = [s1開始フレーム, s2開始フレーム, s3開始フレーム];
+```
+
+#### チェック3: hookOverlayEndFrames の設定確認
+
+`hookOverlayEndFrames` が `SUBTITLE_TIMELINE[0]?.to` より大きい場合、s1の名前カードが SubtitleTrack に表示されない。
+
+**正しい設定（hook字幕の `to` フレームをそのまま使う）:**
+```typescript
+const hookOverlayEndFrames = SUBTITLE_TIMELINE[0]?.to ?? Math.round(3 * fps);
+```
+
+**禁止パターン（3秒固定との max 比較は使わない）:**
+```typescript
+// NG: Math.max(90, 54) = 90 となり、62フレームの名前カードが隠れる
+const hookOverlayEndFrames = Math.max(Math.round(3 * fps), SUBTITLE_TIMELINE[0]?.to ?? ...);
+```
+
+---
+
+### Step G-5: lint 確認 & プレビュー
 
 ```bash
 node /Users/deguchishouma/team-info/Remotion/my-video/node_modules/typescript/bin/tsc \

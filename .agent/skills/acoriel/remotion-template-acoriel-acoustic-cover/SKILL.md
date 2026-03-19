@@ -135,6 +135,7 @@ ls -lh "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/channels/acoriel/songs/<
 - `map(...<Sequence>...)` で同種素材を増やさず、タイムライン配列と現在フレームからアクティブ素材を選んで描画・再生する。
 - `MultiBG` は事前合成した `bg_prerendered*.mp4` を優先し、Remotion上の背景動画レイヤーを実質1本に保つ。
 - 複数 `<Sequence>` を分けるのは、クロスディゾルブや同時表示など、同種素材の時間重複が本当に必要な場合だけに限定する。
+- 生成・更新する **すべての `<Sequence>` に `name` を付ける。** 例: `背景画像`, `背景動画`, `歌詞字幕`, `補助字幕`, `効果音`, `音声`。
 
 ### LRC解決ルール（必須）
 - 歌詞TXTを選択した場合は、以下の順で `lyrics.lrc` を確定する:
@@ -374,6 +375,7 @@ Phase 4: 確認・レンダリング
 5. `AcoRielLyricCover.tsx` が props（`songFolder` など）でアセットパスを切り替えられる構造になっているか確認し、必要なら対応する。
    - 歌詞字幕や補助字幕は `Sequence` 1本の中で行選択する。
    - 背景切替をRemotion内で行う場合も、背景種別ごとに `Sequence` 1本で管理する。
+   - 各 `Sequence` には `name` を付け、Studio 上で役割が判別できるようにする。
 6. `Root.tsx` に今回の曲のCompositionを**追記**する（既存Compositionは削除しない）。
    - Composition ID は **ハイフン区切り**で命名する（アンダースコア禁止）
    - `LyricCover` の場合: `AcoRiel-[曲名]-Lyric`（例: `AcoRiel-TomorrowNeverKnows-Lyric`）

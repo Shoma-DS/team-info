@@ -1,11 +1,16 @@
 import { Composition, Folder } from "remotion";
-import { SleepTravelLong } from "./SleepTravelLong";
 import { AcoRielLyricCover } from "./AcoRielLyricCover";
 import { CanvaSlideshow } from "./CanvaSlideshow";
+import { SleepTravelLong } from "./SleepTravelLong";
 import chiseigakuSlides from "../public/assets/slide_images/地政学/manifest.json";
 import { ViralVideo as ViralVideoGachi } from "./viral/アダルトアフィリ/ガチで脱いだ女性芸能人3選_20260313";
-
-// Each <Composition> is an entry in the sidebar!
+import { ViralVideoJimusho } from "./viral/アダルトアフィリ/事務所に売られた芸能人3選_20260316";
+import {
+  EditableViralVideo,
+  viralStudioEditorSchema,
+} from "./viral/editor/EditableViralVideo";
+import { ViralClipEditor } from "./viral/editor/ViralClipEditor";
+import { viralEditorPresets } from "./viral/editor/presets";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -30,7 +35,7 @@ export const RemotionRoot: React.FC = () => {
           width={1920}
           height={1080}
           defaultProps={{
-            audioSrc: 'assets/slide_images/地政学/audio.mp3',
+            audioSrc: "assets/slide_images/地政学/audio.mp3",
             slides: chiseigakuSlides,
           }}
         />
@@ -45,10 +50,10 @@ export const RemotionRoot: React.FC = () => {
           width={1920}
           height={1080}
           defaultProps={{
-            songFolder: 'songs/Tomorrow_never_knows',
-            songTitle: 'Tomorrow never knows',
-            songArtist: 'Mr.Children',
-            audioAssetPath: 'assets/channels/acoriel/songs/Tomorrow_never_knows.mp3',
+            songFolder: "songs/Tomorrow_never_knows",
+            songTitle: "Tomorrow never knows",
+            songArtist: "Mr.Children",
+            audioAssetPath: "assets/channels/acoriel/songs/Tomorrow_never_knows.mp3",
           }}
         />
       </Folder>
@@ -63,9 +68,48 @@ export const RemotionRoot: React.FC = () => {
             width={1080}
             height={1920}
           />
+          <Composition
+            id="事務所に売られた芸能人3選-20260316"
+            component={ViralVideoJimusho}
+            durationInFrames={1550}
+            fps={30}
+            width={1080}
+            height={1920}
+          />
+        </Folder>
+
+        <Folder name="Studio-Editor">
+          {viralEditorPresets.map((preset) => {
+            return (
+              <Composition
+                key={preset.id}
+                id={`${preset.id}-GUI`}
+                component={EditableViralVideo}
+                schema={viralStudioEditorSchema}
+                durationInFrames={preset.durationInFrames}
+                fps={preset.fps}
+                width={preset.width}
+                height={preset.height}
+                defaultProps={preset.props}
+              />
+            );
+          })}
+        </Folder>
+
+        <Folder name="Clip-Editor">
+          <Composition
+            id="Viral-Clip-Editor"
+            component={ViralClipEditor}
+            durationInFrames={1}
+            fps={30}
+            width={1920}
+            height={1080}
+            defaultProps={{
+              initialPresetId: viralEditorPresets[0].id,
+            }}
+          />
         </Folder>
       </Folder>
-
     </>
   );
 };

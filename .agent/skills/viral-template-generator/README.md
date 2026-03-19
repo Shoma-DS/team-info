@@ -101,6 +101,10 @@ Claude Code に以下を伝える:
 Claude が `analysis.json` を読み、`/absolute/path/to/output/remotion/` にカスタマイズされたテンプレートを生成する。
 このとき字幕は `subtitle_style_template.json` を優先し、`analysis.json.subtitle_visual` は補助値として使う。
 
+字幕は最終的に `split_subtitles.py --mode card` で短いフレーズカードへ整形し、
+`1.人物名` 形式の名前カードと、3〜4行 hook を維持する。
+VOICEVOX 用の `script_hiragana.md` には、日本語単語間の空白を残さない。
+
 ### Step 4: プレビュー・レンダリング
 
 ```bash

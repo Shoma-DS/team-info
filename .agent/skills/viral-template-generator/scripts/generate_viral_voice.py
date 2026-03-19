@@ -138,7 +138,7 @@ def synthesize(
         f"{VOICEVOX_BASE}/synthesis",
         params={"speaker": speaker_id},
         json=query,
-        timeout=60,
+        timeout=180,
     )
     synth_resp.raise_for_status()
     return synth_resp.content
@@ -197,7 +197,7 @@ def render_sections(
         duration = get_wav_duration(wav_data)
         rendered_sections.append(
             {
-                "slot": f"{i:02d}_{sec['key']}",
+                "slot": SECTION_OUTPUT_SLOTS.get(sec["key"], f"{i:02d}_{sec['key']}"),
                 "text": sec["text"],
                 "wav_data": wav_data,
                 "duration": duration,
@@ -234,6 +234,29 @@ SECTION_PATTERNS = [
     ("s3",      r"##\s*本編\s*セクション3"),
     ("cta",     r"##\s*アウトロ|##\s*CTA"),
 ]
+SECTION_OUTPUT_SLOTS = {
+    "hook": "00_hook",
+    "opening": "01_opening",
+    "s1": "02_s1",
+    "s2": "03_s2",
+    "s3": "04_s3",
+    "cta": "05_cta",
+}
+JAPANESE_CHAR_CLASS = r"\u3040-\u30ff\u3400-\u9fff々ー"
+
+
+def normalize_tts_text(text: str) -> str:
+    """
+    日本語の単語間に紛れ込んだ空白を除去し、VOICEVOX の不自然な間を防ぐ。
+    半角英数の区切り用スペースは可能な限り維持する。
+    """
+    cleaned = text.replace("\u3000", " ")
+    cleaned = re.sub(fr"(?<=[{JAPANESE_CHAR_CLASS}])\s+(?=[{JAPANESE_CHAR_CLASS}])", "", cleaned)
+    cleaned = re.sub(fr"(?<=[{JAPANESE_CHAR_CLASS}])\s+([。、「」『』（）!?！？])", r"\1", cleaned)
+    cleaned = re.sub(fr"([「『（])\s+(?=[{JAPANESE_CHAR_CLASS}])", r"\1", cleaned)
+    cleaned = re.sub(fr"(?<=[{JAPANESE_CHAR_CLASS}])\s+([A-Za-z0-9])", r" \1", cleaned)
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    return cleaned.strip()
 
 
 def parse_script(script_path: Path) -> list[dict]:
@@ -257,7 +280,7 @@ def parse_script(script_path: Path) -> list[dict]:
         body = match.group(1)
         # --- 区切り、空行、コメント行を除去
         lines = [
-            l.strip() for l in body.splitlines()
+            normalize_tts_text(l.strip()) for l in body.splitlines()
             if l.strip() and not l.strip().startswith("---") and not l.strip().startswith("#")
         ]
         narration = "。".join(lines) if lines else ""

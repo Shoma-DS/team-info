@@ -34,6 +34,9 @@ interface ImageSceneProps {
   motionType?: CameraMotionType;
   motionIntensity?: number; // 0.0–2.0 (1.0=標準, 大きいほど激しい)
   motionProfile?: CameraMotionProfile; // "gentle" で静止寄り、"still" で完全静止
+  baseScale?: number; // GUI 微調整用のベース倍率
+  cropXPercent?: number; // object-position の中心からのずらし量
+  cropYPercent?: number; // object-position の中心からのずらし量
 }
 
 export const ImageScene: React.FC<ImageSceneProps> = ({
@@ -46,6 +49,9 @@ export const ImageScene: React.FC<ImageSceneProps> = ({
   motionType,
   motionIntensity = 1.0,
   motionProfile = "standard",
+  baseScale = 1,
+  cropXPercent = 0,
+  cropYPercent = 0,
 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
@@ -136,17 +142,20 @@ export const ImageScene: React.FC<ImageSceneProps> = ({
   }
 
   return (
-    <AbsoluteFill>
-      <Img
-        src={src}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          transform: `scale(${scale}) translate(${transX}%, ${transY}%)`,
-          transformOrigin: `${originX * 100}% ${originY * 100}%`,
-        }}
-      />
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AbsoluteFill style={{ transform: `translate(${transX}%, ${transY}%)` }}>
+        <Img
+          src={src}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: `${50 + cropXPercent}% ${50 + cropYPercent}%`,
+            transform: `scale(${baseScale * scale})`,
+            transformOrigin: `${originX * 100}% ${originY * 100}%`,
+          }}
+        />
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

@@ -26,6 +26,12 @@
  *  - isNameCard 判定: /^[1-3]\./.test(text.trim())
  *  - 名前カードの色: #FFE400（鮮黄色）
  *  - 名前カードのフォントサイズ: 通常字幕より大きく（例: 170px）
+ *
+ * 字幕カードルール（必須）:
+ *  - SUBTITLE_TIMELINE は split_subtitles.py --mode card 済みの短いカード字幕を使う
+ *  - hook は 3〜4 行の短句、本文と CTA は 1〜2 行の短いフレーズカード
+ *  - 1行あたり 4〜7 文字前後を目安にし、参照例 gachiNuida20260313Subtitles.ts に寄せる
+ *  - ランタイムで再分割しない。改行は生成時に確定させ、そのまま描画する
  */
 import React from "react";
 import {
@@ -109,8 +115,9 @@ const SCENE_TIMELINE: {
 // 長い動画では src/viral/generated/[タイトル]Subtitles.ts に分離して import するとよい
 // 例: import { SUBTITLE_TIMELINE } from "../generated/[タイトル]Subtitles";
 const SUBTITLE_TIMELINE: { from: number; to: number; text: string }[] = [
-  { from: 0,  to: 90,  text: "[フック文章]" },
-  { from: 90, to: 180, text: "[予告文章]" },
+  { from: 0,  to: 90,  text: "[フック]\n[短句]\n[短句]" },
+  { from: 90, to: 140, text: "1.人物名" },
+  { from: 140, to: 190, text: "[短い句]\n[続き]" },
   // ... 以下 Claude が生成
 ];
 
@@ -158,6 +165,7 @@ const ImageSceneTrack: React.FC = () => {
 // - 冒頭フック期間は return null（Hook が担当するため）
 // - 名前カードは isNameCard=true で特大フォント＋黄色
 // - 通常字幕は行ごとに getLineColors() で色を割り当てる
+// - 改行済みの字幕カードをそのまま描画し、ここでは再分割しない
 const SubtitleTrack: React.FC = () => {
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();
@@ -259,12 +267,12 @@ export const ViralVideo: React.FC = () => {
     <AbsoluteFill style={{ background: "#000" }}>
 
       {/* ── 背景画像（1本のSequenceで全シーン統合・クロスフェード付き）── */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="背景画像" from={0} durationInFrames={totalFrames}>
         <ImageSceneTrack />
       </Sequence>
 
       {/* ── フック演出（最初の3秒）────────────────────────────────────── */}
-      <Sequence from={0} durationInFrames={hookOverlayEndFrames}>
+      <Sequence name="フック テキスト" from={0} durationInFrames={hookOverlayEndFrames}>
         <Hook
           hookType="statement"
           text={hookText}
@@ -282,17 +290,17 @@ export const ViralVideo: React.FC = () => {
       </Sequence>
 
       {/* ── パターンインタラプト（1本のSequenceで統合）────────────────── */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="フラッシュ 演出" from={0} durationInFrames={totalFrames}>
         <FlashTrack />
       </Sequence>
 
       {/* ── 字幕（1本のSequenceで統合・行ごと色設定）────────────────── */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="字幕" from={0} durationInFrames={totalFrames}>
         <SubtitleTrack />
       </Sequence>
 
       {/* ── ナレーション（VOICEVOX）──────────────────────────────────── */}
-      <Sequence from={0} durationInFrames={totalFrames}>
+      <Sequence name="音声 ナレーション" from={0} durationInFrames={totalFrames}>
         <Audio src={staticFile(`viral/${TITLE}/audio/narration.wav`)} volume={1.0} />
       </Sequence>
 
