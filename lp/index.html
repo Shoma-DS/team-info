@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI×案件提供 | 全く新しい収益化パートナー制度</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==============================
+       Design Tokens
+    ============================== */
+    :root {
+      --bg:           #FFFFFF;
+      --bg-subtle:    #F7F8FC;
+      --primary:      #1A2B6B;
+      --blue:         #3B82F6;
+      --green:        #10B981;
+      --text-h:       #1D2130;
+      --text-b:       #4A5568;
+      --border:       #E2E8F0;
+      --white:        #FFFFFF;
+
+      --font-jp: 'Noto Sans JP', sans-serif;
+      --font-en: 'Inter', sans-serif;
+
+      --r-sm:   8px;
+      --r-md:   14px;
+      --r-lg:   22px;
+      --r-full: 9999px;
+
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.09);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+
+      --ease: 0.25s ease;
+      --max: 1200px;
+    }
+
+    /* ==============================
+       Reset
+    ============================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-jp);
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text-b);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    h1,h2,h3,h4 { color: var(--text-h); font-weight: 700; line-height: 1.3; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+
+    /* ==============================
+       Layout
+    ============================== */
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .sec { padding: 96px 0; }
+    .sec--subtle { background: var(--bg-subtle); }
+    .sec--dark   { background: var(--primary); }
+    .sec--grad   { background: linear-gradient(135deg,#1e40af,#3b82f6,#06b6d4); }
+
+    .sec__label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(59,130,246,.1);
+      padding: 4px 14px;
+      border-radius: var(--r-full);
+      margin-bottom: 12px;
+    }
+    .sec__title {
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .sec__sub {
+      font-size: 15px;
+      color: var(--text-b);
+      text-align: center;
+      max-width: 580px;
+      margin: 0 auto 56px;
+      line-height: 1.8;
+    }
+    .tc { text-align: center; }
+
+    /* ==============================
+       Buttons
+    ============================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: var(--r-full);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-jp);
+      cursor: pointer;
+      transition: all var(--ease);
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: var(--white);
+      border-color: var(--blue);
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(59,130,246,.45);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--primary);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .btn-ghost-w {
+      background: transparent;
+      color: var(--white);
+      border-color: rgba(255,255,255,.5);
+    }
+    .btn-ghost-w:hover {
+      border-color: var(--white);
+      background: rgba(255,255,255,.1);
+    }
+    .btn-cta {
+      background: var(--white);
+      color: var(--primary);
+      border-color: var(--white);
+      font-size: 16px;
+      padding: 18px 44px;
+    }
+    .btn-cta:hover {
+      background: #eff6ff;
+      box-shadow: 0 10px 40px rgba(0,0,0,.2);
+      transform: translateY(-2px);
+    }
+
+    /* ==============================
+       Navigation
+    ============================== */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      transition: box-shadow var(--ease);
+    }
+    .nav.on { box-shadow: var(--shadow-md); }
+    .nav__in {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav__logo {
+      font-family: var(--font-en);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: -.5px;
+    }
+    .nav__logo span { color: var(--blue); }
+    .nav__links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav__links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-b);
+      transition: color var(--ease);
+    }
+    .nav__links a:hover { color: var(--blue); }
+
+    /* ==============================
+       Section 1: Hero
+    ============================== */
+    .hero {
+      padding: 136px 0 96px;
+      background: linear-gradient(140deg,#0d1c5c 0%,#1a2b6b 45%,#1e40af 75%,#2563eb 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -40%; right: -15%;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(59,130,246,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -30%; left: -10%;
+      width: 550px; height: 550px;
+      background: radial-gradient(circle, rgba(16,185,129,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero__in {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: var(--r-full);
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,.9);
+      margin-bottom: 20px;
+    }
+    .hero__dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.6; transform:scale(1.4); }
+    }
+    .hero__h1 {
+      font-size: clamp(32px, 4.5vw, 54px);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .hero__h1 em {
+      font-style: normal;
+      color: #93c5fd;
+    }
+    .hero__p {
+      font-size: 17px;
+      color: rgba(255,255,255,.82);
+      line-height: 1.85;
+      margin-bottom: 32px;
+    }
+    .hero__btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .hero__tags {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .hero__tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: rgba(255,255,255,.78);
+    }
+    .hero__tag::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    /* Hero Visual */
+    .hero__visual { display: flex; justify-content: center; align-items: center; }
+    .hero__stack  { position: relative; width: 380px; height: 360px; }
+
+    .hcard {
+      position: absolute;
+      border-radius: var(--r-lg);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(16px);
+    }
+    .hcard--main {
+      top: 30px; left: 0; right: 0;
+      background: rgba(255,255,255,.1);
+      padding: 24px 28px;
+    }
+    .hcard__title {
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(255,255,255,.7);
+      letter-spacing: .05em;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+    .mini-flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .mf-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .mf-icon {
+      width: 40px; height: 40px;
+      background: rgba(59,130,246,.35);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .mf-lbl {
+      font-size: 10px;
+      color: rgba(255,255,255,.75);
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .mf-arr {
+      color: rgba(255,255,255,.35);
+      font-size: 18px;
+      margin-top: -14px;
+    }
+    .hcard--pill {
+      top: 0; right: 10px;
+      background: var(--green);
+      border: none;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      border-radius: var(--r-full);
+    }
+    .hcard--foot {
+      bottom: 10px; left: 10px; right: 10px;
+      background: rgba(13,28,92,.85);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .hcard__emo { font-size: 28px; }
+    .hcard__ftxt-h { font-size: 14px; font-weight: 700; color: white; }
+    .hcard__ftxt-p { font-size: 12px; color: rgba(255,255,255,.65); }
+
+    /* ==============================
+       Trust Bar
+    ============================== */
+    .trust {
+      padding: 36px 0;
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .trust__in {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 56px;
+      flex-wrap: wrap;
+    }
+    .tstat__num {
+      font-family: var(--font-en);
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .tstat__num sup { font-size: 16px; }
+    .tstat__lbl { font-size: 13px; color: var(--text-b); margin-top: 4px; }
+    .trust__div { width: 1px; height: 48px; background: var(--border); }
+
+    /* ==============================
+       Problem Cards
+    ============================== */
+    .prob-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 16px;
+    }
+    .prob-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px 22px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      transition: all var(--ease);
+    }
+    .prob-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: rgba(59,130,246,.3);
+      transform: translateY(-3px);
+    }
+    .prob-card__ico {
+      width: 56px; height: 56px;
+      background: rgba(100,116,139,.08);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .prob-card__txt {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-h);
+      line-height: 1.5;
+    }
+
+    /* ==============================
+       Market Diagram
+    ============================== */
+    .market {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr 48px 1fr;
+      align-items: center;
+      gap: 0;
+      margin-top: 56px;
+    }
+    .mbox {
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 28px 24px;
+      background: var(--bg);
+      height: 100%;
+    }
+    .mbox--c {
+      background: linear-gradient(140deg, var(--primary), #2563eb);
+      border-color: transparent;
+      text-align: center;
+      padding: 36px 24px;
+    }
+    .mbox__h { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+    .mbox__list li {
+      font-size: 13px;
+      color: var(--text-b);
+      padding-left: 14px;
+      position: relative;
+      margin-bottom: 6px;
+    }
+    .mbox__list li::before { content: '·'; position: absolute; left: 0; }
+    .mbox--c .mbox__list li { color: rgba(255,255,255,.8); }
+    .mbox--c .mbox__list li::before { content: '✓'; color: var(--green); }
+    .mbox--c .mbox__h { color: white; font-size: 17px; font-weight: 800; }
+    .mbox__pill {
+      display: inline-block;
+      background: var(--green);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--r-full);
+      margin-bottom: 12px;
+    }
+    .marr {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 22px;
+      color: var(--blue);
+    }
+
+    /* ==============================
+       Feature Cards (4-col)
+    ============================== */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 18px;
+    }
+    .feat-card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 28px 22px;
+      text-align: center;
+      transition: all var(--ease);
+    }
+    .feat-card:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(59,130,246,.3);
+      transform: translateY(-5px);
+    }
+    .feat-card__ico {
+      width: 60px; height: 60px;
+      background: rgba(59,130,246,.09);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 16px;
+    }
+    .feat-card__h { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .feat-card__p { font-size: 13px; color: var(--text-b); line-height: 1.65; }
+
+    /* Inline CTA strip */
+    .cta-strip {
+      background: linear-gradient(90deg, var(--primary), #2563eb);
+      border-radius: var(--r-lg);
+      padding: 28px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-top: 64px;
+      flex-wrap: wrap;
+    }
+    .cta-strip h3 { font-size: 19px; font-weight: 700; color: white; margin-bottom: 4px; }
+    .cta-strip p  { font-size: 14px; color: rgba(255,255,255,.75); }
+
+    /* ==============================
+       Case Cards (8-grid)
+    ============================== */
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 18px;
+    }
+    .case-card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 22px 22px 22px;
+      position: relative;
+      transition: all var(--ease);
+    }
+    .case-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+    .case-badge {
+      position: absolute;
+      top: 18px; right: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 11px;
+      border-radius: var(--r-full);
+    }
+    .bg--beg  { background: rgba(16,185,129,.1); color: #059669; }
+    .bg--mid  { background: rgba(59,130,246,.1);  color: #2563eb; }
+    .bg--adv  { background: rgba(26,43,107,.1);   color: var(--primary); }
+    .bg--zero { background: rgba(16,185,129,.14); color: #047857; font-weight: 800; }
+
+    .case-card__ico {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .case-card__h   {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-h);
+      margin-bottom: 8px;
+      padding-right: 90px;
+      line-height: 1.45;
+    }
+    .case-card__p { font-size: 13px; color: var(--text-b); line-height: 1.65; }
+
+    .case-note {
+      font-size: 13px;
+      color: var(--text-b);
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px 24px;
+      background: var(--bg-subtle);
+      border-radius: var(--r-md);
+      border: 1px solid var(--border);
+    }
+
+    /* ==============================
+       Flow Steps
+    ============================== */
+    .flow-steps {
+      display: flex;
+      align-items: flex-start;
+      margin-top: 64px;
+      position: relative;
+    }
+    .flow-step {
+      flex: 1;
+      text-align: center;
+      padding: 24px 12px;
+      position: relative;
+    }
+    .flow-step::after {
+      content: '→';
+      position: absolute;
+      right: -10px;
+      top: 40%;
+      font-size: 22px;
+      color: rgba(255,255,255,.3);
+    }
+    .flow-step:last-child::after { display: none; }
+    .fs-num {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,.12);
+      border: 2px solid rgba(255,255,255,.25);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: white;
+      margin: 0 auto 14px;
+      font-family: var(--font-en);
+    }
+    .fs-num--goal { background: var(--green); border-color: var(--green); }
+    .fs-ico  { font-size: 30px; margin-bottom: 12px; }
+    .fs-h    { font-size: 15px; font-weight: 700; color: white; margin-bottom: 6px; }
+    .fs-p    { font-size: 12px; color: rgba(255,255,255,.65); line-height: 1.6; }
+
+    /* ==============================
+       Reasons (split)
+    ============================== */
+    .reasons-in {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .reasons-h {
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+    .reasons-h em { font-style: normal; color: var(--blue); }
+    .reasons-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-h);
+      margin-bottom: 18px;
+    }
+    .rcheck {
+      width: 26px; height: 26px;
+      background: rgba(16,185,129,.13);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ==============================
+       Testimonials
+    ============================== */
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 18px;
+    }
+    .tcard {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 26px 24px;
+      transition: all var(--ease);
+      display: flex;
+      flex-direction: column;
+    }
+    .tcard:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+    .tcard__q {
+      font-size: 44px;
+      font-family: var(--font-en);
+      font-weight: 900;
+      color: var(--blue);
+      line-height: .75;
+      margin-bottom: 14px;
+    }
+    .tcard__txt {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-b);
+      flex: 1;
+      margin-bottom: 20px;
+    }
+    .tcard__foot {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .tcard__av {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--primary), var(--blue));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: white;
+      font-family: var(--font-en);
+      flex-shrink: 0;
+    }
+    .tcard__name { font-size: 14px; font-weight: 700; color: var(--text-h); }
+    .tcard__prof { font-size: 12px; color: var(--text-b); }
+    .tcard__tag {
+      font-size: 12px;
+      background: var(--bg-subtle);
+      border-radius: var(--r-full);
+      padding: 4px 12px;
+      display: inline-block;
+      color: var(--text-b);
+    }
+    .tcard__tag strong { color: var(--blue); }
+    .testi-note {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 18px;
+    }
+
+    /* ==============================
+       Future
+    ============================== */
+    .future-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 20px;
+    }
+    .fcard {
+      border-radius: var(--r-md);
+      padding: 32px 28px;
+      transition: all var(--ease);
+    }
+    .fcard:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .fcard--a { background: linear-gradient(140deg,#ecfdf5,#d1fae5); border: 1.5px solid #a7f3d0; }
+    .fcard--b { background: linear-gradient(140deg,#eff6ff,#dbeafe); border: 1.5px solid #bfdbfe; }
+    .fcard--c { background: linear-gradient(140deg,#eef2ff,#e0e7ff); border: 1.5px solid #c7d2fe; }
+    .fcard__phase {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .fcard--a .fcard__phase { color: #059669; }
+    .fcard--b .fcard__phase { color: #2563eb; }
+    .fcard--c .fcard__phase { color: #4f46e5; }
+    .fcard__ico {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fcard__h { font-size: 21px; font-weight: 800; margin-bottom: 8px; }
+    .fcard--a .fcard__h { color: #065f46; }
+    .fcard--b .fcard__h { color: #1e40af; }
+    .fcard--c .fcard__h { color: #3730a3; }
+    .fcard__p { font-size: 14px; line-height: 1.7; }
+    .fcard--a .fcard__p { color: #047857; }
+    .fcard--b .fcard__p { color: #1d4ed8; }
+    .fcard--c .fcard__p { color: #4338ca; }
+
+    /* ==============================
+       Mission
+    ============================== */
+    .mission-in {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .mission-h {
+      font-size: clamp(26px,4vw,44px);
+      font-weight: 900;
+      color: white;
+      line-height: 1.3;
+      margin-bottom: 32px;
+    }
+    .mission-p {
+      font-size: 17px;
+      color: rgba(255,255,255,.8);
+      line-height: 2;
+      margin-bottom: 40px;
+    }
+    .mission-box {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: var(--r-md);
+      padding: 24px 32px;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.7;
+    }
+
+    /* ==============================
+       CTA Section
+    ============================== */
+    .cta-in {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .cta-h {
+      font-size: clamp(26px,4vw,44px);
+      font-weight: 900;
+      color: white;
+      margin-bottom: 14px;
+    }
+    .cta-p {
+      font-size: 17px;
+      color: rgba(255,255,255,.85);
+      line-height: 1.85;
+      margin-bottom: 40px;
+    }
+    .cta-btns {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .cta-note {
+      margin-top: 18px;
+      font-size: 13px;
+      color: rgba(255,255,255,.6);
+    }
+
+    /* ==============================
+       Footer
+    ============================== */
+    .footer {
+      background: #0d1c4e;
+      color: rgba(255,255,255,.5);
+      padding: 32px 0;
+      text-align: center;
+      font-size: 13px;
+    }
+    .footer p + p { margin-top: 6px; }
+    .footer a { color: rgba(255,255,255,.5); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ==============================
+       Scroll Animation
+    ============================== */
+    .anim {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .anim.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .anim:nth-child(1) { transition-delay: .05s; }
+    .anim:nth-child(2) { transition-delay: .10s; }
+    .anim:nth-child(3) { transition-delay: .15s; }
+    .anim:nth-child(4) { transition-delay: .20s; }
+    .anim:nth-child(5) { transition-delay: .25s; }
+    .anim:nth-child(6) { transition-delay: .30s; }
+    .anim:nth-child(7) { transition-delay: .35s; }
+    .anim:nth-child(8) { transition-delay: .40s; }
+
+    /* ==============================
+       Illustration images inside icon containers
+    ============================== */
+    .feat-card__ico img,
+    .prob-card__ico img,
+    .case-card__ico img,
+    .fcard__ico img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .mf-icon img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+    .fs-ico img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+    .hero__sub-concept {
+      font-size: 20px;
+      font-weight: 800;
+      color: #93c5fd;
+      margin-bottom: 16px;
+      letter-spacing: -.01em;
+    }
+
+    /* ==============================
+       Responsive
+    ============================== */
+    @media (max-width: 1024px) {
+      .hero__in    { grid-template-columns: 1fr; }
+      .hero__visual { display: none; }
+      .feat-grid   { grid-template-columns: repeat(2,1fr); }
+      .market      { grid-template-columns: 1fr; gap: 12px; }
+      .marr        { flex-direction: row; justify-content: center; }
+    }
+    @media (max-width: 768px) {
+      .sec { padding: 64px 0; }
+      .nav__links { display: none; }
+      .prob-grid,
+      .case-grid,
+      .testi-grid,
+      .future-grid { grid-template-columns: 1fr; }
+      .feat-grid   { grid-template-columns: 1fr; }
+      .flow-steps  { flex-direction: column; gap: 32px; }
+      .flow-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -24px; transform: translateX(-50%); }
+      .reasons-in  { grid-template-columns: 1fr; gap: 36px; }
+      .trust__in   { gap: 28px; }
+      .trust__div  { display: none; }
+      .cta-strip   { flex-direction: column; text-align: center; }
+      .hero__h1    { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav class="nav" id="nav">
+    <div class="wrap">
+      <div class="nav__in">
+        <div class="nav__logo">AI<span>×</span>Partner</div>
+        <ul class="nav__links">
+          <li><a href="#about">仕組み</a></li>
+          <li><a href="#cases">案件例</a></li>
+          <li><a href="#flow">ステップ</a></li>
+          <li><a href="#voices">参加者の声</a></li>
+        </ul>
+        <a href="#cta" class="btn btn-primary">無料説明会に参加する</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero__in">
+
+        <div class="hero__copy">
+          <div class="hero__badge">
+            <span class="hero__dot"></span>
+            AI × 案件提供 × 収益化パートナー制度 ── 全く新しい仕組み
+          </div>
+          <h1 class="hero__h1">
+            すでに収益化されている<br>
+            仕組みに、<br>
+            <em>参加するだけ。</em>
+          </h1>
+          <p class="hero__sub-concept">未経験から始める「収益化パートナー制度」</p>
+          <p class="hero__p">
+            案件はこちらで用意します。<br>
+            AIを使った実務を一緒に進めながら、<br>
+            収益化まで伴走します。
+          </p>
+          <div class="hero__btns">
+            <a href="#cta" class="btn btn-primary">無料説明会に参加する →</a>
+            <a href="#about" class="btn btn-ghost-w">仕組みを詳しく見る</a>
+          </div>
+          <div class="hero__tags">
+            <span class="hero__tag">未経験歓迎</span>
+            <span class="hero__tag">在宅OK</span>
+            <span class="hero__tag">AI初心者歓迎</span>
+          </div>
+        </div>
+
+        <div class="hero__visual">
+          <div class="hero__stack">
+            <div class="hcard hcard--pill">✨ 完全未経験OK</div>
+            <div class="hcard hcard--main">
+              <div class="hcard__title">収益化までの流れ</div>
+              <div class="mini-flow">
+                <div class="mf-item">
+                  <div class="mf-icon"><img src="images/documents.svg" alt="案件提供"></div>
+                  <div class="mf-lbl">案件提供</div>
+                </div>
+                <span class="mf-arr">→</span>
+                <div class="mf-item">
+                  <div class="mf-icon"><img src="images/robot.svg" alt="AI実行"></div>
+                  <div class="mf-lbl">AI実行</div>
+                </div>
+                <span class="mf-arr">→</span>
+                <div class="mf-item">
+                  <div class="mf-icon"><img src="images/handshake.svg" alt="伴走"></div>
+                  <div class="mf-lbl">伴走</div>
+                </div>
+                <span class="mf-arr">→</span>
+                <div class="mf-item">
+                  <div class="mf-icon"><img src="images/money.svg" alt="収益化"></div>
+                  <div class="mf-lbl">収益化</div>
+                </div>
+              </div>
+            </div>
+            <div class="hcard hcard--foot">
+              <div class="hcard__emo"><img src="images/rocket.svg" alt="ロケット" style="width:36px;height:36px;object-fit:contain;"></div>
+              <div>
+                <div class="hcard__ftxt-h">最終ゴール</div>
+                <div class="hcard__ftxt-p">AI×外注で自走・自動化できる状態へ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TRUST BAR ===== -->
+  <div class="trust">
+    <div class="wrap">
+      <div class="trust__in">
+        <div class="tstat tc">
+          <div class="tstat__num">500<sup>名+</sup></div>
+          <div class="tstat__lbl">参加実績</div>
+        </div>
+        <div class="trust__div"></div>
+        <div class="tstat tc">
+          <div class="tstat__num">多数<sup>対応</sup></div>
+          <div class="tstat__lbl">幅広いジャンルの案件</div>
+        </div>
+        <div class="trust__div"></div>
+        <div class="tstat tc">
+          <div class="tstat__num">95<sup>%</sup></div>
+          <div class="tstat__lbl">参加者満足度</div>
+        </div>
+        <div class="trust__div"></div>
+        <div class="tstat tc">
+          <div class="tstat__num">0<sup>円</sup></div>
+          <div class="tstat__lbl">説明会参加費</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PROBLEMS ===== -->
+  <section class="sec" id="problems">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label">こんな悩みはありませんか</span>
+        <h2 class="sec__title">多くの人が感じている<br>AI収益化の壁</h2>
+      </div>
+      <div class="prob-grid" style="margin-top:48px;">
+        <div class="prob-card anim">
+          <div class="prob-card__ico"><img src="images/worry_man.svg" alt="悩んでいる人"></div>
+          <div class="prob-card__txt">AIを学んでも、稼げる気がしない</div>
+        </div>
+        <div class="prob-card anim">
+          <div class="prob-card__ico"><img src="images/study.svg" alt="勉強している人"></div>
+          <div class="prob-card__txt">スクールに入ったが、案件がない</div>
+        </div>
+        <div class="prob-card anim">
+          <div class="prob-card__ico"><img src="images/trouble.svg" alt="困っている人"></div>
+          <div class="prob-card__txt">何から始めればいいかわからない</div>
+        </div>
+        <div class="prob-card anim">
+          <div class="prob-card__ico"><img src="images/losemoney.svg" alt="お金に困っている人"></div>
+          <div class="prob-card__txt">クラウドワークスで安売りするしかない</div>
+        </div>
+        <div class="prob-card anim">
+          <div class="prob-card__ico"><img src="images/disappointed.svg" alt="困惑している人"></div>
+          <div class="prob-card__txt">情報が多すぎて、何が本当かわからない</div>
+        </div>
+        <div class="prob-card anim">
+          <div class="prob-card__ico"><img src="images/telework.svg" alt="テレワークしている人"></div>
+          <div class="prob-card__txt">在宅で働きたいが、現実的な選択肢がない</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MARKET PROBLEM ===== -->
+  <section class="sec sec--subtle">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label">市場の課題</span>
+        <h2 class="sec__title">AI人材と企業の間には、<br>大きな溝がある</h2>
+      </div>
+      <div class="market">
+        <div class="mbox">
+          <div class="mbox__h">😓 個人の現実</div>
+          <ul class="mbox__list">
+            <li>学んでも案件がない</li>
+            <li>安売り競争に疲弊</li>
+            <li>情報商材に騙される</li>
+            <li>収益化のイメージが持てない</li>
+          </ul>
+        </div>
+        <div class="marr">
+          <span>→</span>
+          <span>←</span>
+        </div>
+        <div class="mbox mbox--c">
+          <div class="mbox__pill">本サービス</div>
+          <div class="mbox__h">AI×案件提供で<br>分断を埋める仕組み</div>
+          <ul class="mbox__list">
+            <li>案件を繋ぐ</li>
+            <li>伴走する</li>
+            <li>収益を一緒に作る</li>
+          </ul>
+        </div>
+        <div class="marr">
+          <span>←</span>
+          <span>→</span>
+        </div>
+        <div class="mbox">
+          <div class="mbox__h">🏢 企業の現実</div>
+          <ul class="mbox__list">
+            <li>AIを活用したい</li>
+            <li>人材が見つからない</li>
+            <li>発注先がわからない</li>
+            <li>コストを下げたい</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SERVICE OVERVIEW ===== -->
+  <section class="sec" id="about">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label">サービス概要</span>
+        <h2 class="sec__title">「学んで終わり」ではない、<br>全く新しい収益化パートナー制度</h2>
+        <p class="sec__sub">学習サービスではありません。実務と収益に直結する、AI×案件提供の実践型パートナー制度です。</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat-card anim">
+          <div class="feat-card__ico"><img src="images/documents.svg" alt="案件提供"></div>
+          <div class="feat-card__h">案件を渡す</div>
+          <div class="feat-card__p">最初からやる仕事が用意されています。「何をすればいいかわからない」がありません。</div>
+        </div>
+        <div class="feat-card anim">
+          <div class="feat-card__ico"><img src="images/robot.svg" alt="AI"></div>
+          <div class="feat-card__h">AIで進める</div>
+          <div class="feat-card__p">ツールとテンプレートが揃っているので、未経験でもすぐに動けます。</div>
+        </div>
+        <div class="feat-card anim">
+          <div class="feat-card__ico"><img src="images/handshake.svg" alt="握手"></div>
+          <div class="feat-card__h">一緒に進める</div>
+          <div class="feat-card__p">放置なし。伴走しながら実務を回すので、一人で抱え込む必要がありません。</div>
+        </div>
+        <div class="feat-card anim">
+          <div class="feat-card__ico"><img src="images/money.svg" alt="お金"></div>
+          <div class="feat-card__h">利益を分け合う</div>
+          <div class="feat-card__p">成果に対して報酬が発生します。実務をやりながら、リアルに稼ぐ体験をします。</div>
+        </div>
+      </div>
+      <div class="cta-strip">
+        <div>
+          <h3>自分に合う案件を相談する</h3>
+          <p>あなたのスキル・状況に合わせて、担当案件を一緒に決めていきます。</p>
+        </div>
+        <a href="#cta" class="btn btn-primary">無料説明会に参加する →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CASE EXAMPLES ===== -->
+  <section class="sec sec--subtle" id="cases">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label">案件の具体例</span>
+        <h2 class="sec__title">実際にどんな仕事をするのか、<br>正直に見せます</h2>
+        <p class="sec__sub">「AIの仕事」と聞いてもイメージしにくいと思います。<br>本サービスで関わる案件を、そのまま公開します。</p>
+      </div>
+      <div class="case-grid">
+        <div class="case-card anim">
+          <span class="case-badge bg--zero">完全未経験OK</span>
+          <div class="case-card__ico"><img src="images/study.svg" alt="生成AI研修"></div>
+          <div class="case-card__h">【希望者のみ】弊社パソコンスクールに無料参加</div>
+          <div class="case-card__p">弊社が運営するパソコンスクールに無料で参加できます。PCの基礎からAIツールの使い方まで、案件に入る前にしっかり準備できます。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--beg">★☆☆ 初心者向け</span>
+          <div class="case-card__ico"><img src="images/study.svg" alt="リサーチ業務"></div>
+          <div class="case-card__h">競合・市場リサーチ業務</div>
+          <div class="case-card__p">AI検索ツールを使った競合調査・市場分析・トレンド収集を担当。調査フォーマットあり、特別なスキル不要。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--beg">★☆☆ 初心者向け</span>
+          <div class="case-card__ico"><img src="images/engineer.svg" alt="ブログ記事量産"></div>
+          <div class="case-card__h">ブログ記事の量産</div>
+          <div class="case-card__p">弊社独自プロンプトを使いSEO記事を効率生成。型があるので文章が苦手でも可。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--beg">★☆☆ 初心者向け</span>
+          <div class="case-card__ico"><img src="images/documents.svg" alt="台本作成"></div>
+          <div class="case-card__h">YouTube台本の作成</div>
+          <div class="case-card__p">弊社運営チャンネルの台本を担当。型とAIで企画・構成力がなくても始められる。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--beg">★☆☆ 初心者向け</span>
+          <div class="case-card__ico"><img src="images/creative.svg" alt="広告画像生成"></div>
+          <div class="case-card__h">広告画像の生成</div>
+          <div class="case-card__p">生成AIで広告用ビジュアルを制作。プロンプトテンプレートあり。デザイン経験不要。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--beg">★☆☆ 初心者向け</span>
+          <div class="case-card__ico"><img src="images/robot.svg" alt="プロンプトエンジニアリング"></div>
+          <div class="case-card__h">プロンプトエンジニアリング</div>
+          <div class="case-card__p">AIへの指示文（プロンプト）を設計・改善する仕事。試行錯誤しながら成果を上げるコツを実務で習得。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--mid">★★☆ 初〜中級</span>
+          <div class="case-card__ico"><img src="images/videoediter.svg" alt="クリエイティブ制作"></div>
+          <div class="case-card__h">クリエイティブ制作</div>
+          <div class="case-card__p">SNS投稿・バナー・資料など弊社プロジェクトのビジュアルを担当。ツールは一緒に習得。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--mid">★★☆ 初〜中級</span>
+          <div class="case-card__ico"><img src="images/cameraman.svg" alt="動画生成"></div>
+          <div class="case-card__h">AI動画生成で企業MV制作</div>
+          <div class="case-card__p">AI動画生成ツールで企業プロモーション動画・MVを制作。映像経験ゼロでも可。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--mid">★★☆ 初〜中級</span>
+          <div class="case-card__ico"><img src="images/youtuber.svg" alt="YouTube"></div>
+          <div class="case-card__h">YouTube企画〜動画生成</div>
+          <div class="case-card__p">台本作成から動画生成・編集補助まで弊社YouTubeに全面参加。実務で動画制作を習得。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--adv">★★★ 中〜上級</span>
+          <div class="case-card__ico"><img src="images/guide.svg" alt="AI導入支援"></div>
+          <div class="case-card__h">中小企業AI導入の見学・補助</div>
+          <div class="case-card__p">弊社の中小企業向けAI導入PJに同行参加。AIコンサルタントの実務知識を現場で習得。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--adv">★★★ 中〜上級</span>
+          <div class="case-card__ico"><img src="images/robot.svg" alt="AIワークフロー構築"></div>
+          <div class="case-card__h">AIワークフローの構築</div>
+          <div class="case-card__p">Make・Zapierなどのノーコードツールを使い、繰り返し業務を自動化するフローを設計・構築。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--adv">★★★ 中〜上級</span>
+          <div class="case-card__ico"><img src="images/engineer.svg" alt="業務アプリ作成"></div>
+          <div class="case-card__h">AIでオリジナル業務アプリ作成</div>
+          <div class="case-card__p">ChatGPTやClaude APIを活用し、企業の業務に特化したAIアプリを開発・納品。</div>
+        </div>
+        <div class="case-card anim">
+          <span class="case-badge bg--adv">★★★ 中〜上級</span>
+          <div class="case-card__ico"><img src="images/videoediter.svg" alt="Web・自動化開発"></div>
+          <div class="case-card__h">Webサイト・自動化アプリ開発</div>
+          <div class="case-card__p">AIコーディングツールを使ったWebサイト制作や業務自動化アプリの開発案件に参加。</div>
+        </div>
+      </div>
+      <div class="case-note">
+        ※ 最初からすべての案件に関わる必要はありません。あなたの状況に合わせて、担当案件を一緒に決めていきます。
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FLOW ===== -->
+  <section class="sec sec--dark" id="flow">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label" style="color:rgba(255,255,255,.7);background:rgba(255,255,255,.1);">収益化までの流れ</span>
+        <h2 class="sec__title" style="color:white;margin-top:12px;">5つのステップで、<br>未経験から収益化へ</h2>
+      </div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="fs-num">1</div>
+          <div class="fs-ico"><img src="images/documents.svg" alt="案件提供"></div>
+          <div class="fs-h">案件提供</div>
+          <div class="fs-p">弊社が仕事を<br>準備します</div>
+        </div>
+        <div class="flow-step">
+          <div class="fs-num">2</div>
+          <div class="fs-ico"><img src="images/robot.svg" alt="AI実行"></div>
+          <div class="fs-h">AI×テンプレで実行</div>
+          <div class="fs-p">未経験でも<br>すぐ動けます</div>
+        </div>
+        <div class="flow-step">
+          <div class="fs-num">3</div>
+          <div class="fs-ico"><img src="images/handshake.svg" alt="伴走"></div>
+          <div class="fs-h">一緒に改善・運用</div>
+          <div class="fs-p">放置なし<br>伴走サポート</div>
+        </div>
+        <div class="flow-step">
+          <div class="fs-num">4</div>
+          <div class="fs-ico"><img src="images/money.svg" alt="収益分配"></div>
+          <div class="fs-h">利益を分配</div>
+          <div class="fs-p">成果報酬<br>あり</div>
+        </div>
+        <div class="flow-step">
+          <div class="fs-num fs-num--goal">5</div>
+          <div class="fs-ico"><img src="images/rocket.svg" alt="自走"></div>
+          <div class="fs-h">自走・自動化へ</div>
+          <div class="fs-p">自分でも<br>回せる状態へ</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHY BEGINNERS ===== -->
+  <section class="sec" id="beginner">
+    <div class="wrap">
+      <div class="reasons-in">
+        <div>
+          <span class="sec__label">未経験でも大丈夫な理由</span>
+          <h2 class="reasons-h" style="margin-top:14px;">
+            「未経験だから無理」は<br>
+            <em>この仕組みには<br>当てはまりません</em>
+          </h2>
+        </div>
+        <ul class="reasons-list">
+          <li><div class="rcheck">✓</div>最初から案件が用意されている</li>
+          <li><div class="rcheck">✓</div>やることが決まっているので迷わない</li>
+          <li><div class="rcheck">✓</div>AIとテンプレで作業を進められる</li>
+          <li><div class="rcheck">✓</div>一緒に進めるので放置されない</li>
+          <li><div class="rcheck">✓</div>難しい部分はサポートがある</li>
+          <li><div class="rcheck">✓</div>ゼロからでも始められる</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TESTIMONIALS ===== -->
+  <section class="sec sec--subtle" id="voices">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label">参加者の声</span>
+        <h2 class="sec__title">参加者が語る、<br>リアルな変化</h2>
+        <p class="sec__sub">「月収○○万円」のような誇大な体験談ではなく、実際に感じた変化をそのまま載せています。</p>
+      </div>
+      <div class="testi-grid">
+        <div class="tcard anim">
+          <div class="tcard__q">"</div>
+          <div class="tcard__txt">スクールで学んでも案件がなく途方に暮れていました。ここに来てから初めて、お金をもらいながら学ぶという感覚がわかりました。</div>
+          <div class="tcard__foot">
+            <div class="tcard__av">A</div>
+            <div>
+              <div class="tcard__name">Aさん（30代・元会社員）</div>
+              <div class="tcard__prof">参加2ヶ月目</div>
+            </div>
+          </div>
+          <span class="tcard__tag">AI初心者 → <strong>広告画像生成を担当</strong></span>
+        </div>
+        <div class="tcard anim">
+          <div class="tcard__q">"</div>
+          <div class="tcard__txt">未経験で入れるか不安でしたが、最初からやることが決まっていたので迷わずに動けました。放置されないのが一番ありがたかったです。</div>
+          <div class="tcard__foot">
+            <div class="tcard__av">B</div>
+            <div>
+              <div class="tcard__name">Bさん（20代・育児中）</div>
+              <div class="tcard__prof">参加1ヶ月目</div>
+            </div>
+          </div>
+          <span class="tcard__tag">完全未経験 → <strong>ブログ記事生成を担当</strong></span>
+        </div>
+        <div class="tcard anim">
+          <div class="tcard__q">"</div>
+          <div class="tcard__txt">AIコンサルの案件に同行できて、教材だけでは絶対に身につかない感覚が短期間でつかめました。</div>
+          <div class="tcard__foot">
+            <div class="tcard__av">C</div>
+            <div>
+              <div class="tcard__name">Cさん（40代・副業で参加）</div>
+              <div class="tcard__prof">参加3ヶ月目</div>
+            </div>
+          </div>
+          <span class="tcard__tag">独学経験あり → <strong>中小企業AI導入に参加</strong></span>
+        </div>
+        <div class="tcard anim">
+          <div class="tcard__q">"</div>
+          <div class="tcard__txt">クラウドワークスで1文字0.1円の仕事をしていた頃とは全然違います。AIで同じ時間にできる量と質がまったく変わりました。</div>
+          <div class="tcard__foot">
+            <div class="tcard__av">D</div>
+            <div>
+              <div class="tcard__name">Dさん（30代・フリーランス）</div>
+              <div class="tcard__prof">参加2ヶ月目</div>
+            </div>
+          </div>
+          <span class="tcard__tag">低単価に疲弊 → <strong>台本作成を担当</strong></span>
+        </div>
+        <div class="tcard anim">
+          <div class="tcard__q">"</div>
+          <div class="tcard__txt">AI動画生成なんて自分には無理だと思っていましたが、テンプレとサポートがあって、1週間で最初の動画が完成しました。</div>
+          <div class="tcard__foot">
+            <div class="tcard__av">E</div>
+            <div>
+              <div class="tcard__name">Eさん（50代・在宅希望）</div>
+              <div class="tcard__prof">参加1ヶ月半</div>
+            </div>
+          </div>
+          <span class="tcard__tag">PC初心者 → <strong>YouTube動画生成を担当</strong></span>
+        </div>
+        <div class="tcard anim">
+          <div class="tcard__q">"</div>
+          <div class="tcard__txt">弊社と収益をシェアする仕組みなので、最初は小さくても「本物の報酬」が発生します。この体験が自信に繋がりました。</div>
+          <div class="tcard__foot">
+            <div class="tcard__av">F</div>
+            <div>
+              <div class="tcard__name">Fさん（20代・未経験スタート）</div>
+              <div class="tcard__prof">参加3ヶ月目</div>
+            </div>
+          </div>
+          <span class="tcard__tag">完全未経験 → <strong>研修後クリエイティブを担当</strong></span>
+        </div>
+      </div>
+      <p class="testi-note">※ 掲載は本人の許可を得ています。個人の体験であり、成果を保証するものではありません。</p>
+    </div>
+  </section>
+
+  <!-- ===== FUTURE ===== -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="tc">
+        <span class="sec__label">得られる未来</span>
+        <h2 class="sec__title">参加後、こんな変化が起きます</h2>
+        <p class="sec__sub">夢物語ではなく、段階的に現実的な成長を積み上げていきます。</p>
+      </div>
+      <div class="future-grid">
+        <div class="fcard fcard--a anim">
+          <div class="fcard__phase">Near · まず最初に</div>
+          <div class="fcard__ico"><img src="images/passbook.svg" alt="初収益"></div>
+          <div class="fcard__h">初収益の体験</div>
+          <div class="fcard__p">実務の中で初めての収益を体験できます。「稼ぐ」という感覚を、学習ではなく実務で掴みます。</div>
+        </div>
+        <div class="fcard fcard--b anim">
+          <div class="fcard__phase">Mid · 次のステップ</div>
+          <div class="fcard__ico"><img src="images/engineer.svg" alt="スキル習得"></div>
+          <div class="fcard__h">仕事の進め方が身につく</div>
+          <div class="fcard__p">AIを使った実務スキルが実践で定着します。低単価の消耗戦から抜け出す武器になります。</div>
+        </div>
+        <div class="fcard fcard--c anim">
+          <div class="fcard__phase">Far · 最終ゴール</div>
+          <div class="fcard__ico"><img src="images/rocket.svg" alt="自動化"></div>
+          <div class="fcard__h">自動化・自走へ</div>
+          <div class="fcard__p">自分でAIと外注を動かせる状態を目指せます。在宅で継続しやすい、自分の仕事の仕組みを作ります。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MISSION ===== -->
+  <section class="sec sec--dark">
+    <div class="wrap">
+      <div class="mission-in">
+        <h2 class="mission-h">AIを学んでも、<br>稼げない人を<br>増やしたくない</h2>
+        <p class="mission-p">
+          仕事があるのに人材に届いていない。<br>
+          人材がいるのに案件に繋がっていない。<br><br>
+          私たちはその分断を埋めるために、<br>
+          この仕組みを作りました。<br><br>
+          学ぶだけで終わらず、<br>
+          実務と収益に繋がる環境を一緒に作っていきます。
+        </p>
+        <div class="mission-box">
+          一緒に利益を取り、一緒に成長していく<br>AI実践集団をつくる
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="sec sec--grad" id="cta">
+    <div class="wrap">
+      <div class="cta-in">
+        <h2 class="cta-h">まずは、無料で<br>話を聞いてみてください</h2>
+        <p class="cta-p">
+          あなたに合う案件の方向性を個別に案内します。<br>
+          どこから始めるかを、一緒に整理しましょう。
+        </p>
+        <div class="cta-btns">
+          <a href="#" class="btn btn-cta">無料説明会に参加する →</a>
+          <a href="#about" class="btn btn-ghost-w">まずは詳細を確認する</a>
+        </div>
+        <p class="cta-note">※ 勧誘・営業は一切行いません</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="wrap">
+      <p>© 2025 AI×収益化パートナー制度. All rights reserved.</p>
+      <p>
+        <a href="#">プライバシーポリシー</a> &nbsp;·&nbsp;
+        <a href="#">特定商取引法に基づく表記</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Nav shadow on scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('on', window.scrollY > 20);
+    });
+
+    // Scroll-in animation
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.anim').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

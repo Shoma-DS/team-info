@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI×案件提供 | 収益化パートナー制度 — スライド資料</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1A2B6B;
+      --blue:    #3B82F6;
+      --blue-d:  #2563EB;
+      --green:   #10B981;
+      --white:   #FFFFFF;
+      --bg:      #F7F8FC;
+      --text-h:  #1D2130;
+      --text-b:  #4A5568;
+      --border:  #E2E8F0;
+      --font-jp: 'Noto Sans JP', sans-serif;
+      --font-en: 'Inter', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font-jp);
+      background: #0d1c5c;
+    }
+
+    /* =====================
+       Slide Container
+    ===================== */
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 48px 80px;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity .45s ease, transform .45s ease;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .slide.exit {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* Slide themes */
+    .slide--dark  { background: linear-gradient(140deg,#0d1c5c 0%,#1a2b6b 50%,#1e40af 100%); }
+    .slide--light { background: #FFFFFF; }
+    .slide--subtle{ background: #F7F8FC; }
+    .slide--grad  { background: linear-gradient(135deg,#1e40af,#3b82f6,#06b6d4); }
+    .slide--navy  { background: var(--primary); }
+
+    /* =====================
+       Common Elements
+    ===================== */
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: rgba(59,130,246,.12);
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .label--w {
+      color: rgba(255,255,255,.8);
+      background: rgba(255,255,255,.12);
+    }
+    .h1 {
+      font-size: clamp(28px, 3.6vw, 52px);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.2;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .h1 em { font-style: normal; color: #93c5fd; }
+    .h2 {
+      font-size: clamp(22px, 2.8vw, 40px);
+      font-weight: 800;
+      color: var(--text-h);
+      line-height: 1.25;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .h2--w { color: var(--white); }
+    .sub {
+      font-size: 15px;
+      color: var(--text-b);
+      text-align: center;
+      line-height: 1.8;
+      max-width: 580px;
+    }
+    .sub--w { color: rgba(255,255,255,.8); }
+
+    /* =====================
+       Navigation
+    ===================== */
+    .nav-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+      background: rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 8px 20px;
+    }
+    .nav-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,.18);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.35); }
+    .nav-counter {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,.85);
+      min-width: 50px;
+      text-align: center;
+    }
+    .nav-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.3);
+      transition: background .2s, transform .2s;
+      cursor: pointer;
+    }
+    .dot.active { background: white; transform: scale(1.3); }
+
+    /* =====================
+       Slide 1: Title
+    ===================== */
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      padding: 6px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.9);
+      margin-bottom: 24px;
+    }
+    .hero-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink {
+      0%,100%{opacity:1;transform:scale(1);}
+      50%{opacity:.6;transform:scale(1.4);}
+    }
+    .hero-tags {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 28px;
+    }
+    .hero-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: rgba(255,255,255,.78);
+    }
+    .hero-tag::before { content:'✓'; color: var(--green); font-weight:800; }
+    .hero-concept {
+      font-size: 15px;
+      color: rgba(255,255,255,.7);
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* =====================
+       Slide 2: Stats
+    ===================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 40px;
+    }
+    .stat-card {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 18px;
+      padding: 32px 20px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--font-en);
+      font-size: clamp(36px, 4vw, 54px);
+      font-weight: 900;
+      color: white;
+      line-height: 1;
+    }
+    .stat-num sup { font-size: 0.45em; vertical-align: super; color: #93c5fd; }
+    .stat-lbl {
+      font-size: 13px;
+      color: rgba(255,255,255,.65);
+      margin-top: 8px;
+    }
+
+    /* =====================
+       Slide 3: Problems
+    ===================== */
+    .prob-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 36px;
+    }
+    .prob-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .prob-ico {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .prob-txt {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-h);
+      line-height: 1.45;
+    }
+
+    /* =====================
+       Slide 4: Market Gap
+    ===================== */
+    .market {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 40px;
+    }
+    .mbox {
+      flex: 1;
+      background: white;
+      border-radius: 18px;
+      padding: 28px 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.07);
+    }
+    .mbox--c {
+      background: var(--primary);
+      color: white;
+      flex: 1.2;
+      position: relative;
+      z-index: 1;
+    }
+    .mbox__h {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-h);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .mbox--c .mbox__h { color: white; }
+    .mbox__list li {
+      font-size: 13px;
+      color: var(--text-b);
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .mbox__list li:last-child { border-bottom: none; }
+    .mbox--c .mbox__list li { color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.15); }
+    .marrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+      gap: 8px;
+      font-size: 22px;
+      color: var(--blue);
+    }
+    .mbox__pill {
+      display: inline-block;
+      background: var(--blue);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    /* =====================
+       Slide 5: Features
+    ===================== */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      width: 100%;
+      max-width: 960px;
+      margin-top: 36px;
+    }
+    .feat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,.07);
+      border: 1.5px solid var(--border);
+    }
+    .feat-ico { font-size: 36px; margin-bottom: 14px; }
+    .feat-h {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-h);
+      margin-bottom: 10px;
+    }
+    .feat-p { font-size: 12px; color: var(--text-b); line-height: 1.65; }
+
+    /* =====================
+       Slide 6: Cases
+    ===================== */
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 32px;
+    }
+    .case-card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      border: 1px solid var(--border);
+    }
+    .case-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .bg-beg { background:#dcfce7; color:#166534; }
+    .bg-mid { background:#dbeafe; color:#1e40af; }
+    .bg-adv { background:#fce7f3; color:#9d174d; }
+    .bg-zero{ background:#fef9c3; color:#854d0e; }
+    .case-h {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-h);
+      margin-bottom: 6px;
+    }
+    .case-p { font-size: 11px; color: var(--text-b); line-height: 1.6; }
+
+    /* =====================
+       Slide 7: Flow
+    ===================== */
+    .flow-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 40px;
+    }
+    .flow-step {
+      flex: 1;
+      text-align: center;
+      padding: 28px 16px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 18px;
+      position: relative;
+    }
+    .flow-arr {
+      flex-shrink: 0;
+      color: #93c5fd;
+      font-size: 22px;
+      padding: 0 8px;
+    }
+    .fs-num {
+      font-family: var(--font-en);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--blue);
+      background: rgba(59,130,246,.18);
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .fs-num--goal {
+      background: #fef08a;
+      color: #854d0e;
+    }
+    .fs-ico { font-size: 30px; margin-bottom: 10px; }
+    .fs-h {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 6px;
+    }
+    .fs-p { font-size: 11px; color: rgba(255,255,255,.65); line-height: 1.55; }
+
+    /* =====================
+       Slide 8: Why Beginners
+    ===================== */
+    .reasons-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+    }
+    .reasons-h {
+      font-size: clamp(22px, 2.6vw, 36px);
+      font-weight: 900;
+      color: var(--text-h);
+      line-height: 1.3;
+    }
+    .reasons-h em { font-style: normal; color: var(--blue); }
+    .reasons-list { list-style: none; }
+    .reasons-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-h);
+    }
+    .reasons-list li:last-child { border-bottom: none; }
+    .rcheck {
+      width: 24px; height: 24px;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* =====================
+       Slide 9: Testimonials
+    ===================== */
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 32px;
+    }
+    .tcard {
+      background: white;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.07);
+      border: 1px solid var(--border);
+    }
+    .tcard__q {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--blue);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .tcard__txt {
+      font-size: 12px;
+      color: var(--text-b);
+      line-height: 1.75;
+      margin-bottom: 14px;
+    }
+    .tcard__foot {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .tcard__av {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .tcard__name { font-size: 12px; font-weight: 700; color: var(--text-h); }
+    .tcard__prof { font-size: 11px; color: var(--text-b); }
+    .tcard__tag {
+      display: inline-block;
+      font-size: 10px;
+      background: rgba(59,130,246,.08);
+      color: var(--blue);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    /* =====================
+       Slide 10: Future
+    ===================== */
+    .future-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 900px;
+      margin-top: 36px;
+    }
+    .fcard {
+      background: white;
+      border-radius: 18px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      border-top: 4px solid transparent;
+    }
+    .fcard--a { border-top-color: var(--green); }
+    .fcard--b { border-top-color: var(--blue); }
+    .fcard--c { border-top-color: #f59e0b; }
+    .fcard__phase {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--text-b);
+      margin-bottom: 16px;
+    }
+    .fcard__ico { font-size: 38px; margin-bottom: 12px; }
+    .fcard__h {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-h);
+      margin-bottom: 10px;
+    }
+    .fcard__p { font-size: 13px; color: var(--text-b); line-height: 1.7; }
+
+    /* =====================
+       Slide 11: Mission
+    ===================== */
+    .mission-in { text-align: center; max-width: 640px; }
+    .mission-h {
+      font-size: clamp(28px, 3.5vw, 48px);
+      font-weight: 900;
+      color: white;
+      line-height: 1.25;
+      margin-bottom: 28px;
+    }
+    .mission-p {
+      font-size: 15px;
+      color: rgba(255,255,255,.78);
+      line-height: 2;
+      margin-bottom: 32px;
+    }
+    .mission-box {
+      display: inline-block;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 14px;
+      padding: 18px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.6;
+    }
+
+    /* =====================
+       Slide 12: CTA
+    ===================== */
+    .cta-in { text-align: center; max-width: 620px; }
+    .cta-h {
+      font-size: clamp(26px, 3.2vw, 44px);
+      font-weight: 900;
+      color: white;
+      line-height: 1.25;
+      margin-bottom: 20px;
+    }
+    .cta-p {
+      font-size: 15px;
+      color: rgba(255,255,255,.85);
+      line-height: 1.85;
+      margin-bottom: 32px;
+    }
+    .cta-btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-jp);
+      cursor: pointer;
+      transition: all .25s;
+      border: 2px solid transparent;
+      text-decoration: none;
+    }
+    .btn-cta {
+      background: white;
+      color: var(--primary);
+      border-color: white;
+      padding: 16px 40px;
+      font-size: 16px;
+    }
+    .btn-cta:hover { background: #eff6ff; box-shadow: 0 10px 40px rgba(0,0,0,.2); transform: translateY(-2px); }
+    .btn-ghost-w {
+      background: transparent;
+      color: white;
+      border-color: rgba(255,255,255,.5);
+    }
+    .btn-ghost-w:hover { border-color: white; background: rgba(255,255,255,.1); }
+    .cta-note { font-size: 12px; color: rgba(255,255,255,.55); }
+
+    /* Slide number top-right */
+    .slide-num {
+      position: absolute;
+      top: 28px;
+      right: 40px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,.35);
+      font-family: var(--font-en);
+    }
+    .slide--light .slide-num,
+    .slide--subtle .slide-num { color: rgba(0,0,0,.2); }
+  </style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ===== SLIDE 1: Title ===== -->
+  <div class="slide slide--dark active" data-slide="0">
+    <span class="slide-num">01 / 12</span>
+    <div class="hero-badge">
+      <span class="hero-dot"></span>
+      AI × 案件提供 × 収益化パートナー制度 ── 全く新しい仕組み
+    </div>
+    <h1 class="h1">
+      すでに収益化されている仕組みに、<br>
+      <em>参加するだけ。</em>
+    </h1>
+    <p class="hero-concept">未経験から始める「収益化パートナー制度」</p>
+    <p class="sub sub--w">
+      案件はこちらで用意します。<br>
+      AIを使った実務を一緒に進めながら、収益化まで伴走します。
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">未経験歓迎</span>
+      <span class="hero-tag">在宅OK</span>
+      <span class="hero-tag">AI初心者歓迎</span>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 2: Stats ===== -->
+  <div class="slide slide--dark" data-slide="1">
+    <span class="slide-num">02 / 12</span>
+    <div class="label label--w">実績</div>
+    <h2 class="h2 h2--w">数字で見る、信頼の理由</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">500<sup>名+</sup></div>
+        <div class="stat-lbl">参加実績</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="font-size:clamp(28px,3vw,42px);">多数の<sup>案件</sup></div>
+        <div class="stat-lbl">幅広いジャンルに対応</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">95<sup>%</sup></div>
+        <div class="stat-lbl">参加者満足度</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0<sup>円</sup></div>
+        <div class="stat-lbl">説明会参加費</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 3: Problems ===== -->
+  <div class="slide slide--light" data-slide="2">
+    <span class="slide-num">03 / 12</span>
+    <div class="label">こんな悩みはありませんか</div>
+    <h2 class="h2">多くの人が感じている<br>AI収益化の壁</h2>
+    <div class="prob-grid">
+      <div class="prob-card"><div class="prob-ico">😔</div><div class="prob-txt">AIを学んでも、稼げる気がしない</div></div>
+      <div class="prob-card"><div class="prob-ico">📚</div><div class="prob-txt">スクールに入ったが、案件がない</div></div>
+      <div class="prob-card"><div class="prob-ico">❓</div><div class="prob-txt">何から始めればいいかわからない</div></div>
+      <div class="prob-card"><div class="prob-ico">💸</div><div class="prob-txt">クラウドワークスで安売りするしかない</div></div>
+      <div class="prob-card"><div class="prob-ico">🌀</div><div class="prob-txt">情報が多すぎて、何が本当かわからない</div></div>
+      <div class="prob-card"><div class="prob-ico">🏠</div><div class="prob-txt">在宅で働きたいが、現実的な選択肢がない</div></div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 4: Market Gap ===== -->
+  <div class="slide slide--subtle" data-slide="3">
+    <span class="slide-num">04 / 12</span>
+    <div class="label">市場の課題</div>
+    <h2 class="h2">AI人材と企業の間には、<br>大きな溝がある</h2>
+    <div class="market" style="margin-top:36px;">
+      <div class="mbox">
+        <div class="mbox__h">😓 個人の現実</div>
+        <ul class="mbox__list">
+          <li>学んでも案件がない</li>
+          <li>安売り競争に疲弊</li>
+          <li>情報商材に騙される</li>
+          <li>収益化のイメージが持てない</li>
+        </ul>
+      </div>
+      <div class="marrow"><span>→</span><span>←</span></div>
+      <div class="mbox mbox--c">
+        <div class="mbox__pill">本サービス</div>
+        <div class="mbox__h">AI×案件提供で<br>分断を埋める仕組み</div>
+        <ul class="mbox__list">
+          <li>案件を繋ぐ</li>
+          <li>伴走する</li>
+          <li>収益を一緒に作る</li>
+        </ul>
+      </div>
+      <div class="marrow"><span>←</span><span>→</span></div>
+      <div class="mbox">
+        <div class="mbox__h">🏢 企業の現実</div>
+        <ul class="mbox__list">
+          <li>AIを活用したい</li>
+          <li>人材が見つからない</li>
+          <li>発注先がわからない</li>
+          <li>コストを下げたい</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 5: Features ===== -->
+  <div class="slide slide--light" data-slide="4">
+    <span class="slide-num">05 / 12</span>
+    <div class="label">サービス概要</div>
+    <h2 class="h2">「学んで終わり」ではない、<br>全く新しい収益化パートナー制度</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-ico">📋</div>
+        <div class="feat-h">案件を渡す</div>
+        <div class="feat-p">最初からやる仕事が用意されています。「何をすればいいかわからない」がありません。</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico">🤖</div>
+        <div class="feat-h">AIで進める</div>
+        <div class="feat-p">ツールとテンプレートが揃っているので、未経験でもすぐに動けます。</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico">🤝</div>
+        <div class="feat-h">一緒に進める</div>
+        <div class="feat-p">放置なし。伴走しながら実務を回すので、一人で抱え込む必要がありません。</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico">💰</div>
+        <div class="feat-h">利益を分け合う</div>
+        <div class="feat-p">成果に対して報酬が発生します。実務をやりながら、リアルに稼ぐ体験をします。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 6: Case Examples ===== -->
+  <div class="slide slide--subtle" data-slide="5">
+    <span class="slide-num">06 / 12</span>
+    <div class="label">案件の具体例</div>
+    <h2 class="h2">実際にどんな仕事をするのか、<br>正直に見せます</h2>
+    <div class="case-grid">
+      <div class="case-card">
+        <span class="case-badge bg-zero">完全未経験OK</span>
+        <div class="case-h">【希望者のみ】弊社パソコンスクールに無料参加</div>
+        <div class="case-p">弊社が運営するパソコンスクールに無料で参加できます。PCの基礎からAIツールの使い方まで、案件に入る前にしっかり準備できます。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-beg">★☆☆ 初心者向け</span>
+        <div class="case-h">競合・市場リサーチ業務</div>
+        <div class="case-p">AI検索ツールを使った競合調査・市場分析・トレンド収集を担当。調査フォーマットあり、特別なスキル不要。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-beg">★☆☆ 初心者向け</span>
+        <div class="case-h">ブログ記事の量産</div>
+        <div class="case-p">独自プロンプトでSEO記事を効率生成。型があるので文章が苦手でも可。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-beg">★☆☆ 初心者向け</span>
+        <div class="case-h">YouTube台本の作成</div>
+        <div class="case-p">弊社運営チャンネルの台本を担当。型とAIで企画力がなくても始められる。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-beg">★☆☆ 初心者向け</span>
+        <div class="case-h">広告画像の生成</div>
+        <div class="case-p">生成AIで広告用ビジュアルを制作。プロンプトテンプレートあり。デザイン経験不要。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-beg">★☆☆ 初心者向け</span>
+        <div class="case-h">プロンプトエンジニアリング</div>
+        <div class="case-p">AIへの指示文（プロンプト）を設計・改善する仕事。試行錯誤しながら成果を上げるコツを実務で習得。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-mid">★★☆ 初〜中級</span>
+        <div class="case-h">クリエイティブ制作</div>
+        <div class="case-p">SNS投稿・バナー・資料などビジュアルを担当。ツールは一緒に習得。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-mid">★★☆ 初〜中級</span>
+        <div class="case-h">AI動画生成で企業MV</div>
+        <div class="case-p">AI動画生成ツールで企業プロモーション動画・MVを制作。映像経験ゼロでも可。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-mid">★★☆ 初〜中級</span>
+        <div class="case-h">YouTube企画〜動画生成</div>
+        <div class="case-p">台本から動画生成・編集補助まで全面参加。実務で動画制作を習得。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-adv">★★★ 中〜上級</span>
+        <div class="case-h">中小企業AI導入の補助</div>
+        <div class="case-p">弊社の中小企業向けAI導入PJに同行。AIコンサルの実務知識を現場で習得。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-adv">★★★ 中〜上級</span>
+        <div class="case-h">AIワークフローの構築</div>
+        <div class="case-p">Make・Zapierなどのノーコードツールを使い、繰り返し業務を自動化するフローを設計・構築。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-adv">★★★ 中〜上級</span>
+        <div class="case-h">AIでオリジナル業務アプリ作成</div>
+        <div class="case-p">ChatGPTやClaude APIを活用し、企業の業務に特化したAIアプリを開発・納品。</div>
+      </div>
+      <div class="case-card">
+        <span class="case-badge bg-adv">★★★ 中〜上級</span>
+        <div class="case-h">Webサイト・自動化アプリ開発</div>
+        <div class="case-p">AIコーディングツールを使ったWebサイト制作や業務自動化アプリの開発案件に参加。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 7: Flow ===== -->
+  <div class="slide slide--navy" data-slide="6">
+    <span class="slide-num">07 / 12</span>
+    <div class="label label--w">収益化までの流れ</div>
+    <h2 class="h2 h2--w">5つのステップで、<br>未経験から収益化へ</h2>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="fs-num">1</div>
+        <div class="fs-ico">📋</div>
+        <div class="fs-h">案件提供</div>
+        <div class="fs-p">弊社が仕事を<br>準備します</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step">
+        <div class="fs-num">2</div>
+        <div class="fs-ico">🤖</div>
+        <div class="fs-h">AI×テンプレで実行</div>
+        <div class="fs-p">未経験でも<br>すぐ動けます</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step">
+        <div class="fs-num">3</div>
+        <div class="fs-ico">🤝</div>
+        <div class="fs-h">一緒に改善・運用</div>
+        <div class="fs-p">放置なし<br>伴走サポート</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step">
+        <div class="fs-num">4</div>
+        <div class="fs-ico">💰</div>
+        <div class="fs-h">利益を分配</div>
+        <div class="fs-p">成果報酬<br>あり</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step">
+        <div class="fs-num fs-num--goal">5</div>
+        <div class="fs-ico">🚀</div>
+        <div class="fs-h">自走・自動化へ</div>
+        <div class="fs-p">自分でも<br>回せる状態へ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 8: Why Beginners ===== -->
+  <div class="slide slide--light" data-slide="7">
+    <span class="slide-num">08 / 12</span>
+    <div class="reasons-wrap">
+      <div>
+        <div class="label">未経験でも大丈夫な理由</div>
+        <h2 class="reasons-h" style="margin-top:14px;">
+          「未経験だから無理」は<br>
+          <em>この仕組みには<br>当てはまりません</em>
+        </h2>
+      </div>
+      <ul class="reasons-list">
+        <li><div class="rcheck">✓</div>最初から案件が用意されている</li>
+        <li><div class="rcheck">✓</div>やることが決まっているので迷わない</li>
+        <li><div class="rcheck">✓</div>AIとテンプレで作業を進められる</li>
+        <li><div class="rcheck">✓</div>一緒に進めるので放置されない</li>
+        <li><div class="rcheck">✓</div>難しい部分はサポートがある</li>
+        <li><div class="rcheck">✓</div>ゼロからでも始められる</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 9: Testimonials ===== -->
+  <div class="slide slide--subtle" data-slide="8">
+    <span class="slide-num">09 / 12</span>
+    <div class="label">参加者の声</div>
+    <h2 class="h2">参加者が語る、<br>リアルな変化</h2>
+    <div class="testi-grid">
+      <div class="tcard">
+        <div class="tcard__q">"</div>
+        <div class="tcard__txt">スクールで学んでも案件がなく途方に暮れていました。ここに来てから初めて、お金をもらいながら学ぶという感覚がわかりました。</div>
+        <div class="tcard__foot">
+          <div class="tcard__av">A</div>
+          <div><div class="tcard__name">Aさん（30代・元会社員）</div><div class="tcard__prof">参加2ヶ月目</div></div>
+        </div>
+        <span class="tcard__tag">AI初心者 → <strong>広告画像生成を担当</strong></span>
+      </div>
+      <div class="tcard">
+        <div class="tcard__q">"</div>
+        <div class="tcard__txt">未経験で入れるか不安でしたが、最初からやることが決まっていたので迷わずに動けました。放置されないのが一番ありがたかったです。</div>
+        <div class="tcard__foot">
+          <div class="tcard__av">B</div>
+          <div><div class="tcard__name">Bさん（20代・育児中）</div><div class="tcard__prof">参加1ヶ月目</div></div>
+        </div>
+        <span class="tcard__tag">完全未経験 → <strong>ブログ記事生成を担当</strong></span>
+      </div>
+      <div class="tcard">
+        <div class="tcard__q">"</div>
+        <div class="tcard__txt">AIコンサルの案件に同行できて、教材だけでは絶対に身につかない感覚が短期間でつかめました。</div>
+        <div class="tcard__foot">
+          <div class="tcard__av">C</div>
+          <div><div class="tcard__name">Cさん（40代・副業で参加）</div><div class="tcard__prof">参加3ヶ月目</div></div>
+        </div>
+        <span class="tcard__tag">独学経験あり → <strong>中小企業AI導入に参加</strong></span>
+      </div>
+      <div class="tcard">
+        <div class="tcard__q">"</div>
+        <div class="tcard__txt">クラウドワークスで1文字0.1円の仕事をしていた頃とは全然違います。AIで同じ時間にできる量と質がまったく変わりました。</div>
+        <div class="tcard__foot">
+          <div class="tcard__av">D</div>
+          <div><div class="tcard__name">Dさん（30代・フリーランス）</div><div class="tcard__prof">参加2ヶ月目</div></div>
+        </div>
+        <span class="tcard__tag">低単価に疲弊 → <strong>台本作成を担当</strong></span>
+      </div>
+      <div class="tcard">
+        <div class="tcard__q">"</div>
+        <div class="tcard__txt">AI動画生成なんて無理だと思っていましたが、テンプレとサポートがあって、1週間で最初の動画が完成しました。</div>
+        <div class="tcard__foot">
+          <div class="tcard__av">E</div>
+          <div><div class="tcard__name">Eさん（50代・在宅希望）</div><div class="tcard__prof">参加1ヶ月半</div></div>
+        </div>
+        <span class="tcard__tag">PC初心者 → <strong>YouTube動画生成を担当</strong></span>
+      </div>
+      <div class="tcard">
+        <div class="tcard__q">"</div>
+        <div class="tcard__txt">弊社と収益をシェアする仕組みなので、最初は小さくても「本物の報酬」が発生します。この体験が自信に繋がりました。</div>
+        <div class="tcard__foot">
+          <div class="tcard__av">F</div>
+          <div><div class="tcard__name">Fさん（20代・未経験スタート）</div><div class="tcard__prof">参加3ヶ月目</div></div>
+        </div>
+        <span class="tcard__tag">完全未経験 → <strong>研修後クリエイティブを担当</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 10: Future ===== -->
+  <div class="slide slide--light" data-slide="9">
+    <span class="slide-num">10 / 12</span>
+    <div class="label">得られる未来</div>
+    <h2 class="h2">参加後、こんな変化が起きます</h2>
+    <p class="sub" style="margin-bottom:0;">夢物語ではなく、段階的に現実的な成長を積み上げていきます。</p>
+    <div class="future-grid">
+      <div class="fcard fcard--a">
+        <div class="fcard__phase">Near · まず最初に</div>
+        <div class="fcard__ico">📒</div>
+        <div class="fcard__h">初収益の体験</div>
+        <div class="fcard__p">実務の中で初めての収益を体験できます。「稼ぐ」という感覚を、学習ではなく実務で掴みます。</div>
+      </div>
+      <div class="fcard fcard--b">
+        <div class="fcard__phase">Mid · 次のステップ</div>
+        <div class="fcard__ico">🛠️</div>
+        <div class="fcard__h">仕事の進め方が身につく</div>
+        <div class="fcard__p">AIを使った実務スキルが実践で定着します。低単価の消耗戦から抜け出す武器になります。</div>
+      </div>
+      <div class="fcard fcard--c">
+        <div class="fcard__phase">Far · 最終ゴール</div>
+        <div class="fcard__ico">🚀</div>
+        <div class="fcard__h">自動化・自走へ</div>
+        <div class="fcard__p">自分でAIと外注を動かせる状態を目指せます。在宅で継続しやすい、自分の仕事の仕組みを作ります。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 11: Mission ===== -->
+  <div class="slide slide--navy" data-slide="10">
+    <span class="slide-num">11 / 12</span>
+    <div class="mission-in">
+      <h2 class="mission-h">AIを学んでも、<br>稼げない人を<br>増やしたくない</h2>
+      <p class="mission-p">
+        仕事があるのに人材に届いていない。<br>
+        人材がいるのに案件に繋がっていない。<br><br>
+        私たちはその分断を埋めるために、<br>
+        この仕組みを作りました。
+      </p>
+      <div class="mission-box">
+        一緒に利益を取り、一緒に成長していく<br>AI実践集団をつくる
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 12: CTA ===== -->
+  <div class="slide slide--grad" data-slide="11">
+    <span class="slide-num">12 / 12</span>
+    <div class="cta-in">
+      <h2 class="cta-h">まずは、無料で<br>話を聞いてみてください</h2>
+      <p class="cta-p">
+        あなたに合う案件の方向性を個別に案内します。<br>
+        どこから始めるかを、一緒に整理しましょう。
+      </p>
+      <div class="cta-btns">
+        <a href="#" class="btn btn-cta">無料説明会に参加する →</a>
+        <a href="#" class="btn btn-ghost-w">まずは詳細を確認する</a>
+      </div>
+      <p class="cta-note">※ 勧誘・営業は一切行いません</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== Navigation ===== -->
+<div class="nav-bar">
+  <button class="nav-btn" id="prev">‹</button>
+  <div class="nav-dots" id="dots"></div>
+  <span class="nav-counter" id="counter">1 / 12</span>
+  <button class="nav-btn" id="next">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsWrap = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const TOTAL = slides.length;
+  let current = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 450);
+    current = (n + TOTAL) % TOTAL;
+    slides[current].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+    counter.textContent = `${current + 1} / ${TOTAL}`;
+  }
+
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     goTo(current - 1);
+  });
+</script>
+</body>
+</html>
