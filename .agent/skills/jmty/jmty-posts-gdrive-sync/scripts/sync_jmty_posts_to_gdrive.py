@@ -45,6 +45,22 @@ def _sync_tree(source: Path, destination: Path) -> None:
         shutil.copy2(source_entry, destination_entry)
 
 
+def _sync_and_symlink_children(source: Path, destination: Path) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    if not source.exists():
+        return
+    for child in source.iterdir():
+        if not child.is_dir() or child.is_symlink():
+            continue
+
+        dest_child = destination / child.name
+        _sync_tree(child, dest_child)
+        
+        # Replace local directory with a symlink to Google Drive
+        shutil.rmtree(child)
+        os.symlink(dest_child, child)
+
+
 def _default_destination_root() -> Path | None:
     explicit = os.environ.get("JMTY_GDRIVE_DEST_ROOT")
     if explicit:
@@ -92,10 +108,10 @@ def main() -> int:
             return 1
 
     destination_root.mkdir(parents=True, exist_ok=True)
-    _sync_tree(source_factory, destination_root / "factory")
-    _sync_tree(source_remote, destination_root / "remote")
+    _sync_and_symlink_children(source_factory, destination_root / "factory")
+    _sync_and_symlink_children(source_remote, destination_root / "remote")
 
-    print("Synced successfully")
+    print("Synced and symlinked successfully")
     print(f"- source: {source_factory} -> {destination_root / 'factory'}")
     print(f"- source: {source_remote} -> {destination_root / 'remote'}")
     return 0

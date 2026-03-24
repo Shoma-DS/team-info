@@ -1,6 +1,6 @@
 output/audio/*
 Remotion/my-video/public/assets/*
-outputs/jmty_posts/
+outputs/jmty/
 .agent/skills/voice-script-launcher/.setup_completed
 mcp-servers/voicevox/node_modules/
 mcp-servers/voicevox/dist/
