@@ -80,12 +80,16 @@ def main() -> int:
         else _default_destination_root()
     )
     if destination_root is None:
-        print(
-            "[ERROR] destination root could not be detected. "
-            "Pass a destination path or set TEAM_INFO_SHARED_ROOT / JMTY_GDRIVE_DEST_ROOT.",
-            file=sys.stderr,
-        )
-        return 1
+        print("[WARNING] destination root could not be detected automatically.")
+        print("Please enter the path to Google Drive (team-info folder):")
+        try:
+            user_input = input("> ").strip()
+            if user_input:
+                destination_root = resolve_input_path(user_input)
+            else:
+                return 1
+        except EOFError:
+            return 1
 
     destination_root.mkdir(parents=True, exist_ok=True)
     _sync_tree(source_factory, destination_root / "factory")

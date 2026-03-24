@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: 変更内容をリモートリポジトリに反映するためのGit操作セット。ブランチ作成、コミット、プッシュの一連の流れを安全に実行します。プッシュ先は原則として `origin` (team-info) です。
+description: 変更内容をリモートリポジトリに反映するためのGit操作セット。ブランチ作成、コミット、プッシュの一連の流れを安全に実行します。また、コミットのみ（プッシュなし）の実行も可能です。
 ---
 
 # Git ワークフロースキル
@@ -115,9 +115,13 @@ git -C "$TEAM_INFO_ROOT" config team-info.lfsReservedBytes <バイト数>
 - `git -C "$TEAM_INFO_ROOT" add ...` の形でステージングする。
 
 ### 2. オーナー機かを確認する
-- push の前に、`python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" owner-status` を実行する。
+- push またはコミットの前に、`python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" owner-status` を実行する。
 - 結果が `owner` なら、このパソコンをオーナー機として扱う。
 - 結果が `other` なら、オーナー機ではないとして扱う。
+- **オーナー機ではないとき、かつ現在のブランチが `main` の場合**:
+  - `main` ブランチへの直接コミットは禁止です。
+  - 必ず作業用ブランチ（`feature/概要` など）を新規作成し、そちらに切り替えてからコミットしてください。
+  - ユーザーには「オーナー機ではないため、新しいブランチを作成して作業を進めます」と説明してください。
 - ユーザーに「あなたは誰ですか？」とは聞かない。
 - オーナー判定が取れない場合も、安全側で `other` として扱う。
 
@@ -186,6 +190,7 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 ```
 
 ### 4. リモートへの反映 (`git push`)
+- **コミットのみ（/c コマンド時）の場合、このステップはスキップします。**
 - push の前に、手元とリモートの差を確認する。
 - 必要なら `git -C "$TEAM_INFO_ROOT" fetch` や `git -C "$TEAM_INFO_ROOT" pull --rebase` を使って、コンフリクトがあるか確かめる。
 - push の前に、必ず `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin` を実行する。
