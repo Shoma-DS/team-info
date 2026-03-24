@@ -201,7 +201,7 @@ fi
 
 # ── 3. 基本ツール (brew) ───────────────────────────────────────────────────────
 step "3. 基本ツール (git, git-lfs, wget, tesseract, tesseract-lang, ffmpeg)"
-BREW_PACKAGES=(git git-lfs wget tesseract tesseract-lang ffmpeg)
+BREW_PACKAGES=(git git-lfs wget tesseract tesseract-lang ffmpeg gh)
 for pkg in "${BREW_PACKAGES[@]}"; do
   if brew list "$pkg" &>/dev/null; then
     success "$pkg インストール済み"
