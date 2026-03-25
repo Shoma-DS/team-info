@@ -200,7 +200,7 @@ else
 fi
 
 # ── 3. 基本ツール (brew) ───────────────────────────────────────────────────────
-step "3. 基本ツール (git, git-lfs, wget, tesseract, tesseract-lang, ffmpeg)"
+step "3. 基本ツール (git, git-lfs, wget, tesseract, tesseract-lang, ffmpeg, gh)"
 BREW_PACKAGES=(git git-lfs wget tesseract tesseract-lang ffmpeg gh)
 for pkg in "${BREW_PACKAGES[@]}"; do
   if brew list "$pkg" &>/dev/null; then
@@ -218,8 +218,28 @@ else
   warn "git lfs の初期化に失敗しました。必要なら手動で 'git lfs install --skip-repo' を実行してください。"
 fi
 
-# ── 4. pyenv + Python ─────────────────────────────────────────────────────────
-step "4. pyenv + Python $PYTHON_VERSION"
+# ── 4. GitHub アクセス & リポジトリ接続 ──────────────────────────────────────────
+step "4. GitHub アクセス & リポジトリ接続"
+warn "GitHub の招待メール（Invitation）を承認済みである必要があります。"
+read -rp "  招待メールを承認しましたか？ [y/N]: " confirmed
+if [[ ! "$confirmed" =~ ^[Yy]$ ]]; then
+  error "先に招待を承認してください。不明な場合は sho に確認してください。"
+fi
+
+if gh auth status &>/dev/null; then
+  success "GitHub CLI (gh) 認証済み"
+else
+  info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
+  gh auth login --web -h github.com -p https -w
+  success "GitHub CLI (gh) 認証完了"
+fi
+
+info "リモートリポジトリの URL を設定します..."
+git remote set-url origin https://github.com/Shoma-DS/team-info.git
+success "リモート URL 設定完了: https://github.com/Shoma-DS/team-info.git"
+
+# ── 5. pyenv + Python ─────────────────────────────────────────────────────────
+step "5. pyenv + Python $PYTHON_VERSION"
 if ! command -v pyenv &>/dev/null; then
   info "pyenv をインストールします..."
   brew install pyenv
@@ -252,8 +272,8 @@ PYTHON311="$(pyenv root)/versions/$(pyenv versions --bare | grep "^$PYTHON_VERSI
 [[ -x "$PYTHON311" ]] || error "Python $PYTHON_VERSION の実行ファイルが見つかりません: $PYTHON311"
 info "Python: $PYTHON311 ($(${PYTHON311} --version))"
 
-# ── 5. Python venv ────────────────────────────────────────────────────────────
-step "5. Python 仮想環境 ($VENV_DIR)"
+# ── 6. Python 仮想環境 ($VENV_DIR) ────────────────────────────────────────────
+step "6. Python 仮想環境 ($VENV_DIR)"
 if [[ -d "$VENV_DIR" ]]; then
   warn "既存の venv が見つかりました: $VENV_DIR"
   read -rp "  再作成しますか? (y/N): " ans
@@ -276,8 +296,8 @@ PYTHON="$VENV_DIR/bin/python"
 "$PIP" install --upgrade pip setuptools wheel -q
 success "pip アップグレード完了"
 
-# ── 6. Python パッケージ ──────────────────────────────────────────────────────
-step "6. Python パッケージのインストール"
+# ── 7. Python パッケージ ──────────────────────────────────────────────────────
+step "7. Python パッケージのインストール"
 info "requirements.txt からインストールします..."
 "$PIP" install -r "$SCRIPT_DIR/requirements.txt"
 success "requirements.txt インストール完了"
@@ -294,8 +314,8 @@ else
 fi
 success "jax インストール完了"
 
-# ── 7. uv ─────────────────────────────────────────────────────────────────────
-step "7. uv"
+# ── 8. uv ─────────────────────────────────────────────────────────────────────
+step "8. uv"
 PYTHON_USER_BIN="$(get_python_user_bin)"
 append_line_to_shell_rcs "export PATH=\"$PYTHON_USER_BIN:\$PATH\""
 export PATH="$PYTHON_USER_BIN:$PATH"
@@ -307,8 +327,8 @@ else
   success "uv インストール完了"
 fi
 
-# ── 8. nvm + Node.js ──────────────────────────────────────────────────────────
-step "8. nvm + Node.js $NODE_VERSION"
+# ── 9. nvm + Node.js ──────────────────────────────────────────────────────────
+step "9. nvm + Node.js $NODE_VERSION"
 NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [[ ! -d "$NVM_DIR" ]]; then
   info "nvm をインストールします..."
@@ -332,8 +352,8 @@ fi
 nvm use "$NODE_VERSION"
 info "Node.js: $(node --version), npm: $(npm --version)"
 
-# ── 9. Codex CLI ───────────────────────────────────────────────────────────────
-step "9. Codex CLI"
+# ── 10. Codex CLI ───────────────────────────────────────────────────────────────
+step "10. Codex CLI"
 if command -v codex &>/dev/null; then
   info "Codex CLI を更新します..."
 else
@@ -345,8 +365,8 @@ else
   warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CODEX_NPM_PACKAGE を実行してください。"
 fi
 
-# ── 10. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
-step "10. TEAM_INFO_ROOT"
+# ── 11. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
+step "11. TEAM_INFO_ROOT"
 export TEAM_INFO_ROOT
 write_team_info_env_file
 ensure_shell_loads_team_info_env
@@ -362,8 +382,8 @@ else
   warn "TEAM_INFO_ROOT の保存に失敗しました。必要なら手動で設定してください。"
 fi
 
-# ── 11. npm パッケージ (Remotion) ─────────────────────────────────────────────
-step "11. npm パッケージ (Remotion/my-video)"
+# ── 12. npm パッケージ (Remotion) ─────────────────────────────────────────────
+step "12. npm パッケージ (Remotion/my-video)"
 REMOTION_DIR="$TEAM_INFO_ROOT/Remotion/my-video"
 if [[ -d "$REMOTION_DIR" ]]; then
   info "npm install を実行します..."
@@ -374,8 +394,8 @@ else
   warn "Remotion/my-video が見つかりません: $REMOTION_DIR"
 fi
 
-# ── 12. MCP サーバー (VOICEVOX) ───────────────────────────────────────────────
-step "12. npm パッケージ (mcp-servers/voicevox)"
+# ── 13. npm パッケージ (mcp-servers/voicevox) ───────────────────────────────────────────────
+step "13. npm パッケージ (mcp-servers/voicevox)"
 VOICEVOX_MCP_DIR="$TEAM_INFO_ROOT/mcp-servers/voicevox"
 if [[ -d "$VOICEVOX_MCP_DIR" ]]; then
   cd "$VOICEVOX_MCP_DIR"
@@ -388,16 +408,16 @@ if [[ -d "$VOICEVOX_MCP_DIR" ]]; then
   success "voicevox MCP npm install 完了"
 fi
 
-# ── 13. npm パッケージ (Canva 補助) ──────────────────────────────────────────
-step "13. npm パッケージ (Remotion/scripts/canva_auth)"
+# ── 14. npm パッケージ (Canva 補助) ──────────────────────────────────────────
+step "14. npm パッケージ (Remotion/scripts/canva_auth)"
 if [[ -d "$CANVA_AUTH_DIR" ]]; then
   cd "$CANVA_AUTH_DIR"
   npm install
   success "Canva 補助 npm install 完了"
 fi
 
-# ── 14. Dify 開発環境 ─────────────────────────────────────────────────────────
-step "14. Dify 開発環境"
+# ── 15. Dify 開発環境 ─────────────────────────────────────────────────────────
+step "15. Dify 開発環境"
 if [[ -d "$DIFY_ROOT" ]]; then
   copy_if_missing "$DIFY_API_DIR/.env.example" "$DIFY_API_DIR/.env"
   copy_if_missing "$DIFY_WEB_DIR/.env.example" "$DIFY_WEB_DIR/.env.local"
@@ -452,14 +472,14 @@ else
   warn "docker/dify が見つからないため、Dify の準備は飛ばしました。"
 fi
 
-# ── 15. 秘密ファイルの下準備 ───────────────────────────────────────────────
-step "15. 秘密ファイルの下準備"
+# ── 16. 秘密ファイルの下準備 ───────────────────────────────────────────────
+step "16. 秘密ファイルの下準備"
 ensure_canva_credentials_template
 warn "Canva を使うときは $CANVA_CREDENTIALS_FILE に鍵を書いてください。"
 warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
 
-# ── 16. Docker 確認 ───────────────────────────────────────────────────────────
-step "16. Docker"
+# ── 17. Docker ───────────────────────────────────────────────────────────
+step "17. Docker"
 if command -v docker &>/dev/null; then
   success "Docker インストール済み: $(docker --version)"
   info "標準の Python Docker ランタイムをビルドします..."
@@ -480,9 +500,9 @@ else
   warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
 fi
 
-# ── 17. セットアップ検証 ─────────────────────────────────────────────────────
+# ── 18. セットアップ検証 ─────────────────────────────────────────────────────
 VERIFY_STATUS=0
-step "17. セットアップ検証"
+step "18. セットアップ検証"
 VERIFY_SCRIPT="$SCRIPT_DIR/verify_setup.py"
 if [[ -f "$VERIFY_SCRIPT" ]]; then
   if "$PYTHON311" "$VERIFY_SCRIPT" --repo-root "$TEAM_INFO_ROOT"; then

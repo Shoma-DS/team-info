@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # team-info セットアップスクリプト (Windows PowerShell)
 # =============================================================================
 # 使い方（管理者として PowerShell を開いて実行）:
@@ -291,8 +291,35 @@ try {
     Write-Warn "git lfs の初期化に失敗しました。必要なら 'git lfs install --skip-repo' を手動で実行してください。"
 }
 
-# ── 3. Python ─────────────────────────────────────────────────────────────
-Write-Step "3. Python $PythonVersion"
+# ── 3. GitHub アクセス & リポジトリ接続 ─────────────────────────────────────
+Write-Step "3. GitHub アクセス & リポジトリ接続"
+if (Test-Command gh) {
+    Write-Ok "GitHub CLI (gh) インストール済み: $(gh --version | Select-Object -First 1)"
+} else {
+    Install-WithWinget "GitHub.cli" "GitHub CLI (gh)"
+}
+
+Write-Warn "GitHub の招待メール（Invitation）を承認済みである必要があります。"
+$confirmed = Read-Host "  招待メールを承認しましたか？ (y/N)"
+if ($confirmed -notmatch "^[Yy]$") {
+    Write-Err "先に招待を承認してください。不明な場合は sho に確認してください。"
+}
+
+$authStatus = gh auth status 2>&1
+if ($LASTEXITCODE -eq 0) {
+    Write-Ok "GitHub CLI (gh) 認証済み"
+} else {
+    Write-Info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
+    & gh auth login --web -h github.com -p https -w
+    Write-Ok "GitHub CLI (gh) 認証完了"
+}
+
+Write-Info "リモートリポジトリの URL を設定します..."
+& git remote set-url origin https://github.com/Shoma-DS/team-info.git
+Write-Ok "リモート URL 設定完了: https://github.com/Shoma-DS/team-info.git"
+
+# ── 4. Python ─────────────────────────────────────────────────────────────
+Write-Step "4. Python $PythonVersion"
 
 # pyenv-win インストール
 if (-not (Test-Command pyenv)) {
@@ -328,8 +355,8 @@ $Python311 = "$env:USERPROFILE\.pyenv\pyenv-win\versions\$PythonVersion\python.e
 if (-not (Test-Path $Python311)) { Write-Err "Python $PythonVersion が見つかりません: $Python311" }
 Write-Info "Python: $Python311 ($(& $Python311 --version))"
 
-# ── 4. Tesseract OCR ─────────────────────────────────────────────────────
-Write-Step "4. Tesseract OCR (pytesseract 依存)"
+# ── 5. Tesseract OCR (pytesseract 依存) ─────────────────────────────────────
+Write-Step "5. Tesseract OCR (pytesseract 依存)"
 if (Test-Command tesseract) {
     Write-Ok "Tesseract インストール済み"
 } else {
@@ -349,16 +376,16 @@ if (Test-Command tesseract) {
     Write-Ok "Tesseract インストール完了"
 }
 
-# ── 5. FFmpeg ─────────────────────────────────────────────────────────────
-Write-Step "5. FFmpeg"
+# ── 6. FFmpeg ─────────────────────────────────────────────────────────────
+Write-Step "6. FFmpeg"
 if (Test-Command ffmpeg) {
     Write-Ok "FFmpeg インストール済み"
 } else {
     Install-WithWinget "Gyan.FFmpeg" "FFmpeg"
 }
 
-# ── 6. Python 仮想環境 ────────────────────────────────────────────────────
-Write-Step "6. Python 仮想環境 ($VenvDir)"
+# ── 7. Python 仮想環境 ($VenvDir) ────────────────────────────────────────────
+Write-Step "7. Python 仮想環境 ($VenvDir)"
 if (Test-Path $VenvDir) {
     $ans = Read-Host "  既存の venv が見つかりました。再作成しますか? (y/N)"
     if ($ans -match "^[Yy]$") {
@@ -382,8 +409,8 @@ Invoke-NativeOrThrow "pip の更新" {
 }
 Write-Ok "pip アップグレード完了"
 
-# ── 7. Python パッケージ ─────────────────────────────────────────────────
-Write-Step "7. Python パッケージのインストール"
+# ── 8. Python パッケージのインストール ─────────────────────────────────────────
+Write-Step "8. Python パッケージのインストール"
 Write-Info "requirements.txt からインストールします..."
 Invoke-NativeOrThrow "requirements.txt の install" {
     & $Python -m pip install -r (Join-Path $ScriptDir "requirements.txt")
@@ -401,8 +428,8 @@ try {
     Write-Warn "jax のインストールに失敗しました（スキップ）: $_"
 }
 
-# ── 8. uv ────────────────────────────────────────────────────────────────
-Write-Step "8. uv"
+# ── 9. uv ────────────────────────────────────────────────────────────────
+Write-Step "9. uv"
 $UvExe = $null
 if (Test-Command uv) {
     $uvCommand = Get-Command uv -ErrorAction SilentlyContinue
@@ -418,8 +445,8 @@ if (Test-Command uv) {
     }
 }
 
-# ── 9. TEAM_INFO_ROOT ─────────────────────────────────────────────────────
-Write-Step "9. TEAM_INFO_ROOT"
+# ── 10. TEAM_INFO_ROOT ─────────────────────────────────────────────────────
+Write-Step "10. TEAM_INFO_ROOT"
 Set-UserEnvVar "TEAM_INFO_ROOT" $TeamInfoRoot
 $RuntimeScript = Join-Path $TeamInfoRoot ".agent\skills\common\scripts\team_info_runtime.py"
 if (Test-Path $RuntimeScript) {
@@ -431,8 +458,8 @@ if (Test-Path $RuntimeScript) {
     }
 }
 
-# ── 10. nvm-windows + Node.js ─────────────────────────────────────────────
-Write-Step "10. nvm-windows + Node.js $NodeVersion"
+# ── 11. nvm-windows + Node.js ─────────────────────────────────────────────
+Write-Step "11. nvm-windows + Node.js $NodeVersion"
 if (-not (Test-Command nvm)) {
     Write-Info "nvm-windows をインストールします..."
     Invoke-NativeOrThrow "nvm-windows の winget install" {
@@ -493,8 +520,8 @@ if ($NvmExe) {
     Write-Warn "nvm を見つけられませんでした。PowerShell を再起動してから再実行してください。"
 }
 
-# ── 11. Codex CLI ──────────────────────────────────────────────────────────
-Write-Step "11. Codex CLI"
+# ── 12. Codex CLI ──────────────────────────────────────────────────────────
+Write-Step "12. Codex CLI"
 if (Test-Command npm) {
     if (Test-Command codex) {
         Write-Info "Codex CLI を更新します..."
@@ -520,8 +547,8 @@ if (Test-Command npm) {
     Write-Warn "  npm install -g $CodexNpmPackage"
 }
 
-# ── 12. npm パッケージ (Remotion) ────────────────────────────────────────
-Write-Step "12. npm パッケージ (Remotion/my-video)"
+# ── 13. npm パッケージ (Remotion) ────────────────────────────────────────
+Write-Step "13. npm パッケージ (Remotion/my-video)"
 $RemotionDir = Join-Path $TeamInfoRoot "Remotion\my-video"
 if (Test-Command node) {
     if (Test-Path $RemotionDir) {
@@ -541,8 +568,8 @@ if (Test-Command node) {
     Write-Warn "  npm install"
 }
 
-# ── 13. MCP サーバー (VOICEVOX) ──────────────────────────────────────────
-Write-Step "13. npm パッケージ (mcp-servers/voicevox)"
+# ── 14. npm パッケージ (mcp-servers/voicevox) ──────────────────────────────────────────
+Write-Step "14. npm パッケージ (mcp-servers/voicevox)"
 $VoicevoxMcpDir = Join-Path $TeamInfoRoot "mcp-servers\voicevox"
 if ((Test-Path $VoicevoxMcpDir) -and (Test-Command node)) {
     Push-Location $VoicevoxMcpDir
@@ -561,8 +588,8 @@ if ((Test-Path $VoicevoxMcpDir) -and (Test-Command node)) {
     Write-Ok "voicevox MCP npm install 完了"
 }
 
-# ── 14. npm パッケージ (Canva 補助) ──────────────────────────────────────
-Write-Step "14. npm パッケージ (Remotion/scripts/canva_auth)"
+# ── 15. npm パッケージ (Remotion/scripts/canva_auth) ──────────────────────────────────────
+Write-Step "15. npm パッケージ (Remotion/scripts/canva_auth)"
 if ((Test-Path $CanvaAuthDir) -and (Test-Command node)) {
     Push-Location $CanvaAuthDir
     Invoke-NativeOrThrow "Canva 補助の npm install" {
@@ -572,8 +599,8 @@ if ((Test-Path $CanvaAuthDir) -and (Test-Command node)) {
     Write-Ok "Canva 補助 npm install 完了"
 }
 
-# ── 15. Dify 開発環境 ─────────────────────────────────────────────────────
-Write-Step "15. Dify 開発環境"
+# ── 16. Dify 開発環境 ─────────────────────────────────────────────────────
+Write-Step "16. Dify 開発環境"
 if (Test-Path $DifyRoot) {
     Copy-IfMissing (Join-Path $DifyApiDir ".env.example") (Join-Path $DifyApiDir ".env")
     Copy-IfMissing (Join-Path $DifyWebDir ".env.example") (Join-Path $DifyWebDir ".env.local")
@@ -664,14 +691,14 @@ if (Test-Path $DifyRoot) {
     Write-Warn "docker/dify が見つからないため、Dify の準備は飛ばしました。"
 }
 
-# ── 16. 秘密ファイルの下準備 ─────────────────────────────────────────────
-Write-Step "16. 秘密ファイルの下準備"
+# ── 17. 秘密ファイルの下準備 ─────────────────────────────────────────────
+Write-Step "17. 秘密ファイルの下準備"
 Ensure-CanvaCredentialsTemplate
 Write-Warn "Canva を使うときは $CanvaCredentialsFile に鍵を書いてください。"
 Write-Warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
 
-# ── 17. Docker 確認 ───────────────────────────────────────────────────────
-Write-Step "17. Docker"
+# ── 18. Docker ───────────────────────────────────────────────────────
+Write-Step "18. Docker"
 if (Test-Command docker) {
     Write-Ok "Docker インストール済み: $(docker --version)"
     try {
@@ -694,9 +721,9 @@ if (Test-Command docker) {
     Write-Warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください"
 }
 
-# ── 18. セットアップ検証 ─────────────────────────────────────────────────
+# ── 19. セットアップ検証 ─────────────────────────────────────────────────
 $VerifyStatus = 0
-Write-Step "18. セットアップ検証"
+Write-Step "19. セットアップ検証"
 $VerifyScript = Join-Path $ScriptDir "verify_setup.py"
 if (Test-Path $VerifyScript) {
     try {

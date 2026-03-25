@@ -26,6 +26,7 @@ description: team-info の初回セットアップや再セットアップを始
 2. 結果が `new` のときは、最初に `マニュアル/まずはこちらをお読みください.md` を読み、その流れに沿って案内する。
 3. 結果が `known` のときは、そのパソコンは既に一度 `team-info` を触った前提で扱う。ユーザーがやり直しを望むなら、そのまま setup を進めてよい。
 4. フルセットアップの入口は常に `setup/setup_all.cmd` とする。
+   - 途中で **GitHub 招待の承認確認** と **GitHub CLI (gh) の認証** が行われる。
    - この入口は OS 別 setup の最後に `setup/verify_setup.py` まで走らせる前提で扱う。
    - `Verify status: passed` かつ終了コード 0 のときだけ「環境がそろった」と判断する。
 5. setup 完了後は、ターミナルを開き直して `TEAM_INFO_ROOT` を確認するよう案内する。
@@ -115,6 +116,14 @@ Windows:
 
 - `n8n` を起動したいときは `dify` を `n8n` に置き換える。
 - このランチャーが Docker Desktop の有無確認、起動、Engine 待機まで面倒を見る。
+
+### GitHub 認証のやり直し
+
+セットアップ後に GitHub 認証だけをやり直したい場合：
+
+```bash
+gh auth login --web
+```
 
 ## 承認ルール
 - `worked-before-status` の確認やマニュアルの読み込みは、そのまま実行してよい。

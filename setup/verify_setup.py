@@ -12,7 +12,7 @@ from pathlib import Path
 
 PYTHON_RUNTIME_IMAGE = "team-info/python-skill-runtime:3.11.9"
 VOICEVOX_IMAGE = "voicevox/voicevox_engine:latest"
-REQUIRED_HOST_COMMANDS = ("docker", "node", "npm", "codex")
+REQUIRED_HOST_COMMANDS = ("docker", "node", "npm", "codex", "gh")
 HOST_IMPORTS = (
     "cv2",
     "numpy",
@@ -95,6 +95,34 @@ def _check_git_lfs(failures: list[str]) -> None:
     message = _truncate(completed.stderr or completed.stdout or "git lfs version failed")
     print(f"[NG] git lfs: {message}")
     failures.append("git lfs が使えません。")
+
+
+def _check_gh_auth(failures: list[str]) -> None:
+    _print_heading("GitHub CLI (gh) Auth")
+    if shutil.which("gh") is None:
+        print("[NG] gh: command not found")
+        failures.append("gh が見つかりません。")
+        return
+
+    completed = _run(["gh", "auth", "status"])
+    if completed.returncode == 0:
+        print(f"[OK] gh auth: logged in")
+    else:
+        message = _truncate(completed.stderr or completed.stdout or "not logged in")
+        print(f"[NG] gh auth: {message}")
+        failures.append("GitHub CLI (gh) でログインしていません。'gh auth login' を実行してください。")
+
+
+def _check_remote_url(repo_root: Path, failures: list[str]) -> None:
+    _print_heading("Git Remote URL")
+    expected_url = "https://github.com/Shoma-DS/team-info.git"
+    completed = _run(["git", "-C", str(repo_root), "remote", "get-url", "origin"])
+    current_url = completed.stdout.strip()
+    if completed.returncode == 0 and current_url == expected_url:
+        print(f"[OK] origin: {current_url}")
+    else:
+        print(f"[NG] origin: {current_url or '(empty)'}")
+        failures.append(f"リモート URL が {expected_url} に設定されていません。")
 
 
 def _check_repo_git_hooks(repo_root: Path, failures: list[str]) -> None:
@@ -461,6 +489,8 @@ def main() -> int:
 
     _check_host_commands(failures)
     _check_git_lfs(failures)
+    _check_gh_auth(failures)
+    _check_remote_url(repo_root, failures)
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
     _check_host_python(repo_root, failures)
