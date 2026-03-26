@@ -26,6 +26,9 @@ node_modules/
 # 個人用ファイル（gitから除外）
 gas/personal/
 
+# 開発モード設定（個人設定のため除外）
+.dev-mode
+
 # OS files
 .DS_Store
 */.DS_Store

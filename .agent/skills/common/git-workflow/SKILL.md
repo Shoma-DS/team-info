@@ -110,18 +110,42 @@ git -C "$TEAM_INFO_ROOT" config team-info.lfsReservedBytes <バイト数>
 
 ## 必須フロー (ワークフロー)
 
+### 0. 状態の把握（最初に必ず実行）
+
+```bash
+git -C "$TEAM_INFO_ROOT" status
+git -C "$TEAM_INFO_ROOT" log origin/main..HEAD --oneline
+```
+
+上記の結果から、次の 2 つを確認する。
+
+| 確認項目 | 判定 |
+|---------|------|
+| 未コミットの変更がある | → ステップ 1〜3（コミット→プッシュ）へ |
+| 未コミットはないが、未プッシュのコミットがある | → ステップ 3（プッシュのみ）へ |
+| 何も変更なし | → 「変更はありません」とユーザーに伝えて終了 |
+
 ### 1. 変更のステージング (`git add`)
+- 未コミットの変更がある場合のみ実行する。
 - ユーザーへの確認は**不要**。
-- `git -C "$TEAM_INFO_ROOT" add ...` の形でステージングする。
+- `git -C "$TEAM_INFO_ROOT" add -A` でステージングする。
 
 ### 2. オーナー機かを確認する
-- push の前に、`python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" owner-status` を実行する。
+- `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" owner-status` を実行する。
 - 結果が `owner` なら、このパソコンをオーナー機として扱う。
 - 結果が `other` なら、オーナー機ではないとして扱う。
 - ユーザーに「あなたは誰ですか？」とは聞かない。
 - オーナー判定が取れない場合も、安全側で `other` として扱う。
 
+**オーナー機ではない場合のブランチ準備（コミット前に実施）:**
+- `git -C "$TEAM_INFO_ROOT" config user.name` でアカウント名を取得する。
+- アカウント名をケバブケースに変換してブランチ名にする（例: `Shoma Deguchi` → `shoma-deguchi`）。
+- そのブランチが存在しなければ `git -C "$TEAM_INFO_ROOT" checkout -b <ブランチ名>` で作成する。
+- 既に存在すれば `git -C "$TEAM_INFO_ROOT" checkout <ブランチ名>` で切り替える。
+- **ブランチ名はアカウント名固定とし、コミット内容から名前を付けてはいけない。**
+
 ### 3. コミット前の説明と承認 (`git commit`)
+- 未コミットの変更がない場合はこのステップをスキップする。
 - **コミットを実行する前に**、以下の手順を踏むこと。
   1. `git -C "$TEAM_INFO_ROOT" diff --staged` 等で変更内容を確認する。
   2. ユーザーに対して、今回の変更内容を**「小学生にもわかるように」**噛み砕いて説明する。専門用語を避け、何が変わって何が良くなるのかを伝える。
@@ -185,17 +209,22 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 <詳細>"
 ```
 
-### 4. リモートへの反映 (`git push`)
+### 4. リモートへの反映 (`git push` / プルリクエスト)
 - push の前に、手元とリモートの差を確認する。
 - 必要なら `git -C "$TEAM_INFO_ROOT" fetch` や `git -C "$TEAM_INFO_ROOT" pull --rebase` を使って、コンフリクトがあるか確かめる。
 - push の前に、必ず `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin` を実行する。
 - その結果が非 0 なら、push を止める。ユーザーには、無料枠を超える見込みか、無料枠を安全に確認できないため止めたことを、小学生にもわかる言葉で説明する。
-- **オーナー機のとき**:
-  - `git -C "$TEAM_INFO_ROOT" push`（または `git -C "$TEAM_INFO_ROOT" push -u ...`）を実行して良いか確認し、承認を得てから実行する。
-- **オーナー機ではないとき**:
-  - 直接 push はせず、**プルリクエスト (Pull Request)** を作成する流れに固定する。
-  - 「オーナー機ではないため、プルリクエストを作って変更を提案します」と小学生でもわかる言葉で伝える。
-  - 必要に応じて作業用の中間ブランチを作成し、そこからプルリクエストを作成する。
+
+**オーナー機のとき:**
+- main ブランチで `git -C "$TEAM_INFO_ROOT" push`（または `git -C "$TEAM_INFO_ROOT" push -u origin main`）を実行して良いか確認し、承認を得てから実行する。
+
+**オーナー機ではないとき:**
+- ステップ 2 で準備したアカウント名ブランチに push する。
+- `git -C "$TEAM_INFO_ROOT" push -u origin <アカウント名ブランチ>` を実行する。
+- push 後、必ず `gh pr create` でプルリクエストを作成する。
+- 「オーナー機ではないため、アカウント名のブランチにプッシュしてプルリクエストを作ります」と小学生でもわかる言葉で伝える。
+- PR のタイトルはコミットメッセージの1行要約を使う。
+- **ブランチ名はアカウント名固定。コミット内容や機能名からブランチ名を作ってはいけない。**
 
 ### 5. マージ・リベース (`git merge`, `git rebase`)
 - 実行前に必ずユーザーに確認し、承認を得ること。

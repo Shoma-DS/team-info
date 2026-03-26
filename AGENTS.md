@@ -1,3 +1,38 @@
+## 開発モード管理（全エージェント共通・必須）
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+### モードの確認（作業開始前に必須）
+
+新規ファイル・フォルダの作成を伴うタスクを開始する前に、**必ず** `.dev-mode` ファイルを読み込み、現在のモードをユーザーに提示して確認すること。
+
+```
+現在のモード: チーム開発モード  ← または 個人開発モード
+このまま続けてよいですか？
+```
+
+### チーム開発モード（`.dev-mode` の内容が `team`）
+
+- 新規ファイル・フォルダは通常どおり git の追跡対象
+- `.gitignore` への自動追加は行わない
+
+### 個人開発モード（`.dev-mode` の内容が `personal`）
+
+- 新規作成したファイル・フォルダのパスを、**作成直後に** `.gitignore` へ追記すること
+- 追記形式: `# [personal] {作成日YYYY-MM-DD}` コメントとともにパスを追加
+- 既存ファイルへの変更はこのルールの対象外
+
+### モード切り替えコマンド
+
+| コマンド | 動作 |
+|---------|------|
+| `/team` | チーム開発モードに切り替え（`.dev-mode` に `team` を書き込む） |
+| `/personal` | 個人開発モードに切り替え（`.dev-mode` に `personal` を書き込む） |
+
+切り替え後は現在のモードをユーザーに報告すること。
+
+---
+
 ## Slash Commands
 
 ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
@@ -5,7 +40,9 @@
 | コマンド | 読み込むスキル |
 |---------|--------------|
 | `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
-| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ |
+| `/c` | コミットのみ（push・PR なし）。オーナー機→main、それ以外→アカウント名ブランチ |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ（オーナー機以外は PR 作成） |
+| `/pull` | origin/main から最新を取り込む（`git fetch` → `pull --rebase`） |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` |
 | `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
 | `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
