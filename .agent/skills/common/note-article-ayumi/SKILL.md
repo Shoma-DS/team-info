@@ -126,6 +126,12 @@ user_invocable: true
   - テーマ部分はスペースなし、日本語OK
 - **保存先**: `outputs/note_articles/`
 
+保存後、以下の Google Drive コピーコマンドをユーザーに提示する（自分では実行しない）：
+```bash
+mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/note記事" && cp "$TEAM_INFO_ROOT/outputs/note_articles/[ファイル名].md" "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/note記事/"
+```
+- Google Drive for Desktop が起動していない場合は「Google Drive for Desktop を起動してから再実行してください」と伝える。
+
 #### ステップ7: 完了報告
 
 以下をユーザーに報告する:

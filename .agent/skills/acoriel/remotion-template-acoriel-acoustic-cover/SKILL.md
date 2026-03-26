@@ -236,8 +236,8 @@ Phase 2: LRC・概要欄生成
 Phase 3: Remotion実装
   └ 曲フォルダ作成 → JSON生成 → （MultiBG: 背景動画事前合成） → Root.tsx追記
 
-Phase 4: 確認・レンダリング
-  └ lint → remotion studio → レンダリング（承認後）
+Phase 4: 確認・レンダリング・Drive保存
+  └ lint → remotion studio → レンダリング（承認後）→ Google Drive コピー
 ```
 
 ### Step 0-2: 素材の置き場所を案内
@@ -394,4 +394,11 @@ Phase 4: 確認・レンダリング
    cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render --composition=AcoRiel-[曲名]-MultiBG --output="$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4"
    ```
    - 出力先: `outputs/acoriel/renders/[曲名].mp4`
-10. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。
+   - レンダリング完了後に Step 10 のコマンドも提示する。
+10. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
+    ```bash
+    cp "$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4" "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/アコリエル/"
+    ```
+    - コピー先: Google Drive `マイドライブ/team-info/outputs/アコリエル/`
+    - Google Drive for Desktop が起動していないとコピー先フォルダが存在しないため、エラーが出た場合は「Google Drive for Desktop を起動してから再実行してください」と伝える。
+11. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

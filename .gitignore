@@ -23,6 +23,14 @@ node_modules/
 .venv/
 */.venv/
 
+# 個人用ファイル（gitから除外）
+gas/personal/
+
 # OS files
 .DS_Store
 */.DS_Store
+
+# LP関連フォルダ
+lp/
+LP参考/
+

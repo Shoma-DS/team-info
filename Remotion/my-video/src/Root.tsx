@@ -1,5 +1,5 @@
 import { Composition, Folder } from "remotion";
-import { AcoRielLyricCover } from "./AcoRielLyricCover";
+import { AcoRielLyricCover, AcoRielLyricCoverMultiBG } from "./AcoRielLyricCover";
 import { CanvaSlideshow } from "./CanvaSlideshow";
 import { SleepTravelLong } from "./SleepTravelLong";
 import chiseigakuSlides from "../public/assets/slide_images/地政学/manifest.json";
@@ -42,6 +42,20 @@ export const RemotionRoot: React.FC = () => {
       </Folder>
 
       <Folder name="AcoRiel">
+        <Composition
+          id="AcoRiel-Joifuru-MultiBG"
+          component={AcoRielLyricCoverMultiBG}
+          durationInFrames={5438}
+          fps={30}
+          width={1920}
+          height={1080}
+          defaultProps={{
+            songFolder: "songs/Joifuru",
+            songTitle: "じょいふる",
+            songArtist: "いきものがかり",
+            prerenderedBgVideo: "bg_prerendered_seed457882377.mp4",
+          }}
+        />
         <Composition
           id="AcoRiel-TomorrowNeverKnows-Lyric"
           component={AcoRielLyricCover}

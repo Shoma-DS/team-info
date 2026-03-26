@@ -13,6 +13,8 @@
 | `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
 | `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
 | `/gdrive` | `.agent/skills/common/gdrive-copy/SKILL.md` |
+| `/tyoudoii-illust-fetcher` | `.agent/skills/web-design/tyoudoii-illust-fetcher/SKILL.md` |
+| `/themeisle-illustration-fetcher` | `.agent/skills/web-design/themeisle-illustration-fetcher/SKILL.md` |
 
 ## Skills
 A skill is a set of local instructions stored in a `SKILL.md` file.
@@ -95,6 +97,7 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - Path resolution: 相対パスは各スキルディレクトリ基準で解決する。
 - Reuse first: スキル内の scripts/templates/assets を優先して再利用する。
 - Coordination: 複数スキルが必要な場合は最小構成に絞り、使う順番を短く示す。
+- 画像ダウンロード / イラスト取得系スキルが2つ以上候補に上がる場合は、自動で決めず、候補の違いを短く示してからどれを使うか必ずユーザーに確認する。
 - Fallback: スキルが見つからない、または不明瞭な場合は、その旨を短く伝えて実用的な代替手段で進める。
 
 ### Tool Execution Security Rules
