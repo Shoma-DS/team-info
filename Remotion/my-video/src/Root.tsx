@@ -11,6 +11,16 @@ import {
 } from "./viral/editor/EditableViralVideo";
 import { ViralClipEditor } from "./viral/editor/ViralClipEditor";
 import { viralEditorPresets } from "./viral/editor/presets";
+import { withErrorBoundary } from "./ErrorBoundary";
+
+const SleepTravelLongSafe = withErrorBoundary(SleepTravelLong, "SleepTravelLong");
+const CanvaSlideshowSafe = withErrorBoundary(CanvaSlideshow, "CanvaSlideshow");
+const AcoRielLyricCoverMultiBGSafe = withErrorBoundary(AcoRielLyricCoverMultiBG, "AcoRielLyricCoverMultiBG");
+const AcoRielLyricCoverSafe = withErrorBoundary(AcoRielLyricCover, "AcoRielLyricCover");
+const ViralVideoGachiSafe = withErrorBoundary(ViralVideoGachi, "ガチで脱いだ女性芸能人3選");
+const ViralVideoJimushoSafe = withErrorBoundary(ViralVideoJimusho, "事務所に売られた芸能人3選");
+const EditableViralVideoSafe = withErrorBoundary(EditableViralVideo, "EditableViralVideo");
+const ViralClipEditorSafe = withErrorBoundary(ViralClipEditor, "ViralClipEditor");
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -18,7 +28,7 @@ export const RemotionRoot: React.FC = () => {
       <Folder name="SleepTravel">
         <Composition
           id="SleepTravelLong"
-          component={SleepTravelLong}
+          component={SleepTravelLongSafe}
           durationInFrames={144216}
           fps={30}
           width={1920}
@@ -29,7 +39,7 @@ export const RemotionRoot: React.FC = () => {
       <Folder name="Slideshow">
         <Composition
           id="SleepTravel-地政学-Slideshow"
-          component={CanvaSlideshow}
+          component={CanvaSlideshowSafe}
           durationInFrames={144210}
           fps={30}
           width={1920}
@@ -44,7 +54,7 @@ export const RemotionRoot: React.FC = () => {
       <Folder name="AcoRiel">
         <Composition
           id="AcoRiel-Joifuru-MultiBG"
-          component={AcoRielLyricCoverMultiBG}
+          component={AcoRielLyricCoverMultiBGSafe}
           durationInFrames={5438}
           fps={30}
           width={1920}
@@ -58,7 +68,7 @@ export const RemotionRoot: React.FC = () => {
         />
         <Composition
           id="AcoRiel-TomorrowNeverKnows-Lyric"
-          component={AcoRielLyricCover}
+          component={AcoRielLyricCoverSafe}
           durationInFrames={8100}
           fps={30}
           width={1920}
@@ -76,7 +86,7 @@ export const RemotionRoot: React.FC = () => {
         <Folder name="アダルトアフィリ">
           <Composition
             id="ガチで脱いだ女性芸能人3選-20260313"
-            component={ViralVideoGachi}
+            component={ViralVideoGachiSafe}
             durationInFrames={1887}
             fps={30}
             width={1080}
@@ -84,7 +94,7 @@ export const RemotionRoot: React.FC = () => {
           />
           <Composition
             id="事務所に売られた芸能人3選-20260316"
-            component={ViralVideoJimusho}
+            component={ViralVideoJimushoSafe}
             durationInFrames={1550}
             fps={30}
             width={1080}
@@ -98,7 +108,7 @@ export const RemotionRoot: React.FC = () => {
               <Composition
                 key={preset.id}
                 id={`${preset.id}-GUI`}
-                component={EditableViralVideo}
+                component={EditableViralVideoSafe}
                 schema={viralStudioEditorSchema}
                 durationInFrames={preset.durationInFrames}
                 fps={preset.fps}
@@ -113,7 +123,7 @@ export const RemotionRoot: React.FC = () => {
         <Folder name="Clip-Editor">
           <Composition
             id="Viral-Clip-Editor"
-            component={ViralClipEditor}
+            component={ViralClipEditorSafe}
             durationInFrames={1}
             fps={30}
             width={1920}

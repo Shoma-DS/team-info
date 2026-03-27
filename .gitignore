@@ -1,5 +1,21 @@
 output/audio/*
+# assets以下は全て無視（動画・音声素材はgit管理外）
 Remotion/my-video/public/assets/*
+
+# channels以下は共有（フォルダ構成をチームで統一）
+!Remotion/my-video/public/assets/channels/
+!Remotion/my-video/public/assets/channels/**
+
+# 全チャンネル共通：lyrics・songs・backgrounds の中身は除外
+Remotion/my-video/public/assets/channels/*/lyrics/*
+Remotion/my-video/public/assets/channels/*/songs/*
+Remotion/my-video/public/assets/channels/*/backgrounds/*
+# ただし .gitkeep はフォルダ構造保持のため共有
+!Remotion/my-video/public/assets/channels/**/.gitkeep
+
+# sleep_travel はmp3以外すべて共有（backgrounds含む）
+!Remotion/my-video/public/assets/channels/sleep_travel/backgrounds/*
+Remotion/my-video/public/assets/channels/sleep_travel/**/*.mp3
 outputs/jmty_posts/
 .agent/skills/voice-script-launcher/.setup_completed
 mcp-servers/voicevox/node_modules/
@@ -26,14 +42,15 @@ node_modules/
 # 個人用ファイル（gitから除外）
 gas/personal/
 
+# [personal] 2026-03-26
+.agent/skills/presentation/
+inputs/slide-products/
+inputs/sales-scripts/
+AirhtMate/
+
 # 開発モード設定（個人設定のため除外）
 .dev-mode
 
 # OS files
 .DS_Store
 */.DS_Store
-
-# LP関連フォルダ
-lp/
-LP参考/
-
