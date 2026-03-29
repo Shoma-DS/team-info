@@ -137,12 +137,9 @@ git -C "$TEAM_INFO_ROOT" log origin/main..HEAD --oneline
 - ユーザーに「あなたは誰ですか？」とは聞かない。
 - オーナー判定が取れない場合も、安全側で `other` として扱う。
 
-**オーナー機ではない場合のブランチ準備（コミット前に実施）:**
-- `git -C "$TEAM_INFO_ROOT" config user.name` でアカウント名を取得する。
-- アカウント名をケバブケースに変換してブランチ名にする（例: `Shoma Deguchi` → `shoma-deguchi`）。
-- そのブランチが存在しなければ `git -C "$TEAM_INFO_ROOT" checkout -b <ブランチ名>` で作成する。
-- 既に存在すれば `git -C "$TEAM_INFO_ROOT" checkout <ブランチ名>` で切り替える。
-- **ブランチ名はアカウント名固定とし、コミット内容から名前を付けてはいけない。**
+**ブランチ準備（オーナー・非オーナー共通）:**
+- 事前にアカウント名ブランチを作成・移動する必要はありません。
+- 原則として、全員まずは `main` ブランチ上にとどまり、そこで変更のステージングとコミットを行ってください。
 
 ### 3. コミット前の説明と承認 (`git commit`)
 - 未コミットの変更がない場合はこのステップをスキップする。
@@ -210,21 +207,26 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 ```
 
 ### 4. リモートへの反映 (`git push` / プルリクエスト)
-- push の前に、手元とリモートの差を確認する。
-- 必要なら `git -C "$TEAM_INFO_ROOT" fetch` や `git -C "$TEAM_INFO_ROOT" pull --rebase` を使って、コンフリクトがあるか確かめる。
+- push の前に、手元の `main` ブランチ上で `git -C "$TEAM_INFO_ROOT" pull --rebase origin main` を行い、リモートの最新状態を取り込む。
 - push の前に、必ず `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin` を実行する。
 - その結果が非 0 なら、push を止める。ユーザーには、無料枠を超える見込みか、無料枠を安全に確認できないため止めたことを、小学生にもわかる言葉で説明する。
 
-**オーナー機のとき:**
-- main ブランチで `git -C "$TEAM_INFO_ROOT" push`（または `git -C "$TEAM_INFO_ROOT" push -u origin main`）を実行して良いか確認し、承認を得てから実行する。
+**コンフリクトが発生しなかった場合（または pull が不要だった場合）:**
+- オーナー・非オーナー問わず、`main` ブランチへ `git -C "$TEAM_INFO_ROOT" push origin main` を実行して良いか確認し、承認を得てから実行する。
 
-**オーナー機ではないとき:**
-- ステップ 2 で準備したアカウント名ブランチに push する。
-- `git -C "$TEAM_INFO_ROOT" push -u origin <アカウント名ブランチ>` を実行する。
-- push 後、必ず `gh pr create` でプルリクエストを作成する。
-- 「オーナー機ではないため、アカウント名のブランチにプッシュしてプルリクエストを作ります」と小学生でもわかる言葉で伝える。
+**コンフリクトが発生した場合（オーナー機ではないとき）:**
+- コンフリクトの発生を確認したら、以下の手順で安全のためにプルリクエストに変更する。
+- 1. `git -C "$TEAM_INFO_ROOT" rebase --abort` で rebase を取り消し、pull 前の状態に戻す。
+- 2. `git -C "$TEAM_INFO_ROOT" config user.name` でアカウント名を取得し、ケバブケースに変換してブランチ名にする（例: `Shoma Deguchi` → `shoma-deguchi`）。
+- 3. `git -C "$TEAM_INFO_ROOT" checkout -b <アカウント名ブランチ>`（存在すれば `checkout`）でそのブランチに切り替える。
+- 4. `git -C "$TEAM_INFO_ROOT" push -u origin <アカウント名ブランチ>` でプッシュする。
+- 5. push 後、必ず `gh pr create` でプルリクエストを作成する。
+- ユーザーに「コンフリクトが発生したため、安全のために別ブランチにプッシュしてプルリクエストを作りました。手動でコンフリクトを直してください」と小学生にもわかる言葉で伝える。
 - PR のタイトルはコミットメッセージの1行要約を使う。
-- **ブランチ名はアカウント名固定。コミット内容や機能名からブランチ名を作ってはいけない。**
+- **ブランチ名はアカウント名固定。機能名やコミット内容からブランチ名を作ってはいけない。**
+
+**コンフリクトが発生した場合（オーナー機のとき）:**
+- ユーザーに「コンフリクトが発生しました。手動でコンフリクトを解決してください」と伝え、解決後に再開できるように待機する。
 
 ### 5. マージ・リベース (`git merge`, `git rebase`)
 - 実行前に必ずユーザーに確認し、承認を得ること。
