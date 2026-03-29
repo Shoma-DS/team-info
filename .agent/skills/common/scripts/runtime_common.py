@@ -954,10 +954,11 @@ def _git_for_each_ref(repo_root: Path, *patterns: str) -> list[str]:
         return []
 
     refs: list[str] = []
-    for line in completed.stdout.splitlines():
-        ref_name = line.strip()
-        if ref_name:
-            refs.append(ref_name)
+    if completed.stdout:
+        for line in completed.stdout.splitlines():
+            ref_name = line.strip()
+            if ref_name:
+                refs.append(ref_name)
     return refs
 
 
@@ -979,12 +980,13 @@ def _git_rev_list_objects(repo_root: Path, refs: list[str]) -> set[str]:
         raise RuntimeError(message)
 
     object_ids: set[str] = set()
-    for line in completed.stdout.splitlines():
-        if not line:
-            continue
-        object_id = line.split(" ", 1)[0].strip()
-        if object_id:
-            object_ids.add(object_id)
+    if completed.stdout:
+        for line in completed.stdout.splitlines():
+            if not line:
+                continue
+            object_id = line.split(" ", 1)[0].strip()
+            if object_id:
+                object_ids.add(object_id)
     return object_ids
 
 
@@ -1013,19 +1015,20 @@ def _git_blob_size_map(repo_root: Path, object_ids: set[str]) -> dict[str, int]:
         raise RuntimeError(message)
 
     blob_sizes: dict[str, int] = {}
-    for line in completed.stdout.splitlines():
-        parts = line.strip().split()
-        if len(parts) != 3:
-            continue
-        object_id, object_type, object_size = parts
-        if object_type != "blob":
-            continue
-        try:
-            size = int(object_size)
-        except ValueError:
-            continue
-        if size <= MAX_GIT_LFS_POINTER_BLOB_BYTES:
-            blob_sizes[object_id] = size
+    if completed.stdout:
+        for line in completed.stdout.splitlines():
+            parts = line.strip().split()
+            if len(parts) != 3:
+                continue
+            object_id, object_type, object_size = parts
+            if object_type != "blob":
+                continue
+            try:
+                size = int(object_size)
+            except ValueError:
+                continue
+            if size <= MAX_GIT_LFS_POINTER_BLOB_BYTES:
+                blob_sizes[object_id] = size
     return blob_sizes
 
 
