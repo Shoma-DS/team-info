@@ -92,6 +92,7 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 |---------|------|------|
 | git-workflow | Gitの運用フロー（ブランチ/コミット/PR と Git LFS 無料枠ガード） | `.agent/skills/common/git-workflow/SKILL.md` |
 | team-info-setup | team-info の初回セットアップや再セットアップを始める | `.agent/skills/common/team-info-setup/SKILL.md` |
+| agent-reach | team-info 向けに取り込んだ Agent-Reach。OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査し、必要なら OpenClaw skill も同期する | `.agent/skills/common/agent-reach/SKILL.md` |
 | team-info-daily-dev-memo | 当日のGit変更から team-info メンバー共有用の作業報告を作る | `.agent/skills/common/team-info-daily-dev-memo/SKILL.md` |
 | macos-intel-compatibility | macOS Intel環境の互換性パッチ対応 | `.agent/skills/common/macos-intel-compatibility/SKILL.md` |
 | note-article-ayumi | 「愛され女子あゆみ」のnote記事を作成する | `.agent/skills/common/note-article-ayumi/SKILL.md` |
@@ -147,6 +148,8 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |
+| X / Reddit / YouTube / GitHub / 小紅書などを横断調査したい | `agent-reach` |
+| OpenClaw に team-info 版 Agent-Reach を入れたい | `agent-reach` |
 | 今日の team-info 開発メモを Git から作りたい | `team-info-daily-dev-memo` |
 | Git操作をしたい | `git-workflow` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |

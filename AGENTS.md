@@ -44,6 +44,7 @@
 | `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ（オーナー機以外は PR 作成） |
 | `/pull` | origin/main から最新を取り込む（`git fetch` → `pull --rebase`） |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` |
+| `/reach` | `.agent/skills/common/agent-reach/SKILL.md` |
 | `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
 | `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
 | `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |

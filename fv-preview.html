@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FVプレビュー</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: #eee; }
+
+    .fv {
+      background: #fff;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+      padding: 28px 24px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* 背景ブロブ */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-tl {
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, #fcd6e4 0%, rgba(252,214,228,0) 65%);
+      top: -80px; left: -80px;
+    }
+    .blob-br {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #c9e8e2 0%, rgba(201,232,226,0) 65%);
+      bottom: -80px; right: -80px;
+    }
+
+    /* ロゴ */
+    .logo {
+      width: 100%;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 2;
+    }
+    .logo-icon { font-size: 18px; margin-right: 4px; }
+
+    /* 手書きバッジ */
+    .badge-wrap {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 14px;
+      transform: rotate(-4deg);
+      align-self: flex-start;
+      margin-left: 4px;
+    }
+    .badge-wrap svg {
+      width: 130px;
+      height: 56px;
+    }
+
+    /* スラッシュバナー */
+    .slash-banner {
+      width: 100%;
+      text-align: center;
+      font-size: clamp(17px, 5vw, 22px);
+      font-weight: 900;
+      color: #222;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .slash {
+      color: #222;
+      font-weight: 900;
+    }
+
+    /* メインタイトル */
+    .main-title {
+      width: 100%;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 6px;
+    }
+
+    .title-line1 {
+      font-size: clamp(52px, 14vw, 74px);
+      font-weight: 900;
+      color: #111;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      display: block;
+    }
+
+    .title-line2 {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .title-box {
+      background: #f5a7b8;
+      padding: 4px 10px 6px;
+      border-radius: 6px;
+      font-size: clamp(52px, 14vw, 74px);
+      font-weight: 900;
+      color: #111;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    /* 人物（右下） */
+    .person {
+      position: absolute;
+      bottom: 40px;
+      right: -8px;
+      width: 200px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* CTA以降 */
+    .lower {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    .price-text {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 12px;
+    }
+    .price-text s { color: #aaa; }
+    .price-free { color: #e0405a; font-weight: 900; }
+
+    .cta-note {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .cta-note::before, .cta-note::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #ddd;
+    }
+
+    .cta-btn {
+      display: block;
+      width: 100%;
+      background: linear-gradient(90deg, #3cb371, #2e9e60);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 18px 16px;
+      border-radius: 50px;
+      letter-spacing: 0.03em;
+      box-shadow: 0 6px 20px rgba(46,158,96,0.3);
+      cursor: pointer;
+      border: none;
+      position: relative;
+      text-align: center;
+    }
+    .cta-btn .free-word { color: #ffe066; }
+    .cta-btn::after {
+      content: '▶';
+      position: absolute;
+      right: 20px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px; opacity: 0.8;
+    }
+
+    .gift-text {
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .gift-text span {
+      background: #fff8e1;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="fv">
+  <!-- 背景 -->
+  <div class="blob blob-tl"></div>
+  <div class="blob blob-br"></div>
+
+  <!-- 人物イラスト -->
+  <svg class="person" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="412" rx="55" ry="10" fill="rgba(160,210,190,0.2)"/>
+
+    <!-- 脚 -->
+    <rect x="75" y="280" width="20" height="140" rx="7" fill="#e8c9a8"/>
+    <rect x="103" y="280" width="20" height="140" rx="7" fill="#ddbf9c"/>
+    <ellipse cx="85" cy="419" rx="14" ry="5" fill="#7a5c3a"/>
+    <ellipse cx="113" cy="419" rx="14" ry="5" fill="#7a5c3a"/>
+
+    <!-- スカート（ミントグリーン） -->
+    <path d="M58 215 Q53 258 57 282 L143 282 Q147 258 142 215 Z" fill="#9dcfc3"/>
+
+    <!-- ジャケット・ブラウス（白） -->
+    <path d="M50 158 Q44 198 47 218 L153 218 Q156 198 150 158 L127 138 Q113 151 100 153 Q87 151 73 138 Z" fill="#f0f0eb"/>
+    <path d="M100 153 L100 218" stroke="#e0e0d8" stroke-width="1.5" fill="none"/>
+
+    <!-- インナー（ミント） -->
+    <path d="M91 138 L100 162 L109 138 L100 148 Z" fill="#9dcfc3"/>
+
+    <!-- 腕・左（ノートに手をつく） -->
+    <path d="M50 158 Q32 188 36 220 Q44 225 52 220 Q53 195 69 168 Z" fill="#f0f0eb"/>
+    <!-- 腕・右（顎に手） -->
+    <path d="M150 158 Q166 182 162 210 Q154 215 148 208 Q147 188 132 165 Z" fill="#f0f0eb"/>
+
+    <!-- 手 -->
+    <ellipse cx="44" cy="224" rx="9" ry="9" fill="#f5d5b0"/>
+    <ellipse cx="154" cy="215" rx="9" ry="9" fill="#f5d5b0"/>
+
+    <!-- ノート（左手前） -->
+    <rect x="20" y="230" width="70" height="48" rx="4" fill="#e8f4f0" stroke="#b8ddd6" stroke-width="1.5"/>
+    <line x1="30" y1="244" x2="78" y2="244" stroke="#b8ddd6" stroke-width="1"/>
+    <line x1="30" y1="254" x2="78" y2="254" stroke="#b8ddd6" stroke-width="1"/>
+    <line x1="30" y1="264" x2="65" y2="264" stroke="#b8ddd6" stroke-width="1"/>
+    <!-- ペン -->
+    <rect x="72" y="226" width="5" height="28" rx="2" transform="rotate(15 72 226)" fill="#f5a0a0"/>
+
+    <!-- 首 -->
+    <rect x="93" y="112" width="14" height="30" rx="6" fill="#f5d5b0"/>
+
+    <!-- 頭 -->
+    <ellipse cx="100" cy="90" rx="34" ry="38" fill="#f5d5b0"/>
+
+    <!-- 髪（ショートボブ） -->
+    <path d="M66 82 Q63 52 74 33 Q86 16 100 14 Q114 16 126 33 Q137 52 134 82 Q128 64 122 52 Q113 40 100 38 Q87 40 78 52 Q72 64 66 82Z" fill="#2a1a0e"/>
+    <path d="M66 82 Q59 104 63 126 Q69 122 73 114 Q73 97 79 86Z" fill="#2a1a0e"/>
+    <path d="M134 82 Q141 104 137 126 Q131 122 127 114 Q127 97 121 86Z" fill="#2a1a0e"/>
+
+    <!-- 眉 -->
+    <path d="M82 76 Q88 73 93 75" stroke="#3a2010" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M107 75 Q112 73 118 76" stroke="#3a2010" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- 目 -->
+    <ellipse cx="87" cy="86" rx="6" ry="5" fill="#fff"/>
+    <circle cx="87" cy="87" r="3" fill="#3a2010"/>
+    <circle cx="88" cy="86" r="1" fill="#fff"/>
+    <ellipse cx="113" cy="86" rx="6" ry="5" fill="#fff"/>
+    <circle cx="113" cy="87" r="3" fill="#3a2010"/>
+    <circle cx="114" cy="86" r="1" fill="#fff"/>
+
+    <!-- まつ毛 -->
+    <path d="M82 83 Q84 80 87 82" stroke="#2a1a0e" stroke-width="1.5" fill="none"/>
+    <path d="M113 82 Q116 80 118 83" stroke="#2a1a0e" stroke-width="1.5" fill="none"/>
+
+    <!-- 鼻 -->
+    <path d="M97 96 Q100 100 103 96" stroke="#d4956a" stroke-width="1.2" fill="none"/>
+
+    <!-- 口（微笑み） -->
+    <path d="M91 108 Q100 115 109 108" stroke="#c06060" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- ほほ紅 -->
+    <ellipse cx="78" cy="96" rx="8" ry="4" fill="#f0a0a0" opacity="0.22"/>
+    <ellipse cx="122" cy="96" rx="8" ry="4" fill="#f0a0a0" opacity="0.22"/>
+  </svg>
+
+  <!-- ロゴ -->
+  <div class="logo"><span class="logo-icon">✦</span> 週末副業アカデミー</div>
+
+  <!-- 手書きバッジ -->
+  <div class="badge-wrap">
+    <svg viewBox="0 0 130 56" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 28 Q7 8 28 5 Q65 0 102 5 Q123 8 122 28 Q123 48 102 51 Q65 56 28 51 Q7 48 8 28Z"
+        fill="none" stroke="#444" stroke-width="2" stroke-dasharray="5,3"/>
+      <text x="65" y="24" text-anchor="middle" font-family="Noto Sans JP,sans-serif" font-size="12" font-weight="700" fill="#222">未経験から</text>
+      <text x="65" y="42" text-anchor="middle" font-family="Noto Sans JP,sans-serif" font-size="11" font-weight="700" fill="#444">最短で習得</text>
+    </svg>
+  </div>
+
+  <!-- スラッシュバナー -->
+  <div class="slash-banner">
+    <span class="slash">＼</span>週末副業で月+10万円を実現<span class="slash">／</span>
+  </div>
+
+  <!-- メインタイトル -->
+  <div class="main-title">
+    <span class="title-line1">週末副業</span>
+    <div class="title-line2">
+      <div class="title-box">ロードマップ</div>
+    </div>
+    <div class="title-line2" style="margin-top:8px;">
+      <div class="title-box" style="font-size:clamp(36px,10vw,52px); background:#f5c6d4;">講座</div>
+    </div>
+  </div>
+
+  <!-- 下部エリア -->
+  <div class="lower">
+    <div class="price-text">通常<s>6,980円</s> → <span class="price-free">今なら無料</span></div>
+    <div class="cta-note">講座参加で豪華特典をうけとる</div>
+    <button class="cta-btn">LINE登録で<span class="free-word">無料</span>で話を聞いてみる</button>
+    <div class="gift-text" style="margin-top:10px;">
+      <span>「おうちで最短収益化ルート50選」プレゼント中</span>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
