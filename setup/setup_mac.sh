@@ -32,7 +32,6 @@ if is_repo_root_dir "$CURRENT_DIR"; then
 else
   TEAM_INFO_ROOT="$SCRIPT_REPO_ROOT"
 fi
-VENV_DIR="$TEAM_INFO_ROOT/Remotion/.venv"
 NODE_VERSION="22.17.1"
 PYTHON_VERSION="3.11.9"
 DEFAULT_SHELL_NAME="$(basename "${SHELL:-zsh}")"
@@ -40,15 +39,6 @@ TEAM_INFO_ENV_DIR="$HOME/.config/team-info"
 TEAM_INFO_ENV_FILE="$TEAM_INFO_ENV_DIR/env.sh"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 TEAM_INFO_LAUNCH_AGENT_PLIST="$LAUNCH_AGENTS_DIR/com.team-info.env.plist"
-SECRETS_DIR="$HOME/.secrets"
-CANVA_CREDENTIALS_FILE="$SECRETS_DIR/canva_credentials.txt"
-CANVA_AUTH_DIR="$TEAM_INFO_ROOT/Remotion/scripts/canva_auth"
-DIFY_ROOT="$TEAM_INFO_ROOT/docker/dify"
-DIFY_API_DIR="$DIFY_ROOT/api"
-DIFY_WEB_DIR="$DIFY_ROOT/web"
-DIFY_WEB_NVMRC="$DIFY_WEB_DIR/.nvmrc"
-DIFY_WEB_PACKAGE_JSON="$DIFY_WEB_DIR/package.json"
-DIFY_SDK_DIR="$DIFY_ROOT/sdks/nodejs-client"
 CODEX_NPM_PACKAGE="@openai/codex"
 
 append_line_if_missing() {
@@ -127,43 +117,10 @@ EOF
   launchctl kickstart -k "$gui_domain/com.team-info.env" >/dev/null 2>&1 || true
 }
 
-copy_if_missing() {
-  local source="$1"
-  local target="$2"
-
-  if [[ -f "$source" && ! -f "$target" ]]; then
-    cp "$source" "$target"
-  fi
-}
-
-get_pnpm_version() {
-  local package_json="$1"
-  "$PYTHON311" -c 'import json, sys
-package_manager = json.load(open(sys.argv[1], encoding="utf-8")).get("packageManager", "")
-if package_manager.startswith("pnpm@"):
-    print(package_manager.split("@", 1)[1].split("+", 1)[0])
-' "$package_json"
-}
-
 get_python_user_bin() {
   local user_base
   user_base="$("$PYTHON311" -c 'import site; print(site.USER_BASE)')"
   printf '%s/bin\n' "$user_base"
-}
-
-ensure_canva_credentials_template() {
-  mkdir -p "$SECRETS_DIR"
-  if [[ ! -f "$CANVA_CREDENTIALS_FILE" ]]; then
-    cat > "$CANVA_CREDENTIALS_FILE" <<'EOF'
-# Canva API credentials
-CANVA_CLIENT_ID=
-CANVA_CLIENT_SECRET=
-EOF
-    chmod 600 "$CANVA_CREDENTIALS_FILE" || true
-    warn "Canva の鍵ファイルを作りました: $CANVA_CREDENTIALS_FILE"
-  else
-    success "Canva の鍵ファイルあり: $CANVA_CREDENTIALS_FILE"
-  fi
 }
 
 echo -e "${BOLD}"
@@ -200,8 +157,8 @@ else
 fi
 
 # ── 3. 基本ツール (brew) ───────────────────────────────────────────────────────
-step "3. 基本ツール (git, git-lfs, wget, tesseract, tesseract-lang, ffmpeg, gh)"
-BREW_PACKAGES=(git git-lfs wget tesseract tesseract-lang ffmpeg gh)
+step "3. 基本ツール (git, git-lfs, gh)"
+BREW_PACKAGES=(git git-lfs gh)
 for pkg in "${BREW_PACKAGES[@]}"; do
   if brew list "$pkg" &>/dev/null; then
     success "$pkg インストール済み"
@@ -220,8 +177,8 @@ fi
 
 # ── 4. GitHub アクセス & リポジトリ接続 ──────────────────────────────────────────
 step "4. GitHub アクセス & リポジトリ接続"
-warn "GitHub の招待メール（Invitation）を承認済みである必要があります。"
-read -rp "  招待メールを承認しましたか？ [y/N]: " confirmed
+warn "GitHub の招待メールを承認済みである必要があります。"
+read -rp "  招待メールを承認済みですか？ 承認済みなら y を入力してください [y/N]: " confirmed
 if [[ ! "$confirmed" =~ ^[Yy]$ ]]; then
   error "先に招待を承認してください。不明な場合は sho に確認してください。"
 fi
@@ -272,50 +229,13 @@ PYTHON311="$(pyenv root)/versions/$(pyenv versions --bare | grep "^$PYTHON_VERSI
 [[ -x "$PYTHON311" ]] || error "Python $PYTHON_VERSION の実行ファイルが見つかりません: $PYTHON311"
 info "Python: $PYTHON311 ($(${PYTHON311} --version))"
 
-# ── 6. Python 仮想環境 ($VENV_DIR) ────────────────────────────────────────────
-step "6. Python 仮想環境 ($VENV_DIR)"
-if [[ -d "$VENV_DIR" ]]; then
-  warn "既存の venv が見つかりました: $VENV_DIR"
-  read -rp "  再作成しますか? (y/N): " ans
-  if [[ "$ans" =~ ^[Yy]$ ]]; then
-    rm -rf "$VENV_DIR"
-    info "既存の venv を削除しました"
-  fi
-fi
+# ── 6. Python ランタイム方針 ───────────────────────────────────────────────
+step "6. Python ランタイム方針"
+success "Python 3.11 を使う土台を作りました"
+warn "Remotion / Docker ランタイムや Python パッケージ群は、必要なスキルを初めて使うときに自動で準備する方針です。"
 
-if [[ ! -d "$VENV_DIR" ]]; then
-  info "venv を作成します..."
-  "$PYTHON311" -m venv "$VENV_DIR"
-  success "venv 作成完了"
-fi
-
-PIP="$VENV_DIR/bin/pip"
-PYTHON="$VENV_DIR/bin/python"
-
-# pip アップグレード
-"$PIP" install --upgrade pip setuptools wheel -q
-success "pip アップグレード完了"
-
-# ── 7. Python パッケージ ──────────────────────────────────────────────────────
-step "7. Python パッケージのインストール"
-info "requirements.txt からインストールします..."
-"$PIP" install -r "$SCRIPT_DIR/requirements.txt"
-success "requirements.txt インストール完了"
-
-# jax: Apple Silicon と Intel で異なる
-info "jax/jaxlib をインストールします..."
-ARCH="$(uname -m)"
-if [[ "$ARCH" == "arm64" ]]; then
-  info "Apple Silicon (arm64) → jax[metal] をインストール"
-  "$PIP" install "jax[metal]==0.4.38" || warn "jax[metal] のインストールに失敗しました（スキップ）"
-else
-  info "Intel Mac → jax[cpu] をインストール"
-  "$PIP" install "jax[cpu]==0.4.38" || warn "jax[cpu] のインストールに失敗しました（スキップ）"
-fi
-success "jax インストール完了"
-
-# ── 8. uv ─────────────────────────────────────────────────────────────────────
-step "8. uv"
+# ── 7. uv ─────────────────────────────────────────────────────────────────────
+step "7. uv"
 PYTHON_USER_BIN="$(get_python_user_bin)"
 append_line_to_shell_rcs "export PATH=\"$PYTHON_USER_BIN:\$PATH\""
 export PATH="$PYTHON_USER_BIN:$PATH"
@@ -327,8 +247,8 @@ else
   success "uv インストール完了"
 fi
 
-# ── 9. nvm + Node.js ──────────────────────────────────────────────────────────
-step "9. nvm + Node.js $NODE_VERSION"
+# ── 8. nvm + Node.js ──────────────────────────────────────────────────────────
+step "8. nvm + Node.js $NODE_VERSION"
 NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [[ ! -d "$NVM_DIR" ]]; then
   info "nvm をインストールします..."
@@ -352,8 +272,8 @@ fi
 nvm use "$NODE_VERSION"
 info "Node.js: $(node --version), npm: $(npm --version)"
 
-# ── 10. Codex CLI ───────────────────────────────────────────────────────────────
-step "10. Codex CLI"
+# ── 9. Codex CLI ───────────────────────────────────────────────────────────────
+step "9. Codex CLI"
 if command -v codex &>/dev/null; then
   info "Codex CLI を更新します..."
 else
@@ -365,8 +285,8 @@ else
   warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CODEX_NPM_PACKAGE を実行してください。"
 fi
 
-# ── 11. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
-step "11. TEAM_INFO_ROOT"
+# ── 10. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
+step "10. TEAM_INFO_ROOT"
 export TEAM_INFO_ROOT
 write_team_info_env_file
 ensure_shell_loads_team_info_env
@@ -382,127 +302,28 @@ else
   warn "TEAM_INFO_ROOT の保存に失敗しました。必要なら手動で設定してください。"
 fi
 
-# ── 12. npm パッケージ (Remotion) ─────────────────────────────────────────────
-step "12. npm パッケージ (Remotion/my-video)"
-REMOTION_DIR="$TEAM_INFO_ROOT/Remotion/my-video"
-if [[ -d "$REMOTION_DIR" ]]; then
-  info "npm install を実行します..."
-  cd "$REMOTION_DIR"
-  npm install
-  success "npm install 完了"
-else
-  warn "Remotion/my-video が見つかりません: $REMOTION_DIR"
-fi
+# ── 11. 遅延セットアップの案内 ───────────────────────────────────────────────
+step "11. 遅延セットアップの案内"
+warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
+warn "  - Remotion / VOICEVOX / Docker runtime"
+warn "  - Canva 補助や Dify 開発依存"
+warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
+warn "  - shared-agent-assets の同期処理"
+warn "  - clone-website 用の Node 24 workspace 依存"
 
-# ── 13. npm パッケージ (mcp-servers/voicevox) ───────────────────────────────────────────────
-step "13. npm パッケージ (mcp-servers/voicevox)"
-VOICEVOX_MCP_DIR="$TEAM_INFO_ROOT/mcp-servers/voicevox"
-if [[ -d "$VOICEVOX_MCP_DIR" ]]; then
-  cd "$VOICEVOX_MCP_DIR"
-  npm install
-  if npm run build; then
-    success "voicevox MCP build 完了"
-  else
-    warn "voicevox MCP build に失敗しました。あとで確認してください。"
-  fi
-  success "voicevox MCP npm install 完了"
-fi
-
-# ── 14. npm パッケージ (Canva 補助) ──────────────────────────────────────────
-step "14. npm パッケージ (Remotion/scripts/canva_auth)"
-if [[ -d "$CANVA_AUTH_DIR" ]]; then
-  cd "$CANVA_AUTH_DIR"
-  npm install
-  success "Canva 補助 npm install 完了"
-fi
-
-# ── 15. Dify 開発環境 ─────────────────────────────────────────────────────────
-step "15. Dify 開発環境"
-if [[ -d "$DIFY_ROOT" ]]; then
-  copy_if_missing "$DIFY_API_DIR/.env.example" "$DIFY_API_DIR/.env"
-  copy_if_missing "$DIFY_WEB_DIR/.env.example" "$DIFY_WEB_DIR/.env.local"
-  copy_if_missing "$DIFY_ROOT/docker/middleware.env.example" "$DIFY_ROOT/docker/middleware.env"
-
-  if [[ -f "$DIFY_API_DIR/pyproject.toml" ]]; then
-    info "Dify API の依存を入れます..."
-    if (cd "$DIFY_API_DIR" && uv sync --group dev); then
-      success "Dify API の依存を入れました"
-    else
-      warn "Dify API の依存で止まりました。あとで uv sync --group dev を見てください。"
-    fi
-  fi
-
-  if [[ -f "$DIFY_WEB_NVMRC" ]]; then
-    DIFY_NODE_VERSION="$(tr -d '[:space:]' < "$DIFY_WEB_NVMRC")"
-    if [[ -n "$DIFY_NODE_VERSION" ]]; then
-      info "Dify 用の Node.js $DIFY_NODE_VERSION を入れます..."
-      nvm install "$DIFY_NODE_VERSION"
-      nvm use "$DIFY_NODE_VERSION"
-
-      if [[ -f "$DIFY_WEB_PACKAGE_JSON" ]]; then
-        DIFY_PNPM_VERSION="$(get_pnpm_version "$DIFY_WEB_PACKAGE_JSON")"
-        if command -v corepack &>/dev/null; then
-          corepack enable
-          if [[ -n "$DIFY_PNPM_VERSION" ]]; then
-            corepack prepare "pnpm@$DIFY_PNPM_VERSION" --activate
-          fi
-
-          if (cd "$DIFY_WEB_DIR" && pnpm install); then
-            success "Dify Web の依存を入れました"
-          else
-            warn "Dify Web の依存で止まりました。あとで pnpm install を見てください。"
-          fi
-
-          if [[ -f "$DIFY_SDK_DIR/package.json" ]]; then
-            if (cd "$DIFY_SDK_DIR" && pnpm install); then
-              success "Dify SDK の依存を入れました"
-            else
-              warn "Dify SDK の依存で止まりました。あとで pnpm install を見てください。"
-            fi
-          fi
-        else
-          warn "corepack が見つからないため、Dify の pnpm 準備を飛ばしました。"
-        fi
-      fi
-
-      nvm use "$NODE_VERSION"
-    fi
-  fi
-else
-  warn "docker/dify が見つからないため、Dify の準備は飛ばしました。"
-fi
-
-# ── 16. 秘密ファイルの下準備 ───────────────────────────────────────────────
-step "16. 秘密ファイルの下準備"
-ensure_canva_credentials_template
-warn "Canva を使うときは $CANVA_CREDENTIALS_FILE に鍵を書いてください。"
-warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
-
-# ── 17. Docker ───────────────────────────────────────────────────────────
-step "17. Docker"
+# ── 12. Docker (任意) ─────────────────────────────────────────────────────
+step "12. Docker (任意)"
 if command -v docker &>/dev/null; then
   success "Docker インストール済み: $(docker --version)"
-  info "標準の Python Docker ランタイムをビルドします..."
-  if "$PYTHON311" "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python; then
-    success "Python Docker ランタイムのビルド完了"
-  else
-    warn "Python Docker ランタイムのビルドに失敗しました。あとで build-remotion-python を実行してください。"
-  fi
-
-  info "VOICEVOX Engine イメージを取得します..."
-  if "$PYTHON311" "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" pull-voicevox-engine; then
-    success "VOICEVOX Engine イメージ取得完了"
-  else
-    warn "VOICEVOX Engine イメージ取得に失敗しました。あとで pull-voicevox-engine を実行してください。"
-  fi
+  warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
 else
   warn "Docker が見つかりません。"
   warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
 fi
 
-# ── 18. セットアップ検証 ─────────────────────────────────────────────────────
+# ── 13. セットアップ検証 ─────────────────────────────────────────────────────
 VERIFY_STATUS=0
-step "18. セットアップ検証"
+step "13. セットアップ検証"
 VERIFY_SCRIPT="$SCRIPT_DIR/verify_setup.py"
 if [[ -f "$VERIFY_SCRIPT" ]]; then
   if "$PYTHON311" "$VERIFY_SCRIPT" --repo-root "$TEAM_INFO_ROOT"; then
@@ -532,18 +353,18 @@ else
   echo -e "${RESET}"
 fi
 echo "主要パス:"
-echo "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
-echo "  Host fallback: $VENV_DIR/bin/python"
+echo "  Python:        $PYTHON311"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
 echo "  Codex CLI:     $(command -v codex 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
 echo "  TEAM_INFO_ENV: $TEAM_INFO_ENV_FILE"
-echo "  Canva secrets: $CANVA_CREDENTIALS_FILE"
-echo "  Verify status: $([[ "$VERIFY_STATUS" -eq 0 ]] && echo 'passed' || echo 'failed')"
+echo "  検証結果:      $([[ "$VERIFY_STATUS" -eq 0 ]] && echo '成功' || echo '要確認')"
 echo ""
 echo "次のステップ:"
 echo "  ・ターミナルを再起動して PATH を再読み込みしてください"
-echo "  ・VOICEVOX Engine: python \"$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py\" start-voicevox-engine"
+echo "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
+echo "  ・Agent Reach は初回実行時に自動セットアップされます"
+echo "  ・Claudian は必要になったら /claudian を実行してください"
 echo "  ・Claude Code: code $TEAM_INFO_ROOT"
 echo ""
 

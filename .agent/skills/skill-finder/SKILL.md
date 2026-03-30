@@ -91,10 +91,10 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | git-workflow | Gitの運用フロー（ブランチ/コミット/PR と Git LFS 無料枠ガード） | `.agent/skills/common/git-workflow/SKILL.md` |
-| team-info-setup | team-info の初回セットアップや再セットアップを始める | `.agent/skills/common/team-info-setup/SKILL.md` |
-| agent-reach | team-info 向けに取り込んだ Agent-Reach。OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査し、必要なら OpenClaw skill も同期する | `.agent/skills/common/agent-reach/SKILL.md` |
+| team-info-setup | team-info の初回セットアップや再セットアップを始める。core setup と lazy bootstrap 方針の入口 | `.agent/skills/common/team-info-setup/SKILL.md` |
+| agent-reach | team-info 向けに取り込んだ Agent-Reach。初回は自動 bootstrap しつつ、OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査する | `.agent/skills/common/agent-reach/SKILL.md` |
 | repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/repo-adapted-tool-import/SKILL.md` |
-| obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin と `.claude/` 初期設定を整える | `.agent/skills/common/obsidian-claudian/SKILL.md` |
+| obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin、`.claude/` 初期設定、初期 subagent 雛形を整える | `.agent/skills/common/obsidian-claudian/SKILL.md` |
 | shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/shared-agent-assets/SKILL.md` |
 | team-info-daily-dev-memo | 当日のGit変更から team-info メンバー共有用の作業報告を作る | `.agent/skills/common/team-info-daily-dev-memo/SKILL.md` |
 | macos-intel-compatibility | macOS Intel環境の互換性パッチ対応 | `.agent/skills/common/macos-intel-compatibility/SKILL.md` |
@@ -108,7 +108,7 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 |---------|------|------|
 | frontend-design | 高品質なフロントエンドUIを制作する | `.agent/skills/web-design/frontend-design/SKILL.md` |
 | gsap-awwwards-website | GSAPスクロール演出付きLPを開発/保守する | `.agent/skills/web-design/gsap-awwwards-website/SKILL.md` |
-| clone-website | browser automation を使ってサイトを pixel-perfect に再構築する。bundled Next.js 16 テンプレを初期化して複製作業に入る | `.agent/skills/web-design/clone-website/SKILL.md` |
+| clone-website | browser automation を使ってサイトを pixel-perfect に再構築する。global setup へ依存を載せず、bundled Next.js 16 テンプレを初期化して複製作業に入る | `.agent/skills/web-design/clone-website/SKILL.md` |
 | tyoudoii-illust-fetcher | tyoudoii-illust.com の無料イラストを REST API 経由で検索・取得し、Webプロジェクトへ組み込む | `.agent/skills/web-design/tyoudoii-illust-fetcher/SKILL.md` |
 | themeisle-illustration-fetcher | Themeisle Illustrations の PNG / SVG を選び、Webプロジェクトへ組み込む | `.agent/skills/web-design/themeisle-illustration-fetcher/SKILL.md` |
 

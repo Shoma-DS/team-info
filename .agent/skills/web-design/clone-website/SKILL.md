@@ -20,6 +20,7 @@ description: 1つ以上のWebサイトを pixel-perfect に再構築したいと
 - browser automation が必須
 - Node.js 24 系が必須
 - 出力先は、特に指定がなければ `"$TEAM_INFO_ROOT/outputs/web-clones/<slug>"` を優先する
+- global setup は Node 22 までを基本とし、Node 24 の workspace 依存はこの skill の実行時にだけ扱う
 
 ## 初期化フロー
 1. 複製したい URL と出力先の絶対パスを確認する。
@@ -33,6 +34,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/web-design/clone-website/scripts/init_clon
 
 ```bash
 source "$HOME/.nvm/nvm.sh"
+nvm install 24
 nvm use 24
 cd "$TEAM_INFO_ROOT/outputs/web-clones/<slug>"
 npm install
@@ -40,6 +42,8 @@ npm run build
 ```
 
 4. 実際の複製作業に入る前に `references/upstream-clone-workflow.md` を読む。
+
+- つまり `clone-website` は global setup に依存を載せず、この skill を最初に使うタイミングで必要分だけ入れる前提で扱う。
 
 ## 実作業ルール
 - 最初に foundation を整え、そのあと section ごとに細かく分けて進める。

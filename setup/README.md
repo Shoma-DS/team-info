@@ -1,22 +1,38 @@
 # team-info セットアップ
 
-このフォルダのスクリプトで、macOS/Windows に同じ開発環境を構築できます。
+`setup/` は、最初の 1 回で全部を入れ切る方式から、`core setup + skill ごとの初回自動準備` へ寄せています。
 
-## インストールされるもの
+## いまの方針
+
+- `setup/setup_all.cmd` では、日常作業の土台だけを入れる
+- 重い依存や用途限定の依存は、対応する skill を初めて使うときにだけ準備する
+- `setup/verify_setup.py` も、Docker image や npm 依存の総当たりではなく、core setup と lazy bootstrap の入口がそろっているかを確認する
+
+## core setup で入るもの
 
 | カテゴリ | 内容 |
 |---------|------|
-| Python | 3.11.9 (ホスト側の起動用) + Docker ランタイム `team-info/python-skill-runtime:3.11.9` |
-| Python パッケージ | Whisper, OpenCV, MediaPipe, JAX, Remotion スクリプト等を Docker イメージへ固定 |
-| Node.js | 22.17.1 と Dify 用 Node 24 系 (`nvm` / `nvm-windows` 経由) |
-| npm パッケージ | Codex CLI, Remotion, VOICEVOX MCP, Canva補助, Dify Web/SDK |
-| その他 | Git, Git LFS, FFmpeg, Tesseract OCR, macOS では `tesseract-lang`, `uv`, Docker, VOICEVOX Engine コンテナ |
+| Git | `git`, `git-lfs`, `gh` |
+| Python | 3.11.9 |
+| Python 補助 | `uv` |
+| Node.js | 22.17.1 (`nvm` / `nvm-windows`) |
+| CLI | `@openai/codex` |
+| repo 設定 | `TEAM_INFO_ROOT`, `.githooks`, worked-before 記録 |
 
----
+## core setup で入れないもの
+
+以下は setup 本体では入れません。必要な skill を初めて使うタイミングで準備します。
+
+- Remotion / VOICEVOX / Docker Python runtime
+- Agent Reach / OpenClaw 連携
+- Obsidian / Claudian
+- clone-website 用の Node 24 workspace 依存
+- Canva 補助や Dify 開発依存
+- shared-agent-assets の同期処理
 
 ## まずはこれを実行
 
-このリポジトリでは、入口を 1 本にまとめました。
+このリポジトリでは、入口を `setup/setup_all.cmd` に統一しています。
 
 ### macOS
 
@@ -30,119 +46,104 @@ bash ./setup/setup_all.cmd
 .\setup\setup_all.cmd
 ```
 
-この入口は、`team-info` のリポジトリルートをカレントディレクトリにした状態で実行する前提です。
-セットアップ中の `TEAM_INFO_ROOT` は、まずそのカレントディレクトリを見て、repo root と判断できるときはその値を使います。違う場所から起動した場合だけ、スクリプト自身の位置から推定します。
+- この最初のコマンドだけは、repo root をカレントディレクトリにした状態で相対パス案内を使ってよい運用です
+- setup 側はカレントディレクトリが repo root なら、その値を `TEAM_INFO_ROOT` として保存します
+- 最後に `setup/verify_setup.py` を走らせ、core setup と lazy bootstrap 入口の整合を確認します
 
-この入口が OS に合わせて中のセットアップを呼び分けます。
-- macOS は `setup_mac.sh`
-- Windows は `setup_windows.ps1`
-- 最後に共通の `verify_setup.py` を走らせ、依存関係と Docker ランタイムまで確認します
-- 検証に失敗した場合は、`setup_all.cmd` 全体が非 0 で終了します
-- `TEAM_INFO_ROOT` もあわせて保存します
-- Git の `core.hooksPath` を `.githooks` にそろえ、LFS 無料枠ガード付きの `pre-push` を有効化します
-- macOS では `~/.config/team-info/env.sh`、シェル初期化ファイル、`launchctl` に保存します
-- Windows ではユーザー環境変数として保存します
-- Windows では内部で PowerShell を `Bypass` 付きで呼ぶため、まずはこの入口だけで進められます
-- `Codex CLI` (`@openai/codex`) もグローバルに入れます
-- できる範囲で Dify 開発用の `uv` / `pnpm` / Node 24 も準備します
-- Canva 用の `~/.secrets/canva_credentials.txt` ひな形も作ります
-
----
-
-## 個別に実行したいとき
+## 個別実行したいとき
 
 ### macOS
 
 ```bash
-bash "[team-info を置いた絶対パス]/setup/setup_mac.sh"
+bash "$TEAM_INFO_ROOT/setup/setup_mac.sh"
 ```
-
-- Homebrew → Git LFS 初期化 → pyenv → Python 3.11.9 → Docker ランタイム → nvm → Node.js → npm → `Codex CLI` の順で自動インストール
-- Apple Silicon (M1/M2/M3) は `jax[metal]`、Intel Mac は `jax[cpu]` を自動選択
-- `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
-- `tesseract-lang` も追加で入れます
-- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`git lfs`、Git hooks、`codex`、host venv、npm 依存、Docker runtime import を検証します
 
 ### Windows
 
-PowerShell を**管理者として**開いて実行:
-
 ```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-& "[team-info を置いた絶対パス]\setup\setup_windows.ps1"
+& "$env:TEAM_INFO_ROOT\setup\setup_windows.ps1"
 ```
 
-- Git → Git LFS 初期化 → pyenv-win → Python 3.11.9 → Docker ランタイム → nvm-windows → Node.js → npm → `Codex CLI` の順で自動インストール
-- `jax[cpu]` をインストール
-- `Remotion/scripts/canva_auth` と `docker/dify` の依存も入れます
-- `uv` は Python 経由で入れます
-- 最後に `setup/verify_setup.py` で `TEAM_INFO_ROOT`、`git lfs`、Git hooks、`codex`、host venv、npm 依存、Docker runtime import を検証します
+## skill ごとの初回準備
 
----
+### Remotion / VOICEVOX 系
 
-## まだ手で必要なもの
-
-- Canva の `CANVA_CLIENT_ID` と `CANVA_CLIENT_SECRET` を `~/.secrets/canva_credentials.txt` に書くこと
-- Codex CLI を使うときの初回認証
-- Docker Desktop 本体のインストール
-
-自動セットアップだけで土台はかなりそろいますが、外部サービスの認証は別作業です。
-
----
-
-## Docker Python ランタイムの標準運用
-
-Python/スクリプト系スキルは、原則として次の共通ランタイム経由で動かします。
+- `run-remotion-python` が Docker Python runtime を必要時に準備します
+- VOICEVOX は必要時だけ `start-voicevox-engine` を使います
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
   "[repo 内の Python スクリプト絶対パス]" [引数...]
 ```
 
-Docker イメージを手動で再ビルドしたい場合:
+### Agent Reach / OpenClaw
+
+- `team_info_agent_reach.py` が依存不足を検出したら、初回だけ自動 bootstrap します
+- 明示的にやりたい場合だけ installer を直接呼びます
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/agent-reach/scripts/team_info_agent_reach.py" doctor
+```
+
+### Obsidian / Claudian
+
+- 必要になったタイミングで `/claudian` または installer script を実行します
+- install は Obsidian CLI 有効化、Claudian 配備、`claudian-settings.json` 初期化、初期 subagent 雛形の seed まで行います
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
+```
+
+### clone-website
+
+- global setup では Node 24 を固定しません
+- 複製 workspace を作るときだけ template を初期化し、その workspace で Node 24 を使います
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/web-design/clone-website/scripts/init_clone_website_template.py" \
+  "$TEAM_INFO_ROOT/outputs/web-clones/<slug>"
+```
+
+### shared-agent-assets
+
+- 共有 assets の同期は必要時だけ手動で走らせます
+
+```bash
+bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shared_agent_repo.sh"
+```
+
+## verify が見るもの
+
+`setup/verify_setup.py` は次を確認します。
+
+- `node`, `npm`, `codex`, `gh`
+- `git lfs`
+- `gh auth status`
+- `origin` URL
+- `.githooks`
+- `TEAM_INFO_ROOT`
+- Python 3.11
+- lazy bootstrap 用 script の存在
+- `docker`, `obsidian`, `openclaw` は optional として警告のみ
+
+## まだ手で必要なもの
+
+- GitHub 招待の承認
+- `gh auth login`
+- Docker Desktop 本体
+- 外部サービスの cookie / API key / secret
+- Obsidian vault や Claudian を使う場合の実 vault 選定
+
+## 補足
+
+- Docker image を先に手動で作りたい場合:
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
 ```
 
-VOICEVOX は GUI 版ではなく Docker 上の Engine を使います。
+- `TEAM_INFO_ROOT` だけ保存し直したい場合:
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" start-voicevox-engine
-```
-
-`Dify` や `n8n` を起動するときは、素の `docker compose up` ではなく共通ランチャーを使います。
-
-```bash
-bash "$TEAM_INFO_ROOT/run.sh" --project dify -d
-```
-
-Windows:
-
-```powershell
-& "$env:TEAM_INFO_ROOT\run.ps1" -Project dify -d
-```
-
----
-
-## Python venv の手動有効化（非常用のホスト実行）
-
-標準は Docker です。`TEAM_INFO_PYTHON_RUNTIME=host` を使う非常時だけ有効化してください。
-
-```bash
-# macOS
-source "$TEAM_INFO_ROOT/Remotion/.venv/bin/activate"
-
-# Windows
-[team-info を置いた絶対パス]\Remotion\.venv\Scripts\Activate.ps1
-```
-
----
-
-## requirements.txt の更新
-
-Docker ランタイムに入れる依存は `setup/requirements.txt` を編集し、次を実行します。
-
-```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" build-remotion-python
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" setup-local-machine --repo-root "$TEAM_INFO_ROOT"
 ```

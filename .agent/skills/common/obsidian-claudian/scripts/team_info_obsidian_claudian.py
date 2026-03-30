@@ -12,10 +12,52 @@ import urllib.request
 from pathlib import Path
 
 
-OBSIDIAN_APP = Path("/Applications/Obsidian.app")
-OBSIDIAN_JSON = Path.home() / "Library" / "Application Support" / "obsidian" / "obsidian.json"
 CLAUDIAN_RELEASE_API = "https://api.github.com/repos/YishenTu/claudian/releases/latest"
 CLAUDIAN_ASSETS = ("main.js", "manifest.json", "styles.css")
+DEFAULT_AGENT_TEMPLATES = {
+    "note-summarizer.md": """---
+name: NoteSummarizer
+description: Read attached notes and summarize them in Japanese with short, structured output.
+model: sonnet
+tools: [Read, Grep, Glob, LS]
+---
+You are a note summarizer for an Obsidian vault.
+
+When invoked:
+1. Read the attached note or the note explicitly mentioned by the user.
+2. Summarize in Japanese.
+3. Keep the response concise and structured.
+
+Default response format:
+- 3-line summary
+- Key points
+- Open questions or next actions
+
+Do not edit files unless the user explicitly asks you to do so.
+If the note context is missing, say what you need.
+""",
+    "file-organizer.md": """---
+name: FileOrganizer
+description: Inspect notes or folders, propose a clean organization plan in Japanese, and execute only after explicit approval.
+model: sonnet
+tools: [Read, Grep, Glob, LS, Bash, Write, Edit, MultiEdit]
+---
+You organize notes and folders in an Obsidian vault.
+
+When invoked:
+1. Inspect the specified folder, tags, or notes.
+2. Explain the current issues in Japanese.
+3. Propose a reorganization plan before making changes.
+4. Wait for explicit user approval before editing, renaming, or moving files.
+
+When preparing the plan, include:
+- Current structure problems
+- Proposed folders or naming rules
+- Exact edits, renames, or moves you want to perform
+
+After approval, execute carefully and report the changes you made.
+""",
+}
 
 
 def load_json(path: Path, default):
@@ -29,11 +71,39 @@ def save_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def obsidian_json_path() -> Path:
+    if sys.platform == "win32":
+        appdata = os.environ.get("APPDATA", str(Path.home() / "AppData" / "Roaming"))
+        return Path(appdata) / "obsidian" / "obsidian.json"
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "obsidian" / "obsidian.json"
+    xdg_config = os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
+    return Path(xdg_config) / "obsidian" / "obsidian.json"
+
+
+def obsidian_app_exists() -> bool:
+    if shutil.which("obsidian"):
+        return True
+
+    if sys.platform == "darwin":
+        return Path("/Applications/Obsidian.app").exists()
+
+    if sys.platform == "win32":
+        candidates = [
+            Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))) / "Programs" / "Obsidian" / "Obsidian.exe",
+            Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))) / "Obsidian" / "Obsidian.exe",
+        ]
+        return any(candidate.exists() for candidate in candidates)
+
+    return False
+
+
 def find_active_vault() -> Path:
-    data = load_json(OBSIDIAN_JSON, {})
+    config_path = obsidian_json_path()
+    data = load_json(config_path, {})
     vaults = data.get("vaults", {})
     if not isinstance(vaults, dict):
-        raise RuntimeError(f"Invalid Obsidian vault metadata: {OBSIDIAN_JSON}")
+        raise RuntimeError(f"Invalid Obsidian vault metadata: {config_path}")
 
     fallback = None
     for value in vaults.values():
@@ -49,22 +119,23 @@ def find_active_vault() -> Path:
 
     if fallback is not None:
         return fallback
-    raise RuntimeError(f"No Obsidian vault was found in {OBSIDIAN_JSON}")
+    raise RuntimeError(f"No Obsidian vault was found in {config_path}")
 
 
 def obsidian_cli_enabled() -> bool:
-    data = load_json(OBSIDIAN_JSON, {})
+    data = load_json(obsidian_json_path(), {})
     return isinstance(data, dict) and bool(data.get("cli"))
 
 
 def enable_obsidian_cli() -> None:
-    data = load_json(OBSIDIAN_JSON, {})
+    config_path = obsidian_json_path()
+    data = load_json(config_path, {})
     if not isinstance(data, dict):
-        raise RuntimeError(f"Invalid Obsidian config: {OBSIDIAN_JSON}")
+        raise RuntimeError(f"Invalid Obsidian config: {config_path}")
     if data.get("cli") is True:
         return
     data["cli"] = True
-    save_json(OBSIDIAN_JSON, data)
+    save_json(config_path, data)
 
 
 def normalize_media_folder(raw_value: str | None) -> str:
@@ -174,6 +245,29 @@ def update_claudian_settings(
     return settings_path
 
 
+def seed_default_agents(vault_path: Path) -> list[str]:
+    agents_dir = vault_path / ".claude" / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+
+    created: list[str] = []
+    for file_name, content in DEFAULT_AGENT_TEMPLATES.items():
+        destination = agents_dir / file_name
+        if destination.exists():
+            continue
+        destination.write_text(content, encoding="utf-8")
+        created.append(file_name)
+    return created
+
+
+def existing_default_agents(vault_path: Path) -> list[str]:
+    agents_dir = vault_path / ".claude" / "agents"
+    found: list[str] = []
+    for file_name in DEFAULT_AGENT_TEMPLATES:
+        if (agents_dir / file_name).exists():
+            found.append(file_name)
+    return found
+
+
 def read_plugin_manifest(vault_path: Path) -> dict | None:
     manifest_path = vault_path / ".obsidian" / "plugins" / "claudian" / "manifest.json"
     if not manifest_path.exists():
@@ -186,7 +280,7 @@ def read_plugin_manifest(vault_path: Path) -> dict | None:
 
 def build_doctor_status(vault_path: Path | None) -> dict:
     status = {
-        "obsidian_app_exists": OBSIDIAN_APP.exists(),
+        "obsidian_app_exists": obsidian_app_exists(),
         "obsidian_cli_path": shutil.which("obsidian") or "",
         "obsidian_cli_enabled": obsidian_cli_enabled(),
         "claude_cli_path": shutil.which("claude") or "",
@@ -204,6 +298,7 @@ def build_doctor_status(vault_path: Path | None) -> dict:
             "claudian_plugin_installed": manifest is not None,
             "claudian_plugin_version": manifest.get("version", "") if manifest else "",
             "claudian_settings_exists": settings_path.exists(),
+            "default_agents": existing_default_agents(vault_path),
         }
     )
     return status
@@ -224,11 +319,38 @@ def command_doctor(args: argparse.Namespace) -> int:
 
 
 def command_install(args: argparse.Namespace) -> int:
-    vault_path = Path(args.vault).expanduser() if args.vault else find_active_vault()
+    enable_obsidian_cli()
+    if args.vault:
+        vault_path = Path(args.vault).expanduser()
+    else:
+        try:
+            vault_path = find_active_vault()
+        except RuntimeError:
+            if args.skip_if_no_vault:
+                summary = {
+                    "skipped": "no_active_vault",
+                    "obsidian_cli_path": shutil.which("obsidian") or "",
+                    "obsidian_cli_enabled": obsidian_cli_enabled(),
+                    "claude_cli_path": shutil.which("claude") or "",
+                }
+                json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+                sys.stdout.write("\n")
+                return 0
+            raise
+
     if not vault_path.exists():
+        if args.skip_if_no_vault:
+            summary = {
+                "skipped": f"vault_not_found:{vault_path}",
+                "obsidian_cli_path": shutil.which("obsidian") or "",
+                "obsidian_cli_enabled": obsidian_cli_enabled(),
+                "claude_cli_path": shutil.which("claude") or "",
+            }
+            json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+            sys.stdout.write("\n")
+            return 0
         raise RuntimeError(f"Vault does not exist: {vault_path}")
 
-    enable_obsidian_cli()
     install_result = install_claudian_plugin(vault_path)
     enable_claudian_plugin(vault_path)
     settings_path = update_claudian_settings(
@@ -237,12 +359,14 @@ def command_install(args: argparse.Namespace) -> int:
         locale=args.locale,
         permission_mode=args.permission_mode,
     )
+    created_agents = seed_default_agents(vault_path)
 
     summary = {
         "vault": str(vault_path),
         "plugin_dir": install_result["plugin_dir"],
         "claudian_version": install_result["version"],
         "settings_path": str(settings_path),
+        "created_default_agents": created_agents,
         "obsidian_cli_path": shutil.which("obsidian") or "",
         "obsidian_cli_enabled": obsidian_cli_enabled(),
         "claude_cli_path": shutil.which("claude") or "",
@@ -269,6 +393,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("normal", "plan", "yolo"),
         default="normal",
         help="initial Claudian permission mode",
+    )
+    install_parser.add_argument(
+        "--skip-if-no-vault",
+        action="store_true",
+        help="exit successfully when no active vault exists yet",
     )
     install_parser.set_defaults(func=command_install)
 

@@ -59,10 +59,12 @@ def main() -> int:
     print(f"Initialized website clone workspace at: {target}")
     print("Next steps:")
     print("  1. source \"$HOME/.nvm/nvm.sh\"")
-    print("  2. nvm use 24")
-    print(f"  3. cd \"{target}\"")
-    print("  4. npm install")
-    print("  5. npm run build")
+    print("  2. nvm install 24   # まだ入っていない場合だけ")
+    print("  3. nvm use 24")
+    print(f"  4. cd \"{target}\"")
+    print("  5. npm install")
+    print("  6. npm run build")
+    print("Note: global setup は Node 22 までなので、この workspace でだけ Node 24 を使います。")
     return 0
 
 

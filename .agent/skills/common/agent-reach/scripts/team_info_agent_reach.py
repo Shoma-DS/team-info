@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -84,6 +85,27 @@ def _prepare_env() -> Path:
     return home
 
 
+def _auto_bootstrap(home: Path, missing: str) -> None:
+    if os.environ.get("TEAM_INFO_AGENT_REACH_AUTO_BOOTSTRAP", "1") == "0":
+        raise ModuleNotFoundError(missing)
+
+    if os.environ.get("TEAM_INFO_AGENT_REACH_BOOTSTRAPPING") == "1":
+        raise ModuleNotFoundError(missing)
+
+    installer = SKILL_DIR / "scripts" / "install_team_info_agent_reach.py"
+    env = os.environ.copy()
+    env["TEAM_INFO_AGENT_REACH_HOME"] = str(home)
+    env["TEAM_INFO_AGENT_REACH_BOOTSTRAPPING"] = "1"
+    try:
+        subprocess.run([sys.executable, str(installer)], check=True, env=env)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+            "Agent Reach の初回 bootstrap に失敗しました。"
+            f" 手動で `python \"{installer}\"` を実行して確認してください。"
+            f" (exit: {exc.returncode})"
+        ) from exc
+
+
 def _maybe_reexec(home: Path) -> None:
     if os.environ.get("TEAM_INFO_AGENT_REACH_SKIP_REEXEC") == "1":
         return
@@ -110,13 +132,22 @@ def main() -> None:
         from agent_reach.cli import main as upstream_main
     except ModuleNotFoundError as exc:
         missing = exc.name or "dependency"
-        print(
-            "Agent Reach の依存がまだ入っていません。"
-            f" 先に `python \"{SKILL_DIR / 'scripts' / 'install_team_info_agent_reach.py'}\"` を実行してください。"
-            f" (missing: {missing})",
-            file=sys.stderr,
-        )
-        raise SystemExit(1) from exc
+        try:
+            _auto_bootstrap(home, missing)
+        except RuntimeError as bootstrap_error:
+            print(str(bootstrap_error), file=sys.stderr)
+            raise SystemExit(1) from exc
+        except ModuleNotFoundError:
+            print(
+                "Agent Reach の依存がまだ入っていません。"
+                f" 先に `python \"{SKILL_DIR / 'scripts' / 'install_team_info_agent_reach.py'}\"` を実行してください。"
+                f" (missing: {missing})",
+                file=sys.stderr,
+            )
+            raise SystemExit(1) from exc
+
+        _maybe_reexec(home)
+        from agent_reach.cli import main as upstream_main
 
     upstream_main()
 

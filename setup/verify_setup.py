@@ -10,37 +10,7 @@ import sys
 from pathlib import Path
 
 
-PYTHON_RUNTIME_IMAGE = "team-info/python-skill-runtime:3.11.9"
-VOICEVOX_IMAGE = "voicevox/voicevox_engine:latest"
-REQUIRED_HOST_COMMANDS = ("docker", "node", "npm", "codex", "gh")
-HOST_IMPORTS = (
-    "cv2",
-    "numpy",
-    "pytesseract",
-    "faster_whisper",
-    "pykakasi",
-)
-DOCKER_IMPORTS = (
-    "cv2",
-    "numpy",
-    "PIL",
-    "requests",
-    "librosa",
-    "pykakasi",
-    "faster_whisper",
-    "mediapipe",
-    "soundfile",
-    "jax",
-)
-REQUIRED_NODE_PROJECTS = (
-    ("Remotion/my-video", "Remotion", "npm"),
-    ("mcp-servers/voicevox", "VOICEVOX MCP", "npm"),
-)
-OPTIONAL_NODE_PROJECTS = (
-    ("Remotion/scripts/canva_auth", "Canva auth helper", "npm"),
-    ("docker/dify/web", "Dify Web", "pnpm"),
-    ("docker/dify/sdks/nodejs-client", "Dify SDK", "pnpm"),
-)
+REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "gh")
 
 
 def _run(
@@ -70,20 +40,20 @@ def _truncate(text: str, limit: int = 240) -> str:
 
 
 def _check_host_commands(failures: list[str]) -> None:
-    _print_heading("Host Commands")
+    _print_heading("基本コマンド")
     for command in REQUIRED_HOST_COMMANDS:
         path = shutil.which(command)
         if path:
             print(f"[OK] {command}: {path}")
         else:
-            print(f"[NG] {command}: command not found")
+            print(f"[NG] {command}: コマンドが見つかりません")
             failures.append(f"{command} が見つかりません。")
 
 
 def _check_git_lfs(failures: list[str]) -> None:
     _print_heading("Git LFS")
     if shutil.which("git") is None:
-        print("[NG] git lfs: git command not found")
+        print("[NG] git lfs: git コマンドが見つかりません")
         failures.append("git が見つからないため git lfs を確認できません。")
         return
 
@@ -92,44 +62,56 @@ def _check_git_lfs(failures: list[str]) -> None:
         print(f"[OK] git lfs: {completed.stdout.strip()}")
         return
 
-    message = _truncate(completed.stderr or completed.stdout or "git lfs version failed")
+    message = _truncate(completed.stderr or completed.stdout or "git lfs version の取得に失敗しました")
     print(f"[NG] git lfs: {message}")
     failures.append("git lfs が使えません。")
 
 
 def _check_gh_auth(failures: list[str]) -> None:
-    _print_heading("GitHub CLI (gh) Auth")
+    _print_heading("GitHub CLI (gh) 認証")
     if shutil.which("gh") is None:
-        print("[NG] gh: command not found")
+        print("[NG] gh: コマンドが見つかりません")
         failures.append("gh が見つかりません。")
         return
 
     completed = _run(["gh", "auth", "status"])
     if completed.returncode == 0:
-        print(f"[OK] gh auth: logged in")
+        print("[OK] gh auth: ログイン済み")
     else:
-        message = _truncate(completed.stderr or completed.stdout or "not logged in")
+        message = _truncate(completed.stderr or completed.stdout or "未ログインです")
         print(f"[NG] gh auth: {message}")
         failures.append("GitHub CLI (gh) でログインしていません。'gh auth login' を実行してください。")
 
 
 def _check_remote_url(repo_root: Path, failures: list[str]) -> None:
-    _print_heading("Git Remote URL")
-    expected_url = "https://github.com/Shoma-DS/team-info.git"
+    _print_heading("Git リモート URL")
+    expected_urls = {
+        "https://github.com/Shoma-DS/team-info.git",
+        "git@github.com:Shoma-DS/team-info.git",
+    }
     completed = _run(["git", "-C", str(repo_root), "remote", "get-url", "origin"])
     current_url = completed.stdout.strip()
-    if completed.returncode == 0 and current_url == expected_url:
+    if completed.returncode == 0 and current_url in expected_urls:
         print(f"[OK] origin: {current_url}")
     else:
         print(f"[NG] origin: {current_url or '(empty)'}")
-        failures.append(f"リモート URL が {expected_url} に設定されていません。")
+        expected_text = " / ".join(sorted(expected_urls))
+        failures.append(f"リモート URL が想定値ではありません。期待値: {expected_text}")
 
 
 def _check_repo_git_hooks(repo_root: Path, failures: list[str]) -> None:
     _print_heading("Git Hooks")
     completed = _run(["git", "-C", str(repo_root), "config", "--get", "core.hooksPath"])
     hooks_path = completed.stdout.strip()
-    if completed.returncode == 0 and hooks_path == ".githooks":
+    normalized_hooks_path = Path(hooks_path).expanduser() if hooks_path else None
+    hooks_path_ok = False
+    if completed.returncode == 0:
+        if hooks_path == ".githooks":
+            hooks_path_ok = True
+        elif normalized_hooks_path is not None and normalized_hooks_path.is_absolute():
+            hooks_path_ok = normalized_hooks_path.resolve() == (repo_root / ".githooks").resolve()
+
+    if hooks_path_ok:
         print(f"[OK] core.hooksPath: {hooks_path}")
     else:
         print(f"[NG] core.hooksPath: {hooks_path or '(empty)'}")
@@ -143,190 +125,32 @@ def _check_repo_git_hooks(repo_root: Path, failures: list[str]) -> None:
         failures.append("Git LFS 無料枠を守る pre-push hook が見つかりません。")
 
 
-def _host_python_path(repo_root: Path) -> Path:
-    candidates = [
-        repo_root / "Remotion" / ".venv" / "bin" / "python",
-        repo_root / "Remotion" / ".venv" / "Scripts" / "python.exe",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    raise FileNotFoundError("ホスト fallback 用の Python が見つかりません。")
+def _check_python_toolchain(failures: list[str]) -> None:
+    _print_heading("Python ツールチェーン")
+    version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    print(f"[OK] python executable: {sys.executable}")
+    print(f"[OK] python version: {version}")
+    if sys.version_info[:2] != (3, 11):
+        failures.append("setup 検証は Python 3.11 系で実行してください。")
 
 
-def _run_import_check(python_path: Path, modules: tuple[str, ...]) -> dict[str, str]:
-    code = (
-        "import importlib, json\n"
-        f"modules = {list(modules)!r}\n"
-        "result = {}\n"
-        "for module_name in modules:\n"
-        "    try:\n"
-        "        importlib.import_module(module_name)\n"
-        "        result[module_name] = 'OK'\n"
-        "    except Exception as exc:\n"
-        "        result[module_name] = f'NG: {type(exc).__name__}: {exc}'\n"
-        "print(json.dumps(result, ensure_ascii=False))\n"
+def _check_lazy_bootstrap_scripts(repo_root: Path, failures: list[str]) -> None:
+    _print_heading("初回自動準備の入口")
+    targets = (
+        (repo_root / ".agent" / "skills" / "common" / "scripts" / "team_info_runtime.py", "Remotion / Python runtime bootstrap"),
+        (repo_root / ".agent" / "skills" / "common" / "agent-reach" / "scripts" / "team_info_agent_reach.py", "Agent Reach bootstrap"),
+        (repo_root / ".agent" / "skills" / "common" / "agent-reach" / "scripts" / "install_team_info_agent_reach.py", "Agent Reach installer"),
+        (repo_root / ".agent" / "skills" / "common" / "obsidian-claudian" / "scripts" / "team_info_obsidian_claudian.py", "Obsidian / Claudian bootstrap"),
+        (repo_root / ".agent" / "skills" / "common" / "shared-agent-assets" / "scripts" / "sync_shared_agent_repo.sh", "Shared agent assets sync"),
+        (repo_root / ".agent" / "skills" / "web-design" / "clone-website" / "scripts" / "init_clone_website_template.py", "clone-website bootstrap"),
     )
-    completed = _run([str(python_path), "-c", code], check=True)
-    return json.loads(completed.stdout)
 
-
-def _check_host_python(repo_root: Path, failures: list[str]) -> None:
-    _print_heading("Host Python Fallback")
-    try:
-        python_path = _host_python_path(repo_root)
-    except FileNotFoundError as exc:
-        print(f"[NG] {exc}")
-        failures.append(str(exc))
-        return
-
-    print(f"[OK] python: {python_path}")
-    try:
-        results = _run_import_check(python_path, HOST_IMPORTS)
-    except subprocess.CalledProcessError as exc:
-        message = _truncate(exc.stderr or exc.stdout or str(exc))
-        print(f"[NG] host import check failed: {message}")
-        failures.append("ホスト fallback Python の import 確認に失敗しました。")
-        return
-
-    for module_name in HOST_IMPORTS:
-        status = results.get(module_name, "NG: missing result")
-        prefix = "[OK]" if status == "OK" else "[NG]"
-        print(f"{prefix} {module_name}: {status}")
-        if status != "OK":
-            failures.append(f"ホスト fallback Python で {module_name} を import できません。")
-
-
-def _runtime_script(repo_root: Path) -> Path:
-    return repo_root / ".agent" / "skills" / "common" / "scripts" / "team_info_runtime.py"
-
-
-def _check_docker_runtime(repo_root: Path, failures: list[str]) -> None:
-    _print_heading("Docker Runtime")
-    runtime_script = _runtime_script(repo_root)
-    if shutil.which("docker") is None:
-        print("[NG] docker: command not found")
-        failures.append("docker が見つかりません。")
-        return
-
-    try:
-        mode = _run([sys.executable, str(runtime_script), "python-runtime-mode"], check=True).stdout.strip()
-    except subprocess.CalledProcessError as exc:
-        message = _truncate(exc.stderr or exc.stdout or str(exc))
-        print(f"[NG] python runtime mode check failed: {message}")
-        failures.append("Python ランタイムモードの確認に失敗しました。")
-        return
-    print(f"[OK] python runtime mode: {mode}")
-    if mode != "docker":
-        failures.append("標準 Python ランタイムが docker ではありません。")
-
-    image_check = _run(["docker", "image", "inspect", PYTHON_RUNTIME_IMAGE])
-    if image_check.returncode == 0:
-        print(f"[OK] runtime image: {PYTHON_RUNTIME_IMAGE}")
-    else:
-        print(f"[NG] runtime image: {PYTHON_RUNTIME_IMAGE}")
-        failures.append("Python Docker ランタイムイメージがありません。")
-
-    voicevox_check = _run(["docker", "image", "inspect", VOICEVOX_IMAGE])
-    if voicevox_check.returncode == 0:
-        print(f"[OK] voicevox image: {VOICEVOX_IMAGE}")
-    else:
-        print(f"[NG] voicevox image: {VOICEVOX_IMAGE}")
-        failures.append("VOICEVOX Engine イメージがありません。")
-
-    code = (
-        "import importlib, json\n"
-        f"modules = {list(DOCKER_IMPORTS)!r}\n"
-        "result = {}\n"
-        "for module_name in modules:\n"
-        "    try:\n"
-        "        importlib.import_module(module_name)\n"
-        "        result[module_name] = 'OK'\n"
-        "    except Exception as exc:\n"
-        "        result[module_name] = f'NG: {type(exc).__name__}: {exc}'\n"
-        "print(json.dumps(result, ensure_ascii=False))\n"
-    )
-    completed = _run(
-        [
-            sys.executable,
-            str(runtime_script),
-            "run-remotion-python",
-            "--",
-            "-c",
-            code,
-        ]
-    )
-    if completed.returncode != 0:
-        message = _truncate(completed.stderr or completed.stdout or "docker import check failed")
-        print(f"[NG] docker import check failed: {message}")
-        failures.append("Docker ランタイム内の import 確認に失敗しました。")
-        return
-
-    results = json.loads(completed.stdout)
-    for module_name in DOCKER_IMPORTS:
-        status = results.get(module_name, "NG: missing result")
-        prefix = "[OK]" if status == "OK" else "[NG]"
-        print(f"{prefix} {module_name}: {status}")
-        if status != "OK":
-            failures.append(f"Docker ランタイムで {module_name} を import できません。")
-
-    binary_code = (
-        "import json, shutil\n"
-        "binaries = ['ffmpeg', 'ffprobe', 'tesseract']\n"
-        "print(json.dumps({name: shutil.which(name) for name in binaries}, ensure_ascii=False))\n"
-    )
-    try:
-        binaries = _run(
-            [
-                sys.executable,
-                str(runtime_script),
-                "run-remotion-python",
-                "--",
-                "-c",
-                binary_code,
-            ],
-            check=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        message = _truncate(exc.stderr or exc.stdout or str(exc))
-        print(f"[NG] docker binary check failed: {message}")
-        failures.append("Docker ランタイム内のバイナリ確認に失敗しました。")
-        return
-    binary_paths = json.loads(binaries.stdout)
-    for name in ("ffmpeg", "ffprobe", "tesseract"):
-        path = binary_paths.get(name)
-        if path:
-            print(f"[OK] {name}: {path}")
+    for path, label in targets:
+        if path.exists():
+            print(f"[OK] {label}: {path}")
         else:
-            print(f"[NG] {name}: not found in Docker runtime")
-            failures.append(f"Docker ランタイムで {name} が見つかりません。")
-
-    try:
-        tesseract_langs = _run(
-            [
-                sys.executable,
-                str(runtime_script),
-                "run-remotion-python",
-                "--",
-                "-c",
-                (
-                    "import subprocess\n"
-                    "result = subprocess.run(['tesseract', '--list-langs'], capture_output=True, text=True, check=True)\n"
-                    "print(result.stdout)\n"
-                ),
-            ],
-            check=True,
-        ).stdout
-    except subprocess.CalledProcessError as exc:
-        message = _truncate(exc.stderr or exc.stdout or str(exc))
-        print(f"[NG] tesseract language check failed: {message}")
-        failures.append("Docker ランタイム内の tesseract 言語確認に失敗しました。")
-        return
-    if "jpn" in tesseract_langs.split():
-        print("[OK] tesseract lang: jpn")
-    else:
-        print("[NG] tesseract lang: jpn not found")
-        failures.append("Docker ランタイムに tesseract の日本語辞書がありません。")
+            print(f"[NG] {label}: {path}")
+            failures.append(f"{label} が見つかりません。")
 
 
 def _check_team_info_root(repo_root: Path, failures: list[str], warnings: list[str]) -> None:
@@ -376,103 +200,19 @@ def _check_team_info_root(repo_root: Path, failures: list[str], warnings: list[s
     warnings.append("この OS の TEAM_INFO_ROOT 永続化チェックは未対応です。")
 
 
-def _node_tool_command(tool: str) -> list[str] | None:
-    if tool == "npm":
-        return ["npm"] if shutil.which("npm") else None
-    if tool == "pnpm":
-        if shutil.which("pnpm"):
-            return ["pnpm"]
-        if shutil.which("corepack"):
-            return ["corepack", "pnpm"]
-        return None
-    return [tool] if shutil.which(tool) else None
-
-
-def _check_node_project(
-    repo_root: Path,
-    relative_path: str,
-    label: str,
-    tool: str,
-    *,
-    failures: list[str],
-    warnings: list[str],
-    required: bool,
-) -> None:
-    project_dir = repo_root / relative_path
-    package_json = project_dir / "package.json"
-    if not package_json.exists():
-        if required:
-            print(f"[NG] {label}: package.json not found ({project_dir})")
-            failures.append(f"{label} の package.json が見つかりません。")
+def _check_optional_tools(warnings: list[str]) -> None:
+    _print_heading("任意ツールのヒント")
+    for tool in ("docker", "obsidian", "openclaw"):
+        path = shutil.which(tool)
+        if path:
+            print(f"[OK] {tool}: {path}")
         else:
-            print(f"[SKIP] {label}: not present")
-        return
-
-    tool_command = _node_tool_command(tool)
-    if tool_command is None:
-        message = f"{tool} command not found"
-        print(f"[NG] {label}: {message}")
-        if required:
-            failures.append(f"{label} に必要な {tool} が見つかりません。")
-        else:
-            warnings.append(f"{label} の確認に必要な {tool} が見つかりません。")
-        return
-
-    command = [*tool_command, "ls", "--depth=0"] if tool == "npm" else [*tool_command, "list", "--depth", "0"]
-    completed = _run(command, cwd=project_dir)
-    if completed.returncode == 0:
-        print(f"[OK] {label}: {tool} dependencies installed")
-        return
-
-    message = _truncate(completed.stderr or completed.stdout or "npm ls failed")
-    print(f"[NG] {label}: {message}")
-    if required:
-        failures.append(f"{label} の npm 依存がそろっていません。")
-    else:
-        warnings.append(f"{label} の npm 依存確認で問題が出ました。")
-
-
-def _check_node_projects(repo_root: Path, failures: list[str], warnings: list[str]) -> None:
-    _print_heading("Node Projects")
-    if shutil.which("npm") is None:
-        print("[NG] npm: command not found")
-        failures.append("npm が見つかりません。")
-        return
-
-    for relative_path, label, tool in REQUIRED_NODE_PROJECTS:
-        _check_node_project(
-            repo_root,
-            relative_path,
-            label,
-            tool,
-            failures=failures,
-            warnings=warnings,
-            required=True,
-        )
-    for relative_path, label, tool in OPTIONAL_NODE_PROJECTS:
-        _check_node_project(
-            repo_root,
-            relative_path,
-            label,
-            tool,
-            failures=failures,
-            warnings=warnings,
-            required=False,
-        )
-
-
-def _check_secret_template(repo_root: Path, warnings: list[str]) -> None:
-    _print_heading("Secrets Template")
-    credentials = Path.home() / ".secrets" / "canva_credentials.txt"
-    if credentials.exists():
-        print(f"[OK] Canva secrets template: {credentials}")
-    else:
-        print(f"[NG] Canva secrets template: {credentials}")
-        warnings.append("Canva の鍵テンプレートがまだ作られていません。")
+            print(f"[SKIP] {tool}: まだ入っていません")
+            warnings.append(f"{tool} は必要なスキルを初めて使うときに導入してください。")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="team-info setup verification")
+    parser = argparse.ArgumentParser(description="team-info セットアップ検証")
     parser.add_argument(
         "--repo-root",
         default=str(Path(__file__).resolve().parents[1]),
@@ -484,7 +224,7 @@ def main() -> int:
     failures: list[str] = []
     warnings: list[str] = []
 
-    print("team-info setup verification")
+    print("team-info セットアップ検証")
     print(f"repo: {repo_root}")
 
     _check_host_commands(failures)
@@ -493,21 +233,20 @@ def main() -> int:
     _check_remote_url(repo_root, failures)
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
-    _check_host_python(repo_root, failures)
-    _check_node_projects(repo_root, failures, warnings)
-    _check_secret_template(repo_root, warnings)
-    _check_docker_runtime(repo_root, failures)
+    _check_python_toolchain(failures)
+    _check_lazy_bootstrap_scripts(repo_root, failures)
+    _check_optional_tools(warnings)
 
-    _print_heading("Summary")
+    _print_heading("まとめ")
     if failures:
-        print("[NG] setup verification failed")
+        print("[NG] セットアップ検証に失敗しました")
         for item in failures:
             print(f"  - {item}")
     else:
-        print("[OK] setup verification passed")
+        print("[OK] セットアップ検証に成功しました")
 
     if warnings:
-        print("Warnings:")
+        print("警告:")
         for item in warnings:
             print(f"  - {item}")
 

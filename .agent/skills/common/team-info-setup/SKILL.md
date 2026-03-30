@@ -1,6 +1,6 @@
 ---
 name: team-info-setup
-description: team-info の初回セットアップや再セットアップを始めるための起点スキル。既知マシン判定、入口マニュアル確認、setup_all.cmd の実行、TEAM_INFO_ROOT の再登録まで扱う。
+description: team-info の初回セットアップや再セットアップを始めるための起点スキル。既知マシン判定、入口マニュアル確認、core setup の実行、TEAM_INFO_ROOT の再登録、lazy bootstrap 方針の案内まで扱う。
 ---
 
 # team-info セットアップスキル
@@ -15,6 +15,7 @@ description: team-info の初回セットアップや再セットアップを始
 - `/setup` から team-info の初回セットアップややり直しを始める。
 - 新しいパソコンか、過去に一度使ったパソコンかを見分ける。
 - `setup/setup_all.cmd` を入口にして、必要なら `setup-local-machine` までつなぐ。
+- setup 本体を最小構成に保ち、重い依存は skill ごとの初回利用に寄せる。
 
 ## 参照ファイル
 - `setup/README.md`
@@ -28,12 +29,20 @@ description: team-info の初回セットアップや再セットアップを始
 4. フルセットアップの入口は常に `setup/setup_all.cmd` とする。
    - 途中で **GitHub 招待の承認確認** と **GitHub CLI (gh) の認証** が行われる。
    - この入口は OS 別 setup の最後に `setup/verify_setup.py` まで走らせる前提で扱う。
-   - `Verify status: passed` かつ終了コード 0 のときだけ「環境がそろった」と判断する。
+   - setup の最後に `検証結果: 成功` と出て、終了コード 0 のときだけ「core setup がそろった」と判断する。
+   - setup 本体では Git / Python 3.11 / uv / Node 22 / Codex CLI / `TEAM_INFO_ROOT` までを基本対象とし、Remotion / Agent Reach / Claudian / clone-website などの重い依存はここで全部入れない。
 5. setup 完了後は、ターミナルを開き直して `TEAM_INFO_ROOT` を確認するよう案内する。
    - macOS は `~/.config/team-info/env.sh` と `launchctl` に保存される前提で扱う。
 6. `TEAM_INFO_ROOT` が空なら、`setup-local-machine` で作業場所だけを登録し直す。
 7. 新しいパソコンで setup が終わったら、もう一度 `マニュアル/まずはこちらをお読みください.md` を読むよう促す。
 8. それでも止まる場合は、止まった画面のスクリーンショットを添えて Discord `https://discord.com/channels/1478351976168165511/1479287635535990794` へ相談するよう案内する。
+
+## lazy bootstrap の扱い
+- Remotion / VOICEVOX 系は `team_info_runtime.py` 経由で必要時に Docker runtime を準備する。
+- Agent Reach は `team_info_agent_reach.py` が依存不足を検出したら初回 bootstrap を走らせる。
+- Obsidian / Claudian は `/claudian` の初回実行時に active vault 向け install を行う。
+- clone-website は template 初期化後、その workspace で Node 24 依存を入れる。
+- `shared-agent-assets` は同期が必要になったタイミングでだけ実行する。
 
 ## ユーザー向けコマンド
 
@@ -53,6 +62,12 @@ Windows:
 
 - この最初のコマンドだけは、`team-info` のリポジトリルートをカレントディレクトリにした状態で案内してよい。
 - setup 側はカレントディレクトリが repo root なら、その値を `TEAM_INFO_ROOT` として保存する。
+
+### setup の説明を確認する
+
+```bash
+sed -n '1,220p' "$TEAM_INFO_ROOT/setup/README.md"
+```
 
 ### `TEAM_INFO_ROOT` が設定済みのときの再セットアップ
 

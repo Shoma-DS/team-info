@@ -37,18 +37,8 @@ if ((Test-Path (Join-Path $CurrentDir "AGENTS.md")) -and (Test-Path (Join-Path $
 } else {
     $TeamInfoRoot = $ScriptRepoRoot
 }
-$VenvDir        = Join-Path $TeamInfoRoot "Remotion\.venv"
 $NodeVersion    = "22.17.1"
 $PythonVersion  = "3.11.9"
-$SecretsDir     = Join-Path $env:USERPROFILE ".secrets"
-$CanvaCredentialsFile = Join-Path $SecretsDir "canva_credentials.txt"
-$CanvaAuthDir   = Join-Path $TeamInfoRoot "Remotion\scripts\canva_auth"
-$DifyRoot       = Join-Path $TeamInfoRoot "docker\dify"
-$DifyApiDir     = Join-Path $DifyRoot "api"
-$DifyWebDir     = Join-Path $DifyRoot "web"
-$DifyWebNvmrc   = Join-Path $DifyWebDir ".nvmrc"
-$DifyWebPackage = Join-Path $DifyWebDir "package.json"
-$DifySdkDir     = Join-Path $DifyRoot "sdks\nodejs-client"
 $CodexNpmPackage = "@openai/codex"
 
 Write-Host ""
@@ -108,13 +98,6 @@ function Add-UserPathEntry {
     }
 }
 
-function Copy-IfMissing {
-    param($source, $target)
-    if ((Test-Path $source) -and -not (Test-Path $target)) {
-        Copy-Item $source $target
-    }
-}
-
 function Get-PythonUserScriptsDir {
     param($pythonExe)
     $userBase = (& $pythonExe -c "import site; print(site.USER_BASE)").Trim()
@@ -142,39 +125,6 @@ function Install-UvUser {
         return $uvCommand.Source
     }
     return $null
-}
-
-function Get-PnpmVersion {
-    param($packageJsonPath)
-    if (-not (Test-Path $packageJsonPath)) {
-        return $null
-    }
-    try {
-        $packageJson = Get-Content $packageJsonPath -Raw | ConvertFrom-Json
-    } catch {
-        return $null
-    }
-
-    $packageManager = $packageJson.packageManager
-    if ($packageManager -and $packageManager.StartsWith("pnpm@")) {
-        return ($packageManager.Substring(5) -split "\+")[0]
-    }
-
-    return $null
-}
-
-function Ensure-CanvaCredentialsTemplate {
-    New-Item -ItemType Directory -Force -Path $SecretsDir | Out-Null
-    if (-not (Test-Path $CanvaCredentialsFile)) {
-        Set-Content -Path $CanvaCredentialsFile -Value @(
-            "# Canva API credentials"
-            "CANVA_CLIENT_ID="
-            "CANVA_CLIENT_SECRET="
-        )
-        Write-Warn "Canva の鍵ファイルを作りました: $CanvaCredentialsFile"
-    } else {
-        Write-Ok "Canva の鍵ファイルあり: $CanvaCredentialsFile"
-    }
 }
 
 function Get-NvmExe {
@@ -299,8 +249,8 @@ if (Test-Command gh) {
     Install-WithWinget "GitHub.cli" "GitHub CLI (gh)"
 }
 
-Write-Warn "GitHub の招待メール（Invitation）を承認済みである必要があります。"
-$confirmed = Read-Host "  招待メールを承認しましたか？ (y/N)"
+Write-Warn "GitHub の招待メールを承認済みである必要があります。"
+$confirmed = Read-Host "  招待メールを承認済みですか？ 承認済みなら y を入力してください [y/N]"
 if ($confirmed -notmatch "^[Yy]$") {
     Write-Err "先に招待を承認してください。不明な場合は sho に確認してください。"
 }
@@ -355,81 +305,13 @@ $Python311 = "$env:USERPROFILE\.pyenv\pyenv-win\versions\$PythonVersion\python.e
 if (-not (Test-Path $Python311)) { Write-Err "Python $PythonVersion が見つかりません: $Python311" }
 Write-Info "Python: $Python311 ($(& $Python311 --version))"
 
-# ── 5. Tesseract OCR (pytesseract 依存) ─────────────────────────────────────
-Write-Step "5. Tesseract OCR (pytesseract 依存)"
-if (Test-Command tesseract) {
-    Write-Ok "Tesseract インストール済み"
-} else {
-    Write-Info "Tesseract をインストールします..."
-    Invoke-NativeOrThrow "Tesseract の winget install" {
-        winget install --id UB-Mannheim.TesseractOCR --silent `
-              --accept-package-agreements --accept-source-agreements
-    }
-    # 標準インストール先を PATH に追加
-    $tessPath = "C:\Program Files\Tesseract-OCR"
-    if (Test-Path $tessPath) {
-        [System.Environment]::SetEnvironmentVariable("Path",
-            [System.Environment]::GetEnvironmentVariable("Path","User") + ";$tessPath",
-            "User")
-        $env:Path += ";$tessPath"
-    }
-    Write-Ok "Tesseract インストール完了"
-}
+# ── 5. Python ランタイム方針 ─────────────────────────────────────────────
+Write-Step "5. Python ランタイム方針"
+Write-Ok "Python 3.11 を使う土台を作りました"
+Write-Warn "Remotion / Docker ランタイムや Python パッケージ群は、必要なスキルを初めて使うときに自動で準備する方針です。"
 
-# ── 6. FFmpeg ─────────────────────────────────────────────────────────────
-Write-Step "6. FFmpeg"
-if (Test-Command ffmpeg) {
-    Write-Ok "FFmpeg インストール済み"
-} else {
-    Install-WithWinget "Gyan.FFmpeg" "FFmpeg"
-}
-
-# ── 7. Python 仮想環境 ($VenvDir) ────────────────────────────────────────────
-Write-Step "7. Python 仮想環境 ($VenvDir)"
-if (Test-Path $VenvDir) {
-    $ans = Read-Host "  既存の venv が見つかりました。再作成しますか? (y/N)"
-    if ($ans -match "^[Yy]$") {
-        Remove-Item -Recurse -Force $VenvDir
-        Write-Info "既存の venv を削除しました"
-    }
-}
-
-if (-not (Test-Path $VenvDir)) {
-    Write-Info "venv を作成します..."
-    & $Python311 -m venv $VenvDir
-    Write-Ok "venv 作成完了"
-}
-
-
-$Python = Join-Path $VenvDir "Scripts\python.exe"
-
-# pip アップグレード
-Invoke-NativeOrThrow "pip の更新" {
-    & $Python -m pip install --upgrade pip setuptools wheel -q
-}
-Write-Ok "pip アップグレード完了"
-
-# ── 8. Python パッケージのインストール ─────────────────────────────────────────
-Write-Step "8. Python パッケージのインストール"
-Write-Info "requirements.txt からインストールします..."
-Invoke-NativeOrThrow "requirements.txt の install" {
-    & $Python -m pip install -r (Join-Path $ScriptDir "requirements.txt")
-}
-Write-Ok "requirements.txt インストール完了"
-
-# jax: Windows は CPU 版
-Write-Info "jax[cpu] をインストールします..."
-try {
-    Invoke-NativeOrThrow "jax[cpu] の install" {
-        & $Python -m pip install "jax[cpu]==0.4.38"
-    }
-    Write-Ok "jax インストール完了"
-} catch {
-    Write-Warn "jax のインストールに失敗しました（スキップ）: $_"
-}
-
-# ── 9. uv ────────────────────────────────────────────────────────────────
-Write-Step "9. uv"
+# ── 6. uv ────────────────────────────────────────────────────────────────
+Write-Step "6. uv"
 $UvExe = $null
 if (Test-Command uv) {
     $uvCommand = Get-Command uv -ErrorAction SilentlyContinue
@@ -445,8 +327,8 @@ if (Test-Command uv) {
     }
 }
 
-# ── 10. TEAM_INFO_ROOT ─────────────────────────────────────────────────────
-Write-Step "10. TEAM_INFO_ROOT"
+# ── 7. TEAM_INFO_ROOT ─────────────────────────────────────────────────────
+Write-Step "7. TEAM_INFO_ROOT"
 Set-UserEnvVar "TEAM_INFO_ROOT" $TeamInfoRoot
 $RuntimeScript = Join-Path $TeamInfoRoot ".agent\skills\common\scripts\team_info_runtime.py"
 if (Test-Path $RuntimeScript) {
@@ -458,8 +340,8 @@ if (Test-Path $RuntimeScript) {
     }
 }
 
-# ── 11. nvm-windows + Node.js ─────────────────────────────────────────────
-Write-Step "11. nvm-windows + Node.js $NodeVersion"
+# ── 8. nvm-windows + Node.js ─────────────────────────────────────────────
+Write-Step "8. nvm-windows + Node.js $NodeVersion"
 if (-not (Test-Command nvm)) {
     Write-Info "nvm-windows をインストールします..."
     Invoke-NativeOrThrow "nvm-windows の winget install" {
@@ -520,8 +402,8 @@ if ($NvmExe) {
     Write-Warn "nvm を見つけられませんでした。PowerShell を再起動してから再実行してください。"
 }
 
-# ── 12. Codex CLI ──────────────────────────────────────────────────────────
-Write-Step "12. Codex CLI"
+# ── 9. Codex CLI ──────────────────────────────────────────────────────────
+Write-Step "9. Codex CLI"
 if (Test-Command npm) {
     if (Test-Command codex) {
         Write-Info "Codex CLI を更新します..."
@@ -547,183 +429,28 @@ if (Test-Command npm) {
     Write-Warn "  npm install -g $CodexNpmPackage"
 }
 
-# ── 13. npm パッケージ (Remotion) ────────────────────────────────────────
-Write-Step "13. npm パッケージ (Remotion/my-video)"
-$RemotionDir = Join-Path $TeamInfoRoot "Remotion\my-video"
-if (Test-Command node) {
-    if (Test-Path $RemotionDir) {
-        Write-Info "npm install を実行します..."
-        Push-Location $RemotionDir
-        Invoke-NativeOrThrow "Remotion の npm install" {
-            npm install
-        }
-        Pop-Location
-        Write-Ok "npm install 完了"
-    } else {
-        Write-Warn "Remotion/my-video が見つかりません: $RemotionDir"
-    }
-} else {
-    Write-Warn "node が見つかりません。PowerShell 再起動後に手動で実行してください:"
-    Write-Warn "  cd `"$RemotionDir`""
-    Write-Warn "  npm install"
-}
+# ── 10. 遅延セットアップの案内 ───────────────────────────────────────────
+Write-Step "10. 遅延セットアップの案内"
+Write-Warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
+Write-Warn "  - Remotion / VOICEVOX / Docker runtime"
+Write-Warn "  - Canva 補助や Dify 開発依存"
+Write-Warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
+Write-Warn "  - shared-agent-assets の同期処理"
+Write-Warn "  - clone-website 用の Node 24 workspace 依存"
 
-# ── 14. npm パッケージ (mcp-servers/voicevox) ──────────────────────────────────────────
-Write-Step "14. npm パッケージ (mcp-servers/voicevox)"
-$VoicevoxMcpDir = Join-Path $TeamInfoRoot "mcp-servers\voicevox"
-if ((Test-Path $VoicevoxMcpDir) -and (Test-Command node)) {
-    Push-Location $VoicevoxMcpDir
-    Invoke-NativeOrThrow "voicevox MCP の npm install" {
-        npm install
-    }
-    try {
-        Invoke-NativeOrThrow "voicevox MCP の build" {
-            npm run build
-        }
-        Write-Ok "voicevox MCP build 完了"
-    } catch {
-        Write-Warn "voicevox MCP build に失敗しました。あとで確認してください。"
-    }
-    Pop-Location
-    Write-Ok "voicevox MCP npm install 完了"
-}
-
-# ── 15. npm パッケージ (Remotion/scripts/canva_auth) ──────────────────────────────────────
-Write-Step "15. npm パッケージ (Remotion/scripts/canva_auth)"
-if ((Test-Path $CanvaAuthDir) -and (Test-Command node)) {
-    Push-Location $CanvaAuthDir
-    Invoke-NativeOrThrow "Canva 補助の npm install" {
-        npm install
-    }
-    Pop-Location
-    Write-Ok "Canva 補助 npm install 完了"
-}
-
-# ── 16. Dify 開発環境 ─────────────────────────────────────────────────────
-Write-Step "16. Dify 開発環境"
-if (Test-Path $DifyRoot) {
-    Copy-IfMissing (Join-Path $DifyApiDir ".env.example") (Join-Path $DifyApiDir ".env")
-    Copy-IfMissing (Join-Path $DifyWebDir ".env.example") (Join-Path $DifyWebDir ".env.local")
-    Copy-IfMissing (Join-Path $DifyRoot "docker\middleware.env.example") (Join-Path $DifyRoot "docker\middleware.env")
-
-    if ($UvExe -and (Test-Path $DifyApiDir)) {
-        Write-Info "Dify API の依存を入れます..."
-        try {
-            Push-Location $DifyApiDir
-            Invoke-NativeOrThrow "Dify API の uv sync" {
-                & $UvExe sync --group dev
-            }
-            Pop-Location
-            Write-Ok "Dify API の依存を入れました"
-        } catch {
-            Pop-Location
-            Write-Warn "Dify API の依存で止まりました。あとで uv sync --group dev を見てください。"
-        }
-    }
-
-    if ((Test-Path $DifyWebNvmrc) -and $NvmExe) {
-        $DifyNodeVersion = (Get-Content $DifyWebNvmrc -Raw).Trim()
-        if ($DifyNodeVersion) {
-            Write-Info "Dify 用の Node.js $DifyNodeVersion を入れます..."
-            Invoke-NativeOrThrow "Dify 用 Node.js $DifyNodeVersion の install" {
-                & $NvmExe install $DifyNodeVersion | Out-Null
-            }
-            Invoke-NativeOrThrow "Dify 用 Node.js $DifyNodeVersion の use" {
-                & $NvmExe use $DifyNodeVersion | Out-Null
-            }
-            Refresh-ProcessPath
-            if ($NodeSymlink) {
-                $env:Path = "$NodeSymlink;$env:Path"
-            }
-
-            $PnpmVersion = Get-PnpmVersion $DifyWebPackage
-            if (Test-Command corepack) {
-                Invoke-NativeOrThrow "corepack enable" {
-                    corepack enable
-                }
-                if ($PnpmVersion) {
-                    Invoke-NativeOrThrow "pnpm $PnpmVersion の準備" {
-                        corepack prepare "pnpm@$PnpmVersion" --activate
-                    }
-                }
-
-                if (Test-Path $DifyWebDir) {
-                    try {
-                        Push-Location $DifyWebDir
-                        Invoke-NativeOrThrow "Dify Web の pnpm install" {
-                            pnpm install
-                        }
-                        Pop-Location
-                        Write-Ok "Dify Web の依存を入れました"
-                    } catch {
-                        Pop-Location
-                        Write-Warn "Dify Web の依存で止まりました。あとで pnpm install を見てください。"
-                    }
-                }
-
-                if (Test-Path $DifySdkDir) {
-                    try {
-                        Push-Location $DifySdkDir
-                        Invoke-NativeOrThrow "Dify SDK の pnpm install" {
-                            pnpm install
-                        }
-                        Pop-Location
-                        Write-Ok "Dify SDK の依存を入れました"
-                    } catch {
-                        Pop-Location
-                        Write-Warn "Dify SDK の依存で止まりました。あとで pnpm install を見てください。"
-                    }
-                }
-            } else {
-                Write-Warn "corepack が見つからないため、Dify の pnpm 準備を飛ばしました。"
-            }
-
-            Invoke-NativeOrThrow "Node.js $NodeVersion への復帰" {
-                & $NvmExe use $NodeVersion | Out-Null
-            }
-            Refresh-ProcessPath
-            if ($NodeSymlink) {
-                $env:Path = "$NodeSymlink;$env:Path"
-            }
-        }
-    }
-} else {
-    Write-Warn "docker/dify が見つからないため、Dify の準備は飛ばしました。"
-}
-
-# ── 17. 秘密ファイルの下準備 ─────────────────────────────────────────────
-Write-Step "17. 秘密ファイルの下準備"
-Ensure-CanvaCredentialsTemplate
-Write-Warn "Canva を使うときは $CanvaCredentialsFile に鍵を書いてください。"
-Write-Warn "VOICEVOX は GUI ではなく Docker 上の Engine を使います。必要時は start-voicevox-engine を実行してください。"
-
-# ── 18. Docker ───────────────────────────────────────────────────────
-Write-Step "18. Docker"
+# ── 11. Docker (任意) ───────────────────────────────────────────────────
+Write-Step "11. Docker (任意)"
 if (Test-Command docker) {
     Write-Ok "Docker インストール済み: $(docker --version)"
-    try {
-        Write-Info "標準の Python Docker ランタイムをビルドします..."
-        & $Python311 $RuntimeScript build-remotion-python
-        Write-Ok "Python Docker ランタイムのビルド完了"
-    } catch {
-        Write-Warn "Python Docker ランタイムのビルドに失敗しました。あとで build-remotion-python を実行してください。"
-    }
-
-    try {
-        Write-Info "VOICEVOX Engine イメージを取得します..."
-        & $Python311 $RuntimeScript pull-voicevox-engine
-        Write-Ok "VOICEVOX Engine イメージ取得完了"
-    } catch {
-        Write-Warn "VOICEVOX Engine イメージ取得に失敗しました。あとで pull-voicevox-engine を実行してください。"
-    }
+    Write-Warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
 } else {
     Write-Warn "Docker が見つかりません。"
     Write-Warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください"
 }
 
-# ── 19. セットアップ検証 ─────────────────────────────────────────────────
+# ── 12. セットアップ検証 ─────────────────────────────────────────────────
 $VerifyStatus = 0
-Write-Step "19. セットアップ検証"
+Write-Step "12. セットアップ検証"
 $VerifyScript = Join-Path $ScriptDir "verify_setup.py"
 if (Test-Path $VerifyScript) {
     try {
@@ -756,18 +483,18 @@ if ($VerifyStatus -eq 0) {
 }
 Write-Host ""
 Write-Host "主要パス:"
-Write-Host "  Python runtime: Docker image team-info/python-skill-runtime:3.11.9"
-Write-Host "  Host fallback: $VenvDir\Scripts\python.exe"
+Write-Host "  Python:        $Python311"
 Write-Host "  Node.js:       $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { '要: PowerShell 再起動後に確認' })"
 Write-Host "  Codex CLI:     $(if (Get-Command codex -ErrorAction SilentlyContinue) { (Get-Command codex -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { '要: setup 再実行か手動インストール' })"
 Write-Host "  プロジェクト:  $TeamInfoRoot"
 Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
-Write-Host "  Canva secrets: $CanvaCredentialsFile"
-Write-Host "  Verify status: $(if ($VerifyStatus -eq 0) { 'passed' } else { 'failed' })"
+Write-Host "  検証結果:      $(if ($VerifyStatus -eq 0) { '成功' } else { '要確認' })"
 Write-Host ""
 Write-Host "次のステップ:"
 Write-Host "  ・PowerShell を再起動して PATH を再読み込みしてください"
-Write-Host "  ・VOICEVOX Engine: py -3 `"$TeamInfoRoot\.agent\skills\common\scripts\team_info_runtime.py`" start-voicevox-engine"
+Write-Host "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
+Write-Host "  ・Agent Reach は初回実行時に自動セットアップされます"
+Write-Host "  ・Claudian は必要になったら /claudian を実行してください"
 Write-Host "  ・Claude Code: code `"$TeamInfoRoot`""
 Write-Host ""
 

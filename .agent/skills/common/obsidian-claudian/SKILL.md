@@ -1,6 +1,6 @@
 ---
 name: obsidian-claudian
-description: official Obsidian CLI と Claudian を team-info 向けに導入・更新する。アクティブ vault の plugin 配備と `.claude/claudian-settings.json` の初期化まで行う。
+description: official Obsidian CLI と Claudian を team-info 向けに導入・更新する。アクティブ vault の plugin 配備、`.claude/claudian-settings.json` の初期化、初期 subagent 雛形の seed まで行う。
 ---
 
 # obsidian-claudian スキル
@@ -15,6 +15,7 @@ description: official Obsidian CLI と Claudian を team-info 向けに導入・
 - official Obsidian CLI: `/usr/local/bin/obsidian`
 - Claudian plugin: `<vault>/.obsidian/plugins/claudian/`
 - Claudian settings: `<vault>/.claude/claudian-settings.json`
+- 初期 subagent 雛形: `<vault>/.claude/agents/`
 
 ## 導入手順
 1. 公式 Obsidian を 1.12 系以上で入れる。
@@ -26,7 +27,7 @@ description: official Obsidian CLI と Claudian を team-info 向けに導入・
 
 ```bash
 "$(command -v brew)" install --cask obsidian
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install
+python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
 ```
 
 ## 状態確認
@@ -54,12 +55,15 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info
   - `loadUserClaudeSettings: true`
   - `claudeCliPathsByHost[<hostname>] = <detected claude path>`
   - `mediaFolder = <vault attachment folder>`
+- `.claude/agents/` に次の初期雛形を必要時だけ seed する
+  - `note-summarizer.md`
+  - `file-organizer.md`
 
 ## よく使うコマンド
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install
+python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
 python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --vault "/absolute/path/to/vault" --user-name "Shouma"
 ```
 
@@ -69,3 +73,4 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info
 - Claudian Settings で表示言語が日本語か確認する
 - `Safe` 相当で始めたい場合は `permissionMode: normal` のままで運用する
 - 画像/PDF を読む vault では、添付保存先と Claudian `mediaFolder` の整合だけ崩さない
+- 初期 subagent は seed 済みでも上書きしない。既存の `.claude/agents/*.md` を優先する

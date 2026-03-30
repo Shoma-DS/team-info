@@ -25,14 +25,21 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/agent-reach/scripts/team_info_agent
 ## 初回導入
 
 ```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/agent-reach/scripts/team_info_agent_reach.py" doctor
+```
+
+- wrapper は依存不足を検出したら、初回だけ自動で installer を呼ぶ。
+- その後に venv へ切り替えて処理を継続する。
+- `bird` や `mcporter` のような外部 CLI も必要に応じて入る。
+
+手動で明示的に入れたい場合だけ、次を使う。
+
+```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/agent-reach/scripts/install_team_info_agent_reach.py"
 ```
 
-- このコマンドは Python venv の作成、Agent-Reach の基本依存導入、`agent-reach install --env=auto` の実行まで行う。
-- `bird` や `mcporter` のような外部 CLI も必要に応じて入る。
-
 ## 使い方
-1. 初回は `install_team_info_agent_reach.py` を実行する。
+1. 初回は `team_info_agent_reach.py doctor` か通常コマンドをそのまま実行してよい。
 2. 導入後は `team_info_agent_reach.py doctor` で有効チャネルを確認する。
 3. Cookie や API Key が必要なチャネルは、必ずユーザー承認後に `configure` を使う。
 4. OpenClaw 側へ skill を入れ直したいときは `team_info_agent_reach.py skill --install` を使う。
