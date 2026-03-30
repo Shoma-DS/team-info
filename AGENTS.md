@@ -45,6 +45,10 @@
 | `/pull` | origin/main から最新を取り込む（`git fetch` → `pull --rebase`） |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` |
 | `/reach` | `.agent/skills/common/agent-reach/SKILL.md` |
+| `/tool-import` | `.agent/skills/common/repo-adapted-tool-import/SKILL.md` |
+| `/claudian` | `.agent/skills/common/obsidian-claudian/SKILL.md` |
+| `/shared-agent-assets` | `.agent/skills/common/shared-agent-assets/SKILL.md` |
+| `/clone-website` | `.agent/skills/web-design/clone-website/SKILL.md` |
 | `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
 | `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
 | `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |

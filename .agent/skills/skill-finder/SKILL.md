@@ -93,6 +93,9 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 | git-workflow | Gitの運用フロー（ブランチ/コミット/PR と Git LFS 無料枠ガード） | `.agent/skills/common/git-workflow/SKILL.md` |
 | team-info-setup | team-info の初回セットアップや再セットアップを始める | `.agent/skills/common/team-info-setup/SKILL.md` |
 | agent-reach | team-info 向けに取り込んだ Agent-Reach。OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査し、必要なら OpenClaw skill も同期する | `.agent/skills/common/agent-reach/SKILL.md` |
+| repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/repo-adapted-tool-import/SKILL.md` |
+| obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin と `.claude/` 初期設定を整える | `.agent/skills/common/obsidian-claudian/SKILL.md` |
+| shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/shared-agent-assets/SKILL.md` |
 | team-info-daily-dev-memo | 当日のGit変更から team-info メンバー共有用の作業報告を作る | `.agent/skills/common/team-info-daily-dev-memo/SKILL.md` |
 | macos-intel-compatibility | macOS Intel環境の互換性パッチ対応 | `.agent/skills/common/macos-intel-compatibility/SKILL.md` |
 | note-article-ayumi | 「愛され女子あゆみ」のnote記事を作成する | `.agent/skills/common/note-article-ayumi/SKILL.md` |
@@ -105,6 +108,7 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 |---------|------|------|
 | frontend-design | 高品質なフロントエンドUIを制作する | `.agent/skills/web-design/frontend-design/SKILL.md` |
 | gsap-awwwards-website | GSAPスクロール演出付きLPを開発/保守する | `.agent/skills/web-design/gsap-awwwards-website/SKILL.md` |
+| clone-website | browser automation を使ってサイトを pixel-perfect に再構築する。bundled Next.js 16 テンプレを初期化して複製作業に入る | `.agent/skills/web-design/clone-website/SKILL.md` |
 | tyoudoii-illust-fetcher | tyoudoii-illust.com の無料イラストを REST API 経由で検索・取得し、Webプロジェクトへ組み込む | `.agent/skills/web-design/tyoudoii-illust-fetcher/SKILL.md` |
 | themeisle-illustration-fetcher | Themeisle Illustrations の PNG / SVG を選び、Webプロジェクトへ組み込む | `.agent/skills/web-design/themeisle-illustration-fetcher/SKILL.md` |
 
@@ -150,9 +154,17 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 | team-info をセットアップしたい | `team-info-setup` |
 | X / Reddit / YouTube / GitHub / 小紅書などを横断調査したい | `agent-reach` |
 | OpenClaw に team-info 版 Agent-Reach を入れたい | `agent-reach` |
+| 外部ツールや外部 repo を team-info 向けに取り込みたい | `repo-adapted-tool-import` |
+| 何かを導入するとき、今の repo 優先で書き換えて入れたい | `repo-adapted-tool-import` |
+| official Obsidian CLI と Claudian を入れたい | `obsidian-claudian` |
+| Obsidian の active vault に Claudian を入れたい | `obsidian-claudian` |
+| 複数 repo で共有ルール・共有スキルを一元管理したい | `shared-agent-assets` |
+| SessionStart Hook で shared repo を自動更新したい | `shared-agent-assets` |
 | 今日の team-info 開発メモを Git から作りたい | `team-info-daily-dev-memo` |
 | Git操作をしたい | `git-workflow` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |
+| 既存サイトをそっくり Next.js で作り直したい | `clone-website` |
+| サイトを pixel-perfect に複製したい | `clone-website` |
 | LPの絵文字や仮アイコンを、ちょうどいいイラストの画像に差し替えたい | `themeisle-illustration-fetcher` |
 | Themeisle のイラストをダウンロードしてサイトに使いたい | `themeisle-illustration-fetcher` |
 | 日本語テイストのやわらかいイラストに差し替えたい | `tyoudoii-illust-fetcher` |
