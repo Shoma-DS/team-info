@@ -117,7 +117,7 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 ### 🎨 canva/（Canva連携系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| canva-slideshow-video | Canva API連携でスライドショー動画を生成する | `.agent/skills/canva/canva-slideshow-video/SKILL.md` |
+| canva-slideshow-video | 台本から構造化 manifest を作り、Remotion で見せ方を出し分けるスライドショー動画を生成する | `.agent/skills/canva/canva-slideshow-video/SKILL.md` |
 | canva-slide-design-extender | Canva のテンプレや既存デザインを崩さずに、新しいスライドを追加・増築する | `.agent/skills/canva/canva-slide-design-extender/SKILL.md` |
 
 ---
@@ -168,7 +168,7 @@ mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail
 | LPの絵文字や仮アイコンを、ちょうどいいイラストの画像に差し替えたい | `themeisle-illustration-fetcher` |
 | Themeisle のイラストをダウンロードしてサイトに使いたい | `themeisle-illustration-fetcher` |
 | 日本語テイストのやわらかいイラストに差し替えたい | `tyoudoii-illust-fetcher` |
-| Canvaでスライドを作りたい | `canva-slideshow-video` |
+| CanvaやRemotionで台本からスライドショー動画を作りたい | `canva-slideshow-video` |
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |
 | バズるショート動画テンプレを作りたい | `viral-template-generator` |
 | X(Twitter)の投稿を作りたい | `x-post-writer` |

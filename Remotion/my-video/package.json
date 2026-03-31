@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "remotion studio",
     "build": "remotion bundle",
+    "render": "remotion render src/index.ts",
+    "typecheck": "tsc --noEmit",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc",
+    "lint": "eslint src && npm run typecheck",
     "render:outputs": "bash ../scripts/render_to_outputs.sh",
     "patch:remotion-japanese": "node ./scripts/patch_remotion_japanese_support.mjs",
     "postinstall": "node ./scripts/patch_remotion_japanese_support.mjs"

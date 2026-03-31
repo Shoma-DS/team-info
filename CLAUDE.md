@@ -1,6 +1,9 @@
 # team-info — Claude Code 入口
 
 このファイルは Claude Code 向けの短い入口です。長い運用ルールの正本ではありません。
+Claude Code では、まず `AGENTS.md` を読み込んでから必要な補足へ進んでください。
+
+@AGENTS.md
 
 ## まず読むもの
 

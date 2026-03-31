@@ -1,11 +1,37 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-shared_repo_path="${1:-}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="${TEAM_INFO_ROOT:-$(cd "$script_dir/../../../../.." && pwd)}"
+repo_parent="$(cd "$repo_root/.." && pwd)"
+
+resolve_shared_repo_path() {
+  if [ -n "${1:-}" ]; then
+    printf '%s\n' "$1"
+    return
+  fi
+
+  if [ -n "${TEAM_INFO_SHARED_AGENT_ASSETS_ROOT:-}" ]; then
+    printf '%s\n' "$TEAM_INFO_SHARED_AGENT_ASSETS_ROOT"
+    return
+  fi
+
+  for candidate in \
+    "$repo_parent/shared-agent-assets" \
+    "$repo_parent/shared-rules-repo"
+  do
+    if [ -d "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return
+    fi
+  done
+}
+
+shared_repo_path="$(resolve_shared_repo_path "${1:-}")"
 
 if [ -z "$shared_repo_path" ]; then
-  echo "usage: sync_shared_agent_repo.sh /absolute/path/to/shared-agent-assets"
-  exit 64
+  echo "⚠ shared agent repo path is not configured"
+  exit 0
 fi
 
 if [ ! -d "$shared_repo_path/.git" ]; then

@@ -40,6 +40,9 @@ PIXABAY_KEY_FILE = SECRETS_DIR / "pixabay_api_key.txt"
 
 PIXABAY_API = "https://pixabay.com/api/"
 MAX_CHARS_PER_SLIDE = 120
+MAX_HEADLINE_CHARS = 34
+MAX_BODY_CHARS = 88
+MAX_HIGHLIGHT_CHARS = 18
 
 # スライド枚数の上限（188枚は多すぎるので間引く）
 MAX_SLIDES = 60
@@ -131,8 +134,116 @@ def thin_slides(slides: list[str], max_count: int) -> list[str]:
     """スライド数を間引いて上限に収める"""
     if len(slides) <= max_count:
         return slides
-    step = len(slides) / max_count
-    return [slides[int(i * step)] for i in range(max_count)]
+    if max_count <= 1:
+        return slides[:1]
+
+    # 冒頭と末尾を落とさずに全体を等間隔で残す
+    step = (len(slides) - 1) / (max_count - 1)
+    picked = [slides[int(i * step)] for i in range(max_count - 1)] + [slides[-1]]
+    return picked
+
+
+def split_sentences(text: str) -> list[str]:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if not normalized:
+        return []
+    return [part.strip() for part in re.split(r'(?<=[。！？!?])\s*', normalized) if part.strip()]
+
+
+def truncate_copy(text: str, limit: int) -> str:
+    compact = re.sub(r"\s+", " ", text).strip()
+    if len(compact) <= limit:
+        return compact
+    trimmed = compact[: max(limit - 1, 0)].rstrip(" 、,，。.!！?？")
+    return f"{trimmed}…"
+
+
+def has_evidence_signal(text: str) -> bool:
+    return bool(
+        re.search(r"\d", text)
+        or any(keyword in text for keyword in ("例えば", "たとえば", "具体", "実際", "データ", "調査", "事例", "結果", "%"))
+    )
+
+
+def has_profile_signal(text: str) -> bool:
+    return any(keyword in text for keyword in ("私", "僕", "自分", "プロフィール", "経歴", "実績", "発信", "運営"))
+
+
+def pick_highlight(text: str) -> Optional[str]:
+    quoted = re.search(r"[「『](.{4,24}?)[」』]", text)
+    if quoted:
+        return truncate_copy(quoted.group(1), MAX_HIGHLIGHT_CHARS)
+
+    numbered = re.search(r"(\d+つ|\d+選)", text)
+    if numbered:
+        return numbered.group(1)
+
+    for keyword in ("結論", "要点", "ポイント", "コツ", "理由", "方法", "比較", "事例"):
+        if keyword in text:
+            return keyword
+
+    return None
+
+
+def detect_layout(text: str, index: int) -> str:
+    stripped = text.strip()
+    if index == 0:
+        return "hook"
+    if stripped.startswith(("最後に", "まとめると", "まとめ", "結論")):
+        return "closing"
+    if len(stripped) <= 28:
+        return "emphasis"
+    if stripped.startswith(("ここからは", "まず", "次に", "最後に")):
+        return "section"
+    if has_profile_signal(stripped):
+        return "profile"
+    if has_evidence_signal(stripped):
+        return "evidence"
+    return "story"
+
+
+def build_slide_copy(text: str, index: int) -> dict[str, Optional[str]]:
+    sentences = split_sentences(text)
+    lead = sentences[0] if sentences else text.strip()
+    remainder = "".join(sentences[1:]) if len(sentences) > 1 else ""
+    layout = detect_layout(text, index)
+
+    if layout == "hook":
+        headline = truncate_copy(lead, MAX_HEADLINE_CHARS)
+        body_source = "".join(sentences[1:3]) if len(sentences) > 1 else ""
+    elif layout == "emphasis":
+        headline = truncate_copy(text, MAX_HEADLINE_CHARS)
+        body_source = ""
+    elif layout == "section":
+        headline = truncate_copy(lead, MAX_HEADLINE_CHARS)
+        body_source = truncate_copy(remainder, MAX_BODY_CHARS) if remainder else ""
+    else:
+        headline = truncate_copy(lead, MAX_HEADLINE_CHARS)
+        if remainder:
+            body_source = remainder
+        elif headline != text:
+            body_source = text
+        else:
+            body_source = ""
+
+    body = truncate_copy(body_source, MAX_BODY_CHARS) if body_source else None
+    label_map = {
+        "hook": "導入",
+        "closing": "締め",
+        "section": "切り替え",
+        "evidence": "具体例",
+        "profile": "人物",
+        "emphasis": "要点",
+        "story": "解説",
+    }
+
+    return {
+        "layout": layout,
+        "label": label_map[layout],
+        "headline": headline,
+        "body": body,
+        "highlight": pick_highlight(text),
+    }
 
 
 # ===== キーワード抽出 =====
@@ -145,7 +256,8 @@ def extract_keywords(text: str) -> str:
         if ja in text:
             matched.append(en)
     if matched:
-        return matched[0]  # 最初の一致を使用
+        unique_matches = list(dict.fromkeys(matched))
+        return " ".join(unique_matches[:2])
 
     # カタカナ語を抽出（外来語・地名が多い）
     katakana = re.findall(r'[ァ-ヶー]{3,}', text)
@@ -256,8 +368,12 @@ def main():
     fallback_idx = 0
 
     for i, text in enumerate(slides):
-        query = extract_keywords(text)
-        print(f"  [{i+1:03d}/{len(slides)}] {text[:40]}...")
+        copy = build_slide_copy(text, i)
+        query_source = " ".join(
+            part for part in (copy["headline"], copy["body"], copy["highlight"], text) if part
+        )
+        query = extract_keywords(query_source)
+        print(f"  [{i+1:03d}/{len(slides)}] {copy['headline'][:40]}...")
         print(f"           キーワード: {query}")
 
         # キャッシュ確認
@@ -284,7 +400,13 @@ def main():
 
         entries.append({
             "index": i,
-            "text":  text,
+            "text": text,
+            "label": copy["label"],
+            "layout": copy["layout"],
+            "headline": copy["headline"],
+            "body": copy["body"],
+            "highlight": copy["highlight"],
+            "searchQuery": query_source,
             "image": rel_path,
         })
 
@@ -304,8 +426,11 @@ def main():
     print(f"  画像フォルダ: {output_dir}")
     print(f"  manifest:    {manifest_path}")
     print(f"\n次のステップ:")
-    print(f"  音源化: python3 /Users/deguchishouma/team-info/Remotion/generate_voice.py")
-    print(f"  Remotion Root.tsx に CanvaSlideshow コンポジションを追加してレンダリング")
+    print(
+        '  音源化: python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" '
+        'run-remotion-python -- "$TEAM_INFO_ROOT/Remotion/generate_voice.py" ...'
+    )
+    print('  Remotion Root.tsx に CanvaSlideshow コンポジションを追加してレンダリング')
 
 
 if __name__ == "__main__":

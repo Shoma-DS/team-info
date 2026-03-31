@@ -107,9 +107,16 @@ python "$TEAM_INFO_ROOT/.agent/skills/web-design/clone-website/scripts/init_clon
 ### shared-agent-assets
 
 - 共有 assets の同期は必要時だけ手動で走らせます
+- 引数を省略した場合は `TEAM_INFO_SHARED_AGENT_ASSETS_ROOT`、または sibling の `shared-agent-assets` / `shared-rules-repo` を自動で探します
 
 ```bash
 bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shared_agent_repo.sh"
+```
+
+- 明示パスで同期したい場合:
+
+```bash
+bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shared_agent_repo.sh" "/absolute/path/to/shared-agent-assets"
 ```
 
 ## verify が見るもの

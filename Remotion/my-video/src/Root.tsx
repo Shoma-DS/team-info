@@ -7,6 +7,7 @@ import { ViralVideo as ViralVideoGachi } from "./viral/アダルトアフィリ/
 import { ViralVideoJimusho } from "./viral/アダルトアフィリ/事務所に売られた芸能人3選_20260316";
 import {
   EditableViralVideo,
+  type ViralStudioEditorProps,
   viralStudioEditorSchema,
 } from "./viral/editor/EditableViralVideo";
 import { ViralClipEditor } from "./viral/editor/ViralClipEditor";
@@ -21,6 +22,14 @@ const ViralVideoGachiSafe = withErrorBoundary(ViralVideoGachi, "ガチで脱い�
 const ViralVideoJimushoSafe = withErrorBoundary(ViralVideoJimusho, "事務所に売られた芸能人3選");
 const EditableViralVideoSafe = withErrorBoundary(EditableViralVideo, "EditableViralVideo");
 const ViralClipEditorSafe = withErrorBoundary(ViralClipEditor, "ViralClipEditor");
+
+const getEditableViralDuration = (props: ViralStudioEditorProps): number => {
+  return Math.max(
+    props.hookDurationFrames,
+    ...props.scenes.map((scene) => scene.to),
+    ...props.subtitles.map((subtitle) => subtitle.to),
+  );
+};
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -103,6 +112,19 @@ export const RemotionRoot: React.FC = () => {
         </Folder>
 
         <Folder name="Studio-Editor">
+          <Composition
+            id="Viral-Studio-Template"
+            component={EditableViralVideoSafe}
+            schema={viralStudioEditorSchema}
+            durationInFrames={viralEditorPresets[0].durationInFrames}
+            fps={30}
+            width={1080}
+            height={1920}
+            defaultProps={viralEditorPresets[0].props}
+            calculateMetadata={({ props }) => ({
+              durationInFrames: getEditableViralDuration(props),
+            })}
+          />
           {viralEditorPresets.map((preset) => {
             return (
               <Composition

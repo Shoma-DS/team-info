@@ -1,0 +1,32 @@
+{
+  "colors": [
+    "rgb(0, 0, 0)",
+    "rgb(255, 255, 255)",
+    "rgb(103, 118, 142)",
+    "rgba(255, 255, 255, 0.1)",
+    "rgba(255, 255, 255, 0.08)",
+    "rgba(255, 255, 255, 0.65)",
+    "rgba(255, 255, 255, 0.4)",
+    "rgb(238, 238, 238)",
+    "rgb(83, 58, 252)",
+    "rgb(6, 0, 151)",
+    "rgba(255, 255, 255, 0)",
+    "rgb(245, 240, 255)",
+    "rgba(237, 237, 237, 0.9)",
+    "rgb(255, 226, 22)",
+    "rgb(51, 51, 51)",
+    "rgb(236, 236, 236)",
+    "rgb(246, 196, 76)",
+    "rgb(99, 74, 248)",
+    "rgb(25, 23, 34)",
+    "rgba(0, 0, 0, 0.32)"
+  ],
+  "fonts": [
+    "Times",
+    "Inter, sans-serif",
+    "-apple-system, \"system-ui\", \"Hiragino Sans\", \"Hiragino Kaku Gothic ProN\", \"Yu Gothic\", \"Noto Sans JP\", sans-serif",
+    "Arial, sans-serif",
+    "\"Noto Sans JP\", sans-serif",
+    "Helvetica, sans-serif"
+  ]
+}
