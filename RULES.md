@@ -26,6 +26,7 @@
 ```
 team-info/
 ├── .agent/skills/         AIスキル定義（SKILL.md + スクリプト）
+├── AirhtMate/             AirthMate 案件の資料・LP・営業台本・納品物
 ├── inputs/                解析・生成の素材インボックス
 │   ├── jmty_cases/        ジモティー案件素材
 │   ├── jmty_factory_cases/ 工場求人素材
@@ -58,6 +59,7 @@ team-info/
 ## 3. AI コンテキストファイルルール
 
 - **AGENTS.md**（ルート）: Claude Code / AI エージェント向けの総合指示書。スキル一覧・行動原則・コマンドルールを記載。
+- **CLAUDE.md**（ルート）: Claude Code 向けの薄い入口ファイル。正本ではなく、`AGENTS.md` と `RULES.md` への案内に徹する。
 - **CLAUDE.md**（サブフォルダ）: そのフォルダを開いたときに AI が即座に文脈を把握するためのファイル。
   - 配置基準: AI が作業するフォルダすべてに置く
   - 内容: フォルダ用途・配下構造・注意事項・よく使うコマンド
@@ -95,6 +97,13 @@ team-info/
 - 新規フォルダを日本語名で作成すること（既存は許容）
 - スキルフォルダに `SKILL.md` を含めずに作成すること
 - `inputs/` 配下に出力ファイルを置くこと
+- root 直下に単発の `.html` / `.pdf` / 画像 / プレビュー資料を置くこと
+
+### root 直下に置いてよいもの
+- `AGENTS.md`、`Agent.md`、`CLAUDE.md`、`RULES.md`、`README.md` のような repo の正本・入口
+- `run.sh`、`run.ps1` のような repo 共通ランチャー
+- dotfile / 設定ファイル（例: `.gitignore`, `.mcp.json`, `.gemini/`, `.claude/`）
+- それ以外の案件資料・プレビュー・納品物は、対応する案件フォルダまたは `outputs/` 配下へ移動する
 
 ---
 

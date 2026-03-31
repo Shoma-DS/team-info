@@ -10,6 +10,7 @@
 | `acoriel/` | アコリエルチャンネル 動画レンダリング出力（.mp4） | `remotion-template-acoriel-*` |
 | `acoriel/descriptions/` | アコリエル YouTube 概要欄（.md ファイル） | `acoriel-video-description` |
 | `common/` | 汎用スクリプト・共通出力 | — |
+| `common/airthmate/` | AirthMate のプレビュー・納品用 HTML / PDF | — |
 | `jmty/` | ジモティー投稿文（.txt / .md） | `jmty-posts-*` |
 | `note/` | note 記事（.md） | `note-article-ayumi` |
 | `note_articles/` | note 記事（旧フォルダ）→ `note/` に統合予定 | — |

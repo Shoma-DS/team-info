@@ -1,11 +1,100 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "includeGitInstructions": false,
+  "disableBypassPermissionsMode": "disable",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib, subprocess; root = pathlib.Path(r'''$CLAUDE_PROJECT_DIR'''); runtime = root / '.agent/skills/common/scripts/team_info_runtime.py'; mode_file = root / '.dev-mode'; proc = subprocess.run(['python', str(runtime), 'worked-before-status'], text=True, capture_output=True); status = proc.stdout.strip() or 'unknown'; mode = mode_file.read_text(encoding='utf-8').strip() if mode_file.exists() else 'missing'; print(f'team-info startup check: worked-before={status}; dev-mode={mode}. If worked-before=new, read マニュアル/まずはこちらをお読みください.md first. Before creating new files/folders, show the current dev mode to the user. Do not change .gitignore unless the user explicitly asked.')\""
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
-      "Bash(/Users/deguchishouma/team-info/Remotion/my-video/node_modules/.bin/tsc --noEmit --project /Users/deguchishouma/team-info/Remotion/my-video/tsconfig.json)",
-      "Bash(lsof -p 82668 -i)",
-      "Bash(lsof -a -p 82668 -i TCP)",
-      "Bash(ps -p 82668 -o pid,ppid,stat,command)",
-      "Bash(lsof -n -P -p 82668)"
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(ls*)",
+      "Bash(find*)",
+      "Bash(pwd)",
+      "Bash(rg*)",
+      "Bash(sed*)",
+      "Bash(cat*)",
+      "Bash(head*)",
+      "Bash(tail*)",
+      "Bash(wc*)",
+      "Bash(sort*)",
+      "Bash(uniq*)",
+      "Bash(cut*)",
+      "Bash(tr*)",
+      "Bash(awk*)",
+      "Bash(jq*)",
+      "Bash(file*)",
+      "Bash(stat*)",
+      "Bash(date*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git rev-parse*)",
+      "Bash(git ls-files*)"
+    ],
+    "ask": [
+      "Bash(rm *)",
+      "Bash(chmod *)",
+      "Bash(chown *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(sftp *)",
+      "Bash(docker *)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git reset*)",
+      "Bash(git clean*)",
+      "Bash(npm install*)",
+      "Bash(pnpm install*)",
+      "Bash(uv sync*)",
+      "Bash(pip install*)",
+      "Bash(pip3 install*)",
+      "Bash(brew install*)",
+      "Bash(gh auth*)",
+      "Bash(gh pr create*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/secrets/**)",
+      "Read(./.claude/settings.local.json)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/id_rsa*)",
+      "Read(./**/id_ed25519*)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(./secrets/**)",
+      "Edit(./.claude/settings.local.json)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Write(./secrets/**)",
+      "Write(./.claude/settings.local.json)"
     ]
   }
 }

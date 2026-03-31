@@ -37,6 +37,13 @@
 
 ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
 
+- Gemini CLI の native 実装は `.gemini/commands/*.toml` を使い、`/git` のようにそのまま呼び出す。
+- Codex の native 実装は `~/.codex/prompts/*.md` を使い、`/prompts:git` のように `prompts:` 名前空間で呼び出す。
+- どの CLI でも、コマンドの意味・正本ロジックはこの表と `AGENTS.md` / `.agent/skills/**/SKILL.md` に合わせること。
+- `.gemini/commands/` と `.codex/prompts/` は `AGENTS.md` から作るアダプタとして扱い、手でロジックを増やさない。
+- Claude Code の built-in commands（例: `/loop`, `/schedule`, `/btw`, `/branch`, `/mobile`, `/remote-control`, `/hooks`, `/chrome`, `/voice`）は、repo 独自 slash command とは別枠の native 機能として扱う。
+- repo 側で Claude Code native 名と衝突する名前を新規採用しない。既存衝突を見つけたら、先に `AGENTS.md` と人向けマニュアルへ移行方針を書く。
+
 | コマンド | 読み込むスキル |
 |---------|--------------|
 | `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
@@ -51,12 +58,21 @@
 | `/clone-website` | `.agent/skills/web-design/clone-website/SKILL.md` |
 | `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
 | `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
-| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
+| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md`（legacy 名。Claude Code では built-in `/voice` と衝突するため、VOICEVOX 音声化は自然文で `voice-script-launcher` を明示して使う） |
 | `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
 | `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
 | `/gdrive` | `.agent/skills/common/gdrive-copy/SKILL.md` |
 | `/tyoudoii-illust-fetcher` | `.agent/skills/web-design/tyoudoii-illust-fetcher/SKILL.md` |
 | `/themeisle-illustration-fetcher` | `.agent/skills/web-design/themeisle-illustration-fetcher/SKILL.md` |
+
+### Claude Code Native Features
+
+- `Hooks` の shared 設定は `.claude/settings.json` に置き、personal 通知や個人連携は `.claude/settings.local.json` に分ける。
+- shared hook は高速・read-only を原則とし、外部送信、秘密情報の読取、自動編集、Docker / Web サーバー / VOICEVOX の自動起動、長時間処理を入れない。
+- `SessionStart` hook は `worked-before-status` と `.dev-mode` など、短い repo 文脈の注入だけに使う。自動で `pull`、同期、ファイル作成、`.gitignore` 更新はしない。
+- `/loop` と `/schedule` は、既定では読み取り・見守り・リマインド用途に限定する。ファイル編集、Git 操作、Docker / サーバー操作、ブラウザ自動操作、外部 API 送信を定期実行する前は必ずユーザー確認を取る。
+- `/loop` は session-scoped の一時運用として扱い、恒久運用やチーム共有の定期実行は Cloud / Desktop / CI 側で別設計する。
+- `Remote Control` と mobile は、ローカル session の延長として扱い、既存の permission、`AGENTS.md`、hook ルールをそのまま引き継ぐ。
 
 ## Skills
 A skill is a set of local instructions stored in a `SKILL.md` file.
@@ -65,8 +81,13 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 ## Canonical Agent File
 - このリポジトリのエージェント向け指示の正本は `AGENTS.md` とする。
 - `Agent.md` は互換用の案内ファイルとして扱い、内容の更新は原則 `AGENTS.md` のみで行う。
-- フォルダ命名規則・禁止事項・用途マップは `RULES.md` を参照すること。
-- 各サブフォルダの `CLAUDE.md` にそのフォルダの詳細文脈が記載されている。
+- `AGENTS.md` は行動原則・承認方針・Slash Commands・Git運用の正本とする。
+- `RULES.md` はフォルダ命名規則・禁止事項・用途マップの正本とする。
+- ルート `CLAUDE.md` は Claude Code 向けの薄い入口に留め、重い説明を重複して持たない。
+- 各サブフォルダの `CLAUDE.md` にそのフォルダの詳細文脈を記載する。
+- `.claude/commands/` と `.gemini/commands/` は互換用ラッパーとして扱い、新しい運用ロジックは `AGENTS.md` と `.agent/skills/**/SKILL.md` に実装する。
+- Gemini CLI の project context は `.gemini/settings.json` から `AGENTS.md` を直接読む。Gemini 専用の入口ファイルは作らない。
+- `.codex/prompts/` は Codex custom prompts の repo 側アダプタとして扱う。Codex の公式 custom prompts は `~/.codex/prompts` 配置のため、repo からの同期が必要になる前提で運用する。
 
 ## Behavior Principles
 - ユーザーの意図と目的を正確に理解する。不明点が重要なら確認する。
@@ -74,6 +95,7 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - 既存のコード規約、アーキテクチャ、スタイルを尊重する。
 - 要求タスクだけでなく、必要な付随作業や品質改善も実施または提案する。
 - 重要な変更やコマンド実行の前には、目的と影響を簡潔に説明する。
+- Claude Code の native 自動化機能（Hooks, `/loop`, `/schedule`）は、repo ルールを弱めない範囲でのみ使う。
 - 30秒以上かかる可能性が高いコマンド、待ち時間が長い解析・レンダリング・重いテスト・常駐プロセス起動は、原則としてエージェントが勝手に実行せず、ユーザー実行に切り替える。
 - 長時間コマンドをユーザーに依頼する場合は、目的を短く添えたうえで、コピーしやすい絶対パスのコマンドをそのまま渡し、実行完了の報告を待ってから次に進む。
 - Docker / VOICEVOX などの常駐系は、原則として必要なときだけ起動し、不要になったら停止してPC負荷を戻す運用を優先する。

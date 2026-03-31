@@ -1,50 +1,35 @@
-# team-info — Claude Code 共通設定
+# team-info — Claude Code 入口
 
-## ツール実行時の許可ルール
+このファイルは Claude Code 向けの短い入口です。長い運用ルールの正本ではありません。
 
-- ツール実行（Bash、ファイル操作など）の許可を求めるときは、必ず日本語で説明・確認を行うこと
-- 許可を求める際、以下のセキュリティリスクをパーセンテージ(%)で提示すること
-  - パスワードや秘密鍵が外に漏れる可能性
-  - 外部サーバーにデータが送られる可能性
-  - 悪意あるコードが勝手に動く可能性
-  - PCの設定が書き換わる可能性
+## まず読むもの
 
-### 自動許可の条件（確認なしで即実行してよい）
+1. `AGENTS.md`
+   - エージェントの行動原則、承認方針、Git 運用、Slash Commands の正本
+2. `RULES.md`
+   - フォルダ構造、命名規則、禁止事項の正本
+3. 作業中フォルダの `CLAUDE.md`
+   - その場所だけの用途と注意点
+4. `.agent/skills/**/SKILL.md`
+   - スキルを使うと決まったときだけ読む
 
-以下の**すべて**を満たす場合は、ユーザーに確認せず自動で実行してよい:
+## この repo での役割分担
 
-- 上記リスクがすべて **5% 以下**
-- **ファイル・フォルダの削除**を行わない
-- **システム設定・環境変数の永続的な変更**を行わない
-- **外部へのデータ送信**（API呼び出し・curl・wget等）を行わない
+- `AGENTS.md`: 人と全エージェント共通の運用ルール
+- `RULES.md`: リポジトリ構造と命名のルール
+- ルート `CLAUDE.md`: Claude Code 用の薄い案内
+- `.agent/skills/`: スキルの正本
+- `.claude/settings.json`: Claude Code の共有 permission 基準と repo 共有してよい hook
+- `.claude/settings.local.json`: 個人用 override と個人 hook。Git 管理外
+- `.claude/commands/`: Claude Code 互換用ラッパー。新しい運用ロジックはここに増やさず、`AGENTS.md` と `.agent/skills/` を更新する
+- `.gemini/settings.json`: Gemini CLI に `AGENTS.md` を読ませる設定
+- `.gemini/commands/`: Gemini CLI の project-local slash commands。`AGENTS.md` から作るアダプタ
+- `.codex/prompts/`: Codex custom prompts の repo 側アダプタ。実行用には `~/.codex/prompts/` へ同期する
 
-上記のいずれかに該当する場合のみ、リスクを提示してユーザーに確認を取ること。
-それ以外（危険性が極端に低い通常作業）は確認なしで進めること。
+## すぐ守ること
 
-## 開発モード管理
-
-### モードの確認（作業開始前に必須）
-
-作業を開始する前に、**必ず** `/Users/deguchishouma/team-info/.dev-mode` を読み込み、現在のモードを確認してユーザーに提示すること。
-
-```
-現在のモード: チーム開発モード  ← または 個人開発モード
-```
-
-モードが不明な場合、またはユーザーが確認を求めた場合は、切り替えを提案すること。
-
-### チーム開発モード（`team`）
-
-- 新規ファイル・フォルダは通常どおり git の追跡対象
-- `.gitignore` への自動追加は行わない
-
-### 個人開発モード（`personal`）
-
-- **新規作成したファイル・フォルダのパスを `.gitignore` に追記すること**（作成直後に実行）
-- 既存ファイルへの変更はこのルールの対象外
-- `.gitignore` への追記形式: `# [personal] {作成日}` コメントとともにパスを追加
-
-### モード切り替えコマンド
-
-- `/team` — チーム開発モードに切り替え
-- `/personal` — 個人開発モードに切り替え
+- ユーザーとの対話は日本語で行う
+- ユーザー向けコマンドは `TEAM_INFO_ROOT` を使った絶対パスで案内する
+- 新規ファイル・フォルダを作る前に `.dev-mode` を確認し、現在モードをユーザーに提示する
+- `.gitignore` はユーザーが明示しない限り勝手に変えない
+- Claude Code native command と repo 独自 command の衝突は `AGENTS.md` を正本として扱う
