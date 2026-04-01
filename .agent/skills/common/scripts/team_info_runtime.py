@@ -344,7 +344,8 @@ def _impact_lines(files: list[str], details: list[str]) -> list[str]:
     impacts: list[str] = []
 
     if details:
-        impacts.append(f"{details[0]}。これで、次から同じ流れをたどりやすくなったよ。")
+        summary = details[0].rstrip("。.")
+        impacts.append(f"{summary}。これで、次から同じ流れをたどりやすくなったよ。")
 
     has_remotion_src = any(path.startswith("Remotion/my-video/src/") for path in files)
     has_text_layout = any(
