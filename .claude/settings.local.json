@@ -81,7 +81,8 @@
       "Bash(mkdir -p /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/scripts/layers)",
       "Bash(mkdir -p /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/template/src/components)",
       "Bash(mkdir -p /Users/deguchishouma/team-info/inputs/viral-analysis)",
-      "Bash(touch /Users/deguchishouma/team-info/inputs/viral-analysis/.gitkeep)"
+      "Bash(touch /Users/deguchishouma/team-info/inputs/viral-analysis/.gitkeep)",
+      "Bash(nvm use:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

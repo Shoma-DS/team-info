@@ -461,6 +461,96 @@ These are lessons from previous failed clones — each one cost hours of rework:
 - **Don't forget smooth scroll libraries.** Check for Lenis (`.lenis` class), Locomotive Scroll, or similar. Default browser scrolling feels noticeably different and the user will spot it immediately.
 - **Don't dispatch builders without a spec file.** The spec file forces exhaustive extraction and creates an auditable artifact. Skipping it means the builder gets whatever you can fit in a prompt from memory.
 
+## Phase 5.5: AI Image Generation for Missing Assets
+
+Some images cannot be downloaded from the target site (CDN restrictions, dynamic generation, login-gated content, or personalized assets). When this happens, **do not leave placeholder/recycled images in the clone**. Instead, create AI generation prompts that capture the visual intent.
+
+### When to Create Generation Prompts
+
+Trigger this phase when any of the following occur:
+- An asset download returns 403/404 or an empty/corrupt file
+- The same image is being reused for multiple distinct contexts (e.g., one photo used for two different people)
+- An image is clearly a placeholder (generic stock photo used in a context requiring a specific person or topic)
+- Background images or textures are CSS-generated or canvas-based and cannot be extracted
+- Video thumbnails are being used as person portraits
+
+### Output Location
+
+Save all prompts to `docs/image-prompts/` within the project:
+
+```
+docs/image-prompts/
+├── README.md           — index of all prompt files and their target paths
+├── gifts-covers.md     — ebook/PDF cover thumbnails (if applicable)
+├── person-portraits.md — person/headshot images
+└── results-cards.md    — achievement/result imagery
+```
+
+Use meaningful category names. Add more files as needed per project.
+
+### Prompt File Format
+
+Each prompt entry must include:
+
+```markdown
+## [Descriptive Name]
+
+**保存ファイル名**: `public/images/<dir>/<filename>.webp`
+
+### 文脈
+[Where and how this image is used in the component. Include the CSS context: dimensions, object-fit, aspect ratio.]
+
+\`\`\`
+[English image generation prompt — clear, specific, describing visual style, subject, colors, composition]
+\`\`\`
+
+### コンポーネント更新
+[Exact code change needed after the image is generated and saved]
+```
+
+### Prompt Writing Guidelines
+
+**For ebook/guide covers** (GiftsSection, digital product thumbnails):
+- Specify: portrait orientation, exact color palette (use hex values), flat vector style vs photo-realistic
+- Include: the tool name / subject, the brand's color scheme, "No real photographs" if using illustration style
+- Mention: small brand logo placement, text layout (even if the AI won't generate readable Japanese text, noting the intent helps)
+
+**For person portraits** (testimonials, success stories, step icons):
+- Specify: nationality (Japanese/Asian), age range, gender, professional vs casual context
+- Specify: composition for intended display size (e.g., "suitable for 48x48 circular crop")
+- Include: background blur level, expression, lighting mood
+- Avoid: asking for specific real person likenesses
+
+**For scene/achievement imagery** (results cards, hero backgrounds):
+- Specify: aspect ratio matching the component's container (e.g., 16:9 for card headers)
+- Describe: the emotion/achievement being conveyed, not just the subject
+- Note: whether text overlays will be placed on top (so to avoid busy areas)
+
+### Image Generation Tool: nanobanana pro
+
+This project uses **nanobanana pro** for AI image generation. When creating prompts:
+- Write prompts in English (nanobanana pro responds better to English prompts)
+- Add a brief Japanese note for context if needed
+- Keep prompts under 200 words per image
+- Group related images (like a series of ebook covers) in one file with shared style notes at the top
+
+### After Generation
+
+1. Save generated images to the paths specified in each prompt's `保存ファイル名`
+2. Update the component to reference the new path
+3. Remove the temporary placeholder/recycled image reference
+4. Re-run `npm run typecheck` to confirm no path errors
+5. Update `AGENT_HANDOFF.md` to note which images were AI-generated
+
+### README.md Template for docs/image-prompts/
+
+Always create a `docs/image-prompts/README.md` that:
+- Lists all prompt files and their target `public/` paths
+- Notes which images are real downloads vs to-be-generated
+- Includes the project's brand color reference (hex values)
+
+---
+
 ## Completion
 
 When done, report:
@@ -468,6 +558,7 @@ When done, report:
 - Total components created
 - Total spec files written (should match components)
 - Total assets downloaded (images, videos, SVGs, fonts)
+- **Images requiring AI generation** (count + prompt file location)
 - Build status (`npm run build` result)
 - Visual QA results (any remaining discrepancies)
 - Any known gaps or limitations

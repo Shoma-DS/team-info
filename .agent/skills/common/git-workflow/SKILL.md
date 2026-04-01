@@ -37,6 +37,41 @@ git -C "$TEAM_INFO_ROOT" config team-info.lfsReservedBytes <バイト数>
 
 - 予約分を一時的に環境変数で渡すなら、macOS / Linux は `TEAM_INFO_GIT_LFS_RESERVED_BYTES`、Windows は `$env:TEAM_INFO_GIT_LFS_RESERVED_BYTES` を使う。
 
+## Discord 自動報告（任意）
+- `/git` の push / プルリクエスト完了後に Discord へ自動報告したい場合は、ユーザーが明示的に希望しているときだけ使う。
+- Webhook URL は repo の中へ書かず、ローカル設定へ保存する。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-set --url "<Discord Webhook URL>"
+```
+
+- 設定確認:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-status
+```
+
+- 解除:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-clear
+```
+
+- Discord に送る本文は、コミットメッセージと変更ファイル名から、小学生にもわかる短い文へまとめる。
+- push / PR の前に、報告対象の基点として `origin/main` の SHA を控えておく。
+- push / PR が成功したあとに、次のどちらかを実行する。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-report --event push --base-sha "<push前に控えた origin/main の SHA>" --head-sha HEAD
+```
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-report --event pr --base-sha "<push前に控えた origin/main の SHA>" --head-sha HEAD --pr-title "<PR タイトル>" --pr-url "<PR URL>"
+```
+
+- Webhook が未設定なら、Git の処理は成功として進めつつ、「Discord 送信だけスキップした」とユーザーへ伝える。
+- Discord 送信だけ失敗した場合も、push / PR 成功と通知失敗を分けて報告する。
+
 ## コミットメッセージのルール (厳守)
 
 コミットメッセージは以下のフォーマットで作成すること。
@@ -210,9 +245,11 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 - push の前に、手元の `main` ブランチ上で `git -C "$TEAM_INFO_ROOT" pull --rebase origin main` を行い、リモートの最新状態を取り込む。
 - push の前に、必ず `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin` を実行する。
 - その結果が非 0 なら、push を止める。ユーザーには、無料枠を超える見込みか、無料枠を安全に確認できないため止めたことを、小学生にもわかる言葉で説明する。
+- Discord 自動報告を使う場合は、push / PR の前に `git -C "$TEAM_INFO_ROOT" rev-parse origin/main` を実行し、報告用の基点 SHA を控える。
 
 **コンフリクトが発生しなかった場合（または pull が不要だった場合）:**
 - オーナー・非オーナー問わず、`main` ブランチへ `git -C "$TEAM_INFO_ROOT" push origin main` を実行して良いか確認し、承認を得てから実行する。
+- push 成功後、Discord 自動報告を使う場合は `discord-git-report --event push ...` を実行する。
 
 **コンフリクトが発生した場合（オーナー機ではないとき）:**
 - コンフリクトの発生を確認したら、以下の手順で安全のためにプルリクエストに変更する。
@@ -221,6 +258,7 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 - 3. `git -C "$TEAM_INFO_ROOT" checkout -b <アカウント名ブランチ>`（存在すれば `checkout`）でそのブランチに切り替える。
 - 4. `git -C "$TEAM_INFO_ROOT" push -u origin <アカウント名ブランチ>` でプッシュする。
 - 5. push 後、必ず `gh pr create` でプルリクエストを作成する。
+- 6. PR 作成後、Discord 自動報告を使う場合は `gh pr view --json title,url --jq '.title + "\n" + .url'` などでタイトルと URL を取り、その値を `discord-git-report --event pr ...` に渡して送る。
 - ユーザーに「コンフリクトが発生したため、安全のために別ブランチにプッシュしてプルリクエストを作りました。手動でコンフリクトを直してください」と小学生にもわかる言葉で伝える。
 - PR のタイトルはコミットメッセージの1行要約を使う。
 - **ブランチ名はアカウント名固定。機能名やコミット内容からブランチ名を作ってはいけない。**

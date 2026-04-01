@@ -52,6 +52,17 @@ npm run build
 - まず 1:1 再現し、装飾や改善はそのあとにやる。
 - 生成先の local `AGENTS.md` は、その workspace 専用の補助文脈として扱う。
 
+## 取得できなかった画像の扱い（必須ルール）
+- 同じ画像を複数の異なる文脈（別人の顔写真など）に使い回してはいけない。
+- 取得できなかった画像・代替使用になっている画像は、必ず `docs/image-prompts/` にプロンプトを残す。
+- 画像生成ツール: プロジェクトが **nanobanana pro** を使う場合は英語プロンプトで記述する。
+- 詳細フローは `references/upstream-clone-workflow.md` の「Phase 5.5: AI Image Generation」を参照。
+- 画像生成プロンプトを書く条件:
+  1. CDN 制限・403 エラーでダウンロードできなかった画像
+  2. 同一画像を複数コンテキストで流用している箇所（人物写真の使い回しなど）
+  3. 動画サムネイルを人物写真として代替使用している箇所
+  4. ebook カバー等のカスタムグラフィックが部分的にしか取得できていない場合
+
 ## 読む reference
 - 実際の複製フロー: `references/upstream-clone-workflow.md`
 - 調査チェックリスト: `references/inspection-guide.md`

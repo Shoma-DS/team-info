@@ -22,6 +22,8 @@ TEAM_INFO_ROOT_ENV = "TEAM_INFO_ROOT"
 LOCAL_STATE_FILENAME = "local_state.json"
 WORKED_BEFORE_FILENAME = "worked_before_machines.json"
 LOCAL_STATE_APP_NAME = "team-info"
+DISCORD_GIT_WEBHOOK_URL_ENV = "TEAM_INFO_DISCORD_GIT_WEBHOOK_URL"
+DISCORD_GIT_WEBHOOK_URL_KEY = "discord_git_webhook_url"
 PYTHON_RUNTIME_IMAGE = "team-info/python-skill-runtime:3.11.9"
 VOICEVOX_ENGINE_IMAGE = "voicevox/voicevox_engine"
 VOICEVOX_ENGINE_CONTAINER = "team-info-voicevox-engine"
@@ -227,6 +229,48 @@ def save_repo_root(repo_root: str | Path | None = None) -> Path:
     state["repo_root"] = str(candidate)
     _save_local_state(state)
     return candidate
+
+
+def get_saved_discord_git_webhook_url() -> str | None:
+    saved = _load_local_state().get(DISCORD_GIT_WEBHOOK_URL_KEY)
+    if saved is None:
+        return None
+    normalized = saved.strip()
+    return normalized or None
+
+
+def get_discord_git_webhook_url() -> tuple[str | None, str | None]:
+    env_value = os.environ.get(DISCORD_GIT_WEBHOOK_URL_ENV)
+    if env_value:
+        normalized = env_value.strip()
+        if normalized:
+            return normalized, "env"
+
+    saved = get_saved_discord_git_webhook_url()
+    if saved:
+        return saved, "local-state"
+
+    return None, None
+
+
+def save_discord_git_webhook_url(url: str) -> Path:
+    normalized = url.strip()
+    if not normalized:
+        raise RuntimeError("Discord webhook URL is empty.")
+
+    state = _load_local_state()
+    state[DISCORD_GIT_WEBHOOK_URL_KEY] = normalized
+    return _save_local_state(state)
+
+
+def clear_discord_git_webhook_url() -> bool:
+    state = _load_local_state()
+    if DISCORD_GIT_WEBHOOK_URL_KEY not in state:
+        return False
+
+    state.pop(DISCORD_GIT_WEBHOOK_URL_KEY)
+    _save_local_state(state)
+    return True
 
 
 def get_repo_root() -> Path:

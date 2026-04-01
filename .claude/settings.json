@@ -12,6 +12,16 @@
             "command": "python -c \"import pathlib, subprocess; root = pathlib.Path(r'''$CLAUDE_PROJECT_DIR'''); runtime = root / '.agent/skills/common/scripts/team_info_runtime.py'; mode_file = root / '.dev-mode'; proc = subprocess.run(['python', str(runtime), 'worked-before-status'], text=True, capture_output=True); status = proc.stdout.strip() or 'unknown'; mode = mode_file.read_text(encoding='utf-8').strip() if mode_file.exists() else 'missing'; print(f'team-info startup check: worked-before={status}; dev-mode={mode}. If worked-before=new, read マニュアル/まずはこちらをお読みください.md first. Before creating new files/folders, show the current dev mode to the user. Do not change .gitignore unless the user explicitly asked.')\""
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TODAY=$(date +%Y-%m-%d); MARKER=\"$HOME/.claude/last-pull-date.txt\"; LAST=$(cat \"$MARKER\" 2>/dev/null || echo \"\"); if [ \"$TODAY\" = \"$LAST\" ]; then exit 0; fi; git -C \"$CLAUDE_PROJECT_DIR\" fetch origin 2>&1 && git -C \"$CLAUDE_PROJECT_DIR\" pull --rebase 2>&1 && echo \"$TODAY\" > \"$MARKER\" && printf '{\"systemMessage\":\"自動 /pull 完了（本日初回）\"}' || printf '{\"systemMessage\":\"⚠️ 自動 /pull 失敗 — 手動で pull してください\"}'",
+            "timeout": 30,
+            "statusMessage": "最新のコードを確認中..."
+          }
+        ]
       }
     ]
   },

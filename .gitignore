@@ -5,6 +5,8 @@ Remotion/my-video/public/assets/*
 # channels以下は共有（フォルダ構成をチームで統一）
 !Remotion/my-video/public/assets/channels/
 !Remotion/my-video/public/assets/channels/**
+!Remotion/my-video/public/assets/fonts/
+!Remotion/my-video/public/assets/fonts/**
 
 # 全チャンネル共通：lyrics・songs・backgrounds の中身は除外
 Remotion/my-video/public/assets/channels/*/lyrics/*
@@ -17,6 +19,8 @@ Remotion/my-video/public/assets/channels/*/backgrounds/*
 !Remotion/my-video/public/assets/channels/sleep_travel/backgrounds/*
 Remotion/my-video/public/assets/channels/sleep_travel/**/*.mp3
 outputs/jmty_posts/
+outputs/web-clones/bytech-lp/
+.obsidian/
 .agent/skills/voice-script-launcher/.setup_completed
 mcp-servers/voicevox/node_modules/
 mcp-servers/voicevox/dist/

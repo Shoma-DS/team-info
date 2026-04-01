@@ -2,19 +2,25 @@
 from __future__ import annotations
 
 import argparse
+import json
+import re
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from runtime_common import (
     build_python_runtime_image,
+    clear_discord_git_webhook_url,
     clear_worked_before,
     clear_owner_machine,
     configure_repo_git_hooks,
     detect_shared_root,
     ensure_remotion_venv,
     format_bytes_for_humans,
+    get_discord_git_webhook_url,
     get_git_lfs_free_plan_status,
     get_python_runtime_image,
     get_python_runtime_mode,
@@ -31,10 +37,47 @@ from runtime_common import (
     pull_voicevox_engine_image,
     resolve_input_path,
     run_remotion_python,
+    save_discord_git_webhook_url,
     save_owner_machine,
     save_repo_root,
     start_voicevox_engine_container,
     stop_voicevox_engine_container,
+)
+
+
+DISCORD_CONTENT_LIMIT = 2000
+DISCORD_WEBHOOK_HOSTS = (
+    "https://discord.com/api/webhooks/",
+    "https://discordapp.com/api/webhooks/",
+)
+SIMPLIFY_REPLACEMENTS: tuple[tuple[str, str], ...] = (
+    ("プルリクエスト", "見てもらうページ"),
+    ("pull request", "見てもらうページ"),
+    ("Pull Request", "見てもらうページ"),
+    ("リファクタリングしました", "書き方を整理しました"),
+    ("リファクタリングした", "書き方を整理した"),
+    ("リファクタリング", "書き方を整理した"),
+    ("最適化しました", "むだを減らしました"),
+    ("最適化した", "むだを減らした"),
+    ("最適化", "むだを減らした"),
+    ("改善しました", "もっとよくしました"),
+    ("改善した", "もっとよくした"),
+    ("改善", "もっとよくした"),
+    ("追加しました", "足しました"),
+    ("追加した", "足した"),
+    ("追加", "足した"),
+    ("修正しました", "直しました"),
+    ("修正した", "直した"),
+    ("修正", "直した"),
+    ("更新しました", "新しくしました"),
+    ("更新した", "新しくした"),
+    ("更新", "新しくした"),
+    ("作成しました", "作りました"),
+    ("作成した", "作った"),
+    ("作成", "作った"),
+    ("対応しました", "できるようにしました"),
+    ("対応した", "できるようにした"),
+    ("対応", "できるようにした"),
 )
 
 
@@ -120,6 +163,265 @@ def _print_git_lfs_free_plan_status(*, remote_name: str, remote_url: str | None,
     return 1
 
 
+def _mask_secret_url(url: str) -> str:
+    if len(url) <= 24:
+        return "***"
+    return f"{url[:24]}...{url[-8:]}"
+
+
+def _is_discord_webhook_url(url: str) -> bool:
+    normalized = url.strip()
+    return any(normalized.startswith(prefix) for prefix in DISCORD_WEBHOOK_HOSTS)
+
+
+def _run_git(repo_root: Path, *args: str) -> str:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip() or "git command failed"
+        raise RuntimeError(message)
+    return completed.stdout.strip()
+
+
+def _simplify_text(text: str) -> str:
+    simplified = re.sub(r"\s+", " ", text.strip())
+    if not simplified:
+        return ""
+
+    for source, target in SIMPLIFY_REPLACEMENTS:
+        simplified = simplified.replace(source, target)
+
+    simplified = simplified.rstrip("。.")
+    if simplified:
+        simplified += "。"
+    return simplified
+
+
+def _github_repo_url(remote_url: str | None) -> str | None:
+    if not remote_url:
+        return None
+
+    normalized = remote_url.strip()
+    repo_path: str | None = None
+
+    if normalized.startswith("git@github.com:"):
+        repo_path = normalized.split(":", 1)[1]
+    elif normalized.startswith("ssh://git@github.com/"):
+        repo_path = normalized.split("github.com/", 1)[1]
+    elif normalized.startswith("https://github.com/"):
+        repo_path = normalized.split("github.com/", 1)[1]
+    elif normalized.startswith("http://github.com/"):
+        repo_path = normalized.split("github.com/", 1)[1]
+
+    if repo_path is None:
+        return None
+
+    cleaned = repo_path.rstrip("/")
+    if cleaned.endswith(".git"):
+        cleaned = cleaned[:-4]
+    if "/" not in cleaned:
+        return None
+    return f"https://github.com/{cleaned}"
+
+
+def _resolve_sha(repo_root: Path, ref: str) -> str:
+    return _run_git(repo_root, "rev-parse", ref).strip()
+
+
+def _short_sha(repo_root: Path, ref: str) -> str:
+    return _run_git(repo_root, "rev-parse", "--short", ref).strip()
+
+
+def _commit_shas(repo_root: Path, *, base_sha: str | None, head_sha: str) -> list[str]:
+    resolved_head = _resolve_sha(repo_root, head_sha)
+
+    if base_sha:
+        resolved_base = _resolve_sha(repo_root, base_sha)
+        output = _run_git(repo_root, "log", "--reverse", "--format=%H", f"{resolved_base}..{resolved_head}")
+        commits = [line.strip() for line in output.splitlines() if line.strip()]
+        if commits:
+            return commits
+
+    return [resolved_head]
+
+
+def _commit_subject(repo_root: Path, sha: str) -> str:
+    return _run_git(repo_root, "show", "-s", "--format=%s", sha).strip()
+
+
+def _commit_body_lines(repo_root: Path, sha: str) -> list[str]:
+    body = _run_git(repo_root, "show", "-s", "--format=%b", sha)
+    lines: list[str] = []
+    for raw_line in body.splitlines():
+        stripped = raw_line.strip().lstrip("-").strip()
+        if stripped:
+            lines.append(stripped)
+    return lines
+
+
+def _changed_files(repo_root: Path, *, base_sha: str | None, head_sha: str) -> list[str]:
+    if base_sha:
+        resolved_base = _resolve_sha(repo_root, base_sha)
+        resolved_head = _resolve_sha(repo_root, head_sha)
+        output = _run_git(
+            repo_root,
+            "diff",
+            "--name-only",
+            "--diff-filter=ACMR",
+            resolved_base,
+            resolved_head,
+        )
+    else:
+        output = _run_git(
+            repo_root,
+            "show",
+            "--pretty=",
+            "--name-only",
+            "--diff-filter=ACMR",
+            head_sha,
+        )
+    return [line.strip() for line in output.splitlines() if line.strip()]
+
+
+def _current_branch(repo_root: Path) -> str:
+    branch = _run_git(repo_root, "branch", "--show-current").strip()
+    return branch or "detached-head"
+
+
+def _detail_lines(repo_root: Path, commits: list[str]) -> list[str]:
+    details: list[str] = []
+    seen: set[str] = set()
+
+    for sha in commits:
+        for raw_line in _commit_body_lines(repo_root, sha):
+            simplified = _simplify_text(raw_line)
+            if not simplified or simplified in seen:
+                continue
+            seen.add(simplified)
+            details.append(simplified)
+            if len(details) >= 3:
+                return details
+
+    if details:
+        return details
+
+    for sha in commits:
+        simplified = _simplify_text(_commit_subject(repo_root, sha))
+        if not simplified or simplified in seen:
+            continue
+        seen.add(simplified)
+        details.append(simplified)
+        if len(details) >= 3:
+            break
+    return details
+
+
+def _file_summary(files: list[str]) -> str | None:
+    if not files:
+        return None
+    shown = ", ".join(f"`{path}`" for path in files[:3])
+    if len(files) > 3:
+        shown = f"{shown} ほか {len(files) - 3}こ"
+    return f"さわったファイルは {shown} です。"
+
+
+def _clip_discord_content(text: str) -> str:
+    if len(text) <= DISCORD_CONTENT_LIMIT:
+        return text
+    clipped = text[: DISCORD_CONTENT_LIMIT - 4].rstrip()
+    return f"{clipped}..."
+
+
+def _build_discord_git_report(
+    *,
+    repo_root: Path,
+    event: str,
+    base_sha: str | None,
+    head_sha: str,
+    branch: str | None,
+    base_branch: str,
+    pr_title: str | None,
+    pr_url: str | None,
+) -> str:
+    commits = _commit_shas(repo_root, base_sha=base_sha, head_sha=head_sha)
+    subjects = [_commit_subject(repo_root, sha) for sha in commits]
+    latest_subject = pr_title.strip() if pr_title else subjects[-1]
+    latest_subject = _simplify_text(latest_subject).rstrip("。")
+    commit_count = len(commits)
+    files = _changed_files(repo_root, base_sha=base_sha, head_sha=head_sha)
+    details = _detail_lines(repo_root, commits)
+    branch_name = branch or _current_branch(repo_root)
+
+    header = "git のほうこくです。"
+    if event == "pr":
+        title_line = f"「{latest_subject}」の見てもらうページを作ったよ。"
+    elif commit_count == 1:
+        title_line = f"「{latest_subject}」を送ったよ。"
+    else:
+        title_line = f"「{latest_subject}」など {commit_count}こ を送ったよ。"
+
+    lines = [header, title_line, "", "何をしたか:"]
+
+    if commit_count > 1:
+        lines.append(f"・まとめて {commit_count}こ のコミットを送ったよ。")
+
+    for detail in details[:3]:
+        lines.append(f"・{detail}")
+
+    file_summary = _file_summary(files)
+    if file_summary:
+        lines.append(f"・{file_summary}")
+
+    if event == "pr":
+        lines.append(
+            f"・`{branch_name}` から `{base_branch}` へ見てもらうページを出したよ。"
+        )
+    else:
+        lines.append(f"・送ったブランチは `{branch_name}` です。")
+
+    repo_url = _github_repo_url(_run_git(repo_root, "remote", "get-url", "origin"))
+    resolved_head = _resolve_sha(repo_root, head_sha)
+    commit_url = f"{repo_url}/commit/{resolved_head}" if repo_url else None
+
+    link_lines: list[str] = []
+    if pr_url:
+        link_lines.append(pr_url.strip())
+    elif commit_url:
+        link_lines.append(commit_url)
+
+    if link_lines:
+        lines.extend(["", "見る場所:"])
+        lines.extend(link_lines)
+
+    return _clip_discord_content("\n".join(lines))
+
+
+def _post_discord_message(webhook_url: str, content: str) -> None:
+    payload = json.dumps({"content": content}, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(
+        webhook_url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            if response.status not in {200, 204}:
+                raise RuntimeError(
+                    f"Discord webhook returned unexpected status: {response.status}"
+                )
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Discord webhook call failed: {exc}") from exc
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Resolve cross-platform paths used by team-info skills."
@@ -147,6 +449,10 @@ def main() -> int:
     subparsers.add_parser("clear-worked-before")
     subparsers.add_parser("mark-owner-machine")
     subparsers.add_parser("clear-owner-machine")
+    subparsers.add_parser("discord-git-webhook-status")
+    discord_webhook_set_parser = subparsers.add_parser("discord-git-webhook-set")
+    discord_webhook_set_parser.add_argument("--url", required=True)
+    subparsers.add_parser("discord-git-webhook-clear")
     subparsers.add_parser("install-git-hooks")
 
     git_lfs_status_parser = subparsers.add_parser("git-lfs-free-plan-status")
@@ -190,6 +496,17 @@ def main() -> int:
 
     run_parser = subparsers.add_parser("run-remotion-python")
     run_parser.add_argument("run_args", nargs=argparse.REMAINDER)
+
+    discord_report_parser = subparsers.add_parser("discord-git-report")
+    discord_report_parser.add_argument("--event", choices=("push", "pr"), required=True)
+    discord_report_parser.add_argument("--base-sha")
+    discord_report_parser.add_argument("--head-sha", default="HEAD")
+    discord_report_parser.add_argument("--branch")
+    discord_report_parser.add_argument("--base-branch", default="main")
+    discord_report_parser.add_argument("--pr-title")
+    discord_report_parser.add_argument("--pr-url")
+    discord_report_parser.add_argument("--webhook-url")
+    discord_report_parser.add_argument("--dry-run", action="store_true")
 
     args = parser.parse_args()
 
@@ -299,6 +616,27 @@ def main() -> int:
         print("cleared")
         return 0
 
+    if args.command == "discord-git-webhook-status":
+        webhook_url, source = get_discord_git_webhook_url()
+        if webhook_url is None or source is None:
+            print("not-configured")
+            return 0
+        print(f"configured:{source}:{_mask_secret_url(webhook_url)}")
+        return 0
+
+    if args.command == "discord-git-webhook-set":
+        if not _is_discord_webhook_url(args.url):
+            print("Discord webhook URL の形ではありません。", file=sys.stderr)
+            return 1
+        saved_path = save_discord_git_webhook_url(args.url)
+        print(saved_path)
+        return 0
+
+    if args.command == "discord-git-webhook-clear":
+        cleared = clear_discord_git_webhook_url()
+        print("cleared" if cleared else "not-found")
+        return 0
+
     if args.command == "install-git-hooks":
         try:
             print(configure_repo_git_hooks())
@@ -377,6 +715,51 @@ def main() -> int:
             print(str(exc), file=sys.stderr)
             return 1
         return completed.returncode
+
+    if args.command == "discord-git-report":
+        repo_root = get_repo_root()
+        branch = args.branch or _current_branch(repo_root)
+
+        try:
+            content = _build_discord_git_report(
+                repo_root=repo_root,
+                event=args.event,
+                base_sha=args.base_sha,
+                head_sha=args.head_sha,
+                branch=branch,
+                base_branch=args.base_branch,
+                pr_title=args.pr_title,
+                pr_url=args.pr_url,
+            )
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        print(content)
+
+        if args.dry_run:
+            return 0
+
+        webhook_url = args.webhook_url
+        if webhook_url is None:
+            webhook_url, _ = get_discord_git_webhook_url()
+
+        if not webhook_url:
+            print("Discord webhook URL がまだ設定されていないため、送信はスキップしました。", file=sys.stderr)
+            return 0
+
+        if not _is_discord_webhook_url(webhook_url):
+            print("Discord webhook URL の形ではありません。", file=sys.stderr)
+            return 1
+
+        try:
+            _post_discord_message(webhook_url, content)
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        print("discord:sent", file=sys.stderr)
+        return 0
 
     return 1
 

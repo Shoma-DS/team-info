@@ -69,7 +69,7 @@
 
 - `Hooks` の shared 設定は `.claude/settings.json` に置き、personal 通知や個人連携は `.claude/settings.local.json` に分ける。
 - shared hook は高速・read-only を原則とし、外部送信、秘密情報の読取、自動編集、Docker / Web サーバー / VOICEVOX の自動起動、長時間処理を入れない。
-- `SessionStart` hook は `worked-before-status` と `.dev-mode` など、短い repo 文脈の注入だけに使う。自動で `pull`、同期、ファイル作成、`.gitignore` 更新はしない。
+- `SessionStart` hook では、repo 文脈の注入（`worked-before-status`・`.dev-mode`）と、**その日の初回セッション時のみ `git fetch` → `pull --rebase`** を行う。それ以外の同期、ファイル作成、`.gitignore` 更新は自動では行わない。
 - `/loop` と `/schedule` は、既定では読み取り・見守り・リマインド用途に限定する。ファイル編集、Git 操作、Docker / サーバー操作、ブラウザ自動操作、外部 API 送信を定期実行する前は必ずユーザー確認を取る。
 - `/loop` は session-scoped の一時運用として扱い、恒久運用やチーム共有の定期実行は Cloud / Desktop / CI 側で別設計する。
 - `Remote Control` と mobile は、ローカル session の延長として扱い、既存の permission、`AGENTS.md`、hook ルールをそのまま引き継ぐ。
@@ -88,6 +88,19 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - `.claude/commands/` と `.gemini/commands/` は互換用ラッパーとして扱い、新しい運用ロジックは `AGENTS.md` と `.agent/skills/**/SKILL.md` に実装する。
 - Gemini CLI の project context は `.gemini/settings.json` から `AGENTS.md` を直接読む。Gemini 専用の入口ファイルは作らない。
 - `.codex/prompts/` は Codex custom prompts の repo 側アダプタとして扱う。Codex の公式 custom prompts は `~/.codex/prompts` 配置のため、repo からの同期が必要になる前提で運用する。
+
+## Session Start Rule（全エージェント共通・必須）
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+セッション開始時（会話の最初のターン）に、**その日まだ pull していない場合** は必ず最初に `/pull`（`git fetch origin` → `git pull --rebase`）を実行すること。
+
+- Claude Code: `SessionStart` hook で自動実行（`.claude/settings.json` 参照）
+- Gemini CLI / Codex など hook 未対応のエージェント: 会話の最初のターンで手動相当の pull コマンドを実行してからタスクに入ること
+- 当日すでに pull 済みの場合はスキップしてよい
+- pull が失敗した場合はユーザーに通知し、手動での対応を促す
+
+---
 
 ## Behavior Principles
 - ユーザーの意図と目的を正確に理解する。不明点が重要なら確認する。
