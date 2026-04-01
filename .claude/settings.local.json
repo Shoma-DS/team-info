@@ -82,11 +82,19 @@
       "Bash(mkdir -p /Users/deguchishouma/team-info/.agent/skills/viral-template-generator/template/src/components)",
       "Bash(mkdir -p /Users/deguchishouma/team-info/inputs/viral-analysis)",
       "Bash(touch /Users/deguchishouma/team-info/inputs/viral-analysis/.gitkeep)",
-      "Bash(nvm use:*)"
+      "Bash(nvm use:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git -C \"/Users/deguchishouma/team-info\" pull --rebase origin main)",
+      "Bash(git -C \"/Users/deguchishouma/team-info\" push origin main)",
+      "Bash(git:*)",
+      "Bash(python:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "voicevox"
-  ]
+  ],
+  "sandbox": {
+    "enabled": false
+  }
 }

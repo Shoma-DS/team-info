@@ -260,6 +260,10 @@ def _commit_subject(repo_root: Path, sha: str) -> str:
     return _run_git(repo_root, "show", "-s", "--format=%s", sha).strip()
 
 
+def _commit_author(repo_root: Path, sha: str) -> str:
+    return _run_git(repo_root, "show", "-s", "--format=%an", sha).strip()
+
+
 def _commit_body_lines(repo_root: Path, sha: str) -> list[str]:
     body = _run_git(repo_root, "show", "-s", "--format=%b", sha)
     lines: list[str] = []
@@ -362,19 +366,32 @@ def _build_discord_git_report(
     files = _changed_files(repo_root, base_sha=base_sha, head_sha=head_sha)
     details = _detail_lines(repo_root, commits)
     branch_name = branch or _current_branch(repo_root)
+    author_name = _commit_author(repo_root, commits[-1])
 
-    header = "git のほうこくです。"
+    SHO_MENTION = "<@910139480546091039>"
+
     if event == "pr":
-        title_line = f"「{latest_subject}」の見てもらうページを作ったよ。"
-    elif commit_count == 1:
-        title_line = f"「{latest_subject}」を送ったよ。"
+        event_icon = "🔀"
+        event_label = f"**プルリクエスト** {SHO_MENTION}"
+        title_line = f"「{latest_subject}」のプルリクエストを出したよ。"
     else:
-        title_line = f"「{latest_subject}」など {commit_count}こ を送ったよ。"
+        event_icon = "📤"
+        event_label = "**プッシュ**"
+        if commit_count == 1:
+            title_line = f"「{latest_subject}」をプッシュしたよ。"
+        else:
+            title_line = f"「{latest_subject}」など {commit_count}こ をプッシュしたよ。"
 
-    lines = [header, title_line, "", "何をしたか:"]
+    lines = [
+        f"👤 **作業した人:** {author_name}",
+        f"{event_icon} {event_label}",
+        title_line,
+        "",
+        "📝 **何をしたか:**",
+    ]
 
     if commit_count > 1:
-        lines.append(f"・まとめて {commit_count}こ のコミットを送ったよ。")
+        lines.append(f"・まとめて {commit_count}こ のコミットをプッシュしたよ。")
 
     for detail in details[:3]:
         lines.append(f"・{detail}")
@@ -385,10 +402,10 @@ def _build_discord_git_report(
 
     if event == "pr":
         lines.append(
-            f"・`{branch_name}` から `{base_branch}` へ見てもらうページを出したよ。"
+            f"・`{branch_name}` から `{base_branch}` へプルリクエストを出したよ。"
         )
     else:
-        lines.append(f"・送ったブランチは `{branch_name}` です。")
+        lines.append(f"・プッシュしたブランチは `{branch_name}` です。")
 
     repo_url = _github_repo_url(_run_git(repo_root, "remote", "get-url", "origin"))
     resolved_head = _resolve_sha(repo_root, head_sha)
@@ -401,7 +418,7 @@ def _build_discord_git_report(
         link_lines.append(commit_url)
 
     if link_lines:
-        lines.extend(["", "見る場所:"])
+        lines.extend(["", "🔗 **見る場所:**"])
         lines.extend(link_lines)
 
     return _clip_discord_content("\n".join(lines))
@@ -412,7 +429,10 @@ def _post_discord_message(webhook_url: str, content: str) -> None:
     request = urllib.request.Request(
         webhook_url,
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "team-info-bot/1.0",
+        },
         method="POST",
     )
     try:
