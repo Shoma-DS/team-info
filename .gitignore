@@ -52,9 +52,16 @@ inputs/slide-products/
 inputs/sales-scripts/
 AirhtMate/
 
+# [personal] 2026-04-01
+personal/md-folder-signals/
+personal/markdown-plain-copy/
+
 # 開発モード設定（個人設定のため除外）
 .dev-mode
 
 # OS files
 .DS_Store
 */.DS_Store
+
+# Claude Code 個人設定（パーミッション・個人hook等）
+.claude/settings.local.json
