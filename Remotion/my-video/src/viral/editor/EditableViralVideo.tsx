@@ -20,6 +20,7 @@ import {
   VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
   useViralAdultAffiliateFont,
 } from "../fonts";
+import { splitDisplayLines } from "../../textLayout";
 
 const motionTypes = [
   "zoom_in",
@@ -203,8 +204,11 @@ const SubtitleTrack: React.FC<{
     extrapolateRight: "clamp",
   });
   const scale = interpolate(progress, [0, 1], [style.subtitleEnterScaleFrom, 1]);
-  const lines = entry.text.split("\n");
   const cardMode = isNameCard(entry.text);
+  const lines = splitDisplayLines(entry.text, {
+    maxCharsPerLine: 12,
+    preserveExistingLineBreaks: true,
+  });
   const lineColors = lines.map((_, index) => {
     if (entry.lineColors?.[index]) {
       return entry.lineColors[index];

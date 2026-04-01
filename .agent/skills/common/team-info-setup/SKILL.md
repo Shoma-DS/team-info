@@ -39,6 +39,7 @@ description: team-info の初回セットアップや再セットアップを始
 
 ## lazy bootstrap の扱い
 - Remotion / VOICEVOX 系は `team_info_runtime.py` 経由で必要時に Docker runtime を準備する。
+- Remotion の字幕・フック・見出しの粗編集は `my-video/src/textLayout.ts` に寄せる。BudouX ベースの自然な改行は `my-video` の通常の `npm install` に含めて扱う。
 - Agent Reach は `team_info_agent_reach.py` が依存不足を検出したら初回 bootstrap を走らせる。
 - Obsidian / Claudian は `/claudian` の初回実行時に active vault 向け install を行う。
 - clone-website は template 初期化後、その workspace で Node 24 依存を入れる。

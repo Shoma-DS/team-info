@@ -20,6 +20,7 @@ import {
   useViralAdultAffiliateFont,
   VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 } from "../fonts";
+import { splitDisplayLines } from "../../textLayout";
 import { SUBTITLE_TIMELINE } from "../generated/事務所に売られた芸能人3選";
 
 const TITLE = "事務所に売られた芸能人3選";
@@ -48,7 +49,10 @@ const NAME_COLOR = "#FFE400";
 const NAME_COLORS = [NAME_COLOR, NAME_COLOR];
 
 const getLineColors = (text: string, from: number): string[] => {
-  const lines = text.split("\n");
+  const lines = splitDisplayLines(text, {
+    maxCharsPerLine: 12,
+    preserveExistingLineBreaks: true,
+  });
   const isNameCard = /^[1-3]\./.test(text.trim());
   if (isNameCard) {
     return lines.map((_, i) => NAME_COLORS[i] ?? "#ffffff");
@@ -134,7 +138,10 @@ const SubtitleTrack: React.FC = () => {
   const progress = spring({ fps, frame: relFrame, config: { damping: 14, stiffness: 180 } });
   const opacity = interpolate(relFrame, [0, 6], [0, 1], { extrapolateRight: "clamp" });
   const scale = interpolate(progress, [0, 1], [0.88, 1]);
-  const lines = entry.text.split("\n");
+  const lines = splitDisplayLines(entry.text, {
+    maxCharsPerLine: 12,
+    preserveExistingLineBreaks: true,
+  });
   const lineColors = getLineColors(entry.text, entry.from);
   const isNameCard = /^[1-3]\./.test(entry.text.trim());
 

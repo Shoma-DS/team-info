@@ -6,6 +6,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { formatWrappedText } from "../../textLayout";
 
 interface SubtitleProps {
   text: string;
@@ -31,6 +32,10 @@ export const Subtitle: React.FC<SubtitleProps> = ({
   const progress = spring({ fps, frame, config: { damping: 14, stiffness: 180 } });
   const opacity = interpolate(frame, [0, 6], [0, 1], { extrapolateRight: "clamp" });
   const scale = interpolate(progress, [0, 1], [0.88, 1]);
+  const displayText = formatWrappedText(text, {
+    maxCharsPerLine: platform === "reels" ? 14 : 12,
+    preserveExistingLineBreaks: true,
+  });
 
   const fontWeight = platform === "tiktok" ? "900" : platform === "reels" ? "400" : "700";
   const letterSpacing = platform === "reels" ? "0.04em" : "0.01em";
@@ -60,9 +65,11 @@ export const Subtitle: React.FC<SubtitleProps> = ({
             borderRadius: 10,
             background: bgColor,
             textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+            whiteSpace: "pre-wrap",
+            wordBreak: "keep-all",
           }}
         >
-          {text}
+          {displayText}
         </span>
       </div>
     </AbsoluteFill>

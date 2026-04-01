@@ -1023,7 +1023,7 @@ import { Audio, staticFile } from "remotion";
 
 生成後、ユーザーに以下を伝える:
 - `script.md`（校正済み台本）
-- `subtitles.json`（GiNZA 折り返し済み）
+- `subtitles.json`（字幕カード整形済み。表示時の自然な折り返しは `Remotion/my-video/src/textLayout.ts` に集約）
 - `remotion/public/audio/narration.wav`（VOICEVOX 音源）
 
 「修正がある場合は教えてください。問題なければ Phase E（素材収集）へ進みます」
@@ -1303,7 +1303,7 @@ const ImageSceneTrack: React.FC = () => {
 **字幕トラック（行ごと色設定・名前カード対応・必須）:**
 
 - `subtitles.json` の segments を `SUBTITLE_TIMELINE` 配列として定義（`\n` 折り返し済みのテキストをそのまま使う）
-- `SUBTITLE_TIMELINE` は `split_subtitles.py --mode card` 実行後の **短いカード字幕** をそのまま使う
+- `SUBTITLE_TIMELINE` は `split_subtitles.py --mode card` 実行後の **短いカード字幕** を使う。表示時の自然な折り返しや句読点/フィラーの整形は `Remotion/my-video/src/textLayout.ts` に寄せる
 - 長い動画では `src/viral/generated/[タイトル]Subtitles.ts` に分離して import してもよい
 - 1本の `<Sequence name="字幕" from={0}>` + `SubtitleTrack` コンポーネントで統合
 - **冒頭フック期間は必ず `return null`（二重表示防止）**: `SubtitleTrack` 先頭で `if (frame < hookOverlayEndFrames) return null;`
@@ -1364,7 +1364,7 @@ const SFX_EVENTS = [
 **フック演出:**
 - `<Sequence name="フック テキスト" from={0} durationInFrames={hookOverlayEndFrames}>` + `<Hook>` コンポーネント
 - `hookOverlayEndFrames = Math.max(Math.round(3 * fps), SUBTITLE_TIMELINE[0]?.to ?? Math.round(3 * fps))` — 字幕の最初のエントリが3秒以上の場合に合わせて延長する
-- Hook の text は SUBTITLE_TIMELINE[0]?.text をそのまま渡す（手動改行を尊重するため自動分割は不要）
+- Hook の text は SUBTITLE_TIMELINE[0]?.text をそのまま渡してよい。折り返しは Hook 側の共通ヘルパーに任せ、テンプレートごとに個別の改行ロジックを増やさない
 - Hook コンポーネントへの必須 props:
 
 ```typescript
@@ -1385,24 +1385,15 @@ const SFX_EVENTS = [
 ```
 
 - `.replace("\n", " ")` で1行化するのは**禁止**（長い行が変な位置で折り返す）
-- 必要な場合のみ `splitHookText` ヘルパーで分割する:
+- 折り返し位置を明示したい場合も、テンプレート側で `splitHookText` を新規実装せず `Remotion/my-video/src/textLayout.ts` の共通ヘルパーを使う。
 ```typescript
-const splitHookText = (raw: string): string => {
-  const MAX = 11;
-  return raw.replace(/\n+/g, "\n").split("\n")
-    .flatMap((line) => {
-      if (line.length <= MAX) return [line];
-      const mid = Math.round(line.length / 2);
-      return [line.slice(0, mid), line.slice(mid)];
-    }).join("\n");
-};
-// 使い方: text={splitHookText(SUBTITLE_TIMELINE[0]?.text ?? "")}
+// 使い方: text={SUBTITLE_TIMELINE[0]?.text ?? ""}
 ```
 - `hookDurationFrames = Math.round(3 * fps)` を `ViralVideo` コンポーネント内で定義し、`SubtitleTrack` でも同じ値を使って冒頭スキップする（`Math.round(3 * fps)` と直書きしてよい）
 
 **フック行色の自動割り当て（必須）:**
 
-`splitHookText` で改行位置を確定した後、行数に応じて以下の順で色を割り当てる:
+共通ヘルパーで改行位置を確定した後、行数に応じて以下の順で色を割り当てる:
 
 | 行インデックス | 色 | カラーコード |
 |---|---|---|

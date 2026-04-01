@@ -29,9 +29,10 @@
  *
  * 字幕カードルール（必須）:
  *  - SUBTITLE_TIMELINE は split_subtitles.py --mode card 済みの短いカード字幕を使う
+ *  - 表示時の自然な折り返しは Remotion/my-video/src/textLayout.ts の共通ヘルパーに寄せる
  *  - hook は 3〜4 行の短句、本文と CTA は 1〜2 行の短いフレーズカード
  *  - 1行あたり 4〜7 文字前後を目安にし、参照例 gachiNuida20260313Subtitles.ts に寄せる
- *  - ランタイムで再分割しない。改行は生成時に確定させ、そのまま描画する
+ *  - テンプレートごとに独自の再分割ロジックを増やさない
  */
 import React from "react";
 import {
@@ -165,7 +166,7 @@ const ImageSceneTrack: React.FC = () => {
 // - 冒頭フック期間は return null（Hook が担当するため）
 // - 名前カードは isNameCard=true で特大フォント＋黄色
 // - 通常字幕は行ごとに getLineColors() で色を割り当てる
-// - 改行済みの字幕カードをそのまま描画し、ここでは再分割しない
+// - 表示時の折り返しは共通ヘルパーに任せ、テンプレート側で再分割を増やさない
 const SubtitleTrack: React.FC = () => {
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();

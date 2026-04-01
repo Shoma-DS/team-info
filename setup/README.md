@@ -70,6 +70,9 @@ bash "$TEAM_INFO_ROOT/setup/setup_mac.sh"
 
 - `run-remotion-python` が Docker Python runtime を必要時に準備します
 - VOICEVOX は必要時だけ `start-voicevox-engine` を使います
+- Remotion の字幕・フック・見出しの粗編集は `my-video/src/textLayout.ts` に集約しています
+- `textLayout.ts` では BudouX を使って日本語の自然な改行を決めています
+- `my-video` の `npm install` に BudouX が含まれるので、setup 本体で別途入れる必要はありません
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \

@@ -13,6 +13,7 @@ import {
 } from 'remotion';
 import {useMemo, useState, useEffect, type CSSProperties} from 'react';
 import {getAudioData, useAudioData, visualizeAudioWaveform} from '@remotion/media-utils';
+import {formatWrappedText} from './textLayout';
 
 const SLEEP_TRAVEL_AUDIO_SRC = staticFile('assets/channels/sleep_travel/audio.mp3');
 const SLEEP_TRAVEL_BGM_SRC = staticFile(
@@ -395,6 +396,14 @@ export const SleepTravelLong: React.FC = () => {
 	const currentSubtitle = subtitles.find(
 		(s) => frame >= s.start && frame < s.end
 	);
+	const wrappedSubtitleText = useMemo(
+		() =>
+			formatWrappedText(currentSubtitle?.text ?? '', {
+				maxCharsPerLine: 28,
+				preserveExistingLineBreaks: true,
+			}),
+		[currentSubtitle?.text]
+	);
 	const subtitleOpacity = (() => {
 		if (!currentSubtitle) {
 			return 0;
@@ -479,6 +488,8 @@ export const SleepTravelLong: React.FC = () => {
 						backdropFilter: 'blur(2px)',
 						filter: 'drop-shadow(0 0 10px rgba(255,245,220,0.45))',
 						opacity: subtitleOpacity,
+						whiteSpace: 'pre-wrap',
+						wordBreak: 'keep-all',
 						transform: `translateY(${interpolate(
 							subtitleOpacity,
 							[0, 1],
@@ -491,7 +502,7 @@ export const SleepTravelLong: React.FC = () => {
 						)}px)`,
 					}}
 				>
-					{currentSubtitle?.text ?? ''}
+					{wrappedSubtitleText}
 				</div>
 			</AbsoluteFill>
 		</AbsoluteFill>

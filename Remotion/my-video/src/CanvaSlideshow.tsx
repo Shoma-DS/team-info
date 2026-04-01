@@ -10,6 +10,11 @@ import {
 	useVideoConfig,
 } from 'remotion';
 import {useMemo} from 'react';
+import {
+	flattenDisplayText,
+	getVisibleTextLength,
+	splitJapaneseSentences,
+} from './textLayout';
 
 type SlideLayout =
 	| 'hook'
@@ -96,7 +101,10 @@ const isCenteredLayout = (layout: SlideLayout): boolean => {
 };
 
 const truncateCopy = (text: string, limit: number): string => {
-	const compact = text.replace(/\s+/gu, ' ').trim();
+	const compact = flattenDisplayText(text, {
+		stripFillers: true,
+		stripPunctuation: true,
+	});
 	if (compact.length <= limit) {
 		return compact;
 	}
@@ -107,35 +115,36 @@ const truncateCopy = (text: string, limit: number): string => {
 };
 
 const splitSentences = (text: string): string[] => {
-	return text
-		.replace(/\s+/gu, ' ')
-		.trim()
-		.split(/(?<=[。！？!?])\s*/u)
-		.filter(Boolean);
+	return splitJapaneseSentences(text);
 };
 
 const detectLayout = (text: string, slideIndex: number): SlideLayout => {
+	const normalizedText = flattenDisplayText(text, {
+		stripFillers: true,
+		stripPunctuation: false,
+	});
+
 	if (slideIndex === 0) {
 		return 'hook';
 	}
 
-	if (/^(最後に|まとめると|まとめ|結論)/u.test(text.trim())) {
+	if (/^(最後に|まとめると|まとめ|結論)/u.test(normalizedText)) {
 		return 'closing';
 	}
 
-	if (text.trim().length <= 28) {
+	if (normalizedText.length <= 28) {
 		return 'emphasis';
 	}
 
-	if (/^(ここからは|まず|次に|最後に)/u.test(text.trim())) {
+	if (/^(ここからは|まず|次に|最後に)/u.test(normalizedText)) {
 		return 'section';
 	}
 
-	if (/(私|僕|自分|プロフィール|経歴|実績|発信|運営)/u.test(text)) {
+	if (/(私|僕|自分|プロフィール|経歴|実績|発信|運営)/u.test(normalizedText)) {
 		return 'profile';
 	}
 
-	if (/\d/u.test(text) || /(例えば|たとえば|具体|実際|データ|調査|事例|結果|%)/u.test(text)) {
+	if (/\d/u.test(normalizedText) || /(例えば|たとえば|具体|実際|データ|調査|事例|結果|%)/u.test(normalizedText)) {
 		return 'evidence';
 	}
 
@@ -143,18 +152,22 @@ const detectLayout = (text: string, slideIndex: number): SlideLayout => {
 };
 
 const pickHighlight = (text: string): string | null => {
-	const quoted = text.match(/[「『](.{4,24}?)[」』]/u);
+	const normalizedText = flattenDisplayText(text, {
+		stripFillers: true,
+		stripPunctuation: false,
+	});
+	const quoted = normalizedText.match(/[「『](.{4,24}?)[」』]/u);
 	if (quoted?.[1]) {
 		return truncateCopy(quoted[1], 18);
 	}
 
-	const numbered = text.match(/(\d+つ|\d+選)/u);
+	const numbered = normalizedText.match(/(\d+つ|\d+選)/u);
 	if (numbered?.[1]) {
 		return numbered[1];
 	}
 
 	for (const keyword of ['結論', '要点', 'ポイント', 'コツ', '理由', '方法', '比較', '事例']) {
-		if (text.includes(keyword)) {
+		if (normalizedText.includes(keyword)) {
 			return keyword;
 		}
 	}
@@ -233,7 +246,7 @@ const getHeadlineSize = (display: SlideDisplay): number => {
 
 const estimateSlideWeight = (entry: SlideEntry, slideIndex: number): number => {
 	const display = resolveSlideDisplay(entry, slideIndex);
-	const textLength = `${display.headline}${display.body ?? ''}`.replace(/\s+/gu, '').length;
+	const textLength = getVisibleTextLength(`${display.headline}${display.body ?? ''}`);
 	const base = Math.max(textLength, 18);
 
 	switch (display.layout) {

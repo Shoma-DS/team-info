@@ -6,6 +6,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { splitDisplayLines } from "../../textLayout";
 
 type HookType = "question" | "statement" | "visual" | "unknown";
 const HOOK_FONT_FAMILY =
@@ -90,7 +91,10 @@ export const Hook: React.FC<HookProps> = ({
   if (!text) return null;
 
   const isQuestion = hookType === "question";
-  const lines = text.split("\n");
+  const lines = splitDisplayLines(text, {
+    maxCharsPerLine: 12,
+    preserveExistingLineBreaks: true,
+  });
   const resolvedFontFamily = fontFamily ?? HOOK_FONT_FAMILY;
   const resolvedLineColors = lineColors ?? HOOK_LINE_COLORS;
   const resolvedTextShadow = textShadow ?? [

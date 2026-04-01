@@ -68,6 +68,10 @@ my-video/public/assets/songs/{曲名}/
 JSON 側のタイムラインが変わっても毎回コードを増やさずに縦動画を書き出せる。
 「テンプレを固定して中身だけ差し替える」量産導線として使う。
 
+字幕や見出しの粗整形は BudouX ベースの `my-video/src/textLayout.ts` に寄せる。
+フィラー除去、句読点の削除、自然な改行はここで決定論的に処理し、
+`Hook` / `Subtitle` / `CanvaSlideshow` などの表示側はその結果を描画するだけにする。
+
 ## Python ランタイム
 
 ```

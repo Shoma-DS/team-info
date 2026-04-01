@@ -18,6 +18,7 @@ import {
   type ViralEditorPresetId,
   viralEditorPresets,
 } from "./presets";
+import { flattenDisplayText } from "../../textLayout";
 
 type SceneClip = ViralStudioEditorProps["scenes"][number] & { clipId: string };
 type SubtitleClip = ViralStudioEditorProps["subtitles"][number] & { clipId: string };
@@ -284,7 +285,7 @@ const getSubtitleLabel = (clip: SubtitleClip) => {
     return clip.label;
   }
 
-  return clip.text.split("\n").join(" ").slice(0, 22) || "字幕";
+  return flattenDisplayText(clip.text).slice(0, 22) || "字幕";
 };
 
 const buttonStyle = (tone: "neutral" | "accent" | "warn" = "neutral"): React.CSSProperties => {
