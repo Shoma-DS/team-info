@@ -78,7 +78,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" disco
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-shared-clear
 ```
 
-- Discord に送る本文は、コミットメッセージと変更ファイル名から、小学生にもわかる短い文へまとめる。
+- Discord に送る本文は、変更ファイル名を先に出しつつ、「何をしたか」と「何が変わったの？」を分けて、小学生にもわかる短い文へまとめる。
 - push / PR の前に、報告対象の基点として `origin/main` の SHA を控えておく。
 - push / PR が成功したあとに、次のどちらかを実行する。
 

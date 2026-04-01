@@ -334,10 +334,63 @@ def _detail_lines(repo_root: Path, commits: list[str]) -> list[str]:
 def _file_summary(files: list[str]) -> str | None:
     if not files:
         return None
-    shown = ", ".join(f"`{path}`" for path in files[:3])
-    if len(files) > 3:
-        shown = f"{shown} ほか {len(files) - 3}こ"
-    return f"さわったファイルは {shown} です。"
+    shown = ", ".join(f"`{path}`" for path in files[:4])
+    if len(files) > 4:
+        shown = f"{shown} ほか {len(files) - 4}こ"
+    return f"いじったファイル: {shown}"
+
+
+def _impact_lines(files: list[str], details: list[str]) -> list[str]:
+    impacts: list[str] = []
+
+    if details:
+        impacts.append(f"{details[0]}。これで、次から同じ流れをたどりやすくなったよ。")
+
+    has_remotion_src = any(path.startswith("Remotion/my-video/src/") for path in files)
+    has_text_layout = any(
+        (
+            "textLayout.ts" in path
+            or "/Subtitle" in path
+            or "/Hook" in path
+            or "SleepTravelLong" in path
+            or "CanvaSlideshow" in path
+        )
+        for path in files
+    )
+    has_docs = any(
+        path.startswith(".agent/skills/") or path.startswith("setup/") or path.endswith("CLAUDE.md")
+        for path in files
+    )
+    has_package = any(
+        path.endswith("package.json") or path.endswith("package-lock.json")
+        for path in files
+    )
+
+    if has_remotion_src and has_text_layout:
+        impacts.append("字幕や見出しの見え方がそろって、今後の画面づくりでも同じルールを使いやすくなったよ。")
+    elif has_remotion_src:
+        impacts.append("画面の作り方がまとまって、あとから同じ場所を直しやすくなったよ。")
+
+    if has_docs:
+        impacts.append("案内の紙もそろったので、次から迷いにくくなったよ。")
+
+    if has_package:
+        impacts.append("必要な道具が入ったので、同じ動きを再現しやすくなったよ。")
+
+    if not impacts:
+        impacts.append("同じ場所を次からなおしやすくなったよ。")
+
+    # 3行前後に収める
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for line in impacts:
+        if line in seen:
+            continue
+        seen.add(line)
+        deduped.append(line)
+        if len(deduped) >= 3:
+            break
+    return deduped
 
 
 def _clip_discord_content(text: str) -> str:
@@ -406,6 +459,9 @@ def _build_discord_git_report(
         )
     else:
         lines.append(f"・プッシュしたブランチは `{branch_name}` です。")
+
+    lines.extend(["", "✨ **何が変わったの？:**"])
+    lines.extend(f"・{impact}" for impact in _impact_lines(files, details))
 
     repo_url = _github_repo_url(_run_git(repo_root, "remote", "get-url", "origin"))
     resolved_head = _resolve_sha(repo_root, head_sha)
