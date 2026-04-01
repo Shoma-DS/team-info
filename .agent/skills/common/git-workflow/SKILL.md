@@ -39,7 +39,22 @@ git -C "$TEAM_INFO_ROOT" config team-info.lfsReservedBytes <バイト数>
 
 ## Discord 自動報告（任意）
 - `/git` の push / プルリクエスト完了後に Discord へ自動報告したい場合は、ユーザーが明示的に希望しているときだけ使う。
-- Webhook URL は repo の中へ書かず、ローカル設定へ保存する。
+- チームで同じ Webhook を使うときは、`config/discord-git-webhook.json` を Git 共有の正本にしてよい。
+- 読み取り順は `--webhook-url` → 環境変数 → `config/discord-git-webhook.json` → ローカル設定 の順にする。
+
+- チーム共有の設定:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-shared-set --url "<Discord Webhook URL>"
+```
+
+- 共有設定ファイルの場所:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-shared-path
+```
+
+- 個人だけで一時的に上書きしたいとき:
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-set --url "<Discord Webhook URL>"
@@ -55,6 +70,12 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" disco
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-clear
+```
+
+- 共有設定の解除:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" discord-git-webhook-shared-clear
 ```
 
 - Discord に送る本文は、コミットメッセージと変更ファイル名から、小学生にもわかる短い文へまとめる。

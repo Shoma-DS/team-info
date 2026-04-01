@@ -24,6 +24,8 @@ WORKED_BEFORE_FILENAME = "worked_before_machines.json"
 LOCAL_STATE_APP_NAME = "team-info"
 DISCORD_GIT_WEBHOOK_URL_ENV = "TEAM_INFO_DISCORD_GIT_WEBHOOK_URL"
 DISCORD_GIT_WEBHOOK_URL_KEY = "discord_git_webhook_url"
+DISCORD_GIT_WEBHOOK_SHARED_RELATIVE_PATH = Path("config") / "discord-git-webhook.json"
+DISCORD_GIT_WEBHOOK_SHARED_URL_KEY = "url"
 PYTHON_RUNTIME_IMAGE = "team-info/python-skill-runtime:3.11.9"
 VOICEVOX_ENGINE_IMAGE = "voicevox/voicevox_engine"
 VOICEVOX_ENGINE_CONTAINER = "team-info-voicevox-engine"
@@ -239,12 +241,42 @@ def get_saved_discord_git_webhook_url() -> str | None:
     return normalized or None
 
 
+def get_shared_discord_git_webhook_path(repo_root: Path | None = None) -> Path:
+    resolved_root = repo_root if repo_root is not None else get_repo_root()
+    return resolved_root / DISCORD_GIT_WEBHOOK_SHARED_RELATIVE_PATH
+
+
+def get_shared_discord_git_webhook_url(repo_root: Path | None = None) -> str | None:
+    config_path = get_shared_discord_git_webhook_path(repo_root)
+    if not config_path.exists():
+        return None
+
+    try:
+        loaded = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    if not isinstance(loaded, dict):
+        return None
+
+    saved = loaded.get(DISCORD_GIT_WEBHOOK_SHARED_URL_KEY)
+    if not isinstance(saved, str):
+        return None
+
+    normalized = saved.strip()
+    return normalized or None
+
+
 def get_discord_git_webhook_url() -> tuple[str | None, str | None]:
     env_value = os.environ.get(DISCORD_GIT_WEBHOOK_URL_ENV)
     if env_value:
         normalized = env_value.strip()
         if normalized:
             return normalized, "env"
+
+    shared = get_shared_discord_git_webhook_url()
+    if shared:
+        return shared, "repo-shared"
 
     saved = get_saved_discord_git_webhook_url()
     if saved:
@@ -263,6 +295,29 @@ def save_discord_git_webhook_url(url: str) -> Path:
     return _save_local_state(state)
 
 
+def save_shared_discord_git_webhook_url(
+    url: str,
+    repo_root: Path | None = None,
+) -> Path:
+    normalized = url.strip()
+    if not normalized:
+        raise RuntimeError("Discord webhook URL is empty.")
+
+    config_path = get_shared_discord_git_webhook_path(repo_root)
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(
+        json.dumps(
+            {DISCORD_GIT_WEBHOOK_SHARED_URL_KEY: normalized},
+            ensure_ascii=True,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return config_path
+
+
 def clear_discord_git_webhook_url() -> bool:
     state = _load_local_state()
     if DISCORD_GIT_WEBHOOK_URL_KEY not in state:
@@ -270,6 +325,15 @@ def clear_discord_git_webhook_url() -> bool:
 
     state.pop(DISCORD_GIT_WEBHOOK_URL_KEY)
     _save_local_state(state)
+    return True
+
+
+def clear_shared_discord_git_webhook_url(repo_root: Path | None = None) -> bool:
+    config_path = get_shared_discord_git_webhook_path(repo_root)
+    if not config_path.exists():
+        return False
+
+    config_path.unlink()
     return True
 
 

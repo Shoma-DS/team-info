@@ -14,6 +14,7 @@ from pathlib import Path
 from runtime_common import (
     build_python_runtime_image,
     clear_discord_git_webhook_url,
+    clear_shared_discord_git_webhook_url,
     clear_worked_before,
     clear_owner_machine,
     configure_repo_git_hooks,
@@ -24,6 +25,7 @@ from runtime_common import (
     get_git_lfs_free_plan_status,
     get_python_runtime_image,
     get_python_runtime_mode,
+    get_shared_discord_git_webhook_path,
     get_worked_before_path,
     has_worked_before,
     get_local_state_path,
@@ -38,6 +40,7 @@ from runtime_common import (
     resolve_input_path,
     run_remotion_python,
     save_discord_git_webhook_url,
+    save_shared_discord_git_webhook_url,
     save_owner_machine,
     save_repo_root,
     start_voicevox_engine_container,
@@ -449,10 +452,14 @@ def main() -> int:
     subparsers.add_parser("clear-worked-before")
     subparsers.add_parser("mark-owner-machine")
     subparsers.add_parser("clear-owner-machine")
+    subparsers.add_parser("discord-git-webhook-shared-path")
     subparsers.add_parser("discord-git-webhook-status")
     discord_webhook_set_parser = subparsers.add_parser("discord-git-webhook-set")
     discord_webhook_set_parser.add_argument("--url", required=True)
+    discord_webhook_shared_set_parser = subparsers.add_parser("discord-git-webhook-shared-set")
+    discord_webhook_shared_set_parser.add_argument("--url", required=True)
     subparsers.add_parser("discord-git-webhook-clear")
+    subparsers.add_parser("discord-git-webhook-shared-clear")
     subparsers.add_parser("install-git-hooks")
 
     git_lfs_status_parser = subparsers.add_parser("git-lfs-free-plan-status")
@@ -616,6 +623,10 @@ def main() -> int:
         print("cleared")
         return 0
 
+    if args.command == "discord-git-webhook-shared-path":
+        print(get_shared_discord_git_webhook_path())
+        return 0
+
     if args.command == "discord-git-webhook-status":
         webhook_url, source = get_discord_git_webhook_url()
         if webhook_url is None or source is None:
@@ -632,8 +643,21 @@ def main() -> int:
         print(saved_path)
         return 0
 
+    if args.command == "discord-git-webhook-shared-set":
+        if not _is_discord_webhook_url(args.url):
+            print("Discord webhook URL の形ではありません。", file=sys.stderr)
+            return 1
+        saved_path = save_shared_discord_git_webhook_url(args.url)
+        print(saved_path)
+        return 0
+
     if args.command == "discord-git-webhook-clear":
         cleared = clear_discord_git_webhook_url()
+        print("cleared" if cleared else "not-found")
+        return 0
+
+    if args.command == "discord-git-webhook-shared-clear":
+        cleared = clear_shared_discord_git_webhook_url()
         print("cleared" if cleared else "not-found")
         return 0
 
