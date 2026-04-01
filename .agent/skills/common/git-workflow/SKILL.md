@@ -37,8 +37,8 @@ git -C "$TEAM_INFO_ROOT" config team-info.lfsReservedBytes <バイト数>
 
 - 予約分を一時的に環境変数で渡すなら、macOS / Linux は `TEAM_INFO_GIT_LFS_RESERVED_BYTES`、Windows は `$env:TEAM_INFO_GIT_LFS_RESERVED_BYTES` を使う。
 
-## Discord 自動報告（任意）
-- `/git` の push / プルリクエスト完了後に Discord へ自動報告したい場合は、ユーザーが明示的に希望しているときだけ使う。
+## Discord 自動報告（必須）
+- `/git` の push / プルリクエスト完了後は、**毎回必ず** Discord へ自動報告する。Webhook が未設定の場合のみスキップしてよい。
 - チームで同じ Webhook を使うときは、`config/discord-git-webhook.json` を Git 共有の正本にしてよい。
 - 読み取り順は `--webhook-url` → 環境変数 → `config/discord-git-webhook.json` → ローカル設定 の順にする。
 

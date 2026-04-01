@@ -67,6 +67,7 @@
 
 ### Claude Code Native Features
 
+- `/git` の push / プルリクエスト完了後は、**毎回必ず** `discord-git-report` で Discord へ自動報告する。Webhook が未設定の場合のみスキップしてよい。
 - `Hooks` の shared 設定は `.claude/settings.json` に置き、personal 通知や個人連携は `.claude/settings.local.json` に分ける。
 - shared hook は高速・read-only を原則とし、外部送信、秘密情報の読取、自動編集、Docker / Web サーバー / VOICEVOX の自動起動、長時間処理を入れない。
 - `SessionStart` hook では、repo 文脈の注入（`worked-before-status`・`.dev-mode`）と、**その日の初回セッション時のみ `git fetch` → `pull --rebase`** を行う。それ以外の同期、ファイル作成、`.gitignore` 更新は自動では行わない。
