@@ -267,7 +267,23 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 ```
 
 ### 4. リモートへの反映 (`git push` / プルリクエスト)
-- push の前に、手元の `main` ブランチ上で `git -C "$TEAM_INFO_ROOT" pull --rebase origin main` を行い、リモートの最新状態を取り込む。
+
+**【pull 前】未コミットの変更をスタッシュする:**
+- `git -C "$TEAM_INFO_ROOT" status --porcelain` を確認する。
+- 未コミット・未ステージの変更がある場合は、pull の前に必ずスタッシュする。
+
+```bash
+git -C "$TEAM_INFO_ROOT" stash push -u -m "auto-stash before pull"
+```
+
+- スタッシュした場合は「push 後に stash pop が必要」と記録しておく。
+- 変更がなければスタッシュはスキップする。
+
+**【pull】リモートの最新を取り込む:**
+- 手元の `main` ブランチ上で `git -C "$TEAM_INFO_ROOT" pull --rebase origin main` を行い、リモートの最新状態を取り込む。
+- pull 中にコンフリクトが発生した場合は `git -C "$TEAM_INFO_ROOT" rebase --abort` で中断し、ユーザーに手動解決を依頼する。
+
+**【push 前チェック】:**
 - push の前に、必ず `python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" git-lfs-free-plan-status --remote-name origin` を実行する。
 - その結果が非 0 なら、push を止める。ユーザーには、無料枠を超える見込みか、無料枠を安全に確認できないため止めたことを、小学生にもわかる言葉で説明する。
 - Discord 自動報告を使う場合は、push / PR の前に `git -C "$TEAM_INFO_ROOT" rev-parse origin/main` を実行し、報告用の基点 SHA を控える。
@@ -290,6 +306,19 @@ git -C "$TEAM_INFO_ROOT" commit -m "<1行要約>
 
 **コンフリクトが発生した場合（オーナー機のとき）:**
 - ユーザーに「コンフリクトが発生しました。手動でコンフリクトを解決してください」と伝え、解決後に再開できるように待機する。
+
+**【push 後】スタッシュを取り込む:**
+- push（または PR 作成）が完了したら、スタッシュした変更を取り込む。
+
+```bash
+git -C "$TEAM_INFO_ROOT" stash pop
+```
+
+- コンフリクトが発生した場合は、ユーザーに以下を伝えて手動解決を依頼する。
+  - どのファイルでコンフリクトが起きているか（`git -C "$TEAM_INFO_ROOT" status` で確認）
+  - 解決後に `git -C "$TEAM_INFO_ROOT" add <ファイル>` でステージングする
+  - `git -C "$TEAM_INFO_ROOT" stash drop` でスタッシュを削除して完了
+- コンフリクトがなければ「作業中の変更を元に戻しました」とユーザーに伝える。
 
 ### 5. マージ・リベース (`git merge`, `git rebase`)
 - 実行前に必ずユーザーに確認し、承認を得ること。

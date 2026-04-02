@@ -81,37 +81,34 @@ rclone lsd gdrive:
 
 ## 日常運用：実行コマンド
 
-### インタラクティブモード（推奨）
+### コンテキストからコピー対象が明確な場合（推奨）
+
+スキルの流れや会話の中でコピー元・コピー先がわかっている場合は、引数付きで即実行できるコマンドをユーザーに渡すこと。
+
+```bash
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py" \
+  --src "[コピー元の絶対パス]" \
+  --dest "[team-info直下のコピー先サブパス]"
+```
+
+**例（アコリエル動画）:**
+```bash
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py" \
+  --src "$TEAM_INFO_ROOT/outputs/acoriel/renders/Hana.mp4" \
+  --dest "outputs/アコリエル/"
+```
+
+引数を渡した場合は確認なしで即アップロードし、完了後に Google Drive の URL を表示する。
+
+---
+
+### インタラクティブモード（コピー対象が不明な場合）
 
 ```bash
 python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py"
 ```
 
 対話形式でコピー元・コピー先サブフォルダを選んでアップロードします。
-
----
-
-### ファイル 1個を直接アップロード
-
-```bash
-rclone copy \
-  "$TEAM_INFO_ROOT/outputs/acoriel/renders/Hana.mp4" \
-  "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t" \
-  --progress
-```
-
----
-
-### フォルダごとアップロード
-
-```bash
-rclone copy \
-  "$TEAM_INFO_ROOT/outputs/acoriel/renders/" \
-  "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/acoriel/renders/" \
-  --progress
-```
-
-> `--progress` を付けると転送進捗が表示されます。
 
 ---
 
