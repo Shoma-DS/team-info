@@ -157,8 +157,8 @@ else
 fi
 
 # ── 3. 基本ツール (brew) ───────────────────────────────────────────────────────
-step "3. 基本ツール (git, git-lfs, gh)"
-BREW_PACKAGES=(git git-lfs gh)
+step "3. 基本ツール (git, git-lfs, gh, rclone)"
+BREW_PACKAGES=(git git-lfs gh rclone)
 for pkg in "${BREW_PACKAGES[@]}"; do
   if brew list "$pkg" &>/dev/null; then
     success "$pkg インストール済み"

@@ -1,56 +1,163 @@
 ---
 name: gdrive-copy
-description: ローカルのファイルやフォルダを Google Drive の team-info フォルダにコピーするスキル。フォルダごとコピーかファイル選択コピーかをユーザーに確認してから実行する。
+description: ローカルのファイルやフォルダを rclone 経由で Google Drive の team-info フォルダにアップロードするスキル。Google Drive for Desktop のローカルパスに依存せず、チーム全員が共通コマンドで実行できる。
 ---
 
-# Google Drive コピースキル
+# Google Drive アップロードスキル（rclone 版）
 
 ## 目的
 
 `マイドライブ/team-info`（フォルダID: `1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t`）へ
-ローカルのファイル・フォルダをコピーする。
+ローカルのファイル・フォルダを **rclone** 経由でアップロードする。
 
-## 前提条件
+Google Drive for Desktop のローカルマウントパスには依存しない。
 
-- **Google Drive for Desktop** が起動していること
-- コピー先マウントパス:
-  `/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info`
+---
 
-## 実行コマンド
+## 【初回のみ】セットアップ手順
+
+> **初回だけ** 以下を実行してください。2回目以降は不要です。
+
+### ステップ 1：rclone を確認する
+
+`/setup` を済ませていれば、通常はこのコマンドが通ります。
+
+**Mac:**
+```bash
+brew install rclone
+```
+
+**Windows（winget）:**
+```powershell
+winget install Rclone.Rclone
+```
+
+**Windows（手動）:**
+https://rclone.org/downloads/ から `.exe` をダウンロードし、PATHの通った場所に置く。
+
+インストール確認：
+```bash
+rclone version
+```
+
+---
+
+### ステップ 2：Google Drive の remote を設定する
+
+```bash
+rclone config
+```
+
+対話プロンプトで以下のように進めてください：
+
+```
+n  → 新規リモートを作る
+name: gdrive           ← 必ず "gdrive" にする
+Storage: drive         ← Google Drive を選ぶ（番号 or "drive" と入力）
+client_id: （空のまま Enter）
+client_secret: （空のまま Enter）
+scope: 1               ← drive（フルアクセス）を選ぶ
+root_folder_id: （空のまま Enter）
+service_account_file: （空のまま Enter）
+Edit advanced config? n
+Use auto config? y     ← ブラウザが開く
+```
+
+ブラウザで Google アカウントにログインし、アクセスを許可してください。
+
+> **注意:** アップロード先フォルダ（フォルダID: `1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t`）へのアクセス権限（書き込み可）が付与されたアカウントでログインしてください。
+
+---
+
+### ステップ 3：接続確認
+
+```bash
+rclone lsd gdrive:
+```
+
+マイドライブのフォルダ一覧が表示されれば設定完了です。
+
+---
+
+## 日常運用：実行コマンド
+
+### インタラクティブモード（推奨）
 
 ```bash
 python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py"
 ```
 
-## 動作フロー
+対話形式でコピー元・コピー先サブフォルダを選んでアップロードします。
 
-1. **コピーモード選択**
-   - `1` フォルダごとコピー
-   - `2` ファイル・フォルダを番号で選択コピー
+---
 
-2. **コピー元パス入力**
-   - 絶対パス、または `team-info` ルートからの相対パスで指定
-   - 例: `Remotion/my-video/out`、`outputs/viral/renders`
+### ファイル 1個を直接アップロード
 
-3. **ファイル選択**（モード2のみ）
+```bash
+rclone copy \
+  "$TEAM_INFO_ROOT/outputs/acoriel/renders/Hana.mp4" \
+  "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t" \
+  --progress
+```
+
+---
+
+### フォルダごとアップロード
+
+```bash
+rclone copy \
+  "$TEAM_INFO_ROOT/outputs/acoriel/renders/" \
+  "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/acoriel/renders/" \
+  --progress
+```
+
+> `--progress` を付けると転送進捗が表示されます。
+
+---
+
+## 動作フロー（インタラクティブモード）
+
+1. **事前チェック**
+   - `TEAM_INFO_ROOT` 環境変数の確認
+   - `rclone` コマンドの存在確認
+   - `gdrive` リモートの設定確認
+
+2. **コピーモード選択**
+   - `1` フォルダごとアップロード
+   - `2` ファイル/フォルダを番号で選んでアップロード
+
+3. **コピー元パス入力**
+   - 絶対パス、または `TEAM_INFO_ROOT` からの相対パスで指定
+   - 例: `outputs/acoriel/renders`、`Remotion/my-video/out`
+
+4. **ファイル選択**（モード2のみ）
    - 番号（複数はカンマ区切り）または `all` で全選択
 
-4. **コピー先サブフォルダ**
-   - `team-info/` 直下なら Enter、サブフォルダ名を入力して掘り下げることも可能
+5. **コピー先サブフォルダ指定**
+   - `team-info` 直下なら Enter、サブフォルダ名を入力して掘り下げも可能
 
-5. **確認後に実行** → macOS 通知で完了を知らせる
+6. **確認後に rclone で実行** → macOS 通知で完了を知らせる
+
+---
 
 ## スキル発動トリガー
 
 ユーザーが以下のような発言をしたとき:
--「Google Drive にコピーして」
+- 「Google Drive にアップロードして」
 - 「team-info の Drive フォルダに送って」
 - 「gdrive に上げて」
-- 「Drive にアップロードして」
+- 「Drive にコピーして」
+- `/gdrive`
+
+---
 
 ## エラー対処
 
-| エラー | 対処 |
-|---|---|
-| `Google Drive フォルダが見つかりません` | Google Drive for Desktop を起動してもらう |
-| `パスが見つかりません` | パスを再確認してもらう |
+| エラーメッセージ | 原因 | 対処 |
+|---|---|---|
+| `TEAM_INFO_ROOT が未設定です` | 環境変数が設定されていない | `setup-local-machine` を実行する |
+| `rclone が見つかりません` | rclone 未インストール | `brew install rclone`（Mac）または winget でインストール |
+| `gdrive リモートが未設定です` | rclone config 未実施 | `rclone config` で gdrive を追加する |
+| `対象パスが見つかりません` | コピー元パスが存在しない | パスを再確認する |
+| `403 Forbidden` | Drive への書き込み権限がない | フォルダのアクセス権を確認し、権限付きアカウントで `rclone config reconnect gdrive:` を実行 |
+| `Failed to copy` | ネットワーク断や容量不足など | `rclone copy ... -v` で詳細ログを確認する |

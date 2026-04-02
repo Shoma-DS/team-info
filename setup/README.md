@@ -13,6 +13,7 @@
 | カテゴリ | 内容 |
 |---------|------|
 | Git | `git`, `git-lfs`, `gh` |
+| Cloud copy | `rclone` |
 | Python | 3.11.9 |
 | Python 補助 | `uv` |
 | Node.js | 22.17.1 (`nvm` / `nvm-windows`) |
@@ -122,11 +123,18 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shar
 bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shared_agent_repo.sh" "/absolute/path/to/shared-agent-assets"
 ```
 
+### Google Drive / rclone
+
+- `rclone` は core setup で入ります
+- Google Drive の `gdrive` remote は、`/gdrive` を初めて使うときに `rclone config` で作ります
+- アップロード先は `team-info/outputs/` 配下のフォルダです
+
 ## verify が見るもの
 
 `setup/verify_setup.py` は次を確認します。
 
 - `node`, `npm`, `codex`, `gh`
+- `rclone`
 - `git lfs`
 - `gh auth status`
 - `origin` URL
@@ -140,6 +148,7 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shar
 
 - GitHub 招待の承認
 - `gh auth login`
+- Google Drive の `gdrive` remote 初回認証（`rclone config`）
 - Docker Desktop 本体
 - 外部サービスの cookie / API key / secret
 - Obsidian vault や Claudian を使う場合の実 vault 選定

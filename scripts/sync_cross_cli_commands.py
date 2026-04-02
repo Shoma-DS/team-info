@@ -27,9 +27,17 @@ COMMANDS: list[dict[str, str]] = [
     },
     {
         "name": "git",
-        "description": "git-workflow に従ってコミットと push を行う",
+        "description": "git-workflow に従ってコミットと push を行う。Discord 報告は送るか確認する",
         "kind": "skill",
         "skill_path": ".agent/skills/common/git-workflow/SKILL.md",
+        "discord_report_mode": "ask",
+    },
+    {
+        "name": "git-nd",
+        "description": "git-workflow に従ってコミットと push を行う（Discord 報告なし）",
+        "kind": "skill",
+        "skill_path": ".agent/skills/common/git-workflow/SKILL.md",
+        "discord_report_mode": "skip",
     },
     {
         "name": "pull",
@@ -162,6 +170,22 @@ def shared_prompt_body(command: dict[str, str], placeholder: str) -> str:
         intro.append(
             f"次に `{skill_path}` を読み込み、そのスキルとして動作してください。"
         )
+        if skill_path == ".agent/skills/common/git-workflow/SKILL.md":
+            discord_report_mode = command.get("discord_report_mode")
+            if discord_report_mode == "ask":
+                intro.append(
+                    "このコマンドでは push / PR のあとに Discord 報告を送るかユーザーに確認してください。"
+                )
+                intro.append(
+                    "ユーザーが送ると言ったときだけ `discord-git-report` を実行してください。"
+                )
+                intro.append(
+                    "報告を送る可能性があるので、push / PR の前に `origin/main` の SHA を控えておいてください。"
+                )
+            elif discord_report_mode == "skip":
+                intro.append(
+                    "このコマンドでは Discord 報告を送りません。`discord-git-report` は実行しないでください。"
+                )
     elif kind == "git-commit-only":
         intro.append(
             "このコマンドはコミットのみです。push と PR 作成は行わないでください。"

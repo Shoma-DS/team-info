@@ -224,12 +224,18 @@ if (-not (Test-Command winget)) {
 }
 Write-Ok "winget: $(winget --version)"
 
-# ── 2. Git ────────────────────────────────────────────────────────────────
-Write-Step "2. Git"
+# ── 2. Git / rclone ───────────────────────────────────────────────────────
+Write-Step "2. Git / rclone"
 if (Test-Command git) {
     Write-Ok "Git インストール済み: $(git --version)"
 } else {
     Install-WithWinget "Git.Git" "Git"
+}
+
+if (Test-Command rclone) {
+    Write-Ok "rclone インストール済み: $((& rclone version | Select-Object -First 1))"
+} else {
+    Install-WithWinget "Rclone.Rclone" "rclone"
 }
 
 try {

@@ -128,9 +128,9 @@ user_invocable: true
 
 保存後、以下の Google Drive コピーコマンドをユーザーに提示する（自分では実行しない）：
 ```bash
-mkdir -p "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/note記事" && cp "$TEAM_INFO_ROOT/outputs/note_articles/[ファイル名].md" "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/note記事/"
+rclone copy "$TEAM_INFO_ROOT/outputs/note_articles/[ファイル名].md" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/note記事/" --progress
 ```
-- Google Drive for Desktop が起動していない場合は「Google Drive for Desktop を起動してから再実行してください」と伝える。
+- rclone が未設定の場合は `.agent/skills/common/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
 
 #### ステップ7: 完了報告
 

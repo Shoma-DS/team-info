@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 
-REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "gh")
+REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "gh", "rclone")
 
 
 def _run(

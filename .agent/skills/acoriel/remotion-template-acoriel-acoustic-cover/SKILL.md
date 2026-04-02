@@ -397,8 +397,8 @@ Phase 4: 確認・レンダリング・Drive保存
    - レンダリング完了後に Step 10 のコマンドも提示する。
 10. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
     ```bash
-    cp "$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4" "/Users/deguchishouma/Library/CloudStorage/GoogleDrive-syouma1674@gmail.com/マイドライブ/team-info/outputs/アコリエル/"
+    rclone copy "$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/アコリエル/" --progress
     ```
-    - コピー先: Google Drive `マイドライブ/team-info/outputs/アコリエル/`
-    - Google Drive for Desktop が起動していないとコピー先フォルダが存在しないため、エラーが出た場合は「Google Drive for Desktop を起動してから再実行してください」と伝える。
+    - コピー先: Google Drive `team-info/outputs/アコリエル/`（フォルダID: `1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t`）
+    - rclone が未設定の場合は `.agent/skills/common/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
 11. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

@@ -1,6 +1,6 @@
 # Discord Webhook設定手順
 
-このマニュアルは、`team-info` で `/git` のあとに Discord へ報告を送りたい人向けの手順書です。
+このマニュアルは、`team-info` で `/git` のあとに Discord へ報告を送りたい人向けの手順書です。`/git-nd` では報告しません。
 
 2026-04-01 時点で、Discord の公式ヘルプページと公式開発者ドキュメントを確認して作成しています。
 
@@ -97,6 +97,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" disco
 ## ④ /git の報告で使う
 
 Webhook を登録したあと、`team-info` 側の Discord 報告機能が使えるようになります。
+`/git` では、報告するかどうかを聞かれたときに使います。`/git-nd` では使いません。
 
 この repo で使う主なコマンドは次の 4 つです。
 
