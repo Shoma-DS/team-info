@@ -53,7 +53,10 @@
       "Bash(git log*)",
       "Bash(git branch*)",
       "Bash(git rev-parse*)",
-      "Bash(git ls-files*)"
+      "Bash(git ls-files*)",
+      "Bash(python3*)",
+      "Bash(python*)",
+      "Bash(export *)"
     ],
     "ask": [
       "Bash(rm *)",
