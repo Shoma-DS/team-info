@@ -44,11 +44,18 @@ WEBHOOK_CONFIG_PATH = REPO_ROOT / "personal" / "discord-daily-webhook.json"
 # ── Zoom API ────────────────────────────────────────────────────
 
 def get_zoom_token() -> str:
-    """Server-to-Server OAuth でアクセストークンを取得する"""
-    creds = json.loads(ZOOM_CREDS_PATH.read_text())
-    account_id = creds["account_id"]
+    """Server-to-Server OAuth でアクセストークンを取得する（env vars → 設定ファイルの順）"""
+    import os
+    account_id = os.environ.get("ZOOM_ACCOUNT_ID")
+    client_id   = os.environ.get("ZOOM_CLIENT_ID")
+    client_secret = os.environ.get("ZOOM_CLIENT_SECRET")
+    if not all([account_id, client_id, client_secret]):
+        creds = json.loads(ZOOM_CREDS_PATH.read_text())
+        account_id    = creds["account_id"]
+        client_id     = creds["client_id"]
+        client_secret = creds["client_secret"]
     auth = base64.b64encode(
-        f"{creds['client_id']}:{creds['client_secret']}".encode()
+        f"{client_id}:{client_secret}".encode()
     ).decode()
     url = (
         f"https://zoom.us/oauth/token"
