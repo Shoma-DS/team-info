@@ -56,6 +56,10 @@ AirhtMate/
 personal/md-folder-signals/
 personal/markdown-plain-copy/
 
+# [personal] 2026-04-03
+inputs/viral-analysis/未分析/
+inputs/viral-analysis/output/転職_20260403/
+
 # 開発モード設定（個人設定のため除外）
 .dev-mode
 
@@ -65,3 +69,6 @@ personal/markdown-plain-copy/
 
 # Claude Code 個人設定（パーミッション・個人hook等）
 .claude/settings.local.json
+
+# [personal] 2026-04-03
+personal/discord-daily-webhook.json
