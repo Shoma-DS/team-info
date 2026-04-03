@@ -1,0 +1,24 @@
+template_id: standard-short
+inherits: null
+
+labels:
+  ja: 標準ショート
+  genre: generic
+
+flow:
+  analysis: standard
+  patterns: standard
+  script: standard
+  subtitles_voice: standard
+  materials: standard
+  remotion: standard
+  timing: standard
+
+overrides:
+  hook_type: statement
+  section_count: 3
+  subtitle_layout: card
+  jet_cut: true
+  forced_alignment: true
+
+phase_refs: {}

@@ -1,0 +1,35 @@
+template_id: career-listicle
+inherits: standard-short
+
+labels:
+  ja: 転職リスト型
+  genre: career
+
+flow:
+  analysis: standard
+  patterns: standard
+  script: standard
+  subtitles_voice: standard
+  materials: standard
+  remotion: standard
+  timing: standard
+
+overrides:
+  hook_type: statement
+  section_count: 3
+  list_count_default: 10
+  subtitle_style: plain_light
+  subtitle_layout: card
+  name_card_style: numbered-card
+  materials_mode: generic-photo
+  remotion_mode: image-crossfade
+  bgm_mode: light-tension
+  sfx_mode: minimal
+  jet_cut: true
+  forced_alignment: true
+
+phase_refs:
+  script: script.md
+  subtitles_voice: subtitles.md
+  materials: materials.md
+  remotion: remotion.md
