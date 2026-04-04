@@ -549,7 +549,7 @@ account_name: my_account
 
 **コマンド例:**
 ```bash
-rm -rf "$TEAM_INFO_ROOT/.agent/skills/remotion/script-writing-accounts-aware/.sessions/20260211_143000_norse_mythology"
+rm -rf "$TEAM_INFO_ROOT/.agent/skills/remotion/video-production/script-writing-accounts-aware/.sessions/<session_id>"
 ```
 
 ### Q9: 台本の文字数を指定できる？

@@ -134,7 +134,7 @@ user_invocable: true
 rclone copy "$TEAM_INFO_ROOT/outputs/note_articles/[ファイル名].md" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/note記事/" --progress
 ```
 
-- rclone が未設定の場合は `.agent/skills/common/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
+- rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
 
 #### ステップ7: 完了報告
 

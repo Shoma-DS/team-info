@@ -225,7 +225,7 @@ la la la la la love song
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -u \
-  "$TEAM_INFO_ROOT/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py" \
+  "$TEAM_INFO_ROOT/.agent/skills/remotion/video-production/lyric-emotion-mapper/scripts/transcribe_to_lrc.py" \
   "<音源ファイルパス>" \
   --lyrics "<歌詞ファイルパス>" \
   --output "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/<歌詞ファイル名と同名>.lrc" \
@@ -240,7 +240,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 **SRTも同じスクリプトで生成する（推奨）**
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -u \
-  "$TEAM_INFO_ROOT/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py" \
+  "$TEAM_INFO_ROOT/.agent/skills/remotion/video-production/lyric-emotion-mapper/scripts/transcribe_to_lrc.py" \
   "<音源ファイルパス>" \
   --lyrics "<歌詞ファイルパス>" \
   --output "$TEAM_INFO_ROOT/Remotion/scripts/lyrics/<曲名>.srt" \
@@ -297,7 +297,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-r
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- \
-  "$TEAM_INFO_ROOT/.agent/skills/remotion/lyric-emotion-mapper/scripts/validate_lrc.py" \
+  "$TEAM_INFO_ROOT/.agent/skills/remotion/video-production/lyric-emotion-mapper/scripts/validate_lrc.py" \
   <出力LRCパス> \
   <歌詞テキストパス>
 ```

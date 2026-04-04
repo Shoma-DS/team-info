@@ -38,7 +38,7 @@ shared-agent-assets/
 ## 同期コマンド
 
 ```bash
-bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shared_agent_repo.sh" "/absolute/path/to/shared-agent-assets"
+bash "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/shared-agent-assets/scripts/sync_shared_agent_repo.sh" "/absolute/path/to/shared-agent-assets"
 ```
 
 引数を省略した場合は、次の順で shared repo を探します。
@@ -50,7 +50,7 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shar
 そのため、repo を sibling 配置できるなら次でも動きます。
 
 ```bash
-bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shared_agent_repo.sh"
+bash "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/shared-agent-assets/scripts/sync_shared_agent_repo.sh"
 ```
 
 ## team-info 優先ルール

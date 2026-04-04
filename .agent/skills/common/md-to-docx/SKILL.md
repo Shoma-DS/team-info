@@ -31,4 +31,4 @@ python3 "$TEAM_INFO_ROOT/.agent/skills/common/md-to-docx/scripts/md_to_docx.py" 
 rclone copy "[出力.docx の絶対パス]" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/client_scripts/" --progress
 ```
 
-rclone 未設定の場合は `.agent/skills/common/gdrive-copy/SKILL.md` を参照。
+rclone 未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` を参照。

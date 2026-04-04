@@ -102,5 +102,5 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" copy-
 ## フロー変更時の必須同時更新ルール
 - 音声化フローの質問順、選択肢、入力項目、実行手順のいずれかを変更した場合は、以下を同じ変更内で必ず更新する。
 1. `Remotion/generate_voice.py`（実装）
-2. `.agent/skills/remotion/voice-script-launcher/SKILL.md`（スキル手順）
+2. `.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md`（スキル手順）
 3. `Remotion/Voicebox_TTS_Skill_Guide.md`（利用ドキュメント）

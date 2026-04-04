@@ -86,14 +86,14 @@ rclone lsd gdrive:
 スキルの流れや会話の中でコピー元・コピー先がわかっている場合は、引数付きで即実行できるコマンドをユーザーに渡すこと。
 
 ```bash
-python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py" \
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/git-workflow/gdrive-copy/scripts/gdrive_copy.py" \
   --src "[コピー元の絶対パス]" \
   --dest "[team-info直下のコピー先サブパス]"
 ```
 
 **例（アコリエル動画）:**
 ```bash
-python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py" \
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/git-workflow/gdrive-copy/scripts/gdrive_copy.py" \
   --src "$TEAM_INFO_ROOT/outputs/acoriel/renders/Hana.mp4" \
   --dest "outputs/アコリエル/"
 ```
@@ -105,7 +105,7 @@ python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py
 ### インタラクティブモード（コピー対象が不明な場合）
 
 ```bash
-python3 "$TEAM_INFO_ROOT/.agent/skills/common/gdrive-copy/scripts/gdrive_copy.py"
+python3 "$TEAM_INFO_ROOT/.agent/skills/common/git-workflow/gdrive-copy/scripts/gdrive_copy.py"
 ```
 
 対話形式でコピー元・コピー先サブフォルダを選んでアップロードします。

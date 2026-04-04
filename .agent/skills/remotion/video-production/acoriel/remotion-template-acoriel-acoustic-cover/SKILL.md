@@ -142,7 +142,7 @@ ls -lh "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/channels/acoriel/songs/<
 1. `Remotion/scripts/lyrics/` に該当曲のLRCがあればそれを採用する。
 2. 該当LRCが無ければ、**字幕生成スクリプト** で作成する。以下のコマンドをユーザーに提示し、**任意のターミナルから実行**するよう案内して待機する:
    ```bash
-   python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -u "$TEAM_INFO_ROOT/.agent/skills/remotion/lyric-emotion-mapper/scripts/transcribe_to_lrc.py" "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/channels/acoriel/songs/[曲名].mp3" --lyrics "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/channels/acoriel/lyrics/[曲名].txt" --output "$TEAM_INFO_ROOT/Remotion/scripts/lyrics/[曲名].lrc" --output-format lrc --intro-label "(イントロ)" --intro-min-seconds 0.30 --model large-v3 --language ja
+   python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" run-remotion-python -- -u "$TEAM_INFO_ROOT/.agent/skills/remotion/video-production/lyric-emotion-mapper/scripts/transcribe_to_lrc.py" "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/channels/acoriel/songs/[曲名].mp3" --lyrics "$TEAM_INFO_ROOT/Remotion/my-video/public/assets/channels/acoriel/lyrics/[曲名].txt" --output "$TEAM_INFO_ROOT/Remotion/scripts/lyrics/[曲名].lrc" --output-format lrc --intro-label "(イントロ)" --intro-min-seconds 0.30 --model large-v3 --language ja
    ```
    - このコマンドは先頭イントロ `(イントロ)` を自動挿入し、最初の歌詞開始時刻を単語単位で合わせる。
    - `-u` と進捗バーで長時間処理中の進捗が見える。
@@ -400,5 +400,5 @@ Phase 4: 確認・レンダリング・Drive保存
     rclone copy "$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/アコリエル/" --progress
     ```
     - コピー先: Google Drive `team-info/outputs/アコリエル/`（フォルダID: `1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t`）
-    - rclone が未設定の場合は `.agent/skills/common/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
+    - rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
 11. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

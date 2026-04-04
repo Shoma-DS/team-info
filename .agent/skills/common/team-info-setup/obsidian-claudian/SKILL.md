@@ -27,13 +27,13 @@ description: official Obsidian CLI と Claudian を team-info 向けに導入・
 
 ```bash
 "$(command -v brew)" install --cask obsidian
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
 ```
 
 ## 状態確認
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor
 ```
 
 ## team-info 優先ルール
@@ -62,9 +62,9 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info
 ## よく使うコマンド
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --vault "/absolute/path/to/vault" --user-name "Shouma"
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --vault "/absolute/path/to/vault" --user-name "Shouma"
 ```
 
 ## 導入後の確認

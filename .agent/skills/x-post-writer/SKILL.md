@@ -29,7 +29,7 @@ Xアカウントの投稿文を半自動生成するフルフロー。
 ├── SKILL.md              ← このファイル
 ├── accounts/             ← アカウント情報ファイル群（ユーザーが管理）
 │   └── [account_name].md
-└── templates/            ← 保存済みの投稿型テンプレート
+└── templates/            ← 保存済みの投稿型テンプレート（初回保存時になければ作成）
     └── [template_name].md
 
 inputs/x-posts/
@@ -75,7 +75,7 @@ inputs/x-posts/
 スキル起動時に以下を確認し、どこから始めるか判断する。
 
 ### テンプレートの存在確認
-`.agent/skills/x-post-writer/templates/` 内を確認する。
+同階層の `templates/` ディレクトリを確認する。ディレクトリ自体がなければ「テンプレート未保存」として扱う。
 
 - **テンプレートがある場合** → Phase 2 でモード選択肢に「テンプレを使う」を追加
 - **テンプレートがない場合** → 「競合から作る」「ゼロから新規」の2択
@@ -102,7 +102,7 @@ inputs/x-posts/
 ```
 accounts/ フォルダにアカウント情報ファイルが見つかりませんでした。
 以下のパスにファイルを作成してください:
-  /Users/deguchishouma/team-info/.agent/skills/x-post-writer/accounts/[アカウント名].md
+  $TEAM_INFO_ROOT/.agent/skills/x-post-writer/accounts/[アカウント名].md
 
 フォーマットはこのスキルの「アカウント情報ファイルの書き方」を参照してください。
 ```
@@ -153,7 +153,7 @@ A/B で答えてください。
 
 ### モードA（テンプレートを使う場合）
 
-`.agent/skills/x-post-writer/templates/` 内のテンプレート一覧を提示する。
+保存済みテンプレートがある場合は、同階層の `templates/` 内のテンプレート一覧を提示する。
 
 ```
 📋 保存済みテンプレート:
@@ -297,7 +297,7 @@ A/B で答えてください。
 
 3. **ファイルに保存する**
 
-   `.agent/skills/x-post-writer/templates/[template_name].md` に保存。
+   スキル直下の `templates/[template_name].md` に保存する。`templates/` がなければ先に作成する。
 
    **フォーマット:**
 

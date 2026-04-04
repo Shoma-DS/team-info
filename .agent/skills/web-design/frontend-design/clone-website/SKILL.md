@@ -27,7 +27,7 @@ description: 1つ以上のWebサイトを pixel-perfect に再構築したいと
 2. 次で workspace を初期化する。
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/web-design/clone-website/scripts/init_clone_website_template.py" "$TEAM_INFO_ROOT/outputs/web-clones/<slug>"
+python "$TEAM_INFO_ROOT/.agent/skills/web-design/frontend-design/clone-website/scripts/init_clone_website_template.py" "$TEAM_INFO_ROOT/outputs/web-clones/<slug>"
 ```
 
 3. Node 24 に切り替えて依存を入れる。
