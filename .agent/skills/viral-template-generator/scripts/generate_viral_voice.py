@@ -121,7 +121,7 @@ def synthesize(
     query_resp = requests.post(
         f"{VOICEVOX_BASE}/audio_query",
         params={"text": text, "speaker": speaker_id},
-        timeout=30,
+        timeout=120,
     )
     query_resp.raise_for_status()
     query = query_resp.json()
@@ -134,11 +134,12 @@ def synthesize(
     query["postPhonemeLength"] = post_phoneme_length
 
     # 音声合成
+    print(f"\r  → synthesis ({len(text)}文字) ...", end="", flush=True)
     synth_resp = requests.post(
         f"{VOICEVOX_BASE}/synthesis",
         params={"speaker": speaker_id},
         json=query,
-        timeout=180,
+        timeout=600,
     )
     synth_resp.raise_for_status()
     return synth_resp.content
@@ -184,7 +185,12 @@ def render_sections(
     rendered_sections: list[dict] = []
     total_duration = 0.0
 
+    total = len(sections)
     for i, sec in enumerate(sections):
+        slot_label = SECTION_OUTPUT_SLOTS.get(sec["key"], sec["key"])
+        char_count = len(sec["text"])
+        print(f"\n[{i+1}/{total}] {slot_label}  ({char_count}文字)")
+        print("  → audio_query ...", end="", flush=True)
         wav_data = synthesize(
             sec["text"],
             speaker_id,
@@ -195,6 +201,7 @@ def render_sections(
             post_phoneme_length=settings["post_phoneme_length"],
         )
         duration = get_wav_duration(wav_data)
+        print(f"\r  ✅ 完了  {duration:.1f}s                    ")
         rendered_sections.append(
             {
                 "slot": SECTION_OUTPUT_SLOTS.get(sec["key"], f"{i:02d}_{sec['key']}"),

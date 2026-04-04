@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/未分析/転職横動画/【ここじゃない感】「もう無理かも」と気づいた人の特徴9選.mp4",
+  "sample_count": 1,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 0,
+      "cut_range": "0-25356",
+      "frame": 180,
+      "time_seconds": 6.0,
+      "text_preview": "ける 想像 うこ ここ 働く 無理",
+      "style_signature": "zone:middle|bg:0|stroke:0:0|multi:1|text:#ffffff|box:none",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 47.1,
+        "text_color_hex": "#fcfcfc",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": false,
+        "background_box_color_hex": null,
+        "multicolor_lines": true,
+        "line_colors_hex": [
+          "#beb4ad",
+          "#fdfefe"
+        ]
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【ここじゃない感】「もう無理かも」と気づいた人の特徴9選/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【ここじゃない感】「もう無理かも」と気づいた人の特徴9選/subtitle_style_samples/style_01_crop.jpg"
+    }
+  ]
+}

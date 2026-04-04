@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/未分析/転職横動画/【仕組みが終わってる】社員を消耗させ続ける会社の特徴9選.mp4",
+  "sample_count": 1,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 0,
+      "cut_range": "0-15192",
+      "frame": 180,
+      "time_seconds": 6.0,
+      "text_preview": "現場 実態 知ら 経営 管理 現場 実態 ほとん 把握 いな 現実 合わ いま",
+      "style_signature": "zone:middle|bg:0|stroke:0:0|multi:0|text:#ffffff|box:none",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 47.8,
+        "text_color_hex": "#fefeff",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": false,
+        "background_box_color_hex": null,
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【仕組みが終わってる】社員を消耗させ続ける会社の特徴9選/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【仕組みが終わってる】社員を消耗させ続ける会社の特徴9選/subtitle_style_samples/style_01_crop.jpg"
+    }
+  ]
+}

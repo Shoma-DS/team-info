@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/未分析/転職横動画/【辞めてよかった】辞めて清々している人の特徴9選.mp4",
+  "sample_count": 1,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 0,
+      "cut_range": "0-16803",
+      "frame": 150,
+      "time_seconds": 5.0,
+      "text_preview": "環境 普通 気づけ",
+      "style_signature": "zone:top|bg:1|stroke:0:0|multi:0|text:#ffffff|box:#000000",
+      "heuristic": {
+        "zone": "top",
+        "yPercent": 10.7,
+        "text_color_hex": "#fdfdfd",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": true,
+        "background_box_color_hex": "#0f0f0f",
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【辞めてよかった】辞めて清々している人の特徴9選/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【辞めてよかった】辞めて清々している人の特徴9選/subtitle_style_samples/style_01_crop.jpg"
+    }
+  ]
+}

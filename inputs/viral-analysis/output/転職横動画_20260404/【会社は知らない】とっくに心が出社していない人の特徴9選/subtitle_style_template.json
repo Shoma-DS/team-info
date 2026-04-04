@@ -1,0 +1,39 @@
+{
+  "status": "pending_agent_review",
+  "mode": "agent_review_preferred",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/未分析/転職横動画/【会社は知らない】とっくに心が出社していない人の特徴9選.mp4",
+  "manifest_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【会社は知らない】とっくに心が出社していない人の特徴9選/subtitle_style_samples/manifest.json",
+  "reviewed_sample_ids": [
+    "style_01"
+  ],
+  "subtitle": {
+    "template_name": null,
+    "fontFamily": null,
+    "fontWeight": null,
+    "fontSizePx1920h": null,
+    "letterSpacing": null,
+    "lineHeight": null,
+    "textColor": null,
+    "lineColors": [],
+    "strokeWidthPx": null,
+    "strokeColor": null,
+    "textShadow": null,
+    "background": null,
+    "paddingH": null,
+    "paddingV": null,
+    "borderRadius": null,
+    "yPercent": null,
+    "alignment": "center",
+    "notes": null
+  },
+  "hook": {
+    "fontFamily": null,
+    "fontWeight": null,
+    "fontSizePx1920h": null,
+    "lineColors": [],
+    "strokeWidthPx": null,
+    "strokeColor": null,
+    "textShadow": null,
+    "notes": null
+  }
+}

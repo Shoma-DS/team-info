@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "mode": "agent_review_preferred",
+  "selection_rule": "first subtitle cut after coarse visual signature change",
+  "source_video": "/workspace/team-info/inputs/viral-analysis/未分析/転職横動画/【そりゃ辞めるわ】社員が黙って去る会社の特徴9選.mp4",
+  "sample_count": 1,
+  "samples": [
+    {
+      "id": "style_01",
+      "cut_index": 0,
+      "cut_range": "0-25143",
+      "frame": 180,
+      "time_seconds": 6.0,
+      "text_preview": "こと 後ろ C% al 社員 辞め 意見 求め られ",
+      "style_signature": "zone:middle|bg:0|stroke:0:0|multi:0|text:#ffffff|box:none",
+      "heuristic": {
+        "zone": "middle",
+        "yPercent": 43.8,
+        "text_color_hex": "#fefefe",
+        "stroke_detected": false,
+        "stroke_width_px": 0,
+        "stroke_color_hex": null,
+        "background_box_detected": false,
+        "background_box_color_hex": null,
+        "multicolor_lines": false,
+        "line_colors_hex": []
+      },
+      "full_frame_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【そりゃ辞めるわ】社員が黙って去る会社の特徴9選/subtitle_style_samples/style_01_full.jpg",
+      "subtitle_crop_path": "/workspace/team-info/inputs/viral-analysis/output/転職横動画_20260404/【そりゃ辞めるわ】社員が黙って去る会社の特徴9選/subtitle_style_samples/style_01_crop.jpg"
+    }
+  ]
+}

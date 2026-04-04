@@ -44,27 +44,19 @@
 - Claude Code の built-in commands（例: `/loop`, `/schedule`, `/btw`, `/branch`, `/mobile`, `/remote-control`, `/hooks`, `/chrome`, `/voice`）は、repo 独自 slash command とは別枠の native 機能として扱う。
 - repo 側で Claude Code native 名と衝突する名前を新規採用しない。既存衝突を見つけたら、先に `AGENTS.md` と人向けマニュアルへ移行方針を書く。
 
-| コマンド | 読み込むスキル |
-|---------|--------------|
-| `/acoriel` | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
-| `/c` | コミットのみ（push・PR なし）。オーナー機→main、それ以外→アカウント名ブランチ |
-| `/git` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ（オーナー機以外は PR 作成。必要なら Discord 報告を送るか確認） |
-| `/git-nd` | `.agent/skills/common/git-workflow/SKILL.md` → コミット＋プッシュ（オーナー機以外は PR 作成。Discord 報告なし） |
-| `/pull` | origin/main から最新を取り込む（`git fetch` → `pull --rebase`） |
-| `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` |
-| `/reach` | `.agent/skills/common/agent-reach/SKILL.md` |
-| `/tool-import` | `.agent/skills/common/repo-adapted-tool-import/SKILL.md` |
-| `/claudian` | `.agent/skills/common/obsidian-claudian/SKILL.md` |
-| `/shared-agent-assets` | `.agent/skills/common/shared-agent-assets/SKILL.md` |
-| `/clone-website` | `.agent/skills/web-design/clone-website/SKILL.md` |
-| `/sleep-travel` | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
-| `/lyric` | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
-| `/voice` | `.agent/skills/remotion/voice-script-launcher/SKILL.md`（legacy 名。Claude Code では built-in `/voice` と衝突するため、VOICEVOX 音声化は自然文で `voice-script-launcher` を明示して使う） |
-| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` |
-| `/script` | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
-| `/gdrive` | `.agent/skills/common/gdrive-copy/SKILL.md` |
-| `/tyoudoii-illust-fetcher` | `.agent/skills/web-design/tyoudoii-illust-fetcher/SKILL.md` |
-| `/themeisle-illustration-fetcher` | `.agent/skills/web-design/themeisle-illustration-fetcher/SKILL.md` |
+| コマンド | 読み込むスキル | 概要 |
+|---------|--------------|------|
+| `/c` | `.agent/skills/common/git-workflow/SKILL.md` | コミットのみ（push・PRなし） |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` | コミット＋プッシュ（Discord報告） |
+| `/git-nd`| `.agent/skills/common/git-workflow/SKILL.md` | コミット＋プッシュ（Discord報告なし） |
+| `/pull` | origin/main から `pull --rebase` | 最新ソースの同期 |
+| `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` | 環境構築・外部ツール・MCP導入 |
+| `/reach` | `.agent/skills/common/agent-reach/SKILL.md` | マーケット調査・横断リサーチ |
+| `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |
+| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` | ジモティー投稿作成（工場/在宅） |
+| `/web` | `.agent/skills/web-design/frontend-design/SKILL.md` | サイト制作・複製・イラスト取得 |
+| `/viral` | `.agent/skills/viral-template-generator/SKILL.md` | バズ動画解析・テンプレ自動生成 |
+| `/x` | `.agent/skills/x-post-writer/SKILL.md` | X投稿文自動生成 |
 
 ### Claude Code Native Features
 

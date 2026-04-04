@@ -55,52 +55,65 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ## スキル一覧
 
-### 🎸 acoriel/（アコリエル系）
+### 🎸 remotion/video-production/acoriel/
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| remotion-template-acoriel-acoustic-cover | アコリエルのリリックビデオをRemotionで制作する | `.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
-| acoriel-video-description | アコリエルのYouTube概要欄を生成する | `.agent/skills/acoriel/acoriel-video-description/SKILL.md` |
+| remotion-template-acoriel-acoustic-cover | アコリエルのリリックビデオをRemotionで制作する | `.agent/skills/remotion/video-production/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md` |
+| acoriel-video-description | アコリエルのYouTube概要欄を生成する | `.agent/skills/remotion/video-production/acoriel/acoriel-video-description/SKILL.md` |
 
 ---
 
-### 📹 remotion/（Remotion・動画制作系）
+### 📹 remotion/video-production/
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| remotion-video-production | Remotionチャンネル・テンプレ選択の起点スキル | `.agent/skills/remotion/remotion-video-production/SKILL.md` |
-| remotion-template-sleep-travel-long-knowledge-relax | 寝ながらトラベル・長尺知識リラックス動画 | `.agent/skills/remotion/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md` |
-| remotion-template-sleep-travel-short-digest | 寝ながらトラベル・短尺ダイジェスト動画 | `.agent/skills/remotion/remotion-template-sleep-travel-short-digest/SKILL.md` |
-| lyric-video-production | 音声・歌詞からLRC生成→Remotionリリックアニメーション制作 | `.agent/skills/remotion/lyric-emotion-mapper/SKILL.md` |
-| voice-script-launcher | 台本ファイルから音声を一括生成する | `.agent/skills/remotion/voice-script-launcher/SKILL.md` |
-| script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/script-writing-accounts-aware/SKILL.md` |
-| remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/remotion-unified-output-routing/SKILL.md` |
+| remotion-video-production | Remotionチャンネル・テンプレ選択の起点スキル | `.agent/skills/remotion/video-production/SKILL.md` |
+| remotion-template-sleep-travel-long-knowledge-relax | 寝ながらトラベル・長尺知識リラックス動画 | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md` |
+| remotion-template-sleep-travel-short-digest | 寝ながらトラベル・短尺ダイジェスト動画 | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-short-digest/SKILL.md` |
+| lyric-video-production | 音声・歌詞からLRC生成→Remotionリリックアニメーション制作 | `.agent/skills/remotion/video-production/lyric-emotion-mapper/SKILL.md` |
+| voice-script-launcher | 台本ファイルから音声を一括生成する | `.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md` |
+| script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md` |
+| remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
 
 ---
 
-### 📋 jmty/（ジモティー系）
+### 📋 jmty/jmty-posts/
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | jmty-posts | ジモティー投稿作成の起点スキル（工場/在宅を選択） | `.agent/skills/jmty/jmty-posts/SKILL.md` |
-| jmty-posts-factory-14 | 工場系案件から投稿文を14本作成する | `.agent/skills/jmty/jmty-posts-factory-14/SKILL.md` |
-| jmty-posts-remote-14 | 在宅系見本から投稿文を14本作成する | `.agent/skills/jmty/jmty-posts-remote-14/SKILL.md` |
-| jmty-posts-14-variants | 汎用的に投稿文を14本作成する | `.agent/skills/jmty/jmty-posts-14-variants/SKILL.md` |
-| jmty-posts-gdrive-sync | 投稿出力をGoogleドライブへ同期する | `.agent/skills/jmty/jmty-posts-gdrive-sync/SKILL.md` |
+| jmty-posts-factory-14 | 工場系案件から投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-factory-14/SKILL.md` |
+| jmty-posts-remote-14 | 在宅系見本から投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-remote-14/SKILL.md` |
+| jmty-posts-14-variants | 汎用的に投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-14-variants/SKILL.md` |
+| jmty-posts-gdrive-sync | 投稿出力をGoogleドライブへ同期する | `.agent/skills/jmty/jmty-posts/jmty-posts-gdrive-sync/SKILL.md` |
 
 ---
 
-### 🔧 common/（共通・汎用）
+### 🔧 common/
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | git-workflow | Gitの運用フロー（ブランチ/コミット/PR と Git LFS 無料枠ガード） | `.agent/skills/common/git-workflow/SKILL.md` |
 | team-info-setup | team-info の初回セットアップや再セットアップを始める。core setup と lazy bootstrap 方針の入口 | `.agent/skills/common/team-info-setup/SKILL.md` |
 | agent-reach | team-info 向けに取り込んだ Agent-Reach。初回は自動 bootstrap しつつ、OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査する | `.agent/skills/common/agent-reach/SKILL.md` |
-| repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/repo-adapted-tool-import/SKILL.md` |
-| obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin、`.claude/` 初期設定、初期 subagent 雛形を整える | `.agent/skills/common/obsidian-claudian/SKILL.md` |
-| shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/shared-agent-assets/SKILL.md` |
+| repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/team-info-setup/repo-adapted-tool-import/SKILL.md` |
+| obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin、`.claude/` 初期設定、初期 subagent 雛形を整える | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` |
+| shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/team-info-setup/shared-agent-assets/SKILL.md` |
+| gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
+
+---
+
+### 🌐 web-design/frontend-design/
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| frontend-design | 高品質なフロントエンドUIを制作する | `.agent/skills/web-design/frontend-design/SKILL.md` |
+| gsap-awwwards-website | GSAPスクロール演出付きLPを開発/保守する | `.agent/skills/web-design/frontend-design/gsap-awwwards-website/SKILL.md` |
+| clone-website | browser automation を使ってサイトを pixel-perfect に再構築する。global setup へ依存を載せず、bundled Next.js 16 テンプレを初期化して複製作業に入る | `.agent/skills/web-design/frontend-design/clone-website/SKILL.md` |
+| tyoudoii-illust-fetcher | tyoudoii-illust.com の無料イラストを REST API 経由で検索・取得し、Webプロジェクトへ組み込む | `.agent/skills/web-design/frontend-design/tyoudoii-illust-fetcher/SKILL.md` |
+| themeisle-illustration-fetcher | Themeisle Illustrations の PNG / SVG を選び、Webプロジェクトへ組み込む | `.agent/skills/web-design/frontend-design/themeisle-illustration-fetcher/SKILL.md` |
 | team-info-daily-dev-memo | 当日のGit変更から team-info メンバー共有用の作業報告を作る | `.agent/skills/common/team-info-daily-dev-memo/SKILL.md` |
 | macos-intel-compatibility | macOS Intel環境の互換性パッチ対応 | `.agent/skills/common/macos-intel-compatibility/SKILL.md` |
 | note-article-ayumi | 「愛され女子あゆみ」のnote記事を作成する | `.agent/skills/common/note-article-ayumi/SKILL.md` |
 | note-thumbnail-ayumi | 「愛され女子あゆみ」のnoteサムネイル（1280×670px）を生成する | `.agent/skills/common/note-thumbnail-ayumi/SKILL.md` |
 | daily-calendar-summary | 当日のGoogleカレンダー予定を取得しZoom URLを付与してDiscordへ朝の予定サマリーを送信する | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
+| md-to-docx | Markdownファイルを Word(.docx) に変換する。見出し・太字・箇条書き・水平線に対応 | `.agent/skills/common/md-to-docx/SKILL.md` |
 
 ---
 
