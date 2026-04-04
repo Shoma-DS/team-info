@@ -14,6 +14,7 @@ Usage:
 """
 import argparse
 import json
+import random
 import re
 import shutil
 import sys
@@ -21,6 +22,7 @@ import time
 import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass
+from html.parser import HTMLParser
 from pathlib import Path
 
 COMMON_SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "common" / "scripts"
@@ -42,6 +44,14 @@ NON_IMAGE_EXTENSIONS = {".pdf", ".svg", ".svgz", ".mp4", ".ogv", ".webm", ".ogg"
 OPENVERSE_ALLOWED_LICENSES = {"by", "by-sa", "cc0", "pdm"}
 SEARCH_SUFFIXES_ASCII = ["", " portrait", " headshot", " event", " interview", " red carpet"]
 SEARCH_SUFFIXES_NON_ASCII = ["", " ポートレート", " イベント", " 会見", " インタビュー"]
+
+# 解像度フィルタ: 短辺がこの値未満の画像は除外
+MIN_SHORT_SIDE = 300
+# 目標枚数の何倍を候補として取得するか（多めに取ってフィルタする）
+OVERSAMPLE_FACTOR = 4
+# いらすとや検索URL（転職系テンプレ用）
+IRASUTOYA_SEARCH_URL = "https://www.irasutoya.com/search/label/{keyword}"
+IRASUTOYA_TOP_URL = "https://www.irasutoya.com/search?q={keyword}"
 
 SLOT_NAMES = [
     "00_hook",
@@ -443,6 +453,44 @@ def _search_bing_images(query: str, need: int = 15) -> list[str]:
     return urls
 
 
+# ─── DuckDuckGo 画像検索フォールバック ──────────────────────────────────────
+
+def _search_duckduckgo_images(query: str, need: int = 15) -> list[str]:
+    """
+    duckduckgo-search ライブラリで DuckDuckGo 画像検索し、画像 URL リストを返す。
+    Commons / Openverse で候補が不足した場合のフォールバック専用。
+    ⚠ DuckDuckGo の画像は著作権が不明なため、ライセンス確認が必要。
+
+    インストール: pip install duckduckgo-search
+    """
+    try:
+        from duckduckgo_search import DDGS
+    except ImportError:
+        print("  → duckduckgo-search 未インストール。DuckDuckGo フォールバックをスキップ。")
+        print("     pip install duckduckgo-search でインストールできます。")
+        return []
+
+    urls: list[str] = []
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.images(query, max_results=need * 2))
+        for result in results:
+            if len(urls) >= need:
+                break
+            url = result.get("image", "")
+            if not url or not url.startswith("http"):
+                continue
+            ext = Path(urllib.parse.urlparse(url).path).suffix.lower()
+            if ext in NON_IMAGE_EXTENSIONS:
+                continue
+            urls.append(url)
+        print(f"  → DuckDuckGo 検索: {len(urls)} 件のURLを取得")
+    except Exception as e:
+        print(f"  → DuckDuckGo 検索に失敗: {e}")
+
+    return urls
+
+
 # ─── ダウンロード補助 ─────────────────────────────────────────────────────
 
 def is_image_url(url: str) -> bool:
@@ -489,6 +537,129 @@ def save_person_metadata(
         json.dumps(metadata, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+
+
+# ─── 解像度チェック ────────────────────────────────────────────────────────
+
+def get_image_size(image_path: Path) -> tuple[int, int] | None:
+    """
+    画像の (width, height) を返す。取得できなければ None。
+    PIL が使えればそちらを優先し、なければ OpenCV を試みる。
+    """
+    try:
+        from PIL import Image as _PILImage
+        with _PILImage.open(image_path) as img:
+            return img.size  # (width, height)
+    except Exception:
+        pass
+    try:
+        import cv2
+        img = cv2.imread(str(image_path))
+        if img is not None:
+            h, w = img.shape[:2]
+            return w, h
+    except Exception:
+        pass
+    return None
+
+
+def filter_by_resolution(paths: list[Path], min_short_side: int = MIN_SHORT_SIDE) -> list[Path]:
+    """
+    短辺が min_short_side 未満の画像をディスクから削除してリストからも除外する。
+    """
+    kept: list[Path] = []
+    removed = 0
+    for path in paths:
+        size = get_image_size(path)
+        if size is None:
+            # サイズ不明は残す（安全側）
+            kept.append(path)
+            continue
+        short_side = min(size)
+        if short_side < min_short_side:
+            try:
+                path.unlink()
+            except Exception:
+                pass
+            removed += 1
+        else:
+            kept.append(path)
+    if removed:
+        print(f"    解像度フィルタ: {removed}枚を除外（短辺 < {min_short_side}px）")
+    return kept
+
+
+class _IrasutoyaSearchHTMLParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self._target_stack: list[str] = []
+        self.image_urls: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_map = {key: value or "" for key, value in attrs}
+        classes = set(attr_map.get("class", "").split())
+        if tag == "article" or "boxim" in classes:
+            self._target_stack.append(tag)
+
+        if not self._target_stack or tag != "img":
+            return
+
+        for key in ("src", "data-src", "data-original", "srcset"):
+            raw_value = attr_map.get(key, "").strip()
+            if not raw_value:
+                continue
+            if key == "srcset":
+                raw_value = raw_value.split(",", 1)[0].strip().split(" ", 1)[0]
+            self.image_urls.append(raw_value)
+            break
+
+    def handle_endtag(self, tag: str) -> None:
+        if self._target_stack and tag == self._target_stack[-1]:
+            self._target_stack.pop()
+
+
+def search_irasutoya(keyword: str, limit: int = 10) -> list[CandidateImage]:
+    search_url = f"https://www.irasutoya.com/search?q={urllib.parse.quote(keyword)}"
+    try:
+        req = urllib.request.Request(search_url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+
+        parser = _IrasutoyaSearchHTMLParser()
+        parser.feed(html)
+
+        candidates: list[CandidateImage] = []
+        seen_urls: set[str] = set()
+        for thumb_url in parser.image_urls:
+            if len(candidates) >= limit:
+                break
+            if not thumb_url or thumb_url.startswith("data:"):
+                continue
+
+            resolved_url = urllib.parse.urljoin(search_url, thumb_url)
+            full_url = resolved_url.replace("/s72-c/", "/s800/")
+            full_url = re.sub(r"/s\d+(?:-[a-z0-9]+)*/", "/s800/", full_url, count=1)
+            if full_url in seen_urls:
+                continue
+
+            seen_urls.add(full_url)
+            candidates.append(
+                CandidateImage(
+                    url=full_url,
+                    license="irasutoya (free for personal/commercial use with limits)",
+                    source="irasutoya",
+                    title=keyword,
+                    query=keyword,
+                    source_url=search_url,
+                    provider="irasutoya",
+                )
+            )
+
+        print(f"    いらすとや検索: {len(candidates)} 件の候補URLを取得")
+        return candidates
+    except Exception as e:
+        print(f"    いらすとや検索に失敗: {keyword} ({e})")
+        return []
 
 
 # ─── 顔検出 ───────────────────────────────────────────────────────────────
@@ -663,10 +834,26 @@ def fetch_candidates_for_person(name: str, person_dir: Path, n_candidates: int =
             if len(candidate_pool) >= target_pool_size:
                 break
 
-    # ─── フォールバック: Bing 画像検索（Commons/Openverse で不足した場合）───
+    # ─── フォールバック: DuckDuckGo → Bing（Commons/Openverse で不足した場合）───
     if len(candidate_pool) < n_candidates:
         shortage = n_candidates - len(candidate_pool)
-        print(f"  → Commons/Openverse で {len(candidate_pool)}件のみ取得。Bing検索でフォールバック（不足: {shortage}枚）")
+        print(f"  → Commons/Openverse で {len(candidate_pool)}件のみ取得。DuckDuckGo検索でフォールバック（不足: {shortage}枚）")
+        ddg_urls = _search_duckduckgo_images(name, need=shortage * 3)
+        for url in ddg_urls:
+            add_candidate(
+                CandidateImage(
+                    url=url,
+                    license="unknown (DuckDuckGo fallback - 手動確認必要)",
+                    source="duckduckgo",
+                    title=name,
+                    query=name,
+                    source_url=url,
+                )
+            )
+
+    if len(candidate_pool) < n_candidates:
+        shortage = n_candidates - len(candidate_pool)
+        print(f"  → DuckDuckGo でも不足。Bing検索でフォールバック（不足: {shortage}枚）")
         bing_urls = _search_bing_images(name, need=shortage * 3)
         for url in bing_urls:
             add_candidate(
@@ -715,13 +902,18 @@ def fetch_candidates_for_person(name: str, person_dir: Path, n_candidates: int =
 
 # ─── 顔検出フィルタ & スロット選別 ───────────────────────────────────────
 
-def select_images_by_face(downloaded: list[Path], n_needed: int) -> tuple[list[Path], list[str]]:
+def select_images_by_face(
+    downloaded: list[Path],
+    n_needed: int,
+    randomize: bool = True,
+) -> tuple[list[Path], list[str]]:
     """
     顔検出でフィルタし n_needed 枚を選ぶ。
     顔が検出されなかった画像（face_ng）はディスクから削除する。
     戻り値: (selected: list[Path], status: list[str])
       status は "ok" | "unverified"
     """
+    downloaded = filter_by_resolution(downloaded)
     face_ok, face_ng, face_unknown = [], [], []
     for image_path in downloaded:
         result = has_face(image_path)
@@ -745,6 +937,10 @@ def select_images_by_face(downloaded: list[Path], n_needed: int) -> tuple[list[P
         f"    顔検出: ✅ {len(face_ok)}枚 / ❓ {len(face_unknown)}枚（検出不能）/ "
         f"🗑 {deleted_count}枚（顔なし→削除）"
     )
+
+    if randomize:
+        random.shuffle(face_ok)
+        random.shuffle(face_unknown)
 
     selected: list[Path] = []
     status: list[str] = []
@@ -789,6 +985,17 @@ def extract_names_from_section(section_text: str) -> list[str]:
     return list(dict.fromkeys(names))
 
 
+def build_template_query(name: str, template_type: str, for_hook: bool = False) -> str:
+    if template_type == "adult-affiliate":
+        # adult-affiliate は人物写真フローの簡易別名として検索語だけ寄せる。
+        suffix = " モデル" if name.isascii() else " 女性 笑顔"
+        return f"{name}{suffix}"
+    if for_hook:
+        suffix = " portrait" if name.isascii() else " 笑顔"
+        return f"{name}{suffix}"
+    return name
+
+
 # ─── メイン ───────────────────────────────────────────────────────────────
 
 def run(
@@ -797,6 +1004,7 @@ def run(
     script_path: Path | None,
     candidates_per_person: int = 10,
     composition_id: str = "",
+    template_type: str = "person",
 ):
     materials_dir.mkdir(parents=True, exist_ok=True)
 
@@ -817,6 +1025,7 @@ def run(
     print(f"\n取得対象: {names}")
     print(f"候補画像の保管先: {candidate_base}")
     print(f"スロット配置先: {materials_dir}")
+    print(f"テンプレート種別: {template_type}")
 
     # ─── Step 1: 人物ごとサブフォルダに候補をダウンロード ───────────────
     print("\n" + "=" * 60)
@@ -828,30 +1037,105 @@ def run(
     hook_dir.mkdir(exist_ok=True)
     print(f"  [hook] フォルダ準備: {hook_dir}")
 
+    hook_output: Path | None = None
+    hook_status = "ok"
+    if template_type != "irasutoya" and names:
+        hook_query = build_template_query(names[0], template_type, for_hook=True)
+        print(f"  [hook] 検索クエリ: {hook_query}")
+        hook_downloaded = fetch_candidates_for_person(
+            hook_query,
+            hook_dir,
+            n_candidates=max(candidates_per_person, 1),
+        )
+        hook_downloaded = filter_by_resolution(hook_downloaded)
+        hook_selected, hook_statuses = select_images_by_face(hook_downloaded, 1)
+        if hook_selected:
+            hook_status = hook_statuses[0] if hook_statuses else "ok"
+            hook_output = materials_dir / f"00_hook{hook_selected[0].suffix}"
+            shutil.copy2(hook_selected[0], hook_output)
+            print(f"  → hook画像を配置: {hook_output.name}")
+        else:
+            print("  → hook用画像の自動選択に失敗。通常候補から補完します。")
+
     person_candidates: dict[str, list[Path]] = {}
     for name in names:
         person_dir = candidate_base / name
-        person_candidates[name] = fetch_candidates_for_person(
-            name,
-            person_dir,
-            n_candidates=candidates_per_person,
-        )
+        if template_type == "irasutoya":
+            person_dir.mkdir(parents=True, exist_ok=True)
+            n_candidates = max(candidates_per_person * OVERSAMPLE_FACTOR, 1)
+            print(f"\n  [{name}] いらすとや素材を検索・取得中... （目標: {n_candidates}枚）")
+            irasutoya_candidates = search_irasutoya(name, limit=n_candidates)
+            downloaded: list[Path] = []
+            downloaded_records: list[dict] = []
+            total_to_download = min(len(irasutoya_candidates), n_candidates)
+            for i, candidate in enumerate(irasutoya_candidates[:n_candidates]):
+                dest = person_dir / f"{i + 1:02d}{get_extension_from_url(candidate.url)}"
+                print(f"  → {i + 1}/{total_to_download} ダウンロード中... [{candidate.source}]")
+                if download_image(candidate.url, dest):
+                    downloaded.append(dest)
+                    record = asdict(candidate)
+                    record["local_path"] = dest.name
+                    downloaded_records.append(record)
+            save_person_metadata(
+                person_dir,
+                PersonSearchPlan(
+                    canonical_name=name,
+                    aliases=[name],
+                    commons_queries=[],
+                    commons_categories=[],
+                    depicts_queries=[],
+                    openverse_queries=[],
+                    seed_candidates=[],
+                ),
+                downloaded_records,
+                len(irasutoya_candidates),
+            )
+            person_candidates[name] = filter_by_resolution(downloaded)
+            print(f"  → ダウンロード完了: {len(person_candidates[name])} 枚")
+        else:
+            search_name = build_template_query(name, template_type)
+            person_candidates[name] = fetch_candidates_for_person(
+                search_name,
+                person_dir,
+                n_candidates=max(candidates_per_person * OVERSAMPLE_FACTOR, 1),
+            )
 
     # CTA 背景
     cta_dir = candidate_base / "_cta"
     cta_dir.mkdir(exist_ok=True)
     print("\n  [CTA背景] 検索中...")
     cta_file: Path | None = None
+    cta_candidates: list[CandidateImage] = []
     for filename in search_commons("stage spotlight dark background", limit=5):
         url, license_text = get_image_url(filename)
         if not url:
             continue
-        dest = cta_dir / f"01{get_extension_from_url(url)}"
-        if download_image(url, dest):
-            cta_file = dest
-            print(f"  → CTA背景を取得: {dest.name}")
+        cta_candidates.append(
+            CandidateImage(
+                url=url,
+                license=license_text or "",
+                source="commons",
+                title=filename,
+                query="stage spotlight dark background",
+                source_url=commons_file_url(filename),
+                provider="wikimedia-commons",
+            )
+        )
+        if len(cta_candidates) >= 3:
             break
-    if not cta_file:
+
+    cta_downloaded: list[Path] = []
+    for i, candidate in enumerate(cta_candidates, start=1):
+        dest = cta_dir / f"{i:02d}{get_extension_from_url(candidate.url)}"
+        print(f"  → CTA背景 {i}/{len(cta_candidates)} ダウンロード中... [{candidate.source}]")
+        if download_image(candidate.url, dest):
+            cta_downloaded.append(dest)
+
+    if cta_downloaded:
+        cta_file = max(cta_downloaded, key=lambda path: min(get_image_size(path) or (0, 0)))
+        cta_short_side = min(get_image_size(cta_file) or (0, 0))
+        print(f"  → CTA背景を選択: {cta_file.name} （短辺: {cta_short_side}px）")
+    else:
         print("  → CTA背景の自動取得に失敗しました（手動配置が必要）")
 
     # ─── Step 2: 顔検出でフィルタ → スロットへ配置 ──────────────────────
@@ -860,7 +1144,9 @@ def run(
     print("=" * 60)
 
     person_slot_count: dict[str, int] = {name: 0 for name in names}
-    for config in SLOT_CONFIG.values():
+    for slot, config in SLOT_CONFIG.items():
+        if slot == "00_hook" and hook_output is not None:
+            continue
         idx = config["person_idx"]
         if idx is not None and idx < len(names):
             person_slot_count[names[idx]] += 1
@@ -869,8 +1155,15 @@ def run(
     status_per_person: dict[str, list[str]] = {}
     for name in names:
         needed = person_slot_count[name]
-        print(f"\n  [{name}] 顔検出フィルタ中... （必要: {needed}枚）")
-        selected, status = select_images_by_face(person_candidates[name], needed)
+        if template_type == "irasutoya":
+            print(f"\n  [{name}] いらすとや素材を選別中... （必要: {needed}枚）")
+            sample_size = min(len(person_candidates[name]), needed)
+            selected = random.sample(person_candidates[name], sample_size) if sample_size else []
+            status = ["ok"] * len(selected)
+            print(f"    ランダム選別: {len(selected)}/{needed} 枚")
+        else:
+            print(f"\n  [{name}] 顔検出フィルタ中... （必要: {needed}枚）")
+            selected, status = select_images_by_face(person_candidates[name], needed)
         selected_per_person[name] = selected
         status_per_person[name] = status
         print(f"  → 選別結果: {len(selected)}/{needed} 枚")
@@ -880,7 +1173,16 @@ def run(
     needs_review: list[tuple[str, str, Path, str]] = []
     person_slot_idx: dict[str, int] = {name: 0 for name in names}
 
+    if hook_output is not None:
+        if hook_status == "ok":
+            success.append("00_hook")
+        else:
+            needs_review.append(("00_hook", names[0], hook_output, hook_status))
+
     for slot in SLOT_NAMES:
+        if slot == "00_hook" and hook_output is not None:
+            continue
+
         idx = SLOT_CONFIG[slot]["person_idx"]
 
         if idx is None:
@@ -960,6 +1262,13 @@ def main():
     parser.add_argument("--output-title", type=str, default="")
     parser.add_argument("--composition-id", type=str, default="", help="コンポジションID（日本語）。materials直下にこの名前のフォルダを作成する。")
     parser.add_argument("--candidates-per-person", type=int, default=10)
+    parser.add_argument(
+        "--template-type",
+        type=str,
+        default="person",
+        choices=["person", "irasutoya", "adult-affiliate"],
+        help="テンプレート種別。irasutoya=いらすとや素材、adult-affiliate=アダルトアフィリエイト用（人物写真）",
+    )
     args = parser.parse_args()
 
     if args.materials_dir:
@@ -979,6 +1288,7 @@ def main():
         args.script,
         candidates_per_person=max(args.candidates_per_person, 1),
         composition_id=args.composition_id,
+        template_type=args.template_type,
     )
 
 

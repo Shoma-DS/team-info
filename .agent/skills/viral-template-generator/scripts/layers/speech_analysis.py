@@ -42,7 +42,7 @@ def transcribe_with_faster_whisper(audio_path: Path) -> list[dict]:
         from faster_whisper import WhisperModel
         global _faster_whisper_model
         if _faster_whisper_model is None:
-            _faster_whisper_model = WhisperModel("large-v3", device="cpu", compute_type="int8")
+            _faster_whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
         model = _faster_whisper_model
         segments, _ = model.transcribe(str(audio_path), language="ja", word_timestamps=True)
         # 音声の総時間を取得して進捗バーに使う
@@ -78,7 +78,7 @@ def transcribe_with_faster_whisper(audio_path: Path) -> list[dict]:
     # fallback: openai-whisper
     try:
         import whisper
-        model = whisper.load_model("large-v3")
+        model = whisper.load_model("small")
         result = model.transcribe(str(audio_path), language="ja", word_timestamps=True)
         transcript = []
         for seg in result["segments"]:

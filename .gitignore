@@ -59,6 +59,10 @@ personal/markdown-plain-copy/
 # [personal] 2026-04-03
 inputs/viral-analysis/未分析/
 inputs/viral-analysis/output/転職_20260403/
+# [personal] 2026-04-04
+inputs/viral-analysis/output/転職_20260403/materials/
+# [personal] 2026-04-04
+Remotion/my-video/public/viral/内定が取れない人の特徴10選_20260404/
 
 # 開発モード設定（個人設定のため除外）
 .dev-mode
@@ -72,3 +76,8 @@ inputs/viral-analysis/output/転職_20260403/
 
 # [personal] 2026-04-03
 personal/discord-daily-webhook.json
+
+# [personal] 2026-04-04
+scripts/setup_calendar_auth.py
+scripts/run_daily_summary.py
+scripts/launch_plists/
