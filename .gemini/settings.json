@@ -1,10 +1,9 @@
 {
-  "contextFileName": "AGENTS.md",
   "context": {
-    "fileName": "AGENTS.md"
-  },
-  "fileFiltering": {
-    "respectGitIgnore": true,
-    "enableRecursiveFileSearch": true
+    "fileName": "AGENTS.md",
+    "fileFiltering": {
+      "respectGitIgnore": true,
+      "enableRecursiveFileSearch": true
+    }
   }
 }

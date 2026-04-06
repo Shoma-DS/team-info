@@ -33,6 +33,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 |-----------|------|
 | `アコリエル/` | acoriel チャンネルのレンダリング動画 |
 | `アコリエル/概要欄/` | acoriel チャンネルの YouTube 概要欄 MD |
+| `insta-company/` | Instagram AI会社のログ・調査メモ・投稿案 |
 | `jmty_posts/` | ジモティー投稿テキスト |
 | `寝ながらトラベル/` | sleep_travel チャンネルのレンダリング動画 |
 | `note記事/` | 愛され女子あゆみ の note 記事 MD |
@@ -114,6 +115,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | note-thumbnail-ayumi | 「愛され女子あゆみ」のnoteサムネイル（1280×670px）を生成する | `.agent/skills/common/note-thumbnail-ayumi/SKILL.md` |
 | daily-calendar-summary | 当日のGoogleカレンダー予定を取得しZoom URLを付与してDiscordへ朝の予定サマリーを送信する | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
 | md-to-docx | Markdownファイルを Word(.docx) に変換する。見出し・太字・箇条書き・水平線に対応 | `.agent/skills/common/md-to-docx/SKILL.md` |
+| insta-company-secretary-log | insta-company の秘書ログを作成し、社長メモ・ToDo・引き継ぎ事項を整理する | `.agent/skills/common/insta-company-secretary-log/SKILL.md` |
+| insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
+| insta-company-post-idea-generator | 秘書ログとリサーチログから Instagram 投稿案を content ログへ生成する | `.agent/skills/common/insta-company-post-idea-generator/SKILL.md` |
 
 ---
 
@@ -164,6 +168,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 複数 repo で共有ルール・共有スキルを一元管理したい | `shared-agent-assets` |
 | SessionStart Hook で shared repo を自動更新したい | `shared-agent-assets` |
 | 今日の team-info 開発メモを Git から作りたい | `team-info-daily-dev-memo` |
+| Instagram AI会社の秘書ログを作りたい | `insta-company-secretary-log` |
+| Instagram の競合・バズ調査ログを作りたい | `insta-company-research-brief` |
+| Instagram の投稿ネタや構成案を出したい | `insta-company-post-idea-generator` |
 | Git操作をしたい | `git-workflow` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |
 | 既存サイトをそっくり Next.js で作り直したい | `clone-website` |

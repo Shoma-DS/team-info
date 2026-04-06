@@ -81,3 +81,15 @@ personal/discord-daily-webhook.json
 scripts/setup_calendar_auth.py
 scripts/run_daily_summary.py
 scripts/launch_plists/
+
+# [personal] 2026-04-06
+# GWS CLI の個人認証ファイルを repo 内に誤配置した場合は除外
+.gws/
+gws/
+**/client_secret.json
+**/credentials.json
+**/credentials.enc
+**/.encryption_key
+
+# [personal] 2026-04-06
+personal/openempire/
