@@ -35,6 +35,7 @@ import pathlib
 import subprocess
 import uuid
 from datetime import datetime, timezone
+from typing import Optional, List, Dict, Tuple
 
 # ── 設定ファイルのパス ──────────────────────────────────────────
 SCRIPT_DIR = pathlib.Path(__file__).parent
@@ -77,7 +78,7 @@ def get_zoom_token() -> str:
         return json.loads(resp.read())["access_token"]
 
 
-def create_zoom_meeting(token: str, title: str, start_iso: str, duration_min: int) -> str | None:
+def create_zoom_meeting(token: str, title: str, start_iso: str, duration_min: int) -> Optional[str]:
     """Zoom ミーティングを作成して join_url を返す。失敗時は None"""
     url = "https://api.zoom.us/v2/users/me/meetings"
     payload = json.dumps({
@@ -122,7 +123,7 @@ def list_zoom_meetings(token: str) -> list[dict]:
         return []
 
 
-def normalize_zoom_datetime(value: str | None) -> datetime | None:
+def normalize_zoom_datetime(value: Optional[str]) -> Optional[datetime]:
     """Zoom / Calendar の ISO 文字列を UTC datetime にそろえる"""
     if not value:
         return None
@@ -135,7 +136,7 @@ def normalize_zoom_datetime(value: str | None) -> datetime | None:
         return None
 
 
-def find_existing_zoom_meeting(meetings: list[dict], title: str, start_iso: str) -> str | None:
+def find_existing_zoom_meeting(meetings: List[dict], title: str, start_iso: str) -> Optional[str]:
     """同タイトル・同開始時刻の Zoom scheduled meeting があれば join_url を返す"""
     target_dt = normalize_zoom_datetime(start_iso)
     if not target_dt:
@@ -156,7 +157,7 @@ def find_existing_zoom_meeting(meetings: list[dict], title: str, start_iso: str)
 
 # ── Google Calendar via GWS CLI ────────────────────────────────
 
-def gws_env() -> dict[str, str]:
+def gws_env() -> Dict[str, str]:
     import os
 
     env = dict(os.environ)
@@ -187,7 +188,7 @@ def gws_event_patch(calendar_id: str, event_id: str, body: dict) -> bool:
     return True
 
 
-def gws_event_get(calendar_id: str, event_id: str) -> dict | None:
+def gws_event_get(calendar_id: str, event_id: str) -> Optional[dict]:
     """GWS CLI でカレンダーイベントを取得する"""
     result = subprocess.run(
         [
@@ -212,7 +213,7 @@ def gws_event_get(calendar_id: str, event_id: str) -> dict | None:
         return None
 
 
-def merge_private_properties(event: dict | None, updates: dict[str, str]) -> dict:
+def merge_private_properties(event: Optional[dict], updates: Dict[str, str]) -> dict:
     """既存イベントの private extendedProperties を保持したまま更新する"""
     existing = ((event or {}).get("extendedProperties") or {}).get("private") or {}
     merged = dict(existing)
@@ -220,7 +221,7 @@ def merge_private_properties(event: dict | None, updates: dict[str, str]) -> dic
     return {"extendedProperties": {"private": merged}}
 
 
-def try_acquire_zoom_creation_lock(event: dict) -> tuple[bool, dict | None]:
+def try_acquire_zoom_creation_lock(event: dict) -> Tuple[bool, Optional[dict]]:
     """同時実行時に 1 つだけが Zoom 作成に進むようイベント上でロックする"""
     event_id = event.get("event_id")
     calendar_id = event.get("calendar_id", CALENDAR_ID)
@@ -277,7 +278,7 @@ def build_zoom_description_block(meeting_url: str, share_message: str) -> str:
     ])
 
 
-def append_zoom_message(description: str | None, meeting_url: str, share_message: str) -> str:
+def append_zoom_message(description: Optional[str], meeting_url: str, share_message: str) -> str:
     """既存説明欄へ Zoom URL と送信用メッセージを追記する"""
     base = (description or "").rstrip()
     block = build_zoom_description_block(meeting_url, share_message)
@@ -320,7 +321,7 @@ _URL_PATTERNS = [
     r'https://meet\.google\.com/[\w-]+',
 ]
 
-def extract_meeting_url(description: str | None) -> str | None:
+def extract_meeting_url(description: Optional[str]) -> Optional[str]:
     """説明文から Zoom / Meet の URL を探して返す"""
     if not description:
         return None
@@ -364,20 +365,20 @@ def main() -> None:
     data = json.loads(raw)
 
     date_str = data.get("date", datetime.now().strftime("%Y-%m-%d"))
-    events_raw: list[dict] = data.get("events", [])
+    events_raw: List[dict] = data.get("events", [])
 
     all_day_titles = [e["title"] for e in events_raw if e.get("allDay")]
     timed_events   = [e for e in events_raw if not e.get("allDay")]
 
     # Zoom トークン取得（時刻付き予定がある場合のみ）
-    zoom_token: str | None = None
+    zoom_token: Optional[str] = None
     if timed_events:
         try:
             zoom_token = get_zoom_token()
             print("[Zoom] 認証成功")
         except Exception as e:
             print(f"[Zoom] 認証失敗（Zoom なしで続行）: {e}", file=sys.stderr)
-    zoom_meetings: list[dict] = list_zoom_meetings(zoom_token) if zoom_token else []
+    zoom_meetings: List[dict] = list_zoom_meetings(zoom_token) if zoom_token else []
 
     # 各イベントに Zoom URL を付与
     processed = []

@@ -97,6 +97,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/team-info-setup/repo-adapted-tool-import/SKILL.md` |
 | obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin、`.claude/` 初期設定、初期 subagent 雛形を整える | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` |
 | shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/team-info-setup/shared-agent-assets/SKILL.md` |
+| markmap-markdown-writer | Markmap 拡張で崩れにくい Markdown を作る。説明資料や設定メモを mindmap 向けの見出し構造へ整理する | `.agent/skills/common/markmap-markdown-writer/SKILL.md` |
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
 
 ---
@@ -167,6 +168,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Obsidian の active vault に Claudian を入れたい | `obsidian-claudian` |
 | 複数 repo で共有ルール・共有スキルを一元管理したい | `shared-agent-assets` |
 | SessionStart Hook で shared repo を自動更新したい | `shared-agent-assets` |
+| Markmap 用の Markdown を作りたい | `markmap-markdown-writer` |
 | 今日の team-info 開発メモを Git から作りたい | `team-info-daily-dev-memo` |
 | Instagram AI会社の秘書ログを作りたい | `insta-company-secretary-log` |
 | Instagram の競合・バズ調査ログを作りたい | `insta-company-research-brief` |

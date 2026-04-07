@@ -97,7 +97,7 @@ Step 6: Remotion で動画レンダリング
 ### Step 2: 台本を選択
 
 - 台本: `Remotion/scripts/voice_scripts/` 内の `.md` ファイルを走査して番号付きで提示
-- かな版（`_kana.md`）がない場合は先に作成する（読み間違い防止）
+- かな版（`_kana.md`）がな　い場合は先に作成する（読み間違い防止）
 
 ### Step 3: 背景画像生成（Pixabay）
 
