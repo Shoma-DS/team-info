@@ -16,7 +16,7 @@ import {
 	splitJapaneseSentences,
 } from './textLayout';
 
-type SlideLayout =
+export type SlideLayout =
 	| 'hook'
 	| 'section'
 	| 'evidence'
@@ -25,7 +25,7 @@ type SlideLayout =
 	| 'closing'
 	| 'profile';
 
-type SlideEntry = {
+export type SlideEntry = {
 	index: number;
 	text: string;
 	image: string | null;

@@ -84,4 +84,10 @@ fi
 OUTPUT_PATH="$UNIFIED_OUTPUT_DIR/$(basename "$OUTPUT_NAME")"
 
 cd "$PROJECT_DIR"
-npx remotion render src/index.ts "$COMPOSITION_ID" "$OUTPUT_PATH" "${PROPS_ARG[@]}"
+npx remotion render src/index.ts "$COMPOSITION_ID" "$OUTPUT_PATH" ${PROPS_ARG[@]+"${PROPS_ARG[@]}"}
+
+# -----------------------------------------------------------------------------
+# YouTube Upload Prompt (Optional)
+# -----------------------------------------------------------------------------
+echo ""
+python3 "$ROOT_DIR/scripts/post_render_upload_prompt.py" --file "$OUTPUT_PATH"

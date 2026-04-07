@@ -99,6 +99,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/team-info-setup/shared-agent-assets/SKILL.md` |
 | markmap-markdown-writer | Markmap 拡張で崩れにくい Markdown を作る。説明資料や設定メモを mindmap 向けの見出し構造へ整理する | `.agent/skills/common/markmap-markdown-writer/SKILL.md` |
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
+| youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
 
 ---
 
@@ -184,3 +185,5 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |
 | バズるショート動画テンプレを作りたい | `viral-template-generator` |
 | X(Twitter)の投稿を作りたい | `x-post-writer` |
+| YouTubeに動画をアップロードしたい | `youtube-auto-upload` |
+| 動画の公開予約をしたい | `youtube-auto-upload` |

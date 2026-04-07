@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 LRC_RE = re.compile(r"^\[(\d{2}):(\d{2})[.:](\d{2})\](.*)$")
-HEADER_RE = re.compile(r"^\[(.+)\]$")
+HEADER_RE = re.compile(r"^[\[【](.+)[\]】]$")
 TOKEN_RE = re.compile(r"[A-Za-z0-9'’]+|[一-龥々〆〤ぁ-んァ-ヶー]+|[^\s]")
 
 

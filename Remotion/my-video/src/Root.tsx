@@ -1,8 +1,9 @@
 import { Composition, Folder } from "remotion";
 import { AcoRielLyricCover, AcoRielLyricCoverMultiBG } from "./AcoRielLyricCover";
-import { CanvaSlideshow } from "./CanvaSlideshow";
+import { CanvaSlideshow, type SlideEntry } from "./CanvaSlideshow";
 import { SleepTravelLong } from "./SleepTravelLong";
-import chiseigakuSlides from "../public/assets/slide_images/地政学/manifest.json";
+// import chiseigakuSlides from "../public/assets/slide_images/地政学/manifest.json";
+const chiseigakuSlides: SlideEntry[] = [];
 import { ViralVideo as ViralVideoGachi } from "./viral/アダルトアフィリ/ガチで脱いだ女性芸能人3選_20260313";
 import { ViralVideoJimusho } from "./viral/アダルトアフィリ/事務所に売られた芸能人3選_20260316";
 import {
@@ -87,6 +88,20 @@ export const RemotionRoot: React.FC = () => {
             songTitle: "Tomorrow never knows",
             songArtist: "Mr.Children",
             audioAssetPath: "assets/channels/acoriel/songs/Tomorrow_never_knows.mp3",
+          }}
+        />
+        <Composition
+          id="AcoRiel-Love-so-sweet-MultiBG"
+          component={AcoRielLyricCoverMultiBGSafe}
+          durationInFrames={8141}
+          fps={30}
+          width={1920}
+          height={1080}
+          defaultProps={{
+            songFolder: "songs/Love_so_sweet",
+            songTitle: "Love so sweet",
+            songArtist: "嵐",
+            prerenderedBgVideo: "bg_prerendered_seed1334449256.mp4",
           }}
         />
       </Folder>
