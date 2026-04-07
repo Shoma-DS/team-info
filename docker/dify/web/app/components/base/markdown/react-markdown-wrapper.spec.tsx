@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react'
 import { render, screen } from '@testing-library/react'
+import { markdownToMermaidMindmap } from './markdown-utils'
 import { ReactMarkdownWrapper } from './react-markdown-wrapper'
 
 vi.mock('@/app/components/base/markdown-blocks', () => ({
@@ -105,5 +106,45 @@ describe('ReactMarkdownWrapper', () => {
       expect(screen.getByText('italic text')).toBeInTheDocument()
       expect(document.querySelector('em')).not.toBeNull()
     })
+  })
+})
+
+describe('markdownToMermaidMindmap', () => {
+  it('creates a mindmap from headings and nested lists', () => {
+    const result = markdownToMermaidMindmap([
+      '# Plan',
+      '## Research',
+      '- Competitors',
+      '  - Pricing',
+      '## Build',
+      '- UI',
+    ].join('\n'))
+
+    expect(result).toBe([
+      'mindmap',
+      '  root((Plan))',
+      '    Research',
+      '      Competitors',
+      '        Pricing',
+      '    Build',
+      '      UI',
+    ].join('\n'))
+  })
+
+  it('falls back to a document root when there are multiple top-level sections', () => {
+    const result = markdownToMermaidMindmap([
+      '## Alpha',
+      '- One',
+      '## Beta',
+      '- Two',
+    ].join('\n'))
+
+    expect(result).toContain('  root((Document))')
+    expect(result).toContain('    Alpha')
+    expect(result).toContain('    Beta')
+  })
+
+  it('returns null when the markdown has no outline structure', () => {
+    expect(markdownToMermaidMindmap('just a paragraph')).toBeNull()
   })
 })

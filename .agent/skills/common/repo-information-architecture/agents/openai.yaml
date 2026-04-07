@@ -1,0 +1,3 @@
+interface:
+  display_name: "Repo Information Architecture"
+  short_description: "Rework repo structure, reduce overlap, and improve findability"

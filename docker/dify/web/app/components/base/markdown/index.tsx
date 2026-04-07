@@ -1,11 +1,16 @@
+'use client'
+
 import type { ReactMarkdownWrapperProps, SimplePluginInfo } from './react-markdown-wrapper'
 import { flow } from 'es-toolkit/compat'
 import dynamic from 'next/dynamic'
+import { useEffect, useMemo, useState } from 'react'
+import ActionButton, { ActionButtonState } from '@/app/components/base/action-button'
 import { cn } from '@/utils/classnames'
-import { preprocessLaTeX, preprocessThinkTag } from './markdown-utils'
+import { markdownToMermaidMindmap, preprocessLaTeX, preprocessThinkTag } from './markdown-utils'
 import 'katex/dist/katex.min.css'
 
 const ReactMarkdown = dynamic(() => import('./react-markdown-wrapper').then(mod => mod.ReactMarkdownWrapper), { ssr: false })
+const Flowchart = dynamic(() => import('@/app/components/base/mermaid'), { ssr: false })
 
 /**
  * @fileoverview Main Markdown rendering component.
@@ -26,16 +31,48 @@ export const Markdown = (props: MarkdownProps) => {
     preprocessThinkTag,
     preprocessLaTeX,
   ])(props.content)
+  const mindmapCode = useMemo(() => markdownToMermaidMindmap(props.content), [props.content])
+  const [displayMode, setDisplayMode] = useState<'mindmap' | 'markdown'>(mindmapCode ? 'mindmap' : 'markdown')
+
+  useEffect(() => {
+    setDisplayMode(mindmapCode ? 'mindmap' : 'markdown')
+  }, [mindmapCode])
 
   return (
     <div className={cn('markdown-body', '!text-text-primary', props.className)}>
-      <ReactMarkdown
-        pluginInfo={pluginInfo}
-        latexContent={latexContent}
-        customComponents={customComponents}
-        customDisallowedElements={props.customDisallowedElements}
-        rehypePlugins={props.rehypePlugins}
-      />
+      {mindmapCode && (
+        <div className="mb-3 flex items-center justify-end gap-2">
+          <ActionButton
+            size="xs"
+            state={displayMode === 'mindmap' ? ActionButtonState.Active : ActionButtonState.Default}
+            onClick={() => setDisplayMode('mindmap')}
+          >
+            Mindmap
+          </ActionButton>
+          <ActionButton
+            size="xs"
+            state={displayMode === 'markdown' ? ActionButtonState.Active : ActionButtonState.Default}
+            onClick={() => setDisplayMode('markdown')}
+          >
+            Markdown
+          </ActionButton>
+        </div>
+      )}
+      {displayMode === 'mindmap' && mindmapCode
+        ? (
+            <div className="overflow-x-auto rounded-2xl border border-divider-subtle bg-components-panel-bg p-3">
+              <Flowchart PrimitiveCode={mindmapCode} />
+            </div>
+          )
+        : (
+            <ReactMarkdown
+              pluginInfo={pluginInfo}
+              latexContent={latexContent}
+              customComponents={customComponents}
+              customDisallowedElements={props.customDisallowedElements}
+              rehypePlugins={props.rehypePlugins}
+            />
+          )}
     </div>
   )
 }

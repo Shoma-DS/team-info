@@ -37,6 +37,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | `jmty_posts/` | ジモティー投稿テキスト |
 | `寝ながらトラベル/` | sleep_travel チャンネルのレンダリング動画 |
 | `note記事/` | 愛され女子あゆみ の note 記事 MD |
+| `gws-dashboard/` | gws CLI で取得したスプレッドシート可視化HTML |
 
 新規チャンネル・新規用途の場合は上記に追加し、このテーブルも更新すること。
 
@@ -97,9 +98,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/team-info-setup/repo-adapted-tool-import/SKILL.md` |
 | obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin、`.claude/` 初期設定、初期 subagent 雛形を整える | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` |
 | shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/team-info-setup/shared-agent-assets/SKILL.md` |
+| repo-information-architecture | repo 全体のフォルダ構成・ファイル配置・スキル配置を整理し、重複役割の統合、検索性向上、トークン節約まで見据えて情報設計を見直す起点スキル | `.agent/skills/common/repo-information-architecture/SKILL.md` |
 | markmap-markdown-writer | Markmap 拡張で崩れにくい Markdown を作る。説明資料や設定メモを mindmap 向けの見出し構造へ整理する | `.agent/skills/common/markmap-markdown-writer/SKILL.md` |
+| vscode-extension-workflow | VS Code 系エディタの拡張機能を作る・改造する・ローカル反映する作業を、環境差分で迷わず進める | `.agent/skills/common/vscode-extension-workflow/SKILL.md` |
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
+| gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/common/gws-sheets-html-dashboard/SKILL.md` |
+| gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選び、予定追加と返信文作成まで行う | `.agent/skills/common/gws-calendar-booking-reply/SKILL.md` |
 
 ---
 
@@ -120,6 +125,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | insta-company-secretary-log | insta-company の秘書ログを作成し、社長メモ・ToDo・引き継ぎ事項を整理する | `.agent/skills/common/insta-company-secretary-log/SKILL.md` |
 | insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
 | insta-company-post-idea-generator | 秘書ログとリサーチログから Instagram 投稿案を content ログへ生成する | `.agent/skills/common/insta-company-post-idea-generator/SKILL.md` |
+| monthly-kpi-planner | 今月のKPIをmarkdownで一覧化し、先月比/KPI比を軸にした評価・ファネル転換率の再計算・週次アクションスケジュール・Notion共有用のKPI Hub作成を行う | `.agent/skills/common/monthly-kpi-planner/SKILL.md` |
 
 ---
 
@@ -170,11 +176,21 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 複数 repo で共有ルール・共有スキルを一元管理したい | `shared-agent-assets` |
 | SessionStart Hook で shared repo を自動更新したい | `shared-agent-assets` |
 | Markmap 用の Markdown を作りたい | `markmap-markdown-writer` |
+| VS Code / Cursor / antigravity の拡張機能を作りたい | `vscode-extension-workflow` |
+| 拡張機能のソース repo と実際の反映先フォルダがどこか迷う | `vscode-extension-workflow` |
+| 既存拡張をローカルで改造して読み込ませたい | `vscode-extension-workflow` |
+| gws CLI でスプレッドシートURLから対話的に条件を決めて HTML グラフを作りたい | `gws-sheets-html-dashboard` |
+| gws CLI で候補日時メッセージに合わせて予定を決め、カレンダー追加と返信文作成をしたい | `gws-calendar-booking-reply` |
 | 今日の team-info 開発メモを Git から作りたい | `team-info-daily-dev-memo` |
 | Instagram AI会社の秘書ログを作りたい | `insta-company-secretary-log` |
 | Instagram の競合・バズ調査ログを作りたい | `insta-company-research-brief` |
 | Instagram の投稿ネタや構成案を出したい | `insta-company-post-idea-generator` |
+| 今月のKPIを整理して進捗を確認したい | `monthly-kpi-planner` |
+| KPIから今月のスケジュールを組みたい | `monthly-kpi-planner` |
 | Git操作をしたい | `git-workflow` |
+| repo 全体のフォルダ構成を整理したい | `repo-information-architecture` |
+| 重複した役割のフォルダを減らしたい | `repo-information-architecture` |
+| 検索性を上げて AI の探索トークンを節約したい | `repo-information-architecture` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |
 | 既存サイトをそっくり Next.js で作り直したい | `clone-website` |
 | サイトを pixel-perfect に複製したい | `clone-website` |
