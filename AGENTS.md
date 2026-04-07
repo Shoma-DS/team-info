@@ -49,7 +49,7 @@
 | `/c` | `.agent/skills/common/git-workflow/SKILL.md` | コミットのみ（push・PRなし） |
 | `/git` | `.agent/skills/common/git-workflow/SKILL.md` | コミット＋プッシュ（Discord報告） |
 | `/git-nd`| `.agent/skills/common/git-workflow/SKILL.md` | コミット＋プッシュ（Discord報告なし） |
-| `/pull` | origin/main から `pull --rebase` | 最新ソースの同期 |
+| `/pull` | `git fetch origin` 後、更新があるときだけ `pull --rebase` | 最新ソースの同期 |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` | 環境構築・外部ツール・MCP導入 |
 | `/reach` | `.agent/skills/common/agent-reach/SKILL.md` | マーケット調査・横断リサーチ |
 | `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |
@@ -63,7 +63,7 @@
 - `/git` の push / プルリクエスト完了後は、ユーザーに Discord 報告を送るか確認し、送ると決まった場合だけ `discord-git-report` で Discord へ報告する。Webhook が未設定の場合のみスキップしてよい。`/git-nd` では報告しない。
 - `Hooks` の shared 設定は `.claude/settings.json` に置き、personal 通知や個人連携は `.claude/settings.local.json` に分ける。
 - shared hook は高速・read-only を原則とし、外部送信、秘密情報の読取、自動編集、Docker / Web サーバー / VOICEVOX の自動起動、長時間処理を入れない。
-- `SessionStart` hook では、repo 文脈の注入（`worked-before-status`・`.dev-mode`）と、**その日の初回セッション時のみ `git fetch` → `pull --rebase`** を行う。それ以外の同期、ファイル作成、`.gitignore` 更新は自動では行わない。
+- `SessionStart` hook では、repo 文脈の注入（`worked-before-status`・`.dev-mode`）と、**その日の初回セッション時のみ `git fetch` を行い、更新があるときだけ `pull --rebase`** を行う。それ以外の同期、ファイル作成、`.gitignore` 更新は自動では行わない。
 - `/loop` と `/schedule` は、既定では読み取り・見守り・リマインド用途に限定する。ファイル編集、Git 操作、Docker / サーバー操作、ブラウザ自動操作、外部 API 送信を定期実行する前は必ずユーザー確認を取る。
 - `/loop` は session-scoped の一時運用として扱い、恒久運用やチーム共有の定期実行は Cloud / Desktop / CI 側で別設計する。
 - `Remote Control` と mobile は、ローカル session の延長として扱い、既存の permission、`AGENTS.md`、hook ルールをそのまま引き継ぐ。
@@ -87,11 +87,14 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 
 **このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
 
-セッション開始時（会話の最初のターン）に、**その日まだ pull していない場合** は必ず最初に `/pull`（`git fetch origin` → `git pull --rebase`）を実行すること。
+セッション開始時（会話の最初のターン）に、**その日まだ同期確認していない場合** は必ず最初に `/pull` を実行すること。`/pull` では、まず `git fetch origin` を行い、`origin/main` に更新があるときだけ `git pull --rebase` を行う。
 
 - Claude Code: `SessionStart` hook で自動実行（`.claude/settings.json` 参照）
 - Gemini CLI / Codex など hook 未対応のエージェント: 会話の最初のターンで手動相当の pull コマンドを実行してからタスクに入ること
-- 当日すでに pull 済みの場合はスキップしてよい
+- `git fetch origin` の時点で `origin/main` に更新がなければ、その日は `pull --rebase` を省略して、そのまま作業に入ってよい
+- `pull --rebase` が未コミット変更で止まる場合は、先に `git stash push -u` で一時退避してから `pull --rebase` を行い、同期後に `git stash pop` で戻すこと
+- `stash pop` で競合が起きた場合は、差分の内容を簡潔に説明してからユーザー確認を取り、勝手に片方へ寄せないこと
+- 当日すでに `fetch` 済みで、その後も同期確認が不要ならスキップしてよい
 - pull が失敗した場合はユーザーに通知し、手動での対応を促す
 
 ---
