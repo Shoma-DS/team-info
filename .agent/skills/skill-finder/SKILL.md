@@ -104,6 +104,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
 | gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/common/gws-sheets-html-dashboard/SKILL.md` |
+| gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
 | gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選び、予定追加と返信文作成まで行う | `.agent/skills/common/gws-calendar-booking-reply/SKILL.md` |
 | agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
 
@@ -182,6 +183,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 拡張機能のソース repo と実際の反映先フォルダがどこか迷う | `vscode-extension-workflow` |
 | 既存拡張をローカルで改造して読み込ませたい | `vscode-extension-workflow` |
 | gws CLI でスプレッドシートURLから対話的に条件を決めて HTML グラフを作りたい | `gws-sheets-html-dashboard` |
+| gws CLI でシートの重複行を調べて既存列や新規列へ `重複` を書きたい | `gws-sheets-duplicate-checker` |
 | gws CLI で候補日時メッセージに合わせて予定を決め、カレンダー追加と返信文作成をしたい | `gws-calendar-booking-reply` |
 | 今日の team-info 開発メモを Git から作りたい | `team-info-daily-dev-memo` |
 | Instagram AI会社の秘書ログを作りたい | `insta-company-secretary-log` |
