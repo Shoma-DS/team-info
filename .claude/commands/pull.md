@@ -1,5 +1,6 @@
-これは Claude Code 用の互換ラッパーです。正本は `AGENTS.md` の `/pull` ルールです。
+これは Claude Code 用の互換ラッパーです。正本は `AGENTS.md` と `.agent/skills/common/agent-org-ceo/SKILL.md` です。
 
-`/pull` として動作してください。
-`origin` から `fetch` と `pull --rebase origin main` を行い、競合が出たらユーザーに伝えて停止してください。
-完了後は、ブランチ名と取り込んだコミット数、またはすでに最新である旨だけを短く報告してください。
+まず `AGENTS.md` を読み、`/pull` のルールを確認してください。
+次に `.agent/skills/common/agent-org-ceo/SKILL.md` を読み込み、agent-org-ceo スキルとして動作してください。
+ユーザーをオーナー、あなたを CEO として扱い、`/pull` の意味に応じて必要な役割別メンバーだけを起こしてください。
+CEO 自身は全スキル本文を最初から読まず、役割表を見て必要な専門スキルだけを担当メンバーへ割り当ててください。

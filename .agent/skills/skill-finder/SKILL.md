@@ -105,6 +105,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
 | gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/common/gws-sheets-html-dashboard/SKILL.md` |
 | gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選び、予定追加と返信文作成まで行う | `.agent/skills/common/gws-calendar-booking-reply/SKILL.md` |
+| agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
 
 ---
 
@@ -167,6 +168,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |
+| CEO 配下に役割別メンバーを作ってスキル探索を軽くしたい | `agent-org-ceo` |
 | X / Reddit / YouTube / GitHub / 小紅書などを横断調査したい | `agent-reach` |
 | OpenClaw に team-info 版 Agent-Reach を入れたい | `agent-reach` |
 | 外部ツールや外部 repo を team-info 向けに取り込みたい | `repo-adapted-tool-import` |

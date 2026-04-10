@@ -35,11 +35,12 @@
 
 ## Slash Commands
 
-ユーザーが `/コマンド名` を入力したときは、対応するスキルを即座に読み込んで動作すること。
+ユーザーが `/コマンド名` を入力したときは、**必ず最初に** `.agent/skills/common/agent-org-ceo/SKILL.md` を読み込み、CEO が受付してから必要な専門スキルへ振り分けること。
 
 - Gemini CLI の native 実装は `.gemini/commands/*.toml` を使い、`/git` のようにそのまま呼び出す。
 - Codex の native 実装は `~/.codex/prompts/*.md` を使い、`/prompts:git` のように `prompts:` 名前空間で呼び出す。
 - どの CLI でも、コマンドの意味・正本ロジックはこの表と `AGENTS.md` / `.agent/skills/**/SKILL.md` に合わせること。
+- 表の「読み込むスキル」は、CEO が次に参照・委譲する専門スキルとして扱う。slash command の入口自体は常に CEO が受ける。
 - `.gemini/commands/` と `.codex/prompts/` は `AGENTS.md` から作るアダプタとして扱い、手でロジックを増やさない。
 - Claude Code の built-in commands（例: `/loop`, `/schedule`, `/btw`, `/branch`, `/mobile`, `/remote-control`, `/hooks`, `/chrome`, `/voice`）は、repo 独自 slash command とは別枠の native 機能として扱う。
 - repo 側で Claude Code native 名と衝突する名前を新規採用しない。既存衝突を見つけたら、先に `AGENTS.md` と人向けマニュアルへ移行方針を書く。
@@ -52,6 +53,7 @@
 | `/pull` | `git fetch origin` 後、更新があるときだけ `pull --rebase` | 最新ソースの同期 |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` | 環境構築・外部ツール・MCP導入 |
 | `/reach` | `.agent/skills/common/agent-reach/SKILL.md` | マーケット調査・横断リサーチ |
+| `/ceo` | `.agent/skills/common/agent-org-ceo/SKILL.md` | オーナー配下の CEO と役割別メンバーで仕事を振り分ける |
 | `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |
 | `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` | ジモティー投稿作成（工場/在宅） |
 | `/web` | `.agent/skills/web-design/frontend-design/SKILL.md` | サイト制作・複製・イラスト取得 |
