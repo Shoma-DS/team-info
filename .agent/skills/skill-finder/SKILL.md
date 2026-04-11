@@ -103,9 +103,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | vscode-extension-workflow | VS Code 系エディタの拡張機能を作る・改造する・ローカル反映する作業を、環境差分で迷わず進める | `.agent/skills/common/vscode-extension-workflow/SKILL.md` |
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
-| gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/common/gws-sheets-html-dashboard/SKILL.md` |
+| gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/personal/deguchishouma/gws-sheets-html-dashboard/SKILL.md` |
 | gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
-| gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選び、予定追加と返信文作成まで行う | `.agent/skills/common/gws-calendar-booking-reply/SKILL.md` |
+| gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選び、予定追加と返信文作成まで行う | `.agent/skills/personal/deguchishouma/gws-calendar-booking-reply/SKILL.md` |
 | agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
 
 ---
@@ -127,7 +127,14 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | insta-company-secretary-log | insta-company の秘書ログを作成し、社長メモ・ToDo・引き継ぎ事項を整理する | `.agent/skills/common/insta-company-secretary-log/SKILL.md` |
 | insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
 | insta-company-post-idea-generator | 秘書ログとリサーチログから Instagram 投稿案を content ログへ生成する | `.agent/skills/common/insta-company-post-idea-generator/SKILL.md` |
-| monthly-kpi-planner | 今月のKPIをmarkdownで一覧化し、先月比/KPI比を軸にした評価・ファネル転換率の再計算・週次アクションスケジュール・Notion共有用のKPI Hub作成を行う | `.agent/skills/common/monthly-kpi-planner/SKILL.md` |
+| monthly-kpi-planner | 今月のKPIをmarkdownで一覧化し、先月比/KPI比を軸にした評価・ファネル転換率の再計算・週次アクションスケジュール・Notion共有用のKPI Hub作成を行う | `.agent/skills/personal/deguchishouma/monthly-kpi-planner/SKILL.md` |
+
+---
+
+### 💬 discord/（Discord連携系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| discord-role-checker | Discord サーバーのメンバーとロールを取得し、Markmap（マインドマップ）形式の Markdown を自動生成する | `.agent/skills/discord/discord-role-checker/SKILL.md` |
 
 ---
 

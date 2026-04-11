@@ -18,8 +18,14 @@
 
 ### 個人開発モード（`.dev-mode` の内容が `personal`）
 
-- 新規作成したファイル・フォルダのパスを、**作成直後に** `.gitignore` へ追記すること
-- 追記形式: `# [personal] {作成日YYYY-MM-DD}` コメントとともにパスを追加
+- 新規作成したファイル・フォルダは、原則 `personal/<account>/` 配下へ置くこと
+- `<account>` は Git アカウント名を元に決める。`git config user.name` を小文字化し、空白や記号を取り除いた名前を使う
+- 例: `DEGUCHI SHOMA` → `personal/deguchishouma/`
+- `.gitignore` は `personal/*/` のようなアカウント単位の除外を正本とし、個別パスの追記は行わない
+- 個人用の scripts / skills / outputs が別 namespace に必要なときも、同じく `<account>` フォルダを切る
+  - 例: `scripts/personal/deguchishouma/`
+  - 例: `.agent/skills/personal/deguchishouma/`
+  - 例: `outputs/personal/deguchishouma/`
 - 既存ファイルへの変更はこのルールの対象外
 
 ### モード切り替えコマンド

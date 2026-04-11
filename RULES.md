@@ -13,6 +13,7 @@
 | スキルフォルダ | kebab-case（英語） | `acoriel-video-description/` |
 | 入力フォルダ | kebab-case（英語） | `inputs/viral-analysis/` |
 | 出力フォルダ | kebab-case（英語） | `outputs/acoriel/descriptions/` |
+| 個人アカウントフォルダ | lowercase 英数字 | `personal/deguchishouma/` |
 | Remotion Composition ID | `{Channel}-{Name}-{Variant}` | `AcoRiel-Diamond-Princess-MultiBG` |
 | 出力ファイル（動画・音声） | スネークケース or ハイフン区切り | `output.mp4`, `bg_prerendered.mp4` |
 
@@ -26,7 +27,6 @@
 ```
 team-info/
 ├── .agent/skills/         AIスキル定義（SKILL.md + スクリプト）
-├── AirhtMate/             AirthMate 案件の資料・LP・営業台本・納品物
 ├── inputs/                解析・生成の素材インボックス
 │   ├── jmty_cases/        ジモティー案件素材
 │   ├── jmty_factory_cases/ 工場求人素材
@@ -43,6 +43,11 @@ team-info/
 │   ├── profile/           プロフィール素材
 │   ├── sleep_travel/      寝ながらトラベル動画出力
 │   └── viral-analysis/    バズ動画解析結果（analysis.json + remotion/）
+├── personal/              個人用ファイルの集約先
+│   └── <account>/         Git アカウント名を元にした個人フォルダ
+│       ├── discord/       Webhook や個人通知設定
+│       ├── kpi/           月次 KPI や週次計画
+│       └── projects/      個人案件・個人ツール・ OpenEmpire など
 ├── Remotion/              Remotion 動画制作環境
 │   ├── my-video/          メイン Remotion プロジェクト（npm run）
 │   ├── scripts/           Remotion 補助スクリプト（Python）
@@ -72,6 +77,7 @@ team-info/
 - スキルフォルダは必ず `SKILL.md` を含む
 - スキル追加後は必ず `AGENTS.md` の `### Available skills` セクションに登録する
 - スキルの入力素材は `inputs/{skill-name}/` へ、出力は `outputs/{skill-name}/` へ
+- 個人専用スキルは `.agent/skills/personal/<account>/` 配下へ置き、共有スキルと混ぜない
 
 **スキルカテゴリ:**
 | カテゴリ | フォルダ | 用途 |

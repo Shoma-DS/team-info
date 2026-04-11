@@ -21,9 +21,9 @@ CEO が仕事を見て必要なメンバーだけを起こす形にして token 
 - CEO:
   - `AGENTS.md`
   - `skill-finder`
-  - `member-roster`
+  - `agents/` の役割別 README
 - メンバー:
-  - 自分の担当スキルだけ
+  - 自分の README に列挙された担当スキルだけ
   - 必要なら担当スキルの references や scripts
 - 禁止:
   - CEO が毎回全スキルを読むこと
@@ -55,6 +55,5 @@ CEO が仕事を見て必要なメンバーだけを起こす形にして token 
 - repo 変更が入るなら Ops Manager
 
 ## 7. 将来の拡張
-- スキルがさらに増えたら、メンバーごとに `owned-skills.md` を分けてよい
+- スキルがさらに増えたら、`agents/<member>/README.md` の担当一覧を更新する
 - Supabase などへ置く場合も、正本は repo に残し、DB は索引とメタデータに留める
-

@@ -22,7 +22,7 @@ Zoom ミーティングを作成（必要な場合）して Discord へ投稿す
 }
 
 使い方:
-  echo '<JSON>' | python3 /Users/deguchishouma/team-info/scripts/daily_calendar_summary.py
+  echo '<JSON>' | python3 "$TEAM_INFO_ROOT/scripts/daily_calendar_summary.py"
 """
 
 import json
@@ -36,18 +36,59 @@ import subprocess
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Tuple
+import unicodedata
 
 # ── 設定ファイルのパス ──────────────────────────────────────────
 SCRIPT_DIR = pathlib.Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
 ZOOM_CREDS_PATH = pathlib.Path.home() / ".config" / "zoom" / "credentials.json"
-WEBHOOK_CONFIG_PATH = REPO_ROOT / "personal" / "discord-daily-webhook.json"
 CALENDAR_ID = "primary"
 ZOOM_MESSAGE_HEADER = "[team-info] Zoom情報"
 GWS_BACKEND = "file"
 ZOOM_STATUS_KEY = "team-info.zoom-status"
 ZOOM_RUN_ID_KEY = "team-info.zoom-run-id"
 ZOOM_URL_KEY = "team-info.zoom-url"
+
+
+def resolve_personal_account_slug() -> str:
+    """Git アカウント名から personal フォルダ名を決める。"""
+    candidates: list[str] = []
+    try:
+        completed = subprocess.run(
+            ["git", "config", "user.name"],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode == 0 and completed.stdout.strip():
+            candidates.append(completed.stdout.strip())
+    except Exception:
+        pass
+
+    try:
+        completed = subprocess.run(
+            ["git", "config", "user.email"],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode == 0 and completed.stdout.strip():
+            candidates.append(completed.stdout.strip().split("@", 1)[0])
+    except Exception:
+        pass
+
+    for raw in candidates:
+        normalized = unicodedata.normalize("NFKD", raw)
+        slug = "".join(ch for ch in normalized.lower() if ch.isalnum())
+        if slug:
+            return slug
+    return "default"
+
+
+PERSONAL_ACCOUNT = resolve_personal_account_slug()
+WEBHOOK_CONFIG_PATH = REPO_ROOT / "personal" / PERSONAL_ACCOUNT / "discord" / "discord-daily-webhook.json"
 
 
 # ── Zoom API ────────────────────────────────────────────────────
