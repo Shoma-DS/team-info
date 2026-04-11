@@ -76,3 +76,4 @@ gws/
 **/.encryption_key
 
 outputs/gws-dashboard/
+.env
