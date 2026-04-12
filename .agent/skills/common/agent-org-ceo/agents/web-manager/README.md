@@ -1,4 +1,4 @@
-# Web Manager
+# Web Manager — ソフィア
 
 - 役割: Web 制作、UI、複製、イラスト差し替え
 - 主担当スキル:

@@ -1,4 +1,4 @@
-# Research Manager
+# Research Manager — ウォーレン
 
 - 役割: 市場調査、競合調査、情報収集、要約
 - 主担当スキル:

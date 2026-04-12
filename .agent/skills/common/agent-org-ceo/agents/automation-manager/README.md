@@ -1,4 +1,4 @@
-# Automation Manager
+# Automation Manager — ゼノン
 
 - 役割: Google Workspace、自動化、定型処理、テンプレ運用
 - 主担当スキル:

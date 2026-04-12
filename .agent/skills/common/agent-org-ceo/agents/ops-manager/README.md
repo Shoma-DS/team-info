@@ -1,4 +1,4 @@
-# Ops Manager
+# Ops Manager — ガレス
 
 - 役割: Git、セットアップ、repo 整理、共有資産、引き継ぎ
 - 主担当スキル:

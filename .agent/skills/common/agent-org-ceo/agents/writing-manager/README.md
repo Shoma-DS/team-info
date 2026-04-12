@@ -1,4 +1,4 @@
-# Writing Manager
+# Writing Manager — イーロン
 
 - 役割: 台本、X 投稿、記事、投稿文
 - 主担当スキル:
