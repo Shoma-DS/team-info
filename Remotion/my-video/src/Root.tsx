@@ -13,6 +13,7 @@ import {
 } from "./viral/editor/EditableViralVideo";
 import { ViralClipEditor } from "./viral/editor/ViralClipEditor";
 import { viralEditorPresets } from "./viral/editor/presets";
+import { TenshokuShort20260416 } from "./viral/TenshokuShort20260416";
 import { withErrorBoundary } from "./ErrorBoundary";
 
 const SleepTravelLongSafe = withErrorBoundary(SleepTravelLong, "SleepTravelLong");
@@ -23,6 +24,7 @@ const ViralVideoGachiSafe = withErrorBoundary(ViralVideoGachi, "ガチで脱い�
 const ViralVideoJimushoSafe = withErrorBoundary(ViralVideoJimusho, "事務所に売られた芸能人3選");
 const EditableViralVideoSafe = withErrorBoundary(EditableViralVideo, "EditableViralVideo");
 const ViralClipEditorSafe = withErrorBoundary(ViralClipEditor, "ViralClipEditor");
+const TenshokuShort20260416Safe = withErrorBoundary(TenshokuShort20260416, "転職ショート_20260416");
 
 const getEditableViralDuration = (props: ViralStudioEditorProps): number => {
   return Math.max(
@@ -107,6 +109,16 @@ export const RemotionRoot: React.FC = () => {
       </Folder>
 
       <Folder name="Viral">
+        <Folder name="転職">
+          <Composition
+            id="優秀な人が黙って去る会社の特徴3選-20260416"
+            component={TenshokuShort20260416Safe}
+            durationInFrames={1733}
+            fps={30}
+            width={1080}
+            height={1920}
+          />
+        </Folder>
         <Folder name="アダルトアフィリ">
           <Composition
             id="ガチで脱いだ女性芸能人3選-20260313"
