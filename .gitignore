@@ -77,3 +77,20 @@ gws/
 
 outputs/gws-dashboard/
 .env
+# [personal] 2026-04-04
+scripts/setup_calendar_auth.py
+scripts/run_daily_summary.py
+scripts/launch_plists/
+
+# LP関連フォルダ
+lp/
+lp参考/
+
+# [personal] 2026-03-27
+scripts/gas/syncSquareBookings.js
+
+# [personal] 2026-03-28
+scripts/gas/hand-pain-tracker/
+
+# [personal] 2026-04-05
+.agent/skills/acoriel/
