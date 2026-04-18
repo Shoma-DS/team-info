@@ -160,6 +160,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
+### 🍌 nanobanana-banner-gen/（バナー自動生成系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| nanobanana-banner-gen | スプレッドシートから投稿文を読み取ってバナー画像を自動生成し、シートに挿入する | `.agent/skills/nanobanana-banner-gen/SKILL.md` |
+
+---
+
 ## ガイド：やりたいこと別
 
 | やりたいこと | 使うスキル |
@@ -212,5 +219,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |
 | バズるショート動画テンプレを作りたい | `viral-template-generator` |
 | X(Twitter)の投稿を作りたい | `x-post-writer` |
+| スプレッドシートからバナー画像を自動生成したい | `nanobanana-banner-gen` |
 | YouTubeに動画をアップロードしたい | `youtube-auto-upload` |
 | 動画の公開予約をしたい | `youtube-auto-upload` |
