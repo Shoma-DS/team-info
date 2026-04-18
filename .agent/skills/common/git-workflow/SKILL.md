@@ -140,11 +140,18 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" disco
 
 **【手順A】まず `fetch` で更新の有無を見る:**
 - 最初に `git -C "$TEAM_INFO_ROOT" fetch origin` を実行する。
+- **【重要: 通信ハングアップ・タイムアウト対策】**
+  動画・音声などの巨大なファイルを扱うため、PCのメモリ・通信環境によって過去の巨大な履歴（Packファイル等）のダウンロードで `Operation canceled` や無応答（3分以上など）になることがあります。
+  もし応答がない、または巨大ファイル起因で fetch に失敗する兆候を見た場合は、履歴の全取得をやめ、ただちに以下のシャローフェッチ（Shallow Fetch）に切り替えてください。
+  `git -C "$TEAM_INFO_ROOT" fetch origin main --depth=1`
 - `origin/main` に更新がない場合は、`pull --rebase` は省略してよい。
 - 更新がある場合だけ、次のスタッシュと `pull --rebase` の手順へ進む。
 
 ```bash
+# 通常時
 git -C "$TEAM_INFO_ROOT" fetch origin
+# タイムアウト・フェッチ失敗時の緊急回避（シャローフェッチ）
+git -C "$TEAM_INFO_ROOT" fetch origin main --depth=1
 ```
 
 **【手順B】pull が必要なときだけ未コミット変更を避難する:**
@@ -167,6 +174,7 @@ git -C "$TEAM_INFO_ROOT" pull --rebase origin main
   2. ユーザーに対し、「ローカルの変更」と「リモートの変更」の内容を簡潔かつ具体的に説明する。
   3. 「どちらを優先しますか？」とユーザーに聞き、指示に従って解決する。
   4. 解決後、`git add` して `rebase --continue` を行う。
+- **浅い履歴（Shallow Clone）によるリベースの失敗時**: `--depth=1` で運用中に履歴の深さが足りずリベースができない場合や、巨大ファイル起因で pull が失敗する場合は、全履歴をダウンロード（deepen）しようとせず、ローカルの変更を事前退避（`stash`）した上で `git reset --hard origin/main` で強引に同期し、その後に `stash pop` して変更を復元する手段をユーザーに提案してください。
 
 **【手順D】プッシュする:**
 - rebase が完了した場合、または `fetch` の時点で更新がなかった場合は、そのままプッシュへ進む。

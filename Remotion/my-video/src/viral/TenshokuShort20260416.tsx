@@ -14,25 +14,31 @@ import {
   useVideoConfig,
 } from "remotion";
 import { ImageScene } from "./components/ImageScene";
+import { Hook } from "./components/Hook";
+import { SectionLayout } from "./components/SectionLayout";
+
 import { SUBTITLE_TIMELINE } from "./generated/TenshokuShort20260416Subtitles";
 import { VIRAL_ADULT_AFFILIATE_FONT_FAMILY } from "./fonts";
 import { splitDisplayLines } from "../textLayout";
 
+const TITLE = "JobChangeShort_20260416";
 const TEXT_COLOR = "#ffffff";
+
 const STROKE_COLOR = "#000000";
 const OUTER_STROKE_COLOR = "#ffffff";
-const DROP_SHADOW = "0 4px 0 rgba(0,0,0,0.85), 0 8px 20px rgba(0,0,0,0.65)";
+const DROP_SHADOW = "0 4px 0 rgba(0,0,0,0.1), 0 8px 15px rgba(0,0,0,0.1)";
 
 const SUBTITLE_STYLE = {
-  yPercent: 65,
-  fontSize: 100,
+  yPercent: 78,
+  fontSize: 90,
   fontWeight: "900" as const,
   color: TEXT_COLOR,
-  strokeWidth: "1.5px",
+  strokeWidth: "0px",
   strokeColor: STROKE_COLOR,
   fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 };
 
+<<<<<<< HEAD
 // フック終端フレーム（最初の字幕 from=3 の直前テロップ行が 170 まで続くため）
 const HOOK_END_FRAME = 170;
 
@@ -110,13 +116,17 @@ const WhiteCardHook: React.FC = () => {
     </AbsoluteFill>
   );
 };
+=======
+const HOOK_LINE_COLORS = ["#ffffff", "#f4d56f", "#ffffff"];
+>>>>>>> 02187965 (転職ショート動画のレイアウト最適化とイラスト変更)
 
 const SubtitleTrack: React.FC = () => {
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();
+  // hook の間は字幕を出さない（Hookコンポーネントが担当するため）
+  const hookEndFrame = SUBTITLE_TIMELINE.find(s => s.from > 0)?.from ?? 173;
+  if (frame < hookEndFrame) return null;
 
-  // フック表示中は字幕を出さない
-  if (frame < HOOK_END_FRAME) return null;
 
   const entry = SUBTITLE_TIMELINE.find((s) => frame >= s.from && frame < s.to);
   if (!entry) return null;
@@ -126,7 +136,7 @@ const SubtitleTrack: React.FC = () => {
   const scale = interpolate(progress, [0, 1], [0.9, 1]);
   const opacity = interpolate(relFrame, [0, 5], [0, 1]);
 
-  const lines = splitDisplayLines(entry.text, { maxCharsPerLine: 14 });
+  const lines = splitDisplayLines(entry.text, { maxCharsPerLine: 16 });
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
@@ -136,7 +146,7 @@ const SubtitleTrack: React.FC = () => {
         left: "50%",
         transform: `translateX(-50%) scale(${scale})`,
         opacity,
-        width: "90%",
+        width: "95%",
         textAlign: "center",
       }}>
         {lines.map((line, idx) => (
@@ -148,6 +158,7 @@ const SubtitleTrack: React.FC = () => {
             color: SUBTITLE_STYLE.color,
             WebkitTextStroke: `8px ${OUTER_STROKE_COLOR}`,
             textShadow: DROP_SHADOW,
+            lineHeight: 1.25
           }}>
             <div style={{
               position: "absolute",
@@ -164,10 +175,11 @@ const SubtitleTrack: React.FC = () => {
 };
 
 export const TenshokuShort20260416: React.FC = () => {
-  const totalFrames = 1733;
+  const totalFrames = 1650;
+  const hookText = SUBTITLE_TIMELINE[0]?.text ?? "";
 
   return (
-    <AbsoluteFill style={{ background: "#000" }}>
+    <AbsoluteFill style={{ background: "#FAFAFA" }}>
       <Sequence name="背景" durationInFrames={totalFrames}>
         <ImageScene
           src={staticFile("viral/転職ショート_20260416/background.png")}
@@ -177,8 +189,73 @@ export const TenshokuShort20260416: React.FC = () => {
         />
       </Sequence>
 
-      <Sequence name="フック" durationInFrames={HOOK_END_FRAME}>
-        <WhiteCardHook />
+      <Sequence name="フック" from={0} durationInFrames={173}>
+        {/* イラスト（下部配置） */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "10%",
+            height: "50%",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <img
+            src={staticFile("viral/転職ショート_20260416/hook.png")}
+            style={{ 
+              maxHeight: "100%",
+              maxWidth: "90%",
+              objectFit: "contain",
+              filter: "drop-shadow(0 15px 25px rgba(0,0,0,0.1))"
+            }}
+          />
+        </div>
+
+        {/* タイトル名（上部配置） */}
+        <div style={{ position: "absolute", top: 0, width: "100%", zIndex: 10 }}>
+          <Hook
+            hookType="statement"
+            text={"優秀な人が黙って去る会社\nの特徴3選"}
+            fontFamily={SUBTITLE_STYLE.fontFamily}
+            fontSize={110}
+            lineColors={["#e53935", "#2c3e50"]}
+            strokeWidth="0"
+            paddingTop="15%"
+            startFrame={0}
+            durationFrames={173}
+          />
+        </div>
+      </Sequence>
+      
+      <Sequence name="セクション1" from={173} durationInFrames={625 - 173}>
+        <SectionLayout 
+          title="① 現場の意見が完全スルーされる" 
+          imageSrc={staticFile("viral/転職ショート_20260416/s1.png")} 
+        />
+      </Sequence>
+
+      <Sequence name="セクション2" from={625} durationInFrames={1043 - 625}>
+        <SectionLayout 
+          title="② 頑張った分だけ損をする評価" 
+          imageSrc={staticFile("viral/転職ショート_20260416/s2.png")} 
+        />
+      </Sequence>
+
+      <Sequence name="セクション3" from={1043} durationInFrames={1454 - 1043}>
+        <SectionLayout 
+          title="③ 尊敬できる上司が一人もいない" 
+          imageSrc={staticFile("viral/転職ショート_20260416/s3.png")} 
+        />
+      </Sequence>
+
+      <Sequence name="CTA" from={1454} durationInFrames={totalFrames - 1454}>
+        <ImageScene
+           src={staticFile("viral/転職ショート_20260416/cta.png")}
+           motionType="zoom_in"
+        />
+
       </Sequence>
 
       <Sequence name="字幕" durationInFrames={totalFrames}>

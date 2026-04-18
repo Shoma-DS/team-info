@@ -1,3 +1,4 @@
+
 export const VIRAL_ADULT_AFFILIATE_FONT_FAMILY = [
   '"Hiragino Maru Gothic ProN"',
   '"Hiragino Sans"',
