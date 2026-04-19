@@ -1,0 +1,34 @@
+{
+  "title": "会社に見切りをつける直前の人の特徴9選",
+  "titleWithDate": "会社に見切りをつける直前の人の特徴9選_20260412",
+  "pattern": "career-listicle-horizontal",
+  "audio": {
+    "narration": "audio/narration.mp3",
+    "source": "/Users/deguchishouma/team-info/outputs/sleep_travel/audio/2026-04-12_転職横動画_会社に見切りをつける直前の人の特徴9選.mp3",
+    "voiceProfile": "aoyama_ryuusei_normal",
+    "speaker": "青山龍星 / ノーマル"
+  },
+  "materials": [
+    "materials/00_hook.jpg",
+    "materials/01_main_1.jpg",
+    "materials/02_main_2.jpg",
+    "materials/03_main_3.jpg",
+    "materials/99_cta.jpg"
+  ],
+  "script": {
+    "source": "/Users/deguchishouma/team-info/Remotion/scripts/voice_scripts/転職横動画_会社に見切りをつける直前の人の特徴9選_20260412.md",
+    "outlineSource": "/Users/deguchishouma/team-info/inputs/viral-analysis/output/転職横動画_20260412/script.md"
+  },
+  "sceneMapping": {
+    "hook": "materials/00_hook.jpg",
+    "section1": "materials/01_main_1.jpg",
+    "section2": "materials/02_main_2.jpg",
+    "section3": "materials/03_main_3.jpg",
+    "cta": "materials/99_cta.jpg"
+  },
+  "notes": [
+    "現時点では全編ナレーションのみ配置済み",
+    "セクション別の音声切り出しは未実施",
+    "横動画 composition は repo に未実装"
+  ]
+}

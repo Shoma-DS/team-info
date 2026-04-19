@@ -1,0 +1,95 @@
+{
+  "title": "【もう頑張れない】会社に見切りをつける直前の人の特徴9選",
+  "format": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30
+  },
+  "backgrounds": [
+    {
+      "file": "00_hook.jpg",
+      "role": "hook",
+      "segments": [
+        {
+          "label": "hook",
+          "fromSection": "フック",
+          "notes": "冒頭タイトルコール用。暗めで緊張感を出す"
+        }
+      ]
+    },
+    {
+      "file": "01_main_1.jpg",
+      "role": "main",
+      "segments": [
+        {
+          "label": "s1-1",
+          "fromSection": "1 頑張る前に、もう疲れている",
+          "notes": "前半の仕事疲れ、やる気低下、通知ストレス"
+        },
+        {
+          "label": "s1-2",
+          "fromSection": "2 仕事の話を聞くだけで、気分が沈む",
+          "notes": "上司や仕事連絡に気が重くなる流れ"
+        },
+        {
+          "label": "s1-3",
+          "fromSection": "3 ミスやトラブルに反応しなくなった",
+          "notes": "序盤の消耗感をそのまま維持"
+        }
+      ]
+    },
+    {
+      "file": "02_main_2.jpg",
+      "role": "main",
+      "segments": [
+        {
+          "label": "s2-1",
+          "fromSection": "4 職場の人に、何も期待しなくなった",
+          "notes": "人間関係の切断感"
+        },
+        {
+          "label": "s2-2",
+          "fromSection": "5 評価されなくても、悔しくなくなった",
+          "notes": "諦め、無反応、評価への期待低下"
+        },
+        {
+          "label": "s2-3",
+          "fromSection": "6 今の会社にいる数年後が想像できない",
+          "notes": "将来不安、見通しのなさ"
+        }
+      ]
+    },
+    {
+      "file": "03_main_3.jpg",
+      "role": "main",
+      "segments": [
+        {
+          "label": "s3-1",
+          "fromSection": "7 休みの日にまで、回復しかしていない",
+          "notes": "疲労回復だけの休日"
+        },
+        {
+          "label": "s3-2",
+          "fromSection": "8 転職した人の話を、前より真剣に聞いてしまう",
+          "notes": "転職や求人を見る流れ"
+        },
+        {
+          "label": "s3-3",
+          "fromSection": "9 辞めたいより、ここではないと感じる",
+          "notes": "次の選択肢を考え始める締め前"
+        }
+      ]
+    },
+    {
+      "file": "99_cta.jpg",
+      "role": "cta",
+      "segments": [
+        {
+          "label": "cta",
+          "fromSection": "アウトロ/CTA",
+          "notes": "保存して見返してください、の締め"
+        }
+      ]
+    }
+  ]
+}

@@ -321,13 +321,20 @@ def build_write_plan(
             values.append(["重複"])
             continue
 
-        if preserve_non_duplicates or is_blank_key:
-            values.append([row.get(target_column, "")])
+        non_duplicate_value = default_non_duplicate_value(target_column, current_value)
+        if preserve_non_duplicates or is_blank_key or non_duplicate_value != "":
+            values.append([non_duplicate_value])
             continue
 
         values.append([""])
 
     return values, anomaly_rows
+
+
+def default_non_duplicate_value(target_column: str, current_value: str) -> str:
+    if target_column == "1S" and current_value == "":
+        return "1S予定"
+    return current_value
 
 
 def save_anomaly_report(
@@ -488,6 +495,7 @@ def build_interactive_config(
     cli_target_column: str,
 ) -> dict:
     default_indices = None
+    uid_header = "uid"
     if template and template.get("key_columns"):
         mapped = []
         for column in template["key_columns"]:
@@ -495,6 +503,8 @@ def build_interactive_config(
                 mapped.append(headers.index(column))
         if mapped:
             default_indices = mapped
+    elif uid_header in headers:
+        default_indices = [headers.index(uid_header)]
     elif headers:
         default_indices = [0]
 

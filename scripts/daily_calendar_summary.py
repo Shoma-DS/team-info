@@ -52,6 +52,10 @@ ZOOM_URL_KEY = "team-info.zoom-url"
 
 def resolve_personal_account_slug() -> str:
     """Git アカウント名から personal フォルダ名を決める。"""
+    webhook_configs = sorted(REPO_ROOT.glob("personal/*/discord/discord-daily-webhook.json"))
+    if len(webhook_configs) == 1:
+        return webhook_configs[0].parts[-3]
+
     candidates: list[str] = []
     try:
         completed = subprocess.run(
@@ -83,6 +87,8 @@ def resolve_personal_account_slug() -> str:
         normalized = unicodedata.normalize("NFKD", raw)
         slug = "".join(ch for ch in normalized.lower() if ch.isalnum())
         if slug:
+            if (REPO_ROOT / "personal" / slug).exists():
+                return slug
             return slug
     return "default"
 

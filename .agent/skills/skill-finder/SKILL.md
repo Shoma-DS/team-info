@@ -104,9 +104,17 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
 | gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/personal/deguchishouma/gws-sheets-html-dashboard/SKILL.md` |
-| gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
+| gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする。`1S` 列へ書く場合は非重複の空欄を `1S予定` に補完する | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
 | gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選び、予定追加と返信文作成まで行う | `.agent/skills/personal/deguchishouma/gws-calendar-booking-reply/SKILL.md` |
 | agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
+
+---
+
+### 🖼️ lp-design/（LP・マーケ資料画像生成系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| image-prompt-generator | LP・スライド・SNS用の画像プロンプトをnanobanana pro形式で生成する | `.agent/skills/personal/deguchishouma/lp-design/image-prompt-generator/SKILL.md` |
+| nanobanana-slide-planner | 商品情報からnanobanana pro向けスライドプロンプトを生成する | `.agent/skills/personal/deguchishouma/presentation/nanobanana-slide-planner/SKILL.md` |
 
 ---
 
@@ -114,6 +122,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | frontend-design | 高品質なフロントエンドUIを制作する | `.agent/skills/web-design/frontend-design/SKILL.md` |
+| figma-lp-design | Figma MCP を使ってLPデザインをFigma上で直接制作する（ヒアリング→構成→デザイン→エクスポート） | `.agent/skills/web-design/figma-lp-design/SKILL.md` |
 | gsap-awwwards-website | GSAPスクロール演出付きLPを開発/保守する | `.agent/skills/web-design/frontend-design/gsap-awwwards-website/SKILL.md` |
 | clone-website | browser automation を使ってサイトを pixel-perfect に再構築する。global setup へ依存を載せず、bundled Next.js 16 テンプレを初期化して複製作業に入る | `.agent/skills/web-design/frontend-design/clone-website/SKILL.md` |
 | tyoudoii-illust-fetcher | tyoudoii-illust.com の無料イラストを REST API 経由で検索・取得し、Webプロジェクトへ組み込む | `.agent/skills/web-design/frontend-design/tyoudoii-illust-fetcher/SKILL.md` |
@@ -209,6 +218,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | repo 全体のフォルダ構成を整理したい | `repo-information-architecture` |
 | 重複した役割のフォルダを減らしたい | `repo-information-architecture` |
 | 検索性を上げて AI の探索トークンを節約したい | `repo-information-architecture` |
+| LP用の画像プロンプトを作りたい | `image-prompt-generator` |
+| nanobanana proでスライドや画像を作りたい | `image-prompt-generator` / `nanobanana-slide-planner` |
+| FigmaでLPをデザインしたい | `figma-lp-design` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |
 | 既存サイトをそっくり Next.js で作り直したい | `clone-website` |
 | サイトを pixel-perfect に複製したい | `clone-website` |

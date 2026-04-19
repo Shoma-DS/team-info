@@ -14,12 +14,10 @@ import {
   useVideoConfig,
 } from "remotion";
 import { ImageScene } from "./components/ImageScene";
-import { Hook } from "./components/Hook";
 import { SUBTITLE_TIMELINE } from "./generated/TenshokuShort20260416Subtitles";
 import { VIRAL_ADULT_AFFILIATE_FONT_FAMILY } from "./fonts";
 import { splitDisplayLines } from "../textLayout";
 
-const TITLE = "JobChangeShort_20260416";
 const TEXT_COLOR = "#ffffff";
 const STROKE_COLOR = "#000000";
 const OUTER_STROKE_COLOR = "#ffffff";
@@ -35,19 +33,90 @@ const SUBTITLE_STYLE = {
   fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 };
 
-const HOOK_LINE_COLORS = ["#f4d56f", "#ffffff", "#ffffff"];
+// フック終端フレーム（最初の字幕 from=3 の直前テロップ行が 170 まで続くため）
+const HOOK_END_FRAME = 170;
 
-const SCENE_TIMELINE = [
-    { from: 0, to: 1691, src: staticFile("viral/転職ショート_20260416/background.png"), motionType: "zoom_in", motionProfile: "gentle", motionIntensity: 0.3 }
-];
+/** 白背景 + いらすとやイラスト + 太字タイトルのフックカード */
+const WhiteCardHook: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  if (frame >= HOOK_END_FRAME) return null;
+
+  const fadeIn = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [HOOK_END_FRAME - 15, HOOK_END_FRAME], [1, 0], {
+    extrapolateLeft: "clamp",
+  });
+  const opacity = Math.min(fadeIn, fadeOut);
+
+  const bounce = spring({ fps, frame, config: { damping: 12, stiffness: 180 } });
+  const scale = interpolate(bounce, [0, 1], [0.82, 1]);
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: "#ffffff",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        paddingTop: 280,
+        pointerEvents: "none",
+        opacity,
+      }}
+    >
+      {/* タイトルテキスト */}
+      <div style={{ transform: `scale(${scale})`, textAlign: "center" }}>
+        {/* 1行目 */}
+        <div
+          style={{
+            fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
+            fontSize: 96,
+            fontWeight: 900,
+            color: "#1a1a1a",
+            lineHeight: 1.25,
+            letterSpacing: "0.02em",
+          }}
+        >
+          優秀な人が黙って去る
+        </div>
+        {/* 2行目: 「3選」だけオレンジ */}
+        <div
+          style={{
+            fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
+            fontSize: 96,
+            fontWeight: 900,
+            color: "#1a1a1a",
+            lineHeight: 1.25,
+            letterSpacing: "0.02em",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "baseline",
+            gap: 0,
+          }}
+        >
+          会社の特徴
+          <span style={{ color: "#ff6600", fontSize: 108 }}>3選</span>
+        </div>
+      </div>
+      {/* いらすとやイラスト */}
+      <img
+        src={staticFile("viral/転職ショート_20260416/hook_illust.png")}
+        style={{
+          marginTop: 60,
+          height: 700,
+          objectFit: "contain",
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
 
 const SubtitleTrack: React.FC = () => {
   const { fps } = useVideoConfig();
   const frame = useCurrentFrame();
-  
-  // hook の間は字幕を出さない（Hookコンポーネントが担当するため）
-  const hookEndFrame = SUBTITLE_TIMELINE.find(s => s.from > 0)?.from ?? 150;
-  if (frame < hookEndFrame) return null;
+
+  // フック表示中は字幕を出さない
+  if (frame < HOOK_END_FRAME) return null;
 
   const entry = SUBTITLE_TIMELINE.find((s) => frame >= s.from && frame < s.to);
   if (!entry) return null;
@@ -96,27 +165,20 @@ const SubtitleTrack: React.FC = () => {
 
 export const TenshokuShort20260416: React.FC = () => {
   const totalFrames = 1733;
-  const hookText = SUBTITLE_TIMELINE[0]?.text ?? "";
 
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       <Sequence name="背景" durationInFrames={totalFrames}>
         <ImageScene
-           src={SCENE_TIMELINE[0].src}
-           motionType="zoom_in"
-           motionProfile="gentle"
-           motionIntensity={0.3}
+          src={staticFile("viral/転職ショート_20260416/background.png")}
+          motionType="zoom_in"
+          motionProfile="gentle"
+          motionIntensity={0.3}
         />
       </Sequence>
-      
-      <Sequence name="フック" durationInFrames={200}>
-        <Hook
-          text={hookText}
-          fontFamily={SUBTITLE_STYLE.fontFamily}
-          fontSize={140}
-          lineColors={HOOK_LINE_COLORS}
-          paddingTop="50%"
-        />
+
+      <Sequence name="フック" durationInFrames={HOOK_END_FRAME}>
+        <WhiteCardHook />
       </Sequence>
 
       <Sequence name="字幕" durationInFrames={totalFrames}>

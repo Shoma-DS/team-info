@@ -6,6 +6,7 @@ import { SleepTravelLong } from "./SleepTravelLong";
 const chiseigakuSlides: SlideEntry[] = [];
 import { ViralVideo as ViralVideoGachi } from "./viral/アダルトアフィリ/ガチで脱いだ女性芸能人3選_20260313";
 import { ViralVideoJimusho } from "./viral/アダルトアフィリ/事務所に売られた芸能人3選_20260316";
+import { JobChangeViralHorizontal20260412 } from "./viral/転職横動画/会社に見切りをつける直前の人の特徴9選_20260412";
 import {
   EditableViralVideo,
   type ViralStudioEditorProps,
@@ -22,6 +23,10 @@ const AcoRielLyricCoverMultiBGSafe = withErrorBoundary(AcoRielLyricCoverMultiBG,
 const AcoRielLyricCoverSafe = withErrorBoundary(AcoRielLyricCover, "AcoRielLyricCover");
 const ViralVideoGachiSafe = withErrorBoundary(ViralVideoGachi, "ガチで脱いだ女性芸能人3選");
 const ViralVideoJimushoSafe = withErrorBoundary(ViralVideoJimusho, "事務所に売られた芸能人3選");
+const JobChangeViralHorizontal20260412Safe = withErrorBoundary(
+  JobChangeViralHorizontal20260412,
+  "会社に見切りをつける直前の人の特徴9選_20260412",
+);
 const EditableViralVideoSafe = withErrorBoundary(EditableViralVideo, "EditableViralVideo");
 const ViralClipEditorSafe = withErrorBoundary(ViralClipEditor, "ViralClipEditor");
 const TenshokuShort20260416Safe = withErrorBoundary(TenshokuShort20260416, "転職ショート_20260416");
@@ -135,6 +140,17 @@ export const RemotionRoot: React.FC = () => {
             fps={30}
             width={1080}
             height={1920}
+          />
+        </Folder>
+
+        <Folder name="転職横動画">
+          <Composition
+            id="会社に見切りをつける直前の人の特徴9選-20260412"
+            component={JobChangeViralHorizontal20260412Safe}
+            durationInFrames={11594}
+            fps={30}
+            width={1280}
+            height={720}
           />
         </Folder>
 
