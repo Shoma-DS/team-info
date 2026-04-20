@@ -118,7 +118,8 @@ export const RemotionRoot: React.FC = () => {
           <Composition
             id="優秀な人が黙って去る会社の特徴3選-20260416"
             component={TenshokuShort20260416Safe}
-            durationInFrames={1650}
+            durationInFrames={2394}
+
             fps={30}
             width={1920}
             height={1080}

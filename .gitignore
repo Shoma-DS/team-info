@@ -26,7 +26,7 @@ mcp-servers/voicevox/node_modules/
 mcp-servers/voicevox/dist/
 
 # テスト用ウェブサイト
-projects/test-website/
+test-website/
 .agents/
 
 # Video artifacts
@@ -38,8 +38,6 @@ __pycache__/
 
 # Node modules
 node_modules/
-/my-video/
-
 
 # Python virtual environment
 .venv/
@@ -96,8 +94,4 @@ scripts/gas/hand-pain-tracker/
 
 # [personal] 2026-04-05
 .agent/skills/acoriel/
-
-outputs/lp-design/ai-income-course/
-outputs/lp-design/ai-income-course/LP原稿.md
-
-outputs/gws-duplicate-checker
+scratch/

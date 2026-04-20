@@ -14,6 +14,7 @@ import argparse
 import json
 import math
 import sys
+from typing import Optional
 import time
 import wave
 from array import array
@@ -93,7 +94,7 @@ def _compute_chunk_rms(
     return values
 
 
-def _find_first_run(values: list[float], threshold: float, min_run: int) -> int | None:
+def _find_first_run(values: list[float], threshold: float, min_run: int) -> Optional[int]:
     run_length = 0
     for index, value in enumerate(values):
         run_length = run_length + 1 if value >= threshold else 0
@@ -102,7 +103,7 @@ def _find_first_run(values: list[float], threshold: float, min_run: int) -> int 
     return None
 
 
-def _find_last_run(values: list[float], threshold: float, min_run: int) -> int | None:
+def _find_last_run(values: list[float], threshold: float, min_run: int) -> Optional[int]:
     run_length = 0
     for reverse_index, value in enumerate(reversed(values)):
         index = len(values) - 1 - reverse_index
@@ -286,8 +287,8 @@ def sync_subtitles_file(
     subtitles_path: Path,
     audio_dir: Path,
     *,
-    output_path: Path | None = None,
-    timeline_ts_path: Path | None = None,
+    output_path: Optional[Path] = None,
+    timeline_ts_path: Optional[Path] = None,
     chunk_ms: int = 10,
     threshold_ratio: float = 0.08,
     min_threshold: float = 250.0,

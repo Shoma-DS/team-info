@@ -20,7 +20,7 @@ import subprocess
 import sys
 import wave
 from pathlib import Path
-
+from typing import Optional, Dict, List
 try:
     import requests
 except ImportError:
@@ -95,7 +95,7 @@ def ensure_voicevox() -> bool:
 
 # ─── VOICEVOX API ────────────────────────────────────────────────────────────
 
-def get_speaker_id(speaker_name: str, style_name: str) -> int | None:
+def get_speaker_id(speaker_name: str, style_name: str) -> Optional[int]:
     """スピーカー名 + スタイル名から speaker_id を取得する"""
     r = requests.get(f"{VOICEVOX_BASE}/speakers", timeout=10)
     speakers = r.json()
@@ -215,7 +215,7 @@ def render_sections(
     return rendered_sections, total_duration
 
 
-def infer_target_seconds(script_path: Path) -> float | None:
+def infer_target_seconds(script_path: Path) -> Optional[float]:
     subtitles_path = script_path.with_name("subtitles.json")
     if not subtitles_path.exists():
         return None
@@ -377,10 +377,10 @@ def select_speaker_interactive(config: dict) -> tuple[int, dict]:
 def run(
     script_path: Path,
     output_dir: Path,
-    profile_name: str | None,
-    speaker_id_direct: int | None,
-    target_seconds: float | None,
-    timeline_ts_path: Path | None,
+    profile_name: Optional[str],
+    speaker_id_direct: Optional[int],
+    target_seconds: Optional[float],
+    timeline_ts_path: Optional[Path],
     skip_subtitle_sync: bool,
 ):
     # 1. VOICEVOX 起動確認

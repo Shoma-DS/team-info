@@ -52,7 +52,7 @@
   "aoyama_ryuusei_normal": {
     "speaker_name": "青山龍星",
     "style_name": "ノーマル",
-    "speed": 0.85,
+    "speed": 1.05,
     "pitch": 0.0,
     "volume": 1.0,
     "pause_length_scale": 1.2,
