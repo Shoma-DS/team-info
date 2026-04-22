@@ -26,7 +26,7 @@ mcp-servers/voicevox/node_modules/
 mcp-servers/voicevox/dist/
 
 # テスト用ウェブサイト
-test-website/
+projects/test-website/
 .agents/
 
 # Video artifacts
@@ -38,6 +38,7 @@ __pycache__/
 
 # Node modules
 node_modules/
+my-video/
 
 # Python virtual environment
 .venv/

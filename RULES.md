@@ -9,7 +9,7 @@
 
 | 種別 | 規則 | 例 |
 |---|---|---|
-| トップレベルフォルダ | PascalCase または kebab-case（英語） | `Remotion/`, `test-website/` |
+| トップレベルフォルダ | PascalCase または kebab-case（英語） | `Remotion/`, `projects/` |
 | スキルフォルダ | kebab-case（英語） | `acoriel-video-description/` |
 | 入力フォルダ | kebab-case（英語） | `inputs/viral-analysis/` |
 | 出力フォルダ | kebab-case（英語） | `outputs/acoriel/descriptions/` |
@@ -39,7 +39,6 @@ team-info/
 │   ├── common/            汎用出力
 │   ├── jmty/              ジモティー投稿文
 │   ├── note/              note 記事
-│   ├── note_articles/     note 記事（旧）→ note/ に統合予定
 │   ├── profile/           プロフィール素材
 │   ├── sleep_travel/      寝ながらトラベル動画出力
 │   └── viral-analysis/    バズ動画解析結果（analysis.json + remotion/）
@@ -48,23 +47,26 @@ team-info/
 │       ├── discord/       Webhook や個人通知設定
 │       ├── gas/           個人用 Google Apps Script
 │       ├── kpi/           月次 KPI や週次計画
-│       └── projects/      個人案件・個人ツール・ OpenEmpire など
+│       ├── projects/      個人案件・個人ツール・ OpenEmpire など
+│       └── scripts/       個人専用の補助スクリプトや定期実行物
 ├── Remotion/              Remotion 動画制作環境
 │   ├── my-video/          メイン Remotion プロジェクト（npm run）
 │   ├── scripts/           Remotion 補助スクリプト（Python）
 │   └── script_resources/  台本・歌詞サンプル
-├── scripts/               グローバル補助スクリプト
+├── projects/              継続開発する共有・検証用のソース置き場
+│   └── test-website/      独立した Web サイト開発用プロジェクト
+├── scripts/               共有の補助スクリプト
 ├── GAS/                   共有の Google Apps Script
 ├── docker/                Docker 構成（Dify 等）
 ├── mcp-servers/           MCP サーバー定義
-└── test-website/          Web サイト開発
+└── マニュアル/            人向けマニュアル
 ```
 
 ---
 
 ## 3. AI コンテキストファイルルール
 
-- **AGENTS.md**（ルート）: Claude Code / AI エージェント向けの総合指示書。スキル一覧・行動原則・コマンドルールを記載。
+- **AGENTS.md**（ルート）: Claude Code / AI エージェント向けの総合指示書。行動原則・承認方針・Slash Commands・Git運用の正本。
 - **CLAUDE.md**（ルート）: Claude Code 向けの薄い入口ファイル。正本ではなく、`AGENTS.md` と `RULES.md` への案内に徹する。
 - **CLAUDE.md**（サブフォルダ）: そのフォルダを開いたときに AI が即座に文脈を把握するためのファイル。
   - 配置基準: AI が作業するフォルダすべてに置く
@@ -76,9 +78,10 @@ team-info/
 ## 4. スキル（.agent/skills/）ルール
 
 - スキルフォルダは必ず `SKILL.md` を含む
-- スキル追加後は必ず `AGENTS.md` の `### Available skills` セクションに登録する
+- スキル追加後は必ず `.agent/skills/skill-finder/SKILL.md` の索引を更新する
 - スキルの入力素材は `inputs/{skill-name}/` へ、出力は `outputs/{skill-name}/` へ
 - 個人専用スキルは `.agent/skills/personal/<account>/` 配下へ置き、共有スキルと混ぜない
+- `AGENTS.md` には個別スキル一覧を増やさず、索引の正本は `.agent/skills/skill-finder/SKILL.md` に寄せる
 
 **スキルカテゴリ:**
 | カテゴリ | フォルダ | 用途 |
@@ -111,6 +114,14 @@ team-info/
 - `run.sh`、`run.ps1` のような repo 共通ランチャー
 - dotfile / 設定ファイル（例: `.gitignore`, `.mcp.json`, `.gemini/`, `.claude/`）
 - それ以外の案件資料・プレビュー・納品物は、対応する案件フォルダまたは `outputs/` 配下へ移動する
+
+### 互換・旧構成の扱い
+- `Remotion/my-video/` を Remotion 正本として扱い、新しい作業先や案内先は必ずこちらへ寄せる
+- root 直下の `my-video/` は旧構成との互換用の空き導線として扱い、新規ファイルや新規運用を置かない
+- note 記事の出力先は `outputs/note/` に統一する
+- 共有 Apps Script は `GAS/`、個人用 Apps Script は `personal/<account>/gas/` に分ける
+- 個人用スクリプトは `scripts/personal/<account>/` を増やさず、`personal/<account>/scripts/` に集約する
+- `test-website/` のような独立プロジェクトは root 直下に増やさず、`projects/` 配下へ寄せる
 
 ---
 

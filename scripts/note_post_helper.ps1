@@ -4,8 +4,8 @@
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $baseDir = Split-Path -Parent $scriptDir
-$draftDir = Join-Path $baseDir "outputs\note_articles\draft"
-$postedDir = Join-Path $baseDir "outputs\note_articles\posted"
+$draftDir = Join-Path $baseDir "outputs\note\draft"
+$postedDir = Join-Path $baseDir "outputs\note\posted"
 $noteUrl = "https://note.com/notes/new"
 
 Write-Host ""

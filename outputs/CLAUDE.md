@@ -13,7 +13,6 @@
 | `common/airthmate/` | AirthMate のプレビュー・納品用 HTML / PDF | — |
 | `jmty/` | ジモティー投稿文（.txt / .md） | `jmty-posts-*` |
 | `note/` | note 記事（.md） | `note-article-ayumi` |
-| `note_articles/` | note 記事（旧フォルダ）→ `note/` に統合予定 | — |
 | `profile/` | プロフィール素材 | — |
 | `sleep_travel/` | 寝ながらトラベル 動画出力 | `remotion-template-sleep-travel-*` |
 | `viral-analysis/` | バズ動画解析結果（動画ごとにサブフォルダ） | `viral-template-generator` |
@@ -40,4 +39,3 @@ outputs/viral-analysis/
 ## 注意
 
 - レンダリング済み動画（.mp4）は Git 管理外（.gitignore 参照）
-- `note_articles/` は将来的に `note/` へ統合予定

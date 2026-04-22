@@ -15,7 +15,7 @@ user_invocable: true
 
 - **アカウント情報**: `.agent/skills/common/note-article-ayumi/assets/account_profile.md`
 - **参考記事**: `.agent/skills/common/note-article-ayumi/references/`（ユーザーが参考にしたい記事を置くフォルダ）
-- **記事保存先**: `outputs/note_articles/`
+- **記事保存先**: `outputs/note/`
 
 ---
 
@@ -126,12 +126,12 @@ user_invocable: true
   - 例: `既読スルー対処法_20260213.md`
   - 例: `彼の気持ちが分からない時_20260213.md`
   - テーマ部分はスペースなし、日本語OK
-- **保存先**: `outputs/note_articles/`
+- **保存先**: `outputs/note/`
 
 保存後、以下の Google Drive コピーコマンドをユーザーに提示する（自分では実行しない）：
 
 ```bash
-rclone copy "$TEAM_INFO_ROOT/outputs/note_articles/[ファイル名].md" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/note記事/" --progress
+rclone copy "$TEAM_INFO_ROOT/outputs/note/[ファイル名].md" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/note記事/" --progress
 ```
 
 - rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
