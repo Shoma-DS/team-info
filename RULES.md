@@ -46,6 +46,7 @@ team-info/
 ├── personal/              個人用ファイルの集約先
 │   └── <account>/         Git アカウント名を元にした個人フォルダ
 │       ├── discord/       Webhook や個人通知設定
+│       ├── gas/           個人用 Google Apps Script
 │       ├── kpi/           月次 KPI や週次計画
 │       └── projects/      個人案件・個人ツール・ OpenEmpire など
 ├── Remotion/              Remotion 動画制作環境
@@ -53,7 +54,7 @@ team-info/
 │   ├── scripts/           Remotion 補助スクリプト（Python）
 │   └── script_resources/  台本・歌詞サンプル
 ├── scripts/               グローバル補助スクリプト
-├── GAS/                   Google Apps Script
+├── GAS/                   共有の Google Apps Script
 ├── docker/                Docker 構成（Dify 等）
 ├── mcp-servers/           MCP サーバー定義
 └── test-website/          Web サイト開発

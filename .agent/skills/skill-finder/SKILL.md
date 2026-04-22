@@ -114,6 +114,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | image-prompt-generator | LP・スライド・SNS用の画像プロンプトをnanobanana pro形式で生成する | `.agent/skills/personal/deguchishouma/lp-design/image-prompt-generator/SKILL.md` |
+| lp-version-creator | LP原稿をコピーし、ビジュアルスタイル（文字仕様 or 参考画像）を元にセクション別nanobanana pro画像プロンプトを生成・保存する | `.agent/skills/personal/deguchishouma/lp-design/lp-version-creator/SKILL.md` |
 | nanobanana-slide-planner | 商品情報からnanobanana pro向けスライドプロンプトを生成する | `.agent/skills/personal/deguchishouma/presentation/nanobanana-slide-planner/SKILL.md` |
 
 ---
@@ -137,6 +138,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
 | insta-company-post-idea-generator | 秘書ログとリサーチログから Instagram 投稿案を content ログへ生成する | `.agent/skills/common/insta-company-post-idea-generator/SKILL.md` |
 | monthly-kpi-planner | 今月のKPIをmarkdownで一覧化し、先月比/KPI比を軸にした評価・ファネル転換率の再計算・週次アクションスケジュール・Notion共有用のKPI Hub作成を行う | `.agent/skills/personal/deguchishouma/monthly-kpi-planner/SKILL.md` |
+| jmty-kpi-update | あおぞら入金履歴とユーザー情報の月間流入数、form_8 生データを見て、ピボットと照合しながら JMTY の KPI 関連 Markdown 4ファイルを順番に更新する | `.agent/skills/personal/deguchishouma/jmty-kpi-update/SKILL.md` |
 
 ---
 
@@ -213,12 +215,14 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Instagram の競合・バズ調査ログを作りたい | `insta-company-research-brief` |
 | Instagram の投稿ネタや構成案を出したい | `insta-company-post-idea-generator` |
 | 今月のKPIを整理して進捗を確認したい | `monthly-kpi-planner` |
+| ジモティーKPIを銀行入金と月間流入数、form_8 生データから更新したい | `jmty-kpi-update` |
 | KPIから今月のスケジュールを組みたい | `monthly-kpi-planner` |
 | Git操作をしたい | `git-workflow` |
 | repo 全体のフォルダ構成を整理したい | `repo-information-architecture` |
 | 重複した役割のフォルダを減らしたい | `repo-information-architecture` |
 | 検索性を上げて AI の探索トークンを節約したい | `repo-information-architecture` |
 | LP用の画像プロンプトを作りたい | `image-prompt-generator` |
+| LPの新しいデザインバージョンを作りたい（原稿コピー＋セクション別プロンプト生成） | `lp-version-creator` |
 | nanobanana proでスライドや画像を作りたい | `image-prompt-generator` / `nanobanana-slide-planner` |
 | FigmaでLPをデザインしたい | `figma-lp-design` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |
