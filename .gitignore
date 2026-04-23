@@ -38,7 +38,8 @@ __pycache__/
 
 # Node modules
 node_modules/
-my-video/
+/my-video/
+
 
 # Python virtual environment
 .venv/
