@@ -11,6 +11,7 @@ import {
   useCurrentFrame,
   interpolate,
   spring,
+  Audio,
 } from "remotion";
 import { Hook } from "./components/Hook";
 import { SectionLayout } from "./components/SectionLayout";
@@ -22,12 +23,10 @@ const TEXT_COLOR = "#FFFFFF";
 const STROKE_COLOR = "#000000";
 
 const SUBTITLE_STYLE = {
-  yPercent: 78,
-  fontSize: 90,
+  fontSize: 95,
+
   fontWeight: "900" as const,
-  color: TEXT_COLOR,
-  strokeWidth: "0px",
-  strokeColor: STROKE_COLOR,
+  color: "#000000",
   fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 };
 
@@ -38,7 +37,6 @@ const SubtitleTrack: React.FC = () => {
   const entry = SUBTITLE_TIMELINE.find((s) => frame >= s.from && frame < s.to);
   if (!entry) return null;
 
-  // text が空文字列（""）の場合は何も表示しない
   if (entry.text === "") return null;
 
   const currentDuration = entry.to - entry.from;
@@ -53,20 +51,13 @@ const SubtitleTrack: React.FC = () => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-  const scale = interpolate(
-    progressInSegment,
-    [0, currentDuration],
-    [1.0, 1.05],
-    { extrapolateRight: "clamp" }
-  );
-
   return (
     <AbsoluteFill
       style={{
         display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-end",
-        paddingBottom: "10%",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        paddingBottom: "5%",
         opacity,
         pointerEvents: "none",
       }}
@@ -75,12 +66,9 @@ const SubtitleTrack: React.FC = () => {
         style={{
           ...SUBTITLE_STYLE,
           textAlign: "center",
-          maxWidth: "90%",
-          padding: "20px 40px",
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          borderRadius: "15px",
-          transform: `scale(${scale})`,
+          maxWidth: "95%",
           whiteSpace: "pre-wrap",
+          lineHeight: 1.2,
         }}
       >
         {entry.text}
@@ -89,19 +77,19 @@ const SubtitleTrack: React.FC = () => {
   );
 };
 
+
 export const TenshokuShort20260416: React.FC = () => {
   const totalFrames = 2394;
-  const hookText = SUBTITLE_TIMELINE[0]?.text ?? "";
 
   return (
     <AbsoluteFill style={{ background: "#FAFAFA" }}>
       <Sequence name="フック" from={0} durationInFrames={240}>
-        {/* イラスト（下部配置） */}
+        {/* イラスト（最下部配置） */}
         <div
           style={{
             position: "absolute",
-            bottom: "2%",
-            height: "55%",
+            bottom: "8%",
+            height: "45%",
             width: "100%",
             display: "flex",
             justifyContent: "center",
@@ -112,29 +100,30 @@ export const TenshokuShort20260416: React.FC = () => {
             src={staticFile("viral/転職ショート_20260416/hook.png")}
             style={{ 
               maxHeight: "100%",
-              maxWidth: "95%",
-              transform: "scale(1.1)",
+              maxWidth: "90%",
               objectFit: "contain",
-              filter: "drop-shadow(0 15px 25px rgba(0,0,0,0.1))"
+              filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.08))"
             }}
           />
         </div>
 
-        {/* タイトル名（上部配置） */}
+        {/* タイトル名（最上部配置） */}
         <div style={{ position: "absolute", top: 0, width: "100%", height: "100%", zIndex: 10 }}>
           <Hook
             hookType="statement"
             text={"優秀な人が黙って去る会社\nの特徴3選"}
             fontFamily={SUBTITLE_STYLE.fontFamily}
-            fontSize={140}
+            fontSize={135}
+
             lineColors={["#ff2a2a", "#000000"]}
             strokeWidth="0"
             outerStrokeWidth="0"
-            textShadow="0 8px 15px rgba(0,0,0,0.1)"
-            paddingTop="5%"
+            textShadow="none"
+            paddingTop="8%"
             justifyContent="flex-start"
             maxWidth="98%"
             startFrame={0}
+
             durationFrames={240}
           />
         </div>
@@ -145,7 +134,7 @@ export const TenshokuShort20260416: React.FC = () => {
           title="① 現場の意見が完全スルーされる" 
           imageSrc={staticFile("viral/転職ショート_20260416/s1.png")} 
           photoSrc={staticFile("viral/転職ショート_20260416/p1.png")}
-          switchFrame={77}
+          switchFrame={330}
         />
       </Sequence>
 
@@ -154,7 +143,7 @@ export const TenshokuShort20260416: React.FC = () => {
           title="② 頑張った分だけ損をする評価" 
           imageSrc={staticFile("viral/転職ショート_20260416/s2.png")} 
           photoSrc={staticFile("viral/転職ショート_20260416/p2.png")}
-          switchFrame={73}
+          switchFrame={300}
         />
       </Sequence>
 
@@ -163,23 +152,36 @@ export const TenshokuShort20260416: React.FC = () => {
           title="③ 尊敬できる上司が一人もいない" 
           imageSrc={staticFile("viral/転職ショート_20260416/s3.png")} 
           photoSrc={staticFile("viral/転職ショート_20260416/p3.png")}
-          switchFrame={77}
+          switchFrame={300}
         />
       </Sequence>
 
       <Sequence name="CTA" from={2110} durationInFrames={2394 - 2110}>
         <AbsoluteFill style={{ backgroundColor: "white" }}>
-          <ImageScene
-            src={staticFile("viral/転職ショート_20260416/cta.png")}
-            motionType="zoom_in"
-            motionProfile="gentle"
-            motionIntensity={0.3}
-          />
+          {/* 画像エリア: 字幕と被らないよう上部に寄せる */}
+          <div style={{ position: "absolute", top: "15%", height: "55%", width: "100%" }}>
+            <ImageScene
+              src={staticFile(
+                useCurrentFrame() >= 138 
+                  ? "viral/転職ショート_20260416/cta_alt.png" 
+                  : "viral/転職ショート_20260416/cta.png"
+              )}
+              motionType="zoom_in"
+              motionProfile="gentle"
+              motionIntensity={0.2}
+            />
+          </div>
         </AbsoluteFill>
       </Sequence>
 
+
+
       <Sequence name="字幕" durationInFrames={totalFrames}>
         <SubtitleTrack />
+      </Sequence>
+
+      <Sequence name="音声" durationInFrames={totalFrames}>
+        <Audio src={staticFile("audio/転職ショート_20260416/narration.wav")} />
       </Sequence>
     </AbsoluteFill>
   );

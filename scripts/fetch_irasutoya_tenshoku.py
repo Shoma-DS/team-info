@@ -37,7 +37,8 @@ OUT_DIR = Path(__file__).resolve().parents[1] / "Remotion" / "my-video" / "publi
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ASSETS_PLAN = [
-    {"filename": "hook.png", "keyword": "退職 ショック 女性"},
+    {"filename": "hook.png", "keyword": "無駄な会議"},
+
     {"filename": "s1.png", "keyword": "無視する スルー 会議"},
     {"filename": "s2.png", "keyword": "過労 疲労 評価"},
     {"filename": "s3.png", "keyword": "怒る 上司 無能"}

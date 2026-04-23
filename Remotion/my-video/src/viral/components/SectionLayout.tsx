@@ -3,91 +3,133 @@ import { AbsoluteFill, useVideoConfig, useCurrentFrame, spring, interpolate } fr
 import { VIRAL_ADULT_AFFILIATE_FONT_FAMILY } from '../fonts';
 
 interface SectionLayoutProps {
-  title:
- string;
-  imageSrc:
- string;
+  title: string;
+  imageSrc: string;
+  photoSrc?: string;
+  switchFrame?: number;
 }
 
 export const SectionLayout: React.FC<SectionLayoutProps> = ({
   title,
-  imageSrc
+  imageSrc,
+  photoSrc,
+  switchFrame = 60
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // アニメーション: ポップアップ効果
+  // アニメーション: イラストのポップアップ効果
   const imageScale = spring({
     fps,
-    frame: Math.max(0, frame - 5), // ちょっと遅らせて表示
+    frame: Math.max(0, frame - 5),
     config: { damping: 14, stiffness: 200 }
   });
 
-  const textOpacity = interpolate(frame, [0, 12], [0, 1], { extrapolateRight: 'clamp' });
-  const textY = interpolate(frame, [0, 15], [30, 0], { extrapolateRight: 'clamp' });
+  const textOpacity = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: 'clamp' });
+
+  // 切り替え演出の定義
+  const showPhoto = photoSrc && frame >= switchFrame;
+  const transitionFrames = 10;
+  
+  // イラストの不透明度（写真が出る時に消える）
+  const imageOpacity = interpolate(
+    frame,
+    [switchFrame, switchFrame + transitionFrames],
+    [1, 0],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  );
+
+  // 写真の不透明度
+  const photoOpacity = interpolate(
+    frame,
+    [switchFrame, switchFrame + transitionFrames],
+    [0, 1],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  );
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#FAFAFA', alignItems: 'center' }}>
+    <AbsoluteFill style={{ backgroundColor: '#FFFFFF', alignItems: 'center' }}>
       {/* セクションタイトル (上部) */}
       <div
         style={{
           position: 'absolute',
-          top: '12%',
+          top: '4%',
           width: '90%',
           textAlign: 'center',
           opacity: textOpacity,
-          transform: `translateY(${textY}px)`,
         }}
       >
         <h2
           style={{
             margin: 0,
-            fontSize: 76,
+            fontSize: 100,
             fontWeight: 900,
             fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
-            color: '#2C3E50',
-            lineHeight: 1.3,
-            letterSpacing: '0.04em',
-            // 軽く白フチ＆ドロップシャドウで読みやすく
-            WebkitTextStroke: '6px #FFFFFF',
-            textShadow: '0 8px 15px rgba(0,0,0,0.15)',
+            color: '#000000',
+            lineHeight: 1.2,
+            letterSpacing: '0.01em',
           }}
         >
-          <span style={{ 
-            position: 'absolute', top: 0, left: 0, width: '100%', 
-            color: '#2C3E50', WebkitTextStroke: '0px' 
-          }}>
-            {title}
-          </span>
           {title}
         </h2>
       </div>
 
-      {/* いらすとや画像 (中央) */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '32%',
-          height: '42%',
-          width: '90%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          transform: `scale(${imageScale})`
-        }}
-      >
-        <img
-          src={imageSrc}
-          style={{ 
-            maxHeight: '100%', 
-            maxWidth: '100%', 
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.1))'
+      {/* コンテンツエリア (中央) - イラストを文字に被らない最大サイズで表示 */}
+      <AbsoluteFill style={{ top: '25%', height: '40%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {/* イラスト */}
+        <div
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            opacity: imageOpacity,
+            // 文字に被らないギリギリの大きさに調整
+            transform: `scale(${imageScale * 1.35})`,
+            visibility: frame >= switchFrame + transitionFrames ? 'hidden' : 'visible'
           }}
-        />
-      </div>
+        >
+          <img
+            src={imageSrc}
+            style={{ 
+              maxHeight: '100%', 
+              maxWidth: '100%', 
+              objectFit: 'contain',
+            }}
+          />
+        </div>
 
-      {/* 下部は SubtitleTrack のために空けておく (yPercent: 78 程度を想定) */}
+        {/* 写真 (存在する場合のみ) */}
+        {photoSrc && (
+          <div
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              opacity: photoOpacity,
+              visibility: frame < switchFrame ? 'hidden' : 'visible'
+            }}
+          >
+            <img
+              src={photoSrc}
+              style={{ 
+                width: '42%',
+                height: 'auto',
+                aspectRatio: '16/9',
+                objectFit: 'cover',
+                borderRadius: '8px',
+                border: '3px solid #FFFFFF',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+              }}
+            />
+          </div>
+        )}
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

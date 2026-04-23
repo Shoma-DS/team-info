@@ -36,7 +36,13 @@ interface HookProps {
   textShadow?: string;
   /** フック全体の上部余白（縦位置調整）。省略時は "18%" */
   paddingTop?: string;
+  /** 縦方向の配置位置。省略時は "center" */
+  justifyContent?: "center" | "flex-start" | "flex-end";
+  /** テキストの最大幅。省略時は "95%" */
+  maxWidth?: string;
 }
+
+
 
 /** 最初の3秒に表示するフック演出コンポーネント */
 export const Hook: React.FC<HookProps> = ({
@@ -53,7 +59,11 @@ export const Hook: React.FC<HookProps> = ({
   outerStrokeWidth = "20px",
   textShadow,
   paddingTop = "18%",
+  justifyContent = "center",
+  maxWidth = "95%",
 }) => {
+
+
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const effectiveEndFrame = endFrame ?? durationFrames;
@@ -92,9 +102,10 @@ export const Hook: React.FC<HookProps> = ({
 
   const isQuestion = hookType === "question";
   const lines = splitDisplayLines(text, {
-    maxCharsPerLine: 12,
+    maxCharsPerLine: 20,
     preserveExistingLineBreaks: true,
   });
+
   const resolvedFontFamily = fontFamily ?? HOOK_FONT_FAMILY;
   const resolvedLineColors = lineColors ?? HOOK_LINE_COLORS;
   const resolvedTextShadow = textShadow ?? [
@@ -107,20 +118,22 @@ export const Hook: React.FC<HookProps> = ({
   return (
     <AbsoluteFill
       style={{
-        justifyContent: "center",
+        justifyContent,
         alignItems: "center",
         pointerEvents: "none",
         opacity,
         paddingTop,
       }}
     >
+
       <div
         style={{
           transform: `scale(${scale})`,
           textAlign: "center",
-          maxWidth: "82%",
+          maxWidth,
         }}
       >
+
         {lines.map((line, index) => {
           const sharedStyle = {
             fontFamily: resolvedFontFamily,

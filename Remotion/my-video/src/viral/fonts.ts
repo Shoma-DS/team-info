@@ -1,5 +1,10 @@
+import { loadFont } from "@remotion/google-fonts/NotoSansJP";
+
+// フォントのロードを実行
+const { fontFamily } = loadFont();
 
 export const VIRAL_ADULT_AFFILIATE_FONT_FAMILY = [
+  `"${fontFamily}"`,
   '"Hiragino Maru Gothic ProN"',
   '"Hiragino Sans"',
   '"Yu Gothic"',
@@ -7,6 +12,7 @@ export const VIRAL_ADULT_AFFILIATE_FONT_FAMILY = [
   "sans-serif",
 ].join(", ");
 
-// 後方互換のため残す。現在はローカルの日本語フォントへ寄せているため、
-// モジュールロード時の外部フォント取得は行わない。
-export const useViralAdultAffiliateFont = (): void => {};
+/** 後方互換のため残す。 */
+export const useViralAdultAffiliateFont = (): void => {
+  // すでにモジュールロード時に読み込まれているため何もしない
+};
