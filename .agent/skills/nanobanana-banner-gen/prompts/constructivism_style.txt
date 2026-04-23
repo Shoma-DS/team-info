@@ -1,0 +1,8 @@
+A dynamic and powerful Constructivist/Avant-Garde editorial style banner.
+- **Background**: Aggressive geometric composition using bold red, black, and white colors. Includes halftone textures (screentone) for depth.
+- **Main Elements**: 
+  - The salary "{salary}" is the focal point, written in OVERSIZED, thick, industrial-style block letters.
+  - The job title "{title}" is tilted at a dynamic angle in bold sans-serif black or white.
+  - Large red arrows and realistic monochromatic collage elements (like a megaphone or gears) emphasize action.
+- **Vibe**: Revolutionary, high-income, and professionally empowering.
+- **Constraints**: Extremely large and bold typography for the title and salary. **IMPORTANT**: Ensure no information (e.g., job title, salary details, benefits) is duplicated on the banner. If a value is already prominent in one area, do not repeat it in another.

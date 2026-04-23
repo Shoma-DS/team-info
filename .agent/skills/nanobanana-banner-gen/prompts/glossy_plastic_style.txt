@@ -1,0 +1,7 @@
+A trendy, glossy 3d illustrative style banner with a 'Y2K' or 'Metaverse' vibe.
+- **Background**: A puffy, glossy plastic texture (like an inflated balloon) in a vibrant pink or bright blue.
+- **Main Elements**: 
+  - The job title "{title}" and salary "{salary}" are rendered in HUGE, glossy 3D embossed letters with high-shine highlights. 
+  - Characters: A cute, simple 3D humanoid character with a headset sitting at a stylized 3D desk with a laptop.
+- **Vibe**: High-energy, futuristic, and trendy.
+- **Constraints**: Extremely large and bold typography for the title and salary. No application links. **IMPORTANT**: Ensure no information (e.g., job title, salary details, benefits) is duplicated on the banner. If a value is already prominent in one area, do not repeat it in another.

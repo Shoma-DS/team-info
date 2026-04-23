@@ -1,0 +1,8 @@
+A high-impact, minimalist typography-focused banner.
+- **Background**: A solid, strong color (deep navy or charcoal) with subtle, large-scale watermark text.
+- **Main Elements**: 
+  - Total focus on HUGE TYPOGRAPHY. The job title "{title}" fills the top half of the square.
+  - The salary "{salary}" fills the bottom half in a contrasting bright color (neon yellow or white).
+  - Use extra-bold, heavy impact fonts.
+- **Vibe**: Direct, overwhelming, and impossible to miss.
+- **Constraints**: Extremely large and bold typography for the title and salary. No background clutter. **IMPORTANT**: Ensure no information (e.g., job title, salary details, benefits) is duplicated on the banner. If a value is already prominent in one area, do not repeat it in another.

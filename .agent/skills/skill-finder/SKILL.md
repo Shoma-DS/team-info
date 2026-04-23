@@ -86,6 +86,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | jmty-posts-remote-14 | 在宅系見本から投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-remote-14/SKILL.md` |
 | jmty-posts-14-variants | 汎用的に投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-14-variants/SKILL.md` |
 | jmty-posts-gdrive-sync | 投稿出力をGoogleドライブへ同期する | `.agent/skills/jmty/jmty-posts/jmty-posts-gdrive-sync/SKILL.md` |
+| jmty-image-organizer | スプレッドシート画像とドライブフォルダを整理・同期する | `.agent/skills/jmty/jmty-image-organizer/SKILL.md` |
 
 ---
 
@@ -191,6 +192,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | ジモティー投稿を作りたい（工場） | `jmty-posts-factory-14` |
 | ジモティー投稿を作りたい（在宅） | `jmty-posts-remote-14` |
 | ジモティー投稿をGドライブに同期したい | `jmty-posts-gdrive-sync` |
+| ジモティーの画像をアカウントフォルダに整理・移動したい | `jmty-image-organizer` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |

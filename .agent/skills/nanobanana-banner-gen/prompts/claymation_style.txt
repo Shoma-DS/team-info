@@ -1,0 +1,8 @@
+A playful and colorful claymation (diorama) style banner.
+The scene is made entirely of hand-sculpted colorful clay (plasticine).
+- **Background**: A miniature clay world with a textured blue sky, soft white clouds, and tiny green hills with miniature clay houses and trees.
+- **Main Elements**: 
+  - The job title "{title}" is written in bold, hand-drawn clay letters. (Make the font size as large as possible within the top layout).
+  - The salary "{salary}" is displayed in thick, bright yellow clay numbers. (Make the salary numbers even larger and more prominent than the title).
+- **Vibe**: Friendly, handmade, and vibrant.
+- **Constraints**: Extremely large and bold typography for the title and salary. No application links or phone numbers. **IMPORTANT**: Ensure no information (e.g., job title, salary details, benefits) is duplicated on the banner. If a value is already prominent in one area, do not repeat it in another.

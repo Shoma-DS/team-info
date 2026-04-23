@@ -184,6 +184,7 @@ def _run_git(repo_root: Path, *args: str) -> str:
             check=False,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
     except OSError as exc:
         raise RuntimeError("git command was not found.") from exc
@@ -503,6 +504,12 @@ def _post_discord_message(webhook_url: str, content: str) -> None:
 
 
 def main() -> int:
+    if sys.stdout.encoding.lower() != "utf-8":
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
     parser = argparse.ArgumentParser(
         description="Resolve cross-platform paths used by team-info skills."
     )

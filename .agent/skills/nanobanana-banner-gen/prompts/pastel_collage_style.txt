@@ -1,0 +1,8 @@
+A clean and sophisticated paper-collage (scrapbook) style banner with a pastel palette.
+- **Background**: Soft beige or cream paper texture background with layers of pastel-colored paper (mint, soft orange, and light blue) creating patterns.
+- **Main Elements**: 
+  - The job title "{title}" is presented in GIGANTIC, clean, black sans-serif bold letters with a slight paper-depth shadow.
+  - The salary "{salary}" is in MASSIVE, bold colorful text, positioned centrally to catch immediate attention.
+  - Tiny illustrations of cute, minimal animals (like a fox or dog) working at a laptop are tucked in the corners.
+- **Vibe**: Organized, friendly, and trustworthy.
+- **Constraints**: Extremely large and bold typography for the title and salary. **IMPORTANT**: Ensure no information (e.g., job title, salary details, benefits) is duplicated on the banner. If a value is already prominent in one area, do not repeat it in another.
