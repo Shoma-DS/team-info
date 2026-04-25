@@ -6,7 +6,7 @@ Canva Connect API - スライドショー動画制作スクリプト
   1. 台本ファイルを段落に分割してスライド内容を決定
   2. Canva Connect API でデザイン（スライド）を作成
   3. PNG としてエクスポート・ダウンロード
-  4. outputs/canva_slides/<テーマ>/ に保存
+  4. personal/<account>/outputs/canva_slides/<テーマ>/ に保存
 
 使い方:
   python3 mcp-servers/canva_slideshow.py --script 台本.md --theme テーマ名
@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -26,9 +27,28 @@ import requests
 # ===== パス設定 =====
 BASE_DIR        = Path(__file__).resolve().parent.parent            # team-info/
 SCRIPT_DIR      = BASE_DIR / "Remotion" / "scripts" / "voice_scripts"
-OUTPUT_BASE     = BASE_DIR / "outputs" / "canva_slides"
 TOKENS_PATH     = Path.home() / ".secrets" / "canva_tokens.json"
 CREDENTIALS_PATH= Path.home() / ".secrets" / "canva_credentials.txt"
+
+
+def detect_account_name() -> str:
+    try:
+        completed = subprocess.run(
+            ["git", "config", "user.name"],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        account = re.sub(r"[^a-z0-9]+", "", completed.stdout.strip().lower())
+        if account:
+            return account
+    except Exception:
+        pass
+    return "deguchishouma"
+
+
+OUTPUT_BASE     = BASE_DIR / "personal" / detect_account_name() / "outputs" / "canva_slides"
 
 # ===== Canva API エンドポイント =====
 API_BASE        = "https://api.canva.com/rest/v1"
@@ -297,7 +317,7 @@ def main():
     print(f"  スライド画像: {output_dir}/")
     print(f"  マニフェスト: {manifest_path}")
     print(f"\n次のステップ:")
-    print(f"  1. 音源化: python3 /Users/deguchishouma/team-info/Remotion/generate_voice.py")
+    print(f"  1. 音源化: python3 \"{BASE_DIR / 'Remotion' / 'generate_voice.py'}\"")
     print(f"  2. 動画化: Remotion で CanvaSlideshow コンポジションをレンダリング")
 
 

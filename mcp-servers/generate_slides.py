@@ -6,7 +6,7 @@
   1. 台本を段落単位でスライドに分割
   2. 各スライドからキーワードを抽出
   3. Pixabay API で台本に合った背景画像を検索・ダウンロード
-  4. outputs/slide_images/{テーマ}/ に保存
+  4. Remotion/my-video/public/assets/slide_images/{テーマ}/ に保存
   5. manifest.json（テキスト + 画像パス）を出力 → Remotion が使用
 
 使い方:

@@ -9,7 +9,27 @@ from pathlib import Path
 
 
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "user-presets"
-OUTPUT_DIR = Path.cwd() / "outputs" / "gws-duplicate-checker"
+REPO_ROOT = Path(__file__).resolve().parents[5]
+
+
+def resolve_account_name() -> str:
+    try:
+        completed = subprocess.run(
+            ["git", "config", "user.name"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        account = re.sub(r"[^a-z0-9]+", "", completed.stdout.strip().lower())
+        if account:
+            return account
+    except Exception:
+        pass
+    return "deguchishouma"
+
+
+OUTPUT_DIR = REPO_ROOT / "personal" / resolve_account_name() / "outputs" / "gws-duplicate-checker"
 
 
 def extract_spreadsheet_id(raw: str) -> str:

@@ -25,7 +25,7 @@
 - 個人用の scripts / skills / outputs / GAS が別 namespace に必要なときも、同じく `<account>` フォルダを切る
   - 例: `personal/deguchishouma/scripts/`
   - 例: `.agent/skills/personal/deguchishouma/`
-  - 例: `outputs/personal/deguchishouma/`
+  - 例: `personal/deguchishouma/outputs/`
   - 例: `personal/deguchishouma/gas/`
 - 既存ファイルへの変更はこのルールの対象外
 

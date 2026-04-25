@@ -1,7 +1,7 @@
-# outputs/ — 生成物の出力先
+# outputs/ — 共有生成物の出力先
 
-ここはすべての **AI 生成物・レンダリング結果の出力先**。
-素材・入力ファイルは `inputs/` へ。このフォルダに入力素材を置かないこと。
+ここは **共有で扱う AI 生成物・レンダリング結果の出力先**。
+個人専用の成果物は `personal/<account>/outputs/` へ置く。素材・入力ファイルは `inputs/` へ。このフォルダに入力素材を置かないこと。
 
 ## サブフォルダ構造
 
@@ -13,7 +13,6 @@
 | `common/airthmate/` | AirthMate のプレビュー・納品用 HTML / PDF | — |
 | `jmty/` | ジモティー投稿文（.txt / .md） | `jmty-posts-*` |
 | `note/` | note 記事（.md） | `note-article-ayumi` |
-| `profile/` | プロフィール素材 | — |
 | `sleep_travel/` | 寝ながらトラベル 動画出力 | `remotion-template-sleep-travel-*` |
 | `viral-analysis/` | バズ動画解析結果（動画ごとにサブフォルダ） | `viral-template-generator` |
 
@@ -39,3 +38,4 @@ outputs/viral-analysis/
 ## 注意
 
 - レンダリング済み動画（.mp4）は Git 管理外（.gitignore 参照）
+- 個人専用のレポートや素材は `personal/<account>/outputs/` に置き、ここへ混ぜない

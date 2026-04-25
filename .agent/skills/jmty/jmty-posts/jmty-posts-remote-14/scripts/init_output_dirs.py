@@ -14,14 +14,14 @@ TEMPLATE = """# タイトル
 ## 募集概要
 - 職種:
 - 雇用形態:
-- 勤務地: 在宅（全国）
+- 勤務地: 在宅（{location}周辺）
 - 勤務時間:
 - 給与:
 - 休日:
 - 応募条件:
 
 ## 応募導線
-気になる方は公式LINEからご連絡ください。  
+気になる方は公式LINEに登録後、問い合わせボタンを押してください。  
 【公式LINEURL】
 """
 
@@ -29,6 +29,7 @@ TEMPLATE = """# タイトル
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("output_root")
+    parser.add_argument("--location", default="〇〇県〇〇市")
     args = parser.parse_args()
 
     output_root = Path(args.output_root).expanduser()
@@ -37,7 +38,7 @@ def main() -> int:
     for index in range(1, 15):
         output_file = output_root / f"post{index:02d}.md"
         if not output_file.exists():
-            output_file.write_text(TEMPLATE, encoding="utf-8")
+            output_file.write_text(TEMPLATE.format(location=args.location), encoding="utf-8")
 
     print(f"Created 14 post files under: {output_root}")
     return 0
@@ -45,4 +46,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

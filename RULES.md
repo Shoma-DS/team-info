@@ -32,14 +32,13 @@ team-info/
 │   ├── jmty_factory_cases/ 工場求人素材
 │   ├── jmty_remote_samples/ 在宅求人素材
 │   └── viral-analysis/    バズ動画解析インボックス（.mp4 を置く）
-├── outputs/               すべての生成物の出力先
+├── outputs/               共有で扱う生成物の出力先
 │   ├── acoriel/
 │   │   ├── descriptions/ アコリエル YouTube 概要欄 .md
 │   │   └── renders/      アコリエル動画レンダリング出力
 │   ├── common/            汎用出力
 │   ├── jmty/              ジモティー投稿文
 │   ├── note/              note 記事
-│   ├── profile/           プロフィール素材
 │   ├── sleep_travel/      寝ながらトラベル動画出力
 │   └── viral-analysis/    バズ動画解析結果（analysis.json + remotion/）
 ├── personal/              個人用ファイルの集約先
@@ -47,6 +46,7 @@ team-info/
 │       ├── discord/       Webhook や個人通知設定
 │       ├── gas/           個人用 Google Apps Script
 │       ├── kpi/           月次 KPI や週次計画
+│       ├── outputs/       個人用の生成物・レポート・下書き成果物
 │       ├── projects/      個人案件・個人ツール・ OpenEmpire など
 │       └── scripts/       個人専用の補助スクリプトや定期実行物
 ├── Remotion/              Remotion 動画制作環境
@@ -79,7 +79,8 @@ team-info/
 
 - スキルフォルダは必ず `SKILL.md` を含む
 - スキル追加後は必ず `.agent/skills/skill-finder/SKILL.md` の索引を更新する
-- スキルの入力素材は `inputs/{skill-name}/` へ、出力は `outputs/{skill-name}/` へ
+- スキルの入力素材は `inputs/{skill-name}/` へ置く
+- 共有スキルの出力は `outputs/{skill-name}/`、個人スキルの出力は `personal/<account>/outputs/{skill-name}/` を原則にする
 - 個人専用スキルは `.agent/skills/personal/<account>/` 配下へ置き、共有スキルと混ぜない
 - `AGENTS.md` には個別スキル一覧を増やさず、索引の正本は `.agent/skills/skill-finder/SKILL.md` に寄せる
 
@@ -121,6 +122,7 @@ team-info/
 - note 記事の出力先は `outputs/note/` に統一する
 - 共有 Apps Script は `GAS/`、個人用 Apps Script は `personal/<account>/gas/` に分ける
 - 個人用スクリプトは `scripts/personal/<account>/` を増やさず、`personal/<account>/scripts/` に集約する
+- 個人用の成果物は `outputs/personal/` を増やさず、`personal/<account>/outputs/` へ寄せる
 - `test-website/` のような独立プロジェクトは root 直下に増やさず、`projects/` 配下へ寄せる
 
 ---

@@ -1,7 +1,7 @@
 {
     "python-envs.pythonProjects": [
         {
-            "path": "outputs/profile",
+            "path": "personal/deguchishouma/outputs/profile",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
         }
