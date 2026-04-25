@@ -133,7 +133,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | macos-intel-compatibility | macOS Intel環境の互換性パッチ対応 | `.agent/skills/common/macos-intel-compatibility/SKILL.md` |
 | note-article-ayumi | 「愛され女子あゆみ」のnote記事を作成する | `.agent/skills/common/note-article-ayumi/SKILL.md` |
 | note-thumbnail-ayumi | 「愛され女子あゆみ」のnoteサムネイル（1280×670px）を生成する | `.agent/skills/common/note-thumbnail-ayumi/SKILL.md` |
-| daily-calendar-summary | 当日のGoogleカレンダー予定を取得しZoom URLを付与してDiscordへ朝の予定サマリーを送信する | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
+| daily-calendar-summary | 当日のGoogleカレンダー予定を取得しZoom URLを付与してLINE送信とDiscordへの朝サマリー送信を行う | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
 | md-to-docx | Markdownファイルを Word(.docx) に変換する。見出し・太字・箇条書き・水平線に対応 | `.agent/skills/common/md-to-docx/SKILL.md` |
 | insta-company-secretary-log | insta-company の秘書ログを作成し、社長メモ・ToDo・引き継ぎ事項を整理する | `.agent/skills/common/insta-company-secretary-log/SKILL.md` |
 | insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
@@ -147,6 +147,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | discord-role-checker | Discord サーバーのメンバーとロールを取得し、Markmap（マインドマップ）形式の Markdown を自動生成する | `.agent/skills/discord/discord-role-checker/SKILL.md` |
+
+---
+
+### 🎤 personal/deguchishouma/seminar/（セミナー制作系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| seminar-script-creator | 伝えたいメッセージを受け取り、markmap→ZOOMセミナー台本→6審査員採点改善ループ→スライド番号対応→GPTimage2での画像化まで一気通貫で作成する | `.agent/skills/personal/deguchishouma/seminar-script-creator/SKILL.md` |
 
 ---
 
@@ -175,7 +182,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 🍌 nanobanana-banner-gen/（バナー自動生成系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| nanobanana-banner-gen | スプレッドシートから投稿文を読み取ってバナー画像を自動生成し、シートに挿入する | `.agent/skills/nanobanana-banner-gen/SKILL.md` |
+| nanobanana-banner-gen | スプレッドシートから投稿文を読み取り、Codex CLI では GPT Image 2 / それ以外では Nanobanana Pro でバナー画像を生成してシートに挿入する | `.agent/skills/nanobanana-banner-gen/SKILL.md` |
 
 ---
 
@@ -233,6 +240,8 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | LPの絵文字や仮アイコンを、ちょうどいいイラストの画像に差し替えたい | `themeisle-illustration-fetcher` |
 | Themeisle のイラストをダウンロードしてサイトに使いたい | `themeisle-illustration-fetcher` |
 | 日本語テイストのやわらかいイラストに差し替えたい | `tyoudoii-illust-fetcher` |
+| ZOOMセミナーのトークスクリプトを作りたい | `seminar-script-creator` |
+| セミナーの台本を採点して120点まで改善したい | `seminar-script-creator` |
 | CanvaやRemotionで台本からスライドショー動画を作りたい | `canva-slideshow-video` |
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |
 | バズるショート動画テンプレを作りたい | `viral-template-generator` |

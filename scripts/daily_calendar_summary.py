@@ -3,7 +3,7 @@
 daily_calendar_summary.py
 
 Googleカレンダーのイベント一覧を標準入力から受け取り、
-Zoom ミーティングを作成（必要な場合）して Discord へ投稿する。
+Zoom ミーティングを作成（必要な場合）し、LINE 送信と合わせて Discord へ投稿する。
 
 入力 JSON 形式（Remote Trigger から渡す）:
 {
@@ -52,6 +52,11 @@ ZOOM_RUN_ID_KEY = "team-info.zoom-run-id"
 ZOOM_URL_KEY = "team-info.zoom-url"
 ZOOM_MEETING_ID_KEY = "team-info.zoom-meeting-id"
 MAX_ZOOM_VERIFICATION_ATTEMPTS = 3
+LINE_SENDER_URL_ENV_KEYS = ("PROLINE_MESSAGE_SENDER_URL", "LINE_MESSAGE_SENDER_URL")
+LINE_SENDER_TOKEN_ENV_KEYS = ("PROLINE_MESSAGE_SENDER_TOKEN", "LINE_MESSAGE_SENDER_TOKEN")
+LINE_STATUS_KEY = "team-info.line-status"
+LINE_UID_KEY = "team-info.line-uid"
+LINE_SENT_URL_KEY = "team-info.line-sent-url"
 
 
 def resolve_personal_account_slug() -> str:
@@ -99,6 +104,14 @@ def resolve_personal_account_slug() -> str:
 
 PERSONAL_ACCOUNT = resolve_personal_account_slug()
 WEBHOOK_CONFIG_PATH = REPO_ROOT / "personal" / PERSONAL_ACCOUNT / "discord" / "discord-daily-webhook.json"
+
+
+def resolve_first_env(*keys: str) -> Optional[str]:
+    for key in keys:
+        value = os.environ.get(key)
+        if value:
+            return value
+    return None
 
 
 # ── Zoom API ────────────────────────────────────────────────────
@@ -177,6 +190,23 @@ def list_zoom_meetings(token: str) -> Tuple[list[dict], Optional[str]]:
         return [], reason
 
 
+def delete_zoom_meeting(token: str, meeting_id: str) -> Optional[str]:
+    """Zoom の scheduled meeting を削除する。成功時は None を返す"""
+    url = f"https://api.zoom.us/v2/meetings/{meeting_id}"
+    req = urllib.request.Request(
+        url,
+        method="DELETE",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    try:
+        with urllib.request.urlopen(req):
+            return None
+    except Exception as e:
+        reason = f"重複 Zoom ミーティング削除失敗: {e}"
+        print(f"[Zoom] {reason}（meeting_id={meeting_id}）", file=sys.stderr)
+        return reason
+
+
 def normalize_zoom_datetime(value: Optional[str]) -> Optional[datetime]:
     """Zoom / Calendar の ISO 文字列を UTC datetime にそろえる"""
     if not value:
@@ -209,6 +239,90 @@ def find_existing_zoom_meeting(meetings: List[dict], title: str, start_iso: str)
     return None
 
 
+def find_zoom_meeting_by_id(meetings: List[dict], meeting_id: Optional[str]) -> Optional[dict]:
+    if not meeting_id:
+        return None
+    for meeting in meetings:
+        if str(meeting.get("id") or "") == str(meeting_id):
+            return meeting
+    return None
+
+
+def is_matching_zoom_meeting(meeting: Optional[dict], title: str, start_iso: str) -> bool:
+    if not meeting:
+        return False
+
+    target_dt = normalize_zoom_datetime(start_iso)
+    meeting_dt = normalize_zoom_datetime(meeting.get("start_time"))
+    if not target_dt or not meeting_dt:
+        return False
+
+    meeting_title = (meeting.get("topic") or "").strip()
+    if meeting_title != title.strip():
+        return False
+
+    return abs((meeting_dt - target_dt).total_seconds()) <= 300
+
+
+def list_matching_zoom_meetings(meetings: List[dict], title: str, start_iso: str) -> List[dict]:
+    return [meeting for meeting in meetings if is_matching_zoom_meeting(meeting, title, start_iso)]
+
+
+def is_reusable_zoom_url(meeting_url: Optional[str], meetings: List[dict], title: str, start_iso: Optional[str]) -> Tuple[bool, Optional[str]]:
+    """Zoom URL が当日の対象予定に対応していれば再利用可とみなす"""
+    if not meeting_url:
+        return False, "Zoom URL がありません"
+    if "zoom.us/" not in meeting_url:
+        return True, None
+    if not start_iso:
+        return True, None
+
+    meeting_id = extract_zoom_meeting_id(meeting_url)
+    meeting = find_zoom_meeting_by_id(meetings, meeting_id)
+    if not meeting:
+        return False, "説明欄の Zoom URL が Zoom scheduled meetings に存在しません"
+    if not is_matching_zoom_meeting(meeting, title, start_iso):
+        return False, "説明欄の Zoom URL が本日の予定タイトルまたは開始時刻と一致しません"
+    return True, None
+
+
+def cleanup_duplicate_zoom_meetings(
+    token: Optional[str],
+    meetings: List[dict],
+    title: str,
+    start_iso: str,
+    keep_url: str,
+    extra_delete_ids: Optional[set[str]] = None,
+) -> Tuple[List[dict], List[str]]:
+    """確定した meeting 以外の重複 scheduled meetings を削除する"""
+    if not token:
+        return meetings, ["Zoom トークンがないため重複ミーティングを削除できません"]
+
+    keep_id = extract_zoom_meeting_id(keep_url)
+    delete_ids: set[str] = set(extra_delete_ids or set())
+    for meeting in list_matching_zoom_meetings(meetings, title, start_iso):
+        meeting_id = str(meeting.get("id") or "")
+        if meeting_id and meeting_id != keep_id:
+            delete_ids.add(meeting_id)
+
+    if keep_id in delete_ids:
+        delete_ids.remove(keep_id)
+
+    errors: List[str] = []
+    if not delete_ids:
+        return meetings, errors
+
+    for meeting_id in sorted(delete_ids):
+        delete_error = delete_zoom_meeting(token, meeting_id)
+        if delete_error:
+            errors.append(delete_error)
+        else:
+            print(f"[Zoom] 重複ミーティング削除: {meeting_id}")
+
+    remaining = [meeting for meeting in meetings if str(meeting.get("id") or "") not in delete_ids]
+    return remaining, errors
+
+
 def extract_zoom_meeting_id(meeting_url: Optional[str]) -> Optional[str]:
     if not meeting_url:
         return None
@@ -216,6 +330,59 @@ def extract_zoom_meeting_id(meeting_url: Optional[str]) -> Optional[str]:
     if match:
         return match.group(1)
     return None
+
+
+def extract_line_user_id(description: Optional[str], event: Optional[dict] = None) -> Optional[str]:
+    private = ((event or {}).get("extendedProperties") or {}).get("private") or {}
+    private_uid = private.get(LINE_UID_KEY)
+    if private_uid:
+        return private_uid.strip()
+
+    if not description:
+        return None
+
+    patterns = [
+        r"[?&]uid=([A-Za-z0-9_-]+)",
+        r"\buid\s*[:=]\s*([A-Za-z0-9_-]+)",
+        r"ユーザーID\s*[:=：＝]\s*([A-Za-z0-9_-]+)",
+        r"\"uid\"\s*:\s*\"([A-Za-z0-9_-]+)\"",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, description, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return None
+
+
+def send_line_message(line_sender_url: str, user_id: str, content: str, shared_token: Optional[str] = None) -> Tuple[bool, Optional[str]]:
+    payload: Dict[str, str] = {
+        "userId": user_id,
+        "messageContent": content,
+    }
+    if shared_token:
+        payload["token"] = shared_token
+
+    req = urllib.request.Request(
+        line_sender_url,
+        data=json.dumps(payload, ensure_ascii=False).encode(),
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "team-info daily-calendar-summary",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            response_text = resp.read().decode("utf-8", errors="replace")
+        try:
+            response_json = json.loads(response_text)
+        except json.JSONDecodeError:
+            response_json = None
+        if response_json and response_json.get("ok") is False:
+            return False, response_json.get("error") or "LINE 送信先がエラーを返しました"
+        return True, None
+    except Exception as e:
+        return False, f"LINE 送信失敗: {e}"
 
 
 # ── Google Calendar via GWS CLI ────────────────────────────────
@@ -322,7 +489,7 @@ def merge_private_properties(event: Optional[dict], updates: Dict[str, str]) -> 
     return {"extendedProperties": {"private": merged}}
 
 
-def try_acquire_zoom_creation_lock(event: dict) -> Tuple[bool, Optional[dict], Optional[str]]:
+def try_acquire_zoom_creation_lock(event: dict, zoom_meetings: List[dict]) -> Tuple[bool, Optional[dict], Optional[str]]:
     """同時実行時に 1 つだけが Zoom 作成に進むようイベント上でロックする"""
     event_id = event.get("event_id")
     calendar_id = event.get("calendar_id", CALENDAR_ID)
@@ -335,8 +502,19 @@ def try_acquire_zoom_creation_lock(event: dict) -> Tuple[bool, Optional[dict], O
     latest_description = (latest or {}).get("description") or event.get("description") or ""
     latest_url = extract_meeting_url(latest_description)
     if latest_url:
-        event["description"] = latest_description
-        return False, latest, None
+        reusable, reusable_reason = is_reusable_zoom_url(
+            latest_url,
+            zoom_meetings,
+            event["title"],
+            event.get("start_iso"),
+        )
+        if reusable:
+            event["description"] = latest_description
+            return False, latest, None
+        print(
+            f"[Zoom] 既存URLを stale 扱いにして再発行します（{event.get('title', '（タイトルなし）')}）: {reusable_reason}",
+            file=sys.stderr,
+        )
 
     run_id = str(uuid.uuid4())
     patch_body = merge_private_properties(latest, {
@@ -403,9 +581,59 @@ def build_zoom_description_block(meeting_url: str, share_message: str, meeting_i
     return "\n".join(lines)
 
 
+def normalize_calendar_description(description: Optional[str]) -> str:
+    """説明欄を正本フォーマットへ寄せるため、旧 Zoom 情報を取り除く"""
+    if not description:
+        return ""
+
+    text = description.replace("\r\n", "\n")
+    lines = text.split("\n")
+    kept: List[str] = []
+    skipping_team_info = False
+    skipping_proline_footer = False
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped == ZOOM_MESSAGE_HEADER:
+            skipping_team_info = True
+            continue
+        if skipping_team_info:
+            continue
+        if stripped == "予約を変更したい場合はこちら":
+            skipping_proline_footer = True
+            continue
+        if skipping_proline_footer:
+            if stripped.startswith("Powered by プロラインフリー"):
+                continue
+            if stripped.startswith("Zoom会議室開始URL:"):
+                continue
+            if stripped.startswith("Zoom開始URL（ホスト、主催者）:"):
+                continue
+            if stripped.startswith("Zoom参加URL（ゲスト、予約者）:"):
+                continue
+            if stripped.startswith("※プロラインフリーで予約して作成されたスケジュール"):
+                continue
+            if stripped.startswith("https://"):
+                continue
+            if stripped == "":
+                continue
+            skipping_proline_footer = False
+        if stripped.startswith("Zoom会議室開始URL:"):
+            continue
+        if stripped.startswith("Zoom開始URL（ホスト、主催者）:"):
+            continue
+        if stripped.startswith("Zoom参加URL（ゲスト、予約者）:"):
+            continue
+        kept.append(line.rstrip())
+
+    normalized = "\n".join(kept)
+    normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+    return normalized.strip()
+
+
 def append_zoom_message(description: Optional[str], meeting_url: str, share_message: str, meeting_id: Optional[str] = None) -> str:
     """既存説明欄へ Zoom URL と送信用メッセージを追記する"""
-    base = (description or "").rstrip()
+    base = normalize_calendar_description(description)
     block = build_zoom_description_block(meeting_url, share_message, meeting_id)
     if block in base:
         return base
@@ -426,12 +654,16 @@ def update_calendar_description(event: dict, meeting_url: str, share_message: st
         return False, f"GWS get 失敗: {latest_error}"
     current_description = (latest or {}).get("description") or event.get("description")
     new_description = append_zoom_message(current_description, meeting_url, share_message, meeting_id)
+    line_uid = extract_line_user_id(current_description, latest)
     patch_body = {"description": new_description}
-    patch_body.update(merge_private_properties(latest, {
+    private_updates = {
         ZOOM_STATUS_KEY: "created",
         ZOOM_URL_KEY: meeting_url,
         ZOOM_MEETING_ID_KEY: meeting_id or "",
-    }))
+    }
+    if line_uid:
+        private_updates[LINE_UID_KEY] = line_uid
+    patch_body.update(merge_private_properties(latest, private_updates))
 
     try:
         patched, patch_error = gws_event_patch(calendar_id, event_id, patch_body)
@@ -517,6 +749,89 @@ def build_zoom_failure_report(date_str: str, failures: List[dict]) -> str:
     return "\n".join(header + body).strip()
 
 
+def build_line_failure_report(date_str: str, failures: List[dict]) -> str:
+    header = [
+        f"**LINE送信エラー（{date_str}）**",
+        "Zoomリンクは作成できましたが、LINE 送信が完了しなかったため通常の予定通知は止めています。",
+        "",
+    ]
+    body: List[str] = []
+    for index, failure in enumerate(failures, 1):
+        title = failure.get("title", "（タイトルなし）")
+        start = failure.get("start") or "--:--"
+        end = failure.get("end") or "--:--"
+        uid = failure.get("line_user_id") or "不明"
+        body.append(f"{index}. {title} ({start}〜{end})")
+        body.append(f"- uid: {uid}")
+        for reason in failure.get("reasons", []):
+            body.append(f"- {reason}")
+        body.append("")
+    return "\n".join(header + body).strip()
+
+
+def was_line_message_sent(event: Optional[dict], user_id: str, meeting_url: str) -> bool:
+    private = ((event or {}).get("extendedProperties") or {}).get("private") or {}
+    return (
+        private.get(LINE_STATUS_KEY) == "sent"
+        and private.get(LINE_UID_KEY) == user_id
+        and private.get(LINE_SENT_URL_KEY) == meeting_url
+    )
+
+
+def mark_line_message_sent(event: dict, user_id: str, meeting_url: str) -> Tuple[bool, Optional[str]]:
+    event_id = event.get("event_id")
+    if not event_id:
+        return False, "event_id がないため LINE 送信状態を保存できません"
+
+    calendar_id = event.get("calendar_id", CALENDAR_ID)
+    latest, latest_error = gws_event_get(calendar_id, event_id)
+    if latest_error:
+        return False, f"GWS get 失敗: {latest_error}"
+
+    patch_body = merge_private_properties(latest, {
+        LINE_STATUS_KEY: "sent",
+        LINE_UID_KEY: user_id,
+        LINE_SENT_URL_KEY: meeting_url,
+    })
+    patched, patch_error = gws_event_patch(calendar_id, event_id, patch_body)
+    if not patched:
+        return False, f"GWS patch 失敗: {patch_error}"
+    return True, None
+
+
+def send_line_message_for_event(
+    event: dict,
+    meeting_url: str,
+    share_message: str,
+    line_sender_url: Optional[str],
+    line_sender_token: Optional[str],
+) -> Tuple[bool, bool, Optional[str], Optional[str]]:
+    latest_event, latest_error = gws_event_get(event.get("calendar_id", CALENDAR_ID), event.get("event_id"))
+    if latest_error:
+        return False, False, None, f"GWS get 失敗: {latest_error}"
+
+    latest_description = (latest_event or {}).get("description") or event.get("description")
+    line_user_id = extract_line_user_id(latest_description, latest_event)
+    if not line_user_id:
+        return False, False, None, None
+
+    if was_line_message_sent(latest_event, line_user_id, meeting_url):
+        return True, True, line_user_id, None
+
+    if not line_sender_url:
+        return False, False, line_user_id, "PROLINE_MESSAGE_SENDER_URL または LINE_MESSAGE_SENDER_URL が未設定です"
+
+    sent, send_error = send_line_message(line_sender_url, line_user_id, share_message, line_sender_token)
+    if not sent:
+        return False, False, line_user_id, send_error
+
+    marked, mark_error = mark_line_message_sent(event, line_user_id, meeting_url)
+    if not marked:
+        return False, False, line_user_id, mark_error
+
+    return True, False, line_user_id, None
+
+
 def ensure_zoom_link_with_verification(
     event: dict,
     zoom_token: Optional[str],
@@ -524,17 +839,33 @@ def ensure_zoom_link_with_verification(
 ) -> Tuple[Optional[str], Optional[str], List[str], List[dict]]:
     """Zoom URL の作成・説明欄反映・再取得検証までを最大3回試す"""
     reasons: List[str] = []
+    stale_delete_ids: set[str] = set()
     current_url = extract_meeting_url(event.get("description"))
     if current_url:
-        meeting_id = extract_zoom_meeting_id(current_url)
-        share_message = build_zoom_share_message(
-            event["title"],
-            event["start"],
-            event["end"],
+        reusable, reusable_reason = is_reusable_zoom_url(
             current_url,
-            meeting_id,
+            zoom_meetings,
+            event["title"],
+            event.get("start_iso"),
         )
-        return current_url, share_message, reasons, zoom_meetings
+        if reusable:
+            meeting_id = extract_zoom_meeting_id(current_url)
+            share_message = build_zoom_share_message(
+                event["title"],
+                event["start"],
+                event["end"],
+                current_url,
+                meeting_id,
+            )
+            return current_url, share_message, reasons, zoom_meetings
+        stale_meeting_id = extract_zoom_meeting_id(current_url)
+        if stale_meeting_id:
+            stale_delete_ids.add(stale_meeting_id)
+        reasons.append(f"既存URL再利用不可: {reusable_reason}")
+        print(
+            f"[Zoom] 説明欄の既存URLは stale 扱いにします（{event.get('title', '（タイトルなし）')}）: {reusable_reason}",
+            file=sys.stderr,
+        )
 
     if not zoom_token:
         return None, None, ["Zoom トークンが取得できないため新規発行できません"], zoom_meetings
@@ -543,15 +874,28 @@ def ensure_zoom_link_with_verification(
 
     for attempt in range(1, MAX_ZOOM_VERIFICATION_ATTEMPTS + 1):
         attempt_prefix = f"{attempt}回目"
-        acquired, latest_event, lock_reason = try_acquire_zoom_creation_lock(event)
+        acquired, latest_event, lock_reason = try_acquire_zoom_creation_lock(event, zoom_meetings)
         latest_url = resolve_calendar_zoom_url(latest_event, event.get("description"))
         meeting_id = (((latest_event or {}).get("extendedProperties") or {}).get("private") or {}).get(ZOOM_MEETING_ID_KEY)
 
         if latest_url:
-            meeting_url = latest_url
-            if not meeting_id:
-                meeting_id = extract_zoom_meeting_id(meeting_url)
-            print(f"[Zoom] カレンダー上の既存URLを再利用: {event['title']}")
+            reusable, reusable_reason = is_reusable_zoom_url(
+                latest_url,
+                zoom_meetings,
+                event["title"],
+                event.get("start_iso"),
+            )
+            if reusable:
+                meeting_url = latest_url
+                if not meeting_id:
+                    meeting_id = extract_zoom_meeting_id(meeting_url)
+                print(f"[Zoom] カレンダー上の既存URLを再利用: {event['title']}")
+            else:
+                stale_meeting_id = extract_zoom_meeting_id(latest_url)
+                if stale_meeting_id:
+                    stale_delete_ids.add(stale_meeting_id)
+                reasons.append(f"{attempt_prefix}: 既存URL再利用不可: {reusable_reason}")
+                meeting_url = None
         elif acquired:
             meeting_url = find_existing_zoom_meeting(
                 zoom_meetings,
@@ -601,6 +945,16 @@ def ensure_zoom_link_with_verification(
         verified, resolved_url, verify_error = verify_zoom_link(event, meeting_url)
         if verified:
             final_url = resolved_url or meeting_url
+            zoom_meetings, cleanup_errors = cleanup_duplicate_zoom_meetings(
+                zoom_token,
+                zoom_meetings,
+                event["title"],
+                event["start_iso"],
+                final_url,
+                stale_delete_ids,
+            )
+            if cleanup_errors:
+                reasons.extend(cleanup_errors)
             return final_url, build_zoom_share_message(
                 event["title"],
                 event["start"],
@@ -665,15 +1019,21 @@ def main() -> None:
         if zoom_meetings_error:
             print(f"[Zoom] {zoom_meetings_error}", file=sys.stderr)
 
-    # 各イベントに Zoom URL を付与
+    line_sender_url = resolve_first_env(*LINE_SENDER_URL_ENV_KEYS)
+    line_sender_token = resolve_first_env(*LINE_SENDER_TOKEN_ENV_KEYS)
+
+    # 各イベントに Zoom URL を付与し、必要なら LINE 送信する
     processed = []
     zoom_failures: List[dict] = []
+    line_failures: List[dict] = []
     for ev in timed_events:
         original_description = ev.get("description") or ""
         initial_meeting_url = extract_meeting_url(ev.get("description"))
         meeting_url = initial_meeting_url
         zoom_share_message = None
         failure_reasons: List[str] = []
+        line_user_id = None
+        line_message_sent = False
 
         if not meeting_url and ev.get("start_iso"):
             meeting_url, zoom_share_message, failure_reasons, zoom_meetings = ensure_zoom_link_with_verification(
@@ -694,7 +1054,26 @@ def main() -> None:
                 ev["start"],
                 ev["end"],
                 meeting_url,
+                extract_zoom_meeting_id(meeting_url),
             )
+
+        if meeting_url and zoom_share_message:
+            line_success, line_skipped, line_user_id, line_error = send_line_message_for_event(
+                ev,
+                meeting_url,
+                zoom_share_message,
+                line_sender_url,
+                line_sender_token,
+            )
+            line_message_sent = line_success and not line_skipped
+            if line_error:
+                line_failures.append({
+                    "title": ev["title"],
+                    "start": ev.get("start"),
+                    "end": ev.get("end"),
+                    "line_user_id": line_user_id,
+                    "reasons": [line_error],
+                })
 
         processed.append({
             **ev,
@@ -702,12 +1081,20 @@ def main() -> None:
             "meeting_url": meeting_url,
             "zoom_share_message": zoom_share_message,
             "zoom_failure_reasons": failure_reasons,
+            "line_user_id": line_user_id,
+            "line_message_sent": line_message_sent,
         })
 
     if zoom_failures:
         error_report = build_zoom_failure_report(date_str, zoom_failures)
         send_discord(webhook_url, error_report)
         print(f"[ERROR] Zoom リンク発行失敗: {len(zoom_failures)} 件", file=sys.stderr)
+        sys.exit(1)
+
+    if line_failures:
+        error_report = build_line_failure_report(date_str, line_failures)
+        send_discord(webhook_url, error_report)
+        print(f"[ERROR] LINE 送信失敗: {len(line_failures)} 件", file=sys.stderr)
         sys.exit(1)
 
     # ── メッセージ 1: 一覧概要 ──
@@ -741,6 +1128,8 @@ def main() -> None:
             meeting_id = extract_zoom_meeting_id(ev["meeting_url"])
             if meeting_id:
                 block.append(f"ミーティングID: {meeting_id}")
+            if ev.get("line_message_sent"):
+                block.append("LINE送信: 済み")
             copy_text = ev.get("zoom_share_message") or build_zoom_share_message(
                 ev["title"],
                 ev["start"],
