@@ -1,10 +1,10 @@
 # Nanobanana Banner Gen
 
-スプレッドシートの求人データから、Nanobanana Pro (Gemini 3 Pro Image) を用いてバナー画像を全自動生成し、Google Driveへのアップロードとスプレッドシートへの埋め込みを一括で行うスキルです。
+スプレッドシートの求人データからバナー画像を自動生成し、Google Driveへのアップロードとスプレッドシートへの埋め込みを一括で行うスキルです。実行コンテキストに応じて、Codex CLI では GPT Image 2、Antigravity / 通常実行では Nanobanana Pro (Gemini 3 Pro Image) を使い分けます。
 
 ## 🚀 ハイブリッド・ワークフロー
 
-このスキルは、**Antigravityの無料枠**と**Gemini API (有料枠/クレジット)** を組み合わせたハイブリッド方式で動作します。
+このスキルは、実行元に応じて画像生成プロバイダを切り替えるハイブリッド方式で動作します。
 
 ### 1. タスクの書き出し (Export)
 まず、スプレッドシートから未処理の行を抽出してローカルにタスクファイルを生成します。
@@ -17,15 +17,20 @@ python .agent/skills/nanobanana-banner-gen/scripts/nanobanana_pro_banner.py expo
 ### 2. ハイブリッド生成 (Generation)
 エージェントは書き出されたタスクを一つずつ処理します。
 
-1.  **標準モード (Antigravity native)**:
+1.  **Codex CLI モード**:
+    - Codex CLI 環境では GPT Image 2 を優先して生成します。
+    - `python .agent/skills/nanobanana-banner-gen/scripts/nanobanana_pro_banner.py generate --task_id XX_type`
+    - `OPENAI_API_KEY` が未設定、または OpenAI 側で失敗した場合は Gemini API にフォールバックします。
+2.  **標準モード (Antigravity native)**:
     - `generate_image` ツールを使用して画像を生成します。
     - 出力先: `outputs/nanobanana/{Label}_Job_{Row}.jpg`
-2.  **APIモード (Fallback)**:
+3.  **APIモード (Fallback / 強制実行)**:
     - `generate_image` が制限（クォータ上限など）で失敗した場合、即座に以下のコマンドを実行してAPI経由で生成を続行します。
     ```powershell
     python .agent/skills/nanobanana-banner-gen/scripts/nanobanana_pro_banner.py generate --task_id XX_type
     ```
-    - このモードは `.env` に設定された `GEMINI_API_KEY` を使用します。
+    - `--provider openai` または `--provider gemini` で明示指定できます。
+    - `auto` では Codex CLI を検出したときだけ GPT Image 2、それ以外は Gemini API を使います。
 
 ### 3. 結果の反映 (Import)
 生成されたすべての画像をGoogle Driveへアップロードし、スプレッドシートへ一括反映します。
@@ -39,9 +44,13 @@ python .agent/skills/nanobanana-banner-gen/scripts/nanobanana_pro_banner.py impo
 
 ## 🛠️ 事前準備
 - **GWS CLI**: `gws.cmd` がパスに通っていること。
-- **.env**: リポジトリルートに `GEMINI_API_KEY=your_key` が設定されていること。
+- **.env**:
+  - Gemini 用: `GEMINI_API_KEY=...`
+  - Codex CLI で OpenAI API を使う場合: `OPENAI_API_KEY=...`
+  - 任意 override: `NANOBANANA_IMAGE_PROVIDER=openai` または `gemini`
 - **Pythonライブラリ**: `requests` がインストールされていること。
 
 ## ⚠️ 注意事項
 - スプレッドシートの「アカウント情報」シートの A7 行目以降を対象とします。
 - すでに `IMAGE` 関数が入っているセルは、デフォルトでスキップされます。強制的に再生成する場合は `--force` オプションを付けて `export` してください。
+- `auto` 判定は `CODEX_THREAD_ID` / `CODEX_SANDBOX` / `CODEX_CI` のいずれかがあると Codex CLI 扱いにします。

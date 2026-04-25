@@ -16,6 +16,8 @@ DRIVE_OUTPUT_FOLDER = "outputs/nanobanana"
 TASK_DIR = os.path.join(".agent", "skills", "nanobanana-banner-gen", "tasks")
 PARENT_FOLDER_ID = "16P5sOzyJHLemwURON6Wf1i7NjodK3WWF"
 PROMPT_DIR = os.path.join(".agent", "skills", "nanobanana-banner-gen", "prompts")
+OPENAI_IMAGE_MODEL = "gpt-image-2"
+GEMINI_IMAGE_MODEL = "imagen-3.0-generate-001"
 
 # Mapping for target columns: (Read Index, Write Column, Label, TypeKey)
 COL_MAPPING = [
@@ -24,15 +26,33 @@ COL_MAPPING = [
     (20, "T", "Remote2", "remote2")   # U -> T
 ]
 
-def load_env():
-    """Simple .env parser to get GEMINI_API_KEY"""
+def load_env_value(key):
+    """Simple .env parser to get a specific key"""
     env_path = ".env"
     if os.path.exists(env_path):
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
-                if line.strip().startswith("GEMINI_API_KEY="):
+                if line.strip().startswith(f"{key}="):
                     return line.split("=", 1)[1].strip().strip('"').strip("'")
-    return os.environ.get("GEMINI_API_KEY")
+    return os.environ.get(key)
+
+def is_codex_cli_environment():
+    """Codex CLI / Codex runtime らしき環境かを判定する"""
+    return any(os.environ.get(key) for key in ("CODEX_THREAD_ID", "CODEX_SANDBOX", "CODEX_CI"))
+
+def resolve_image_provider(explicit_provider=None):
+    """生成プロバイダを決定する"""
+    if explicit_provider and explicit_provider != "auto":
+        return explicit_provider
+
+    env_provider = (load_env_value("NANOBANANA_IMAGE_PROVIDER") or "").strip().lower()
+    if env_provider in {"openai", "gemini"}:
+        return env_provider
+
+    if is_codex_cli_environment():
+        return "openai"
+
+    return "gemini"
 
 def run_gws_command(cmd_args):
     """gws CLIコマンドを実行し、結果をJSON形式で受け取る"""
@@ -138,6 +158,7 @@ def export_tasks(specific_row=None, force_overwrite=False):
             job_text = str(row[read_idx]).strip()
             task_id = f"{row_idx:02d}_{type_key}"
             
+            provider = resolve_image_provider()
             task_data = {
                 "task_id": task_id,
                 "row_idx": row_idx,
@@ -146,7 +167,8 @@ def export_tasks(specific_row=None, force_overwrite=False):
                 "label": label,
                 "read_col": chr(ord('A') + read_idx),
                 "write_col": write_col,
-                "status": "pending"
+                "status": "pending",
+                "preferred_provider": provider
             }
             
             # JSON 保存
@@ -164,12 +186,12 @@ def export_tasks(specific_row=None, force_overwrite=False):
 
 def call_gemini_imagen_api(prompt, output_path):
     """Gemini API (Imagen 3) を直接叩いて画像を生成する"""
-    api_key = load_env()
+    api_key = load_env_value("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY not found in .env or environment.")
 
     # Imagen 3.0 API endpoint for AI Studio
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_IMAGE_MODEL}:predict?key={api_key}"
     
     payload = {
         "instances": [
@@ -205,8 +227,55 @@ def call_gemini_imagen_api(prompt, output_path):
     
     return output_path
 
-def generate_task_image(task_id):
-    """特定のタスクIDに対してAPIキーを使って画像生成を実行する"""
+def call_openai_gpt_image_api(prompt, output_path):
+    """OpenAI Image API (GPT Image 2) で画像を生成する"""
+    api_key = load_env_value("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not found in .env or environment.")
+
+    response = requests.post(
+        "https://api.openai.com/v1/images/generations",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": OPENAI_IMAGE_MODEL,
+            "prompt": prompt,
+            "size": "1024x1024",
+            "quality": "medium",
+            "output_format": "jpeg",
+            "moderation": "low",
+        },
+        timeout=180,
+    )
+
+    if response.status_code != 200:
+        try:
+            err_msg = response.json().get("error", {}).get("message", response.text)
+        except Exception:
+            err_msg = response.text
+        raise RuntimeError(f"OpenAI API Error ({response.status_code}): {err_msg}")
+
+    data = response.json()
+    images = data.get("data", [])
+    if not images:
+        raise RuntimeError(f"No image data returned from OpenAI API: {response.text}")
+
+    b64_data = images[0].get("b64_json")
+    if not b64_data:
+        raise RuntimeError("No b64_json image payload found in OpenAI response.")
+
+    with open(output_path, "wb") as f:
+        f.write(base64.b64decode(b64_data))
+
+    return output_path
+
+def build_banner_prompt(job_text):
+    return f"{job_text}\n\nHigh quality job banner design, professional typography, square 1:1."
+
+def generate_task_image(task_id, provider="auto"):
+    """特定のタスクIDに対して画像生成を実行する"""
     json_path = os.path.join(TASK_DIR, f"task_{task_id}.json")
     txt_path = os.path.join(TASK_DIR, f"task_{task_id}.txt")
     
@@ -219,19 +288,43 @@ def generate_task_image(task_id):
     with open(txt_path, "r", encoding="utf-8") as f:
         job_text = f.read()
 
-    print(f"  [API MODE] Generating image for Task {task_id}...")
-    
-    # Simple Prompt
-    prompt = f"{job_text}\n\nHigh quality job banner design, professional typography, square 1:1."
+    resolved_provider = resolve_image_provider(provider)
+    print(f"  [API MODE] Generating image for Task {task_id} with provider={resolved_provider}...")
+
+    prompt = build_banner_prompt(job_text)
 
     os.makedirs(DRIVE_OUTPUT_FOLDER, exist_ok=True)
     output_filename = os.path.join(DRIVE_OUTPUT_FOLDER, f"{task['label']}_Job_{task['row_idx']:02d}.jpg")
     
     try:
-        call_gemini_imagen_api(prompt, output_filename)
+        if resolved_provider == "openai":
+            call_openai_gpt_image_api(prompt, output_filename)
+        else:
+            call_gemini_imagen_api(prompt, output_filename)
+
+        task["status"] = "generated"
+        task["generated_by"] = resolved_provider
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(task, f, ensure_ascii=False, indent=2)
+
         print(f"  ✅ Generated: {output_filename}")
         return True
     except Exception as e:
+        if resolved_provider == "openai" and provider == "auto":
+            print(f"  ⚠️ OpenAI generation failed, falling back to Gemini: {e}")
+            try:
+                call_gemini_imagen_api(prompt, output_filename)
+                task["status"] = "generated"
+                task["generated_by"] = "gemini"
+                task["fallback_from"] = "openai"
+                with open(json_path, "w", encoding="utf-8") as f:
+                    json.dump(task, f, ensure_ascii=False, indent=2)
+                print(f"  ✅ Generated via fallback: {output_filename}")
+                return True
+            except Exception as fallback_error:
+                print(f"  ❌ API Generation Failed: {fallback_error}")
+                return False
+
         print(f"  ❌ API Generation Failed: {e}")
         return False
 
@@ -369,8 +462,14 @@ if __name__ == "__main__":
     import_parser.add_argument("--no-report", action="store_true", help="Skip post-process report")
 
     # Generate command (API Mode)
-    generate_parser = subparsers.add_parser("generate", help="Generate image using Gemini API for a task")
+    generate_parser = subparsers.add_parser("generate", help="Generate image for a task")
     generate_parser.add_argument("--task_id", required=True, help="Task ID to generate (e.g. 07_factory)")
+    generate_parser.add_argument(
+        "--provider",
+        choices=["auto", "gemini", "openai"],
+        default="auto",
+        help="Image provider. auto=Codex CLIならOpenAI、その他はGemini"
+    )
 
     args = parser.parse_args()
     
@@ -381,6 +480,6 @@ if __name__ == "__main__":
         if not args.no_report:
             run_post_process_validation(updates)
     elif args.command == "generate":
-        generate_task_image(args.task_id)
+        generate_task_image(args.task_id, args.provider)
     else:
         parser.print_help()

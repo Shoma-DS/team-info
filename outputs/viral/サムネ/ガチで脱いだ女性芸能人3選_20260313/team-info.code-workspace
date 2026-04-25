@@ -1,7 +1,12 @@
 {
 	"folders": [
 		{
+			"name": "team-info",
 			"path": "../../../.."
+		},
+		{
+			"name": "Sho-make",
+			"path": "../../../../../Desktop/Sho-make"
 		}
 	],
 	"settings": {
