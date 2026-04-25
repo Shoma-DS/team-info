@@ -85,6 +85,7 @@ scripts/launch_plists/
 # LP関連フォルダ
 lp/
 lp参考/
+outputs/lp-design/
 
 # [personal] 2026-03-27
 scripts/gas/syncSquareBookings.js
