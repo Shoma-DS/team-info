@@ -28,7 +28,7 @@ export const SectionLayout: React.FC<SectionLayoutProps> = ({
   const textOpacity = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: 'clamp' });
 
   // 切り替え演出の定義
-  const showPhoto = photoSrc && frame >= switchFrame;
+
   const transitionFrames = 10;
   
   // イラストの不透明度（写真が出る時に消える）
