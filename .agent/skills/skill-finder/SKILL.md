@@ -35,6 +35,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | `アコリエル/概要欄/` | acoriel チャンネルの YouTube 概要欄 MD |
 | `insta-company/` | Instagram AI会社のログ・調査メモ・投稿案 |
 | `jmty_posts/` | ジモティー投稿テキスト |
+| `loom-calendar-rename/` | Loom の仮タイトル動画と Google カレンダー照合の判定メモ |
 | `寝ながらトラベル/` | sleep_travel チャンネルのレンダリング動画 |
 | `note記事/` | 愛され女子あゆみ の note 記事 MD |
 | `gws-dashboard/` | gws CLI で取得したスプレッドシート可視化HTML |
@@ -157,6 +158,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
+### 🎥 personal/deguchishouma/loom/（Loom整理系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| loom-calendar-rename | Loom の `Meeting Recording - 日付` 仮タイトル動画を、録画日時を JST に直して Google カレンダー予定と照合し、最も近い面談名へリネームする。rename が失敗したときは判定メモまで残す | `.agent/skills/personal/deguchishouma/loom-calendar-rename/SKILL.md` |
+
+---
+
 ### 🎨 canva/（Canva連携系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
@@ -179,10 +187,18 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
+### 💼 sales/（営業コーチング・販売台本系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| sales-coaching | ジモティー営業（1S・面接）の文字起こしを Loom MCP で取得し、自己紹介から担当者名を抽出しつつ在宅ワーク面談・セミナーなどのタグを付けて Supabase 登録し、その後の分析・改善トーク生成・比較レポートまで行える | `.agent/skills/sales/sales-coaching/SKILL.md` |
+| interview-product-sales | 採用面接の文字起こしから候補者プロファイルを抽出し、商品テンプレート（価格・ベネフィット・ピッチ構造）と組み合わせて面接クロージング時の販売戦略と台本を生成する。商品ごとにテンプレートを差し替えるだけで対応できる | `.agent/skills/sales/interview-product-sales/SKILL.md` |
+
+---
+
 ### 🍌 nanobanana-banner-gen/（バナー自動生成系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| nanobanana-banner-gen | スプレッドシートから投稿文を読み取り、Codex CLI では GPT Image 2 / それ以外では Nanobanana Pro でバナー画像を生成してシートに挿入する | `.agent/skills/nanobanana-banner-gen/SKILL.md` |
+| nanobanana-banner-gen | スプレッドシートから投稿文を読み取り、工場は案件一覧の正本ファイルを参照しつつ、Codex CLI では GPT Image 2 / それ以外では Nanobanana Pro でバナー画像を生成し、Drive 同期前に画像 OCR とファイル名を検証して、画像優先で投稿文章も再生成する | `.agent/skills/nanobanana-banner-gen/SKILL.md` |
 
 ---
 
@@ -225,6 +241,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Instagram の投稿ネタや構成案を出したい | `insta-company-post-idea-generator` |
 | 今月のKPIを整理して進捗を確認したい | `monthly-kpi-planner` |
 | ジモティーKPIを銀行入金と月間流入数、form_8 生データから更新したい | `jmty-kpi-update` |
+| 営業の文字起こしを分析・改善トークスクリプトを作りたい（1S・面接） | `sales-coaching` |
+| 面接の文字起こしから商品販売の戦略・台本を作りたい | `interview-product-sales` |
+| 出口と菅下の営業スタイルを比較したい | `sales-coaching` |
 | KPIから今月のスケジュールを組みたい | `monthly-kpi-planner` |
 | Git操作をしたい | `git-workflow` |
 | repo 全体のフォルダ構成を整理したい | `repo-information-architecture` |
@@ -242,6 +261,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 日本語テイストのやわらかいイラストに差し替えたい | `tyoudoii-illust-fetcher` |
 | ZOOMセミナーのトークスクリプトを作りたい | `seminar-script-creator` |
 | セミナーの台本を採点して120点まで改善したい | `seminar-script-creator` |
+| Loom の `Meeting Recording - 日付` を面談名へ直したい | `loom-calendar-rename` |
 | CanvaやRemotionで台本からスライドショー動画を作りたい | `canva-slideshow-video` |
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |
 | バズるショート動画テンプレを作りたい | `viral-template-generator` |

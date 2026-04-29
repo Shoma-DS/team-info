@@ -12,7 +12,7 @@
 - Discord の公式ドキュメントでは、Webhook は Bot ユーザーなしでも使える仕組みとして説明されています。
 - Webhook URL は**秘密の合言葉**のようなものです。
 - URL を知っている人はその Webhook で投稿できるので、URL は他の人に見せないでください。
-- いまの `team-info` では、チームで同じ URL を使うなら `config/discord-git-webhook.json` を Git 共有の正本にできます。
+- いまの `team-info` では、Webhook URL は `config/discord-git-webhook.json` に保存できますが、Git には入れません。
 
 ---
 
@@ -66,8 +66,8 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" disco
 ポイント:
 
 - URL は `config/discord-git-webhook.json` に保存されます
-- このファイルは Git に入るので、repo を見られる人はその URL を使えてしまいます
-- そのため、投稿先は Discord の報告専用チャンネルにしておくのがおすすめです
+- このファイルは `.gitignore` で除外されるため、Git 共有されません
+- それでも URL 自体は秘密情報なので、チャットや画面共有に出さないでください
 - 個人だけで一時的に変えたいときは、あとからローカル設定や環境変数で上書きできます
 
 保存先のパスを見たいとき:
@@ -125,6 +125,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" disco
 - 送る文は、小学生にもわかりやすい短い説明になるように整えられます
 - Webhook が未設定なら、Git の push 自体は成功のまま、Discord 送信だけスキップされます
 - 読み取り順は `--webhook-url` → 環境変数 → `config/discord-git-webhook.json` → ローカル設定 です
+- `config/discord-git-webhook.json` は repo 内に置けますが、各マシンのローカル設定として扱います
 
 ---
 

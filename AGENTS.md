@@ -63,6 +63,7 @@
 | `/ceo` | `.agent/skills/common/agent-org-ceo/SKILL.md` | オーナー配下の CEO と役割別メンバーで仕事を振り分ける |
 | `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |
 | `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` | ジモティー投稿作成（工場/在宅） |
+| `/jmty-weekly` | `personal/deguchishouma/scripts/jmty-banner-codex/prompts/weekly_jmty_banner_prompt.md` | ジモティー週次一括更新（地域ローテーション→投稿文→画像→Drive→シート反映） |
 | `/web` | `.agent/skills/web-design/frontend-design/SKILL.md` | サイト制作・複製・イラスト取得 |
 | `/viral` | `.agent/skills/viral-template-generator/SKILL.md` | バズ動画解析・テンプレ自動生成 |
 | `/x` | `.agent/skills/x-post-writer/SKILL.md` | X投稿文自動生成 |

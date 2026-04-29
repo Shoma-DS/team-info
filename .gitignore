@@ -19,6 +19,7 @@ Remotion/my-video/public/assets/channels/*/backgrounds/*
 !Remotion/my-video/public/assets/channels/sleep_travel/backgrounds/*
 Remotion/my-video/public/assets/channels/sleep_travel/**/*.mp3
 outputs/jmty_posts/
+outputs/jmty-weekly/
 outputs/web-clones/bytech-lp/
 .obsidian/
 .agent/skills/voice-script-launcher/.setup_completed
@@ -74,6 +75,8 @@ gws/
 **/credentials.json
 **/credentials.enc
 **/.encryption_key
+config/discord-git-webhook.json
+config/discord-banner-webhook.json
 
 outputs/gws-dashboard/
 .env

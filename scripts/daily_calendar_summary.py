@@ -43,6 +43,10 @@ import unicodedata
 SCRIPT_DIR = pathlib.Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
 ZOOM_CREDS_PATH = pathlib.Path.home() / ".config" / "zoom" / "credentials.json"
+GWS_BIN = str(pathlib.Path("/usr/local/bin/gws")) if pathlib.Path("/usr/local/bin/gws").exists() else "gws"
+AUTO_GWS_CREDENTIALS_PATH = pathlib.Path.home() / ".config" / "team-info" / "gws_credentials_auto.json"
+_AUTO_GWS_CREDENTIALS_CHECKED = False
+_AUTO_GWS_CREDENTIALS_FILE: pathlib.Path | None = None
 CALENDAR_ID = "primary"
 ZOOM_MESSAGE_HEADER = "[team-info] Zoom情報"
 GWS_BACKEND = "file"
@@ -390,6 +394,9 @@ def send_line_message(line_sender_url: str, user_id: str, content: str, shared_t
 def gws_env() -> Dict[str, str]:
     env = dict(os.environ)
     env["GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND"] = resolve_gws_backend()
+    auto_credentials = ensure_auto_credentials_file()
+    if auto_credentials:
+        env["GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE"] = str(auto_credentials)
     return env
 
 
@@ -397,7 +404,24 @@ def auth_status_for_backend(backend: str) -> Optional[dict]:
     env = dict(os.environ)
     env["GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND"] = backend
     result = subprocess.run(
-        ["gws", "auth", "status"],
+        [GWS_BIN, "auth", "status"],
+        text=True,
+        capture_output=True,
+        env=env,
+    )
+    if result.returncode != 0:
+        return None
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def auth_export_from_backend(backend: str) -> Optional[dict]:
+    env = dict(os.environ)
+    env["GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND"] = backend
+    result = subprocess.run(
+        [GWS_BIN, "auth", "export", "--unmasked"],
         text=True,
         capture_output=True,
         env=env,
@@ -412,6 +436,8 @@ def auth_status_for_backend(backend: str) -> Optional[dict]:
 
 def resolve_gws_backend() -> str:
     explicit = os.environ.get("GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND")
+    if explicit:
+        return explicit
     candidates = [explicit] if explicit else []
     for backend in GWS_BACKEND_CANDIDATES:
         if backend not in candidates:
@@ -432,11 +458,77 @@ def resolve_gws_backend() -> str:
     return explicit or GWS_BACKEND
 
 
+def is_usable_backend_status(status: Optional[dict]) -> bool:
+    if not status:
+        return False
+    if status.get("auth_method") != "oauth2":
+        return False
+    if not status.get("encryption_valid", True):
+        return False
+    if not status.get("token_valid", False):
+        return False
+    return True
+
+
+def write_auto_credentials_file(payload: dict) -> pathlib.Path:
+    AUTO_GWS_CREDENTIALS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    AUTO_GWS_CREDENTIALS_PATH.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    os.chmod(AUTO_GWS_CREDENTIALS_PATH, 0o600)
+    return AUTO_GWS_CREDENTIALS_PATH
+
+
+def read_existing_auto_credentials_file() -> Optional[pathlib.Path]:
+    if not AUTO_GWS_CREDENTIALS_PATH.exists():
+        return None
+    try:
+        payload = json.loads(AUTO_GWS_CREDENTIALS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not payload.get("client_id") or not payload.get("refresh_token"):
+        return None
+    return AUTO_GWS_CREDENTIALS_PATH
+
+
+def ensure_auto_credentials_file() -> Optional[pathlib.Path]:
+    global _AUTO_GWS_CREDENTIALS_CHECKED, _AUTO_GWS_CREDENTIALS_FILE
+
+    if _AUTO_GWS_CREDENTIALS_CHECKED:
+        return _AUTO_GWS_CREDENTIALS_FILE
+    _AUTO_GWS_CREDENTIALS_CHECKED = True
+
+    explicit = os.environ.get("GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE")
+    if explicit:
+        explicit_path = pathlib.Path(explicit).expanduser()
+        if explicit_path.exists():
+            _AUTO_GWS_CREDENTIALS_FILE = explicit_path
+        return _AUTO_GWS_CREDENTIALS_FILE
+
+    if os.environ.get("GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND"):
+        return None
+
+    file_status = auth_status_for_backend("file")
+    if is_usable_backend_status(file_status):
+        return None
+
+    keyring_status = auth_status_for_backend("keyring")
+    if is_usable_backend_status(keyring_status):
+        exported = auth_export_from_backend("keyring")
+        if exported and exported.get("client_id") and exported.get("refresh_token"):
+            _AUTO_GWS_CREDENTIALS_FILE = write_auto_credentials_file(exported)
+            return _AUTO_GWS_CREDENTIALS_FILE
+
+    _AUTO_GWS_CREDENTIALS_FILE = read_existing_auto_credentials_file()
+    return _AUTO_GWS_CREDENTIALS_FILE
+
+
 def gws_event_patch(calendar_id: str, event_id: str, body: dict) -> Tuple[bool, Optional[str]]:
     """GWS CLI でカレンダーイベントを patch する"""
     result = subprocess.run(
         [
-            "gws", "calendar", "events", "patch",
+            GWS_BIN, "calendar", "events", "patch",
             "--params", json.dumps({
                 "calendarId": calendar_id,
                 "eventId": event_id,
@@ -459,7 +551,7 @@ def gws_event_get(calendar_id: str, event_id: str) -> Tuple[Optional[dict], Opti
     """GWS CLI でカレンダーイベントを取得する"""
     result = subprocess.run(
         [
-            "gws", "calendar", "events", "get",
+            GWS_BIN, "calendar", "events", "get",
             "--params", json.dumps({
                 "calendarId": calendar_id,
                 "eventId": event_id,
@@ -530,10 +622,21 @@ def try_acquire_zoom_creation_lock(event: dict, zoom_meetings: List[dict]) -> Tu
         return False, current, f"GWS get 再取得失敗: {current_error}"
     current_private = ((current or {}).get("extendedProperties") or {}).get("private") or {}
     current_description = (current or {}).get("description") or latest_description
-    current_url = extract_meeting_url(current_description)
+    current_url = resolve_calendar_zoom_url(current, current_description)
     if current_url:
-        event["description"] = current_description
-        return False, current, None
+        reusable, reusable_reason = is_reusable_zoom_url(
+            current_url,
+            zoom_meetings,
+            event["title"],
+            event.get("start_iso"),
+        )
+        if reusable:
+            event["description"] = current_description
+            return False, current, None
+        print(
+            f"[Zoom] ロック取得後も stale URL を検出したため新規発行へ進みます（{event.get('title', '（タイトルなし）')}）: {reusable_reason}",
+            file=sys.stderr,
+        )
 
     if current_private.get(ZOOM_RUN_ID_KEY) != run_id:
         return False, current, "別プロセスが先に Zoom 作成ロックを取得しました"
@@ -877,6 +980,7 @@ def ensure_zoom_link_with_verification(
         acquired, latest_event, lock_reason = try_acquire_zoom_creation_lock(event, zoom_meetings)
         latest_url = resolve_calendar_zoom_url(latest_event, event.get("description"))
         meeting_id = (((latest_event or {}).get("extendedProperties") or {}).get("private") or {}).get(ZOOM_MEETING_ID_KEY)
+        meeting_url = None
 
         if latest_url:
             reusable, reusable_reason = is_reusable_zoom_url(
@@ -895,8 +999,8 @@ def ensure_zoom_link_with_verification(
                 if stale_meeting_id:
                     stale_delete_ids.add(stale_meeting_id)
                 reasons.append(f"{attempt_prefix}: 既存URL再利用不可: {reusable_reason}")
-                meeting_url = None
-        elif acquired:
+
+        if not meeting_url and acquired:
             meeting_url = find_existing_zoom_meeting(
                 zoom_meetings,
                 event["title"],
@@ -919,7 +1023,7 @@ def ensure_zoom_link_with_verification(
                     zoom_meetings, list_error = list_zoom_meetings(zoom_token)
                     if list_error:
                         reasons.append(f"{attempt_prefix}: {list_error}")
-        else:
+        elif not meeting_url:
             if lock_reason:
                 reasons.append(f"{attempt_prefix}: {lock_reason}")
             else:

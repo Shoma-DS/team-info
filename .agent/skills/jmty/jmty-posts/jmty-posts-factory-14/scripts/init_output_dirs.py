@@ -135,7 +135,8 @@ TEMPLATE = """# タイトル
 - 応募条件:
 
 ## 応募導線
-気になる方は公式LINEに登録後、問い合わせボタンを押してください。  
+公式LINEに登録後、ボタン押すだけ！  
+10秒で問い合わせ完了！  
 【公式LINEURL】
 """
 
@@ -143,6 +144,7 @@ TEMPLATE = """# タイトル
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("output_root")
+    parser.add_argument("--count", type=int, default=14, help="生成するファイル数（デフォルト: 14）")
     parser.add_argument("--prefecture", help="勤務地に使う都道府県名（例: 福岡県）")
     parser.add_argument("--city", help="勤務地に使う市区町村名を固定したい場合に指定")
     parser.add_argument("--seed", type=int, help="重み付きランダムの固定シード")
@@ -172,12 +174,12 @@ def main() -> int:
     else:
         location = "〇〇県〇〇市"
 
-    for index in range(1, 15):
+    for index in range(1, args.count + 1):
         output_file = output_root / f"post{index:02d}.md"
         if not output_file.exists():
             output_file.write_text(TEMPLATE.format(location=location), encoding="utf-8")
 
-    print(f"Created 14 post files under: {output_root}")
+    print(f"Created {args.count} post files under: {output_root}")
     return 0
 
 
