@@ -190,8 +190,8 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 💼 sales/（営業コーチング・販売台本系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| sales-coaching | ジモティー営業（1S・面接）の文字起こしを Loom MCP で取得し、自己紹介から担当者名を抽出しつつ在宅ワーク面談・セミナーなどのタグを付けて Supabase 登録し、その後の分析・改善トーク生成・比較レポートまで行える | `.agent/skills/sales/sales-coaching/SKILL.md` |
-| interview-product-sales | 採用面接の文字起こしから候補者プロファイルを抽出し、商品テンプレート（価格・ベネフィット・ピッチ構造）と組み合わせて面接クロージング時の販売戦略と台本を生成する。商品ごとにテンプレートを差し替えるだけで対応できる | `.agent/skills/sales/interview-product-sales/SKILL.md` |
+| sales-coaching | ジモティー営業（1S・面接）の文字起こしを Loom から取得し、候補者名検索→video_id特定→transcript保存→担当者抽出→Supabase 登録まで行える。その後の分析・改善トーク生成・比較レポートまで対応 | `.agent/skills/sales/sales-coaching/SKILL.md` |
+| interview-product-sales | 採用面接の文字起こしから候補者プロファイルを抽出し、商品テンプレート（価格・ベネフィット・ピッチ構造）と組み合わせて、既存保存済み台本と同じフォーマットで面接クロージング時の販売戦略と台本を生成する。二次面接では、引き継ぎ済みの文脈と一次担当者からの前向きな推薦コメントも冒頭へ自然に入れられる | `.agent/skills/sales/interview-product-sales/SKILL.md` |
 
 ---
 
@@ -242,7 +242,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 今月のKPIを整理して進捗を確認したい | `monthly-kpi-planner` |
 | ジモティーKPIを銀行入金と月間流入数、form_8 生データから更新したい | `jmty-kpi-update` |
 | 営業の文字起こしを分析・改善トークスクリプトを作りたい（1S・面接） | `sales-coaching` |
-| 面接の文字起こしから商品販売の戦略・台本を作りたい | `interview-product-sales` |
+| 面接の文字起こしから商品販売の戦略・台本を、既存の販売台本フォーマット維持で作りたい | `interview-product-sales` |
 | 出口と菅下の営業スタイルを比較したい | `sales-coaching` |
 | KPIから今月のスケジュールを組みたい | `monthly-kpi-planner` |
 | Git操作をしたい | `git-workflow` |
