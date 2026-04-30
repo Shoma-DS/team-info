@@ -78,10 +78,12 @@ const SubtitleTrack: React.FC<{ subtitles: ViralSubtitleEntry[]; isHorizontal?: 
       <div
         style={{
           ...SUBTITLE_STYLE,
-          fontSize: isHorizontal ? 70 : 95, // 横動画なら少し小さめ
+          fontSize: isHorizontal ? 55 : 85, // 横動画なら少し小さめ、見切れないようさらに縮小
           textAlign: "center",
           maxWidth: "95%",
           whiteSpace: "pre-wrap",
+          lineBreak: "strict",
+          wordBreak: "keep-all",
           lineHeight: 1.2,
           textShadow: "0 4px 10px rgba(255,255,255,0.8), 0 0 15px rgba(255,255,255,0.8)", // 読みやすくするための白枠
         }}
@@ -129,7 +131,10 @@ const SectionLayout: React.FC<{ section: ViralSection; isHorizontal?: boolean }>
         style={{
           position: "absolute",
           top: isHorizontal ? "10%" : "4%",
-          width: "90%",
+          width: "100%",
+          left: 0,
+          padding: "0 4%",
+          boxSizing: "border-box",
           textAlign: "center",
           opacity: textOpacity,
         }}
@@ -137,12 +142,13 @@ const SectionLayout: React.FC<{ section: ViralSection; isHorizontal?: boolean }>
         <h2
           style={{
             margin: 0,
-            fontSize: isHorizontal ? 75 : 100,
+            fontSize: isHorizontal ? Math.min(65, 1150 / section.title.length) : Math.min(85, 750 / section.title.length),
             fontWeight: 900,
             fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
             color: "#000000",
             lineHeight: 1.2,
             letterSpacing: "0.01em",
+            whiteSpace: "nowrap",
           }}
         >
           {section.title}
@@ -253,6 +259,8 @@ export const ViralTemplate: React.FC<ViralTemplateProps> = ({
                 color: "#ff2a2a",
                 textAlign: "center",
                 whiteSpace: "pre-wrap",
+                lineBreak: "strict",
+                wordBreak: "keep-all",
                 lineHeight: 1.2,
                 textShadow: "0 0 15px white, 0 0 15px white",
               }}
