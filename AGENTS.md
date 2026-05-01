@@ -125,6 +125,15 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
 - Git関連操作を行う場合は、必ず `.agent/skills/common/git-workflow/SKILL.md` を使う。
 
+## Code File Header Rule
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+- 新しく作るコードファイルでは、ファイル冒頭に「このコードは何をするコードか」を短く説明するコメントを必ず入れること。
+- 既存コードでも、新しい役割を足して実質的に新規作成に近い変更をした場合は、同じく冒頭コメントを付けること。
+- コメントは 2-4 行程度を目安にし、入出力、主な責務、使いどころが分かるように書くこと。
+- コメント記法は言語に合わせる。例: JavaScript / TypeScript / GAS は `/** ... */` または `//`、Python は `#` を使う。
+
 ## Command Path Rules
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
 - ただし新しいパソコンで最初に案内する `setup/setup_all.cmd` だけは、ユーザーがリポジトリルートにいる前提で `./setup/setup_all.cmd` / `.\setup\setup_all.cmd` の相対パス案内を許可する。

@@ -61,6 +61,8 @@ LINE_SENDER_TOKEN_ENV_KEYS = ("PROLINE_MESSAGE_SENDER_TOKEN", "LINE_MESSAGE_SEND
 LINE_STATUS_KEY = "team-info.line-status"
 LINE_UID_KEY = "team-info.line-uid"
 LINE_SENT_URL_KEY = "team-info.line-sent-url"
+HTTP_TIMEOUT_SEC = 20
+GWS_TIMEOUT_SEC = 30
 
 
 def resolve_personal_account_slug() -> str:
@@ -141,7 +143,7 @@ def get_zoom_token() -> str:
         url, method="POST",
         headers={"Authorization": f"Basic {auth}"}
     )
-    with urllib.request.urlopen(req) as resp:
+    with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC) as resp:
         return json.loads(resp.read())["access_token"]
 
 
@@ -167,7 +169,7 @@ def create_zoom_meeting(token: str, title: str, start_iso: str, duration_min: in
         }
     )
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC) as resp:
             payload = json.loads(resp.read())
             meeting_id = str(payload.get("id")) if payload.get("id") else None
             return payload["join_url"], meeting_id, None
@@ -185,7 +187,7 @@ def list_zoom_meetings(token: str) -> Tuple[list[dict], Optional[str]]:
         headers={"Authorization": f"Bearer {token}"},
     )
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC) as resp:
             data = json.loads(resp.read())
             return data.get("meetings", []), None
     except Exception as e:
@@ -203,7 +205,7 @@ def delete_zoom_meeting(token: str, meeting_id: str) -> Optional[str]:
         headers={"Authorization": f"Bearer {token}"},
     )
     try:
-        with urllib.request.urlopen(req):
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC):
             return None
     except Exception as e:
         reason = f"重複 Zoom ミーティング削除失敗: {e}"
@@ -376,7 +378,8 @@ def send_line_message(line_sender_url: str, user_id: str, content: str, shared_t
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req) as resp:
+        print(f"[LINE] 送信開始: uid={user_id}", file=sys.stderr, flush=True)
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC) as resp:
             response_text = resp.read().decode("utf-8", errors="replace")
         try:
             response_json = json.loads(response_text)
@@ -384,6 +387,7 @@ def send_line_message(line_sender_url: str, user_id: str, content: str, shared_t
             response_json = None
         if response_json and response_json.get("ok") is False:
             return False, response_json.get("error") or "LINE 送信先がエラーを返しました"
+        print(f"[LINE] 送信完了: uid={user_id}", file=sys.stderr, flush=True)
         return True, None
     except Exception as e:
         return False, f"LINE 送信失敗: {e}"
@@ -526,20 +530,26 @@ def ensure_auto_credentials_file() -> Optional[pathlib.Path]:
 
 def gws_event_patch(calendar_id: str, event_id: str, body: dict) -> Tuple[bool, Optional[str]]:
     """GWS CLI でカレンダーイベントを patch する"""
-    result = subprocess.run(
-        [
-            GWS_BIN, "calendar", "events", "patch",
-            "--params", json.dumps({
-                "calendarId": calendar_id,
-                "eventId": event_id,
-                "sendUpdates": "none",
-            }, ensure_ascii=False),
-            "--json", json.dumps(body, ensure_ascii=False),
-        ],
-        text=True,
-        capture_output=True,
-        env=gws_env(),
-    )
+    try:
+        result = subprocess.run(
+            [
+                GWS_BIN, "calendar", "events", "patch",
+                "--params", json.dumps({
+                    "calendarId": calendar_id,
+                    "eventId": event_id,
+                    "sendUpdates": "none",
+                }, ensure_ascii=False),
+                "--json", json.dumps(body, ensure_ascii=False),
+            ],
+            text=True,
+            capture_output=True,
+            env=gws_env(),
+            timeout=GWS_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired:
+        reason = f"GWS patch が {GWS_TIMEOUT_SEC} 秒でタイムアウトしました"
+        print(f"[Google Calendar] {reason}", file=sys.stderr)
+        return False, reason
     if result.returncode != 0:
         stderr = result.stderr.strip() or "unknown error"
         print(f"[Google Calendar] GWS patch 失敗: {stderr}", file=sys.stderr)
@@ -549,18 +559,24 @@ def gws_event_patch(calendar_id: str, event_id: str, body: dict) -> Tuple[bool, 
 
 def gws_event_get(calendar_id: str, event_id: str) -> Tuple[Optional[dict], Optional[str]]:
     """GWS CLI でカレンダーイベントを取得する"""
-    result = subprocess.run(
-        [
-            GWS_BIN, "calendar", "events", "get",
-            "--params", json.dumps({
-                "calendarId": calendar_id,
-                "eventId": event_id,
-            }, ensure_ascii=False),
-        ],
-        text=True,
-        capture_output=True,
-        env=gws_env(),
-    )
+    try:
+        result = subprocess.run(
+            [
+                GWS_BIN, "calendar", "events", "get",
+                "--params", json.dumps({
+                    "calendarId": calendar_id,
+                    "eventId": event_id,
+                }, ensure_ascii=False),
+            ],
+            text=True,
+            capture_output=True,
+            env=gws_env(),
+            timeout=GWS_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired:
+        reason = f"GWS get が {GWS_TIMEOUT_SEC} 秒でタイムアウトしました"
+        print(f"[Google Calendar] {reason}", file=sys.stderr)
+        return None, reason
     if result.returncode != 0:
         stderr = result.stderr.strip() or "unknown error"
         print(f"[Google Calendar] GWS get 失敗: {stderr}", file=sys.stderr)
@@ -1076,6 +1092,8 @@ def ensure_zoom_link_with_verification(
 
 def send_discord(webhook_url: str, content: str) -> None:
     """Discord Webhook へメッセージを送る（2000 文字制限あり）"""
+    preview = content.splitlines()[0][:80] if content else "(empty)"
+    print(f"[Discord] 送信開始: {preview}", file=sys.stderr, flush=True)
     data = json.dumps({"content": content[:2000]}).encode()
     req = urllib.request.Request(
         webhook_url, data=data,
@@ -1084,8 +1102,9 @@ def send_discord(webhook_url: str, content: str) -> None:
             "User-Agent": "DiscordBot (https://github.com, 1.0)",
         }
     )
-    urllib.request.urlopen(req)
+    urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC)
     time.sleep(0.5)   # レート制限対策
+    print(f"[Discord] 送信完了: {preview}", file=sys.stderr, flush=True)
 
 
 # ── メイン ──────────────────────────────────────────────────────
@@ -1131,6 +1150,7 @@ def main() -> None:
     zoom_failures: List[dict] = []
     line_failures: List[dict] = []
     for ev in timed_events:
+        print(f"[Event] 開始: {ev['title']} {ev.get('start')}〜{ev.get('end')}", file=sys.stderr, flush=True)
         original_description = ev.get("description") or ""
         initial_meeting_url = extract_meeting_url(ev.get("description"))
         meeting_url = initial_meeting_url
@@ -1188,6 +1208,7 @@ def main() -> None:
             "line_user_id": line_user_id,
             "line_message_sent": line_message_sent,
         })
+        print(f"[Event] 完了: {ev['title']}", file=sys.stderr, flush=True)
 
     if zoom_failures:
         error_report = build_zoom_failure_report(date_str, zoom_failures)

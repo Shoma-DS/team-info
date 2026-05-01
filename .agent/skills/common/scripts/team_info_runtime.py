@@ -483,7 +483,7 @@ def _build_discord_git_report(
 
 
 def _post_discord_message(webhook_url: str, content: str) -> None:
-    payload = json.dumps({"content": content}, ensure_ascii=False).encode("utf-8")
+    payload = json.dumps({"content": content, "username": "Git更新通知"}, ensure_ascii=False).encode("utf-8")
     request = urllib.request.Request(
         webhook_url,
         data=payload,

@@ -26,6 +26,8 @@ DISCORD_GIT_WEBHOOK_URL_ENV = "TEAM_INFO_DISCORD_GIT_WEBHOOK_URL"
 DISCORD_GIT_WEBHOOK_URL_KEY = "discord_git_webhook_url"
 DISCORD_GIT_WEBHOOK_SHARED_RELATIVE_PATH = Path("config") / "discord-git-webhook.json"
 DISCORD_GIT_WEBHOOK_SHARED_URL_KEY = "url"
+DISCORD_JMTY_WEBHOOK_URL_ENV = "TEAM_INFO_DISCORD_JMTY_WEBHOOK_URL"
+DISCORD_JMTY_WEBHOOK_SHARED_RELATIVE_PATH = Path("config") / "discord-jmty-webhook.json"
 PYTHON_RUNTIME_IMAGE = "team-info/python-skill-runtime:3.11.9"
 VOICEVOX_ENGINE_IMAGE = "voicevox/voicevox_engine"
 VOICEVOX_ENGINE_CONTAINER = "team-info-voicevox-engine"
@@ -335,6 +337,44 @@ def clear_shared_discord_git_webhook_url(repo_root: Path | None = None) -> bool:
 
     config_path.unlink()
     return True
+
+
+def get_discord_jmty_webhook_url() -> tuple[str | None, str | None]:
+    """ジモティー画像変更通知用Webhookを返す。env → config/discord-jmty-webhook.json の順で読む。"""
+    env_value = os.environ.get(DISCORD_JMTY_WEBHOOK_URL_ENV)
+    if env_value:
+        normalized = env_value.strip()
+        if normalized:
+            return normalized, "env"
+
+    repo_root = get_repo_root()
+    config_path = repo_root / DISCORD_JMTY_WEBHOOK_SHARED_RELATIVE_PATH
+    if config_path.exists():
+        try:
+            loaded = json.loads(config_path.read_text(encoding="utf-8"))
+            url = loaded.get("url", "").strip() if isinstance(loaded, dict) else ""
+            if url:
+                return url, "repo-shared"
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    return None, None
+
+
+def save_discord_jmty_webhook_url(url: str, repo_root: Path | None = None) -> Path:
+    """ジモティーWebhook URLを config/discord-jmty-webhook.json に保存する。"""
+    normalized = url.strip()
+    if not normalized:
+        raise RuntimeError("Discord jmty webhook URL is empty.")
+
+    resolved_root = repo_root if repo_root is not None else get_repo_root()
+    config_path = resolved_root / DISCORD_JMTY_WEBHOOK_SHARED_RELATIVE_PATH
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(
+        json.dumps({"url": normalized}, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return config_path
 
 
 def get_repo_root() -> Path:
