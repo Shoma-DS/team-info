@@ -61,3 +61,4 @@ pydantic
 typing_extensions==4.15.0
 protobuf==4.25.8
 budoux==0.7.0
+psycopg2-binary>=2.9.0

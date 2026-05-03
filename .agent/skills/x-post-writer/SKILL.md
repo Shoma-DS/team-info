@@ -68,6 +68,10 @@ inputs/x-posts/
 （いくつか貼り付ける）
 ```
 
+`fetch_bookmarks.py` を使う場合、ファイル冒頭付近に自動取得ブロックが入ることがある。
+そこには `X User ID` / プロフィール文 / 固定投稿メモなどの事実情報だけを入れ、
+人が編集するトンマナ・世界観セクションは上書きしない前提で扱う。
+
 ---
 
 ## Phase 0: 起動判定
@@ -368,3 +372,121 @@ A/B で答えてください。
 - 競合の投稿は「型を借りる」のであって「コピーしない」
 - 生成した投稿は必ずユーザーに確認してもらってから確定させる
 - テンプレートは使い回すほど精度が上がるので積極的に保存を勧める
+
+---
+
+## DB連携フロー（ブックマーク → 下書き保存 → プレビュー）
+
+Phase 1〜6 に加えて、以下のDB連携フローも使える。
+
+### スクリプト一覧
+
+| スクリプト | 役割 |
+|-----------|------|
+| `scripts/fetch_bookmarks.py` | XブックマークをAPIで取得。初回のみ `accounts/*.md` を自動初期化し、`bookmarks_latest.json` に保存 |
+| `scripts/draft_manager.py` | 下書きをNeon DBに保存・一覧・表示・削除 |
+| `scripts/x_metrics_collector.py` | 投稿メトリクス（いいね・インプレ等）を時系列でNeon DBに保存 |
+| `scripts/scheduled_draft_pipeline.py` | Codex優先 / Claude fallback で新規ブックマークだけを自動下書き化し、画像プロンプトも保存 |
+| `scripts/manage_launch_agents.py` | 上記定時ジョブと毎時メトリクス収集の LaunchAgent を render / install / uninstall する |
+| `scripts/preview_server.py` | ローカルAPIサーバー（port 8765）。下書き一覧・Discord通知を提供 |
+| `scripts/start_preview.sh` | ngrokトンネル起動 → プレビューサーバー起動 → ブラウザを開く |
+
+### ブックマーク取得 → 下書き生成フロー
+
+```
+1. ブックマーク取得（ユーザーが実行）
+   python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/fetch_bookmarks.py" --account GUTARA --count 5
+
+   自動取得ブロックだけ再同期したい場合:
+   python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/fetch_bookmarks.py" --account GUTARA --count 5 --refresh-account-file
+
+   初回のみ:
+   - X API からプロフィール文 / 表示名 / X User ID / 固定投稿を取得
+   - 対応する `accounts/*.md` を自動作成または自動取得セクションだけ更新
+   - ブックマーク取得には OAuth 2.0 user token も必要
+     （`X_BOOKMARKS_ACCESS_TOKEN_GUTARA` / `X_OAUTH2_ACCESS_TOKEN_GUTARA` /
+      `X_BEARER_TOKEN` の順で参照）
+
+2. エージェント（Claude Code / Codex）が bookmarks_latest.json を読み込む
+   → 各ブックマークの内容・著者を把握する
+   → `account_profile.account_file_path` があれば、そのファイルを優先して読む
+
+3. アカウント情報を読み込む（accounts/xxx.md）
+   → トンマナ・禁止事項を確認する
+
+4. 各ブックマークに対してX投稿の下書きを生成する
+   → 原文の「型・視点・テーマ」を借りて自分のトンマナで書き直す
+   → 長文（有料課金ユーザー向け・25,000文字以内）対応
+   → ツリー投稿は「---」で区切って生成
+
+5. ユーザーに確認を取る
+
+6. draft_manager.py で保存（ユーザーが実行）
+   python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/draft_manager.py" save \
+     --account GUTARA --text "投稿文" --memo "from @author"
+
+   ツリーの場合（---区切りのファイルを渡す）:
+   python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/draft_manager.py" save \
+     --account GUTARA --file "[テキストファイルパス]" --memo "ツリー"
+```
+
+### プレビュー・投稿フロー
+
+```
+1. プレビューサーバー起動（ユーザーが実行）
+   bash "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/start_preview.sh"
+
+2. ブラウザが開く → 下書き一覧から選んで内容確認
+   固定URL: https://zinciferous-preludiously-draven.ngrok-free.dev
+
+3. 「投稿する」ボタンをクリック
+   → X Web Intentで投稿画面が開く（内容入力済み）
+   → Discordに通知（プレビューURL + 投稿内容）
+
+4. Xで投稿を確定
+```
+
+### メトリクス収集
+
+```
+# 直近1週間の投稿のインプレッション・いいね等をNeon DBに保存
+python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/x_metrics_collector.py"
+```
+
+### 定時自動実行（launchd）
+
+```
+# LaunchAgent plist を render
+python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/manage_launch_agents.py" render
+
+# install / uninstall / status
+python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/manage_launch_agents.py" install
+python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/manage_launch_agents.py" uninstall
+python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/manage_launch_agents.py" status
+```
+
+- 下書き生成ジョブ: 毎日 `00:00 / 07:00 / 12:00`
+- メトリクス収集ジョブ: 毎時 `05分`
+- `scheduled_draft_pipeline.py` は処理済みブックマークを state 管理し、重複下書きを避ける
+- Codex が token / context 制限や失敗で止まった場合は Claude Code に自動フォールバックする
+- 画像そのものを自動生成しない場合でも、画像プロンプトをファイル保存し、Discord 報告へ添える
+
+### 環境変数（必要なもの）
+
+| 変数名 | 用途 |
+|--------|------|
+| `NEON_DATABASE_URL` | Neon PostgreSQL接続URL |
+| `X_API_KEY` | X APIキー（`fetch_bookmarks.py` は `X_CONSUMER_KEY` でも可） |
+| `X_API_SECRET` | X APIシークレット（`fetch_bookmarks.py` は `X_CONSUMER_SECRET` でも可） |
+| `X_ACCESS_TOKEN_GUTARA` | GUTARAアカウントのアクセストークン |
+| `X_ACCESS_TOKEN_SECRET_GUTARA` | GUTARAアカウントのアクセストークンシークレット |
+| `X_BOOKMARKS_ACCESS_TOKEN_GUTARA` | ブックマーク取得用 OAuth 2.0 user token（なければ `X_OAUTH2_ACCESS_TOKEN_GUTARA` → `X_BEARER_TOKEN` を順に参照） |
+| `DISCORD_WEBHOOK_X_DRAFT` | Discord Webhook URL（投稿通知先） |
+
+### Codex での使い方
+
+```
+/prompts:x
+```
+
+→ `.agent/skills/x-post-writer/SKILL.md` を読み込み、このフローに従って動作する。

@@ -154,6 +154,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
+### 🤖 personal/deguchishouma/automation/（個人自動化運用系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| daily-summary-zoom-account-manager | 毎朝8時の daily-calendar-summary で使う Zoom URL 発行アカウントを追加・更新し、タイトル接頭辞の振り分け設定と資格情報テンプレートを整える | `.agent/skills/personal/deguchishouma/daily-summary-zoom-account-manager/SKILL.md` |
+
+---
+
 ### 🎤 personal/deguchishouma/seminar/（セミナー制作系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
@@ -193,7 +200,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 💼 sales/（営業コーチング・販売台本系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| sales-coaching | ジモティー営業（1S・面接）の文字起こしを Loom から取得し、候補者名検索→video_id特定→transcript保存→担当者抽出→Supabase 登録まで行える。その後の分析・改善トーク生成・比較レポートまで対応 | `.agent/skills/sales/sales-coaching/SKILL.md` |
+| sales-coaching | ジモティー営業（1S・面接）の文字起こしを Loom から取得し、候補者名検索→video_id特定→transcript保存→担当者抽出→Neon(Postgres) 登録まで行える。その後の分析・改善トーク生成・比較レポートまで対応 | `.agent/skills/sales/sales-coaching/SKILL.md` |
 | interview-product-sales | 採用面接の文字起こしから候補者プロファイルを抽出し、商品テンプレート（価格・ベネフィット・ピッチ構造）と組み合わせて、既存保存済み台本と同じフォーマットで面接クロージング時の販売戦略と台本を生成する。二次面接では、引き継ぎ済みの文脈と一次担当者からの前向きな推薦コメントを冒頭へ自然に入れられ、未指定時は代表の出口が話す前提で生成される | `.agent/skills/sales/interview-product-sales/SKILL.md` |
 | calendar-interview-closing | Google Calendar の当日予定から「面接」「2回目」または 90 分以上の候補を抽出し、Loom transcript 特定からクロージング台本保存まで一気通貫で進める起点スキル | `.agent/skills/personal/deguchishouma/calendar-interview-closing/SKILL.md` |
 
@@ -228,6 +235,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | OpenClaw に team-info 版 Agent-Reach を入れたい | `agent-reach` |
 | 外部ツールや外部 repo を team-info 向けに取り込みたい | `repo-adapted-tool-import` |
 | 何かを導入するとき、今の repo 優先で書き換えて入れたい | `repo-adapted-tool-import` |
+| 毎朝8時の calendar summary に新しい Zoom 発行アカウントを追加したい | `daily-summary-zoom-account-manager` |
 | official Obsidian CLI と Claudian を入れたい | `obsidian-claudian` |
 | Obsidian の active vault に Claudian を入れたい | `obsidian-claudian` |
 | 複数 repo で共有ルール・共有スキルを一元管理したい | `shared-agent-assets` |

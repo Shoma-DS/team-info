@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X 下書きプレビュー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="x-logo">𝕏</div>
+        <h2>下書き一覧</h2>
+      </div>
+      <div id="draft-list" class="draft-list">
+        <div class="loading">読み込み中...</div>
+      </div>
+    </aside>
+
+    <main class="preview-area">
+      <div id="preview-content" class="preview-content">
+        <div class="empty-state">
+          <div class="x-logo-large">𝕏</div>
+          <p>左の一覧から下書きを選んでください</p>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

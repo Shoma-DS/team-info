@@ -1,0 +1,144 @@
+/* X（Twitter）ダークテーマを模したプレビュー用スタイル */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #000000;
+  --bg-card: #16181c;
+  --bg-hover: #1d1f23;
+  --bg-selected: #1a2533;
+  --border: #2f3336;
+  --text-primary: #e7e9ea;
+  --text-secondary: #71767b;
+  --text-link: #1d9bf0;
+  --accent: #1d9bf0;
+  --thread-line: #2f3336;
+  --danger: #f4212e;
+  --green: #00ba7c;
+  --sidebar-width: 320px;
+}
+
+body {
+  font-family: "Noto Sans JP", -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: var(--bg); color: var(--text-primary);
+  height: 100vh; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.app { display: flex; height: 100vh; }
+
+/* ── スマートフォン対応 ── */
+@media (max-width: 640px) {
+  :root { --sidebar-width: 100vw; }
+  .app { flex-direction: column; }
+  .sidebar { width: 100%; min-width: unset; height: auto; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .draft-list { max-height: calc(45vh - 60px); }
+  .preview-area { flex: 1; overflow-y: auto; }
+  .preview-content { padding: 12px 0; }
+  .preview-header { flex-direction: column; gap: 10px; }
+  .header-actions { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+  .post-btn { padding: 10px 20px; font-size: 16px; }
+}
+
+/* ── サイドバー ── */
+.sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; }
+.sidebar-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+.x-logo { font-size: 24px; font-weight: 900; color: var(--text-primary); }
+.x-logo-large { font-size: 64px; font-weight: 900; color: var(--text-secondary); margin-bottom: 16px; }
+.sidebar-header h2 { font-size: 17px; font-weight: 700; }
+.draft-list { overflow-y: auto; flex: 1; padding: 8px 0; }
+
+.draft-item { padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.draft-item:hover { background: var(--bg-hover); }
+.draft-item.active { background: var(--bg-selected); border-left: 3px solid var(--accent); }
+.draft-item-account { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.draft-item-account span { color: var(--text-secondary); font-weight: 400; }
+.draft-item-preview { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.draft-item-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.badge { font-size: 11px; padding: 2px 7px; border-radius: 9999px; font-weight: 600; }
+.badge-thread { background: #1d3557; color: var(--accent); }
+.badge-single { background: #1a2b1a; color: var(--green); }
+.draft-item-date { font-size: 11px; color: var(--text-secondary); }
+
+/* ── プレビューエリア ── */
+.preview-area { flex: 1; overflow-y: auto; }
+.preview-content { max-width: 600px; margin: 0 auto; padding: 20px 0; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; color: var(--text-secondary); font-size: 15px; }
+
+/* ── プレビューヘッダー ── */
+.preview-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.preview-header-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.preview-header-info p { font-size: 13px; color: var(--text-secondary); }
+.header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.preview-memo { font-size: 12px; color: var(--text-secondary); background: var(--bg-hover); padding: 4px 10px; border-radius: 9999px; }
+
+/* 投稿ボタン */
+.post-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--text-primary); color: #000;
+  border: none; border-radius: 9999px;
+  padding: 8px 18px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+.post-btn:hover { background: #d7d9da; }
+.post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.post-btn span { font-size: 16px; font-weight: 900; }
+
+/* プレビューURL表示バー */
+.preview-url-bar {
+  padding: 8px 16px;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.preview-url-bar a { color: var(--text-link); text-decoration: none; word-break: break-all; }
+.preview-url-bar a:hover { text-decoration: underline; }
+
+/* ── ツイートカード ── */
+.tweet-card { padding: 16px 16px 0; border-bottom: 1px solid var(--border); }
+.tweet-card:last-child { border-bottom: none; }
+.tweet-header { display: flex; gap: 12px; margin-bottom: 4px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #1d9bf0, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0; }
+.thread-line-wrapper { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+.thread-line { width: 2px; flex: 1; min-height: 20px; background: var(--thread-line); margin-top: 4px; }
+.tweet-body { flex: 1; min-width: 0; }
+.tweet-user-info { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 2px; }
+.tweet-display-name { font-weight: 700; font-size: 15px; }
+.tweet-handle { color: var(--text-secondary); font-size: 15px; }
+.tweet-verified { color: var(--accent); font-size: 14px; }
+.tweet-text { font-size: 15px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin-bottom: 12px; }
+.tweet-text a { color: var(--text-link); text-decoration: none; }
+.char-count { font-size: 12px; text-align: right; margin-bottom: 8px; padding-right: 4px; }
+.char-ok { color: var(--text-secondary); }
+.char-warn { color: #fbbf24; }
+.char-over { color: var(--danger); font-weight: 700; }
+.tweet-image { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 12px; }
+.tweet-image img { width: 100%; display: block; max-height: 300px; object-fit: cover; }
+.tweet-actions { display: flex; justify-content: space-between; padding: 4px 0 12px; max-width: 380px; }
+.action-btn { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; padding: 6px; border-radius: 9999px; cursor: default; transition: color 0.15s, background 0.15s; }
+.action-btn:hover { color: var(--accent); background: rgba(29,155,240,0.1); }
+.action-btn.like:hover { color: var(--danger); background: rgba(244,33,46,0.1); }
+.action-btn.repost:hover { color: var(--green); background: rgba(0,186,124,0.1); }
+.action-icon { font-size: 18px; }
+
+/* ── トースト通知 ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #1d9bf0; color: #fff;
+  padding: 10px 20px; border-radius: 9999px;
+  font-size: 14px; font-weight: 600;
+  opacity: 0; transition: opacity 0.3s, transform 0.3s;
+  z-index: 1000; pointer-events: none; white-space: nowrap;
+}
+.toast-error { background: var(--danger); }
+.toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.loading, .error-msg { padding: 24px; text-align: center; color: var(--text-secondary); font-size: 14px; }
+.error-msg { color: var(--danger); }

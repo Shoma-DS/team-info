@@ -111,6 +111,12 @@ COMMANDS: list[dict[str, str]] = [
         "skill_path": ".agent/skills/jmty/jmty-posts/SKILL.md",
     },
     {
+        "name": "x",
+        "description": "X投稿文スキルを起動する",
+        "kind": "skill",
+        "skill_path": ".agent/skills/x-post-writer/SKILL.md",
+    },
+    {
         "name": "script",
         "description": "台本作成スキルを起動する",
         "kind": "skill",

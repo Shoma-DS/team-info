@@ -1,9 +1,8 @@
 """
 営業文字起こし取得・保存スクリプト
-AI分析はClaude Code / Codex が担当するため、このスクリプトはデータ取得と保存のみを行う。
+AI分析は Claude Code / Codex が担当し、このスクリプトは保存と Neon(Postgres) 同期を担う。
 """
 import argparse
-import os
 import sys
 from datetime import date
 from pathlib import Path
@@ -17,10 +16,11 @@ from classify import (
     metadata_summary_json,
 )
 from save_transcript import (
-    build_supabase_record,
+    build_neon_record,
     load_loom_export,
+    resolve_neon_table_name,
     save_transcript,
-    upsert_supabase_record,
+    upsert_neon_record,
 )
 
 
@@ -94,7 +94,7 @@ def process_url(loom_url: str) -> dict:
     return results
 
 
-def process_export_dir(export_dir: str, sync_supabase: bool, supabase_table: str | None) -> dict:
+def process_export_dir(export_dir: str, sync_neon: bool, neon_table: str | None) -> dict:
     results = {"export_dir": export_dir, "steps": {}, "files": {}}
     today = date.today().isoformat()
 
@@ -164,12 +164,12 @@ def process_export_dir(export_dir: str, sync_supabase: bool, supabase_table: str
         results["steps"]["save"] = f"失敗: {e}"
         return results
 
-    if not sync_supabase:
+    if not sync_neon:
         return results
 
-    print("\n[4/4] Supabase に登録中...")
+    print("\n[4/4] Neon に登録中...")
     try:
-        record = build_supabase_record(
+        record = build_neon_record(
             export_data=export_data,
             transcript_path=transcript_path,
             speaker=speaker,
@@ -179,16 +179,16 @@ def process_export_dir(export_dir: str, sync_supabase: bool, supabase_table: str
             session_result=session_result,
             processed_date=today,
         )
-        saved = upsert_supabase_record(record, table_name=supabase_table)
-        target_table = supabase_table or os.environ.get("SUPABASE_TABLE", "sales_coaching_transcripts")
+        saved = upsert_neon_record(record, table_name=neon_table)
+        target_table = resolve_neon_table_name(neon_table)
         print(f"      登録完了: {target_table}")
         if isinstance(saved, dict) and saved.get("loom_video_id"):
             print(f"      loom_video_id: {saved['loom_video_id']}")
-        results["steps"]["supabase"] = "OK"
-        results["files"]["supabase_table"] = target_table
+        results["steps"]["neon"] = "OK"
+        results["files"]["neon_table"] = target_table
     except Exception as e:
         print(f"      失敗: {e}")
-        results["steps"]["supabase"] = f"失敗: {e}"
+        results["steps"]["neon"] = f"失敗: {e}"
 
     return results
 
@@ -211,15 +211,26 @@ def main():
         help="Loom MCP が保存した export ディレクトリ。metadata.json と transcript.txt を含む",
     )
     parser.add_argument(
+        "--sync-neon",
+        action="store_true",
+        help="ローカル保存後に Neon(Postgres) へ upsert する",
+    )
+    parser.add_argument(
+        "--neon-table",
+        help="Neon の登録先テーブル名。未指定時は NEON_TABLE または sales_coaching_transcripts",
+    )
+    parser.add_argument(
         "--sync-supabase",
         action="store_true",
-        help="ローカル保存後に Supabase へ upsert する",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--supabase-table",
-        help="Supabase の登録先テーブル名。未指定時は SUPABASE_TABLE または sales_coaching_transcripts",
+        help=argparse.SUPPRESS,
     )
     args = parser.parse_args()
+    sync_neon = args.sync_neon or args.sync_supabase
+    neon_table = args.neon_table or args.supabase_table
 
     jobs: list[tuple[str, str]] = []
     if args.url:
@@ -248,8 +259,8 @@ def main():
         else:
             result = process_export_dir(
                 value,
-                sync_supabase=args.sync_supabase,
-                supabase_table=args.supabase_table,
+                sync_neon=sync_neon,
+                neon_table=neon_table,
             )
         all_results.append(result)
 

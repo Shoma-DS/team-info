@@ -1,12 +1,20 @@
+"""
+Loom export の文字起こし保存と Neon(Postgres) への upsert を担う。
+repo 直下の `.env` も参照し、営業文字起こしのローカル保存と DB 同期をまとめて扱う。
+"""
+
 import json
 import os
 import re
 from pathlib import Path
 
-import requests
+import psycopg2
+from psycopg2 import sql
+from psycopg2.extras import Json, RealDictCursor
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
 COACHING_ROOT = REPO_ROOT / "personal" / "deguchishouma" / "sales" / "coaching"
+ENV_PATH = REPO_ROOT / ".env"
 
 
 def save_transcript(
@@ -104,7 +112,7 @@ def load_loom_export(export_dir: Path) -> dict:
     }
 
 
-def build_supabase_record(
+def build_neon_record(
     export_data: dict,
     transcript_path: Path,
     speaker: str,
@@ -151,36 +159,49 @@ def build_supabase_record(
     }
 
 
-def upsert_supabase_record(record: dict, table_name: str | None = None) -> dict:
-    base_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
-    api_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-    target_table = table_name or os.environ.get("SUPABASE_TABLE", "sales_coaching_transcripts")
+def upsert_neon_record(record: dict, table_name: str | None = None) -> dict:
+    database_url = _get_env_value("NEON_DATABASE_URL") or _get_env_value("DATABASE_URL")
+    target_table = resolve_neon_table_name(table_name)
 
-    if not base_url or not api_key:
-        raise RuntimeError(
-            "SUPABASE_URL と SUPABASE_SERVICE_ROLE_KEY が必要です。"
-            " SUPABASE_ACCESS_TOKEN だけでは行データを登録できません。"
-        )
+    if not database_url:
+        raise RuntimeError("NEON_DATABASE_URL または DATABASE_URL が必要です。")
 
-    response = requests.post(
-        f"{base_url}/rest/v1/{target_table}",
-        params={"on_conflict": "loom_video_id"},
-        headers={
-            "apikey": api_key,
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates,return=representation",
-        },
-        json=[record],
-        timeout=30,
+    payload = dict(record)
+    payload["session_tags"] = Json(payload.get("session_tags", []))
+    payload["raw_metadata"] = Json(payload.get("raw_metadata", {}))
+    columns = list(payload.keys())
+    values = [payload[column] for column in columns]
+
+    assignments = [
+        sql.SQL("{field} = EXCLUDED.{field}").format(field=sql.Identifier(column))
+        for column in columns
+        if column != "loom_video_id"
+    ]
+    query = sql.SQL(
+        """
+        INSERT INTO {table} ({columns})
+        VALUES ({values})
+        ON CONFLICT (loom_video_id) DO UPDATE
+        SET {assignments}
+        RETURNING *
+        """
+    ).format(
+        table=sql.Identifier(target_table),
+        columns=sql.SQL(", ").join(sql.Identifier(column) for column in columns),
+        values=sql.SQL(", ").join(sql.Placeholder() for _ in columns),
+        assignments=sql.SQL(", ").join(assignments),
     )
-    if not response.ok:
-        raise RuntimeError(_format_supabase_error(response))
 
-    payload = response.json()
-    if isinstance(payload, list) and payload:
-        return payload[0]
-    return payload
+    try:
+        with psycopg2.connect(database_url) as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query, values)
+                payload = cur.fetchone()
+            conn.commit()
+    except psycopg2.Error as exc:
+        raise RuntimeError(f"Neon 登録に失敗しました: {exc}") from exc
+
+    return dict(payload) if payload else {}
 
 
 def _read_optional_text(path: Path) -> str | None:
@@ -194,12 +215,29 @@ def _one_line(value: object) -> str:
     return str(value).replace("\n", " ").strip()
 
 
-def _format_supabase_error(response: requests.Response) -> str:
-    try:
-        body = response.json()
-    except ValueError:
-        body = response.text.strip()
-    return f"Supabase登録に失敗しました ({response.status_code}): {body}"
+def _load_env_values() -> dict[str, str]:
+    if not ENV_PATH.exists():
+        return {}
+
+    values: dict[str, str] = {}
+    for raw_line in ENV_PATH.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def _get_env_value(name: str, default: str = "") -> str:
+    value = os.environ.get(name)
+    if value:
+        return value.strip()
+    return _load_env_values().get(name, default).strip()
+
+
+def resolve_neon_table_name(table_name: str | None = None) -> str:
+    return table_name or _get_env_value("NEON_TABLE", "sales_coaching_transcripts")
 
 
 def normalize_duration_seconds(value: object) -> int | None:
@@ -235,3 +273,11 @@ def normalize_integer(value: object) -> int | None:
         digits = re.sub(r"[^\d]", "", value)
         return int(digits) if digits else None
     return None
+
+
+def build_supabase_record(*args, **kwargs) -> dict:
+    return build_neon_record(*args, **kwargs)
+
+
+def upsert_supabase_record(record: dict, table_name: str | None = None) -> dict:
+    return upsert_neon_record(record, table_name=table_name)
