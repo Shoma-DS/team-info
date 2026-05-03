@@ -285,8 +285,16 @@ else
   warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CODEX_NPM_PACKAGE を実行してください。"
 fi
 
-# ── 10. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
-step "10. TEAM_INFO_ROOT"
+# ── 10. Git hooks ──────────────────────────────────────────────────────────────
+step "10. Git hooks"
+if git -C "$TEAM_INFO_ROOT" config core.hooksPath .githooks; then
+  success "core.hooksPath を .githooks に設定しました"
+else
+  warn "core.hooksPath の設定に失敗しました。手動で 'git config core.hooksPath .githooks' を実行してください。"
+fi
+
+# ── 11. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
+step "11. TEAM_INFO_ROOT"
 export TEAM_INFO_ROOT
 write_team_info_env_file
 ensure_shell_loads_team_info_env
@@ -302,8 +310,8 @@ else
   warn "TEAM_INFO_ROOT の保存に失敗しました。必要なら手動で設定してください。"
 fi
 
-# ── 11. 遅延セットアップの案内 ───────────────────────────────────────────────
-step "11. 遅延セットアップの案内"
+# ── 12. 遅延セットアップの案内 ───────────────────────────────────────────────
+step "12. 遅延セットアップの案内"
 warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
 warn "  - Remotion / VOICEVOX / Docker runtime"
 warn "  - Canva 補助や Dify 開発依存"
@@ -311,8 +319,8 @@ warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
 warn "  - shared-agent-assets の同期処理"
 warn "  - clone-website 用の Node 24 workspace 依存"
 
-# ── 12. Docker (任意) ─────────────────────────────────────────────────────
-step "12. Docker (任意)"
+# ── 13. Docker (任意) ─────────────────────────────────────────────────────
+step "13. Docker (任意)"
 if command -v docker &>/dev/null; then
   success "Docker インストール済み: $(docker --version)"
   warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
@@ -321,9 +329,9 @@ else
   warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
 fi
 
-# ── 13. セットアップ検証 ─────────────────────────────────────────────────────
+# ── 14. セットアップ検証 ─────────────────────────────────────────────────────
 VERIFY_STATUS=0
-step "13. セットアップ検証"
+step "14. セットアップ検証"
 VERIFY_SCRIPT="$SCRIPT_DIR/verify_setup.py"
 if [[ -f "$VERIFY_SCRIPT" ]]; then
   if "$PYTHON311" "$VERIFY_SCRIPT" --repo-root "$TEAM_INFO_ROOT"; then

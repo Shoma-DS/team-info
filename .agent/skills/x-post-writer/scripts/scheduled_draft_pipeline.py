@@ -437,9 +437,10 @@ def run_claude(
     accumulated_text = ""
     draft_seen = 0
     result_text = ""
+    tool_use_input: dict | None = None  # --json-schema 使用時の構造化出力
 
     def on_line(ln: str) -> None:
-        nonlocal accumulated_text, draft_seen, result_text
+        nonlocal accumulated_text, draft_seen, result_text, tool_use_input
         ln = ln.strip()
         if not ln:
             return
@@ -455,10 +456,12 @@ def run_claude(
             result_text = event.get("result", "")
             return
 
-        # assistant の累積テキストから新たに登場した draft をカウント
+        # assistant ブロックを処理
         if etype == "assistant":
             for block in event.get("message", {}).get("content", []):
-                if block.get("type") == "text":
+                btype = block.get("type")
+                if btype == "text":
+                    # テキスト出力から draft 進捗をカウント
                     new_text = block.get("text", "")
                     new_part = new_text[len(accumulated_text):]
                     count = new_part.count('"bookmark_tweet_id"')
@@ -466,6 +469,14 @@ def run_claude(
                         draft_seen = min(draft_seen + count, total)
                         on_progress(draft_seen, total)
                     accumulated_text = new_text
+                elif btype == "tool_use":
+                    # --json-schema 使用時はここに構造化出力が入る
+                    inp = block.get("input")
+                    if isinstance(inp, dict):
+                        tool_use_input = inp
+                        count = str(inp).count('"bookmark_tweet_id"')
+                        if count and on_progress:
+                            on_progress(min(count, total), total)
 
     code, stdout, stderr, timed_out = _run_streaming(
         cmd,
@@ -484,7 +495,11 @@ def run_claude(
     if code != 0:
         raise JobError(truncate(combined, 500) or f"claude 実行失敗 (exit={code})")
 
-    # stream-json は result イベントに最終テキストが入る; なければ accumulated_text を使う
+    # --json-schema 使用時は tool_use の input を優先して返す
+    if tool_use_input is not None:
+        return tool_use_input, "claude"
+
+    # テキスト出力のフォールバック（--json-schema なし、または旧動作）
     output = result_text or accumulated_text or stdout
     try:
         return parse_json_output(output), "claude"

@@ -435,8 +435,17 @@ if (Test-Command npm) {
     Write-Warn "  npm install -g $CodexNpmPackage"
 }
 
-# ── 10. 遅延セットアップの案内 ───────────────────────────────────────────
-Write-Step "10. 遅延セットアップの案内"
+# ── 10. Git hooks ─────────────────────────────────────────────────────────
+Write-Step "10. Git hooks"
+try {
+    git -C $TeamInfoRoot config core.hooksPath .githooks
+    Write-Ok "core.hooksPath を .githooks に設定しました"
+} catch {
+    Write-Warn "core.hooksPath の設定に失敗しました。手動で 'git config core.hooksPath .githooks' を実行してください。"
+}
+
+# ── 11. 遅延セットアップの案内 ───────────────────────────────────────────
+Write-Step "11. 遅延セットアップの案内"
 Write-Warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
 Write-Warn "  - Remotion / VOICEVOX / Docker runtime"
 Write-Warn "  - Canva 補助や Dify 開発依存"
@@ -444,8 +453,8 @@ Write-Warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
 Write-Warn "  - shared-agent-assets の同期処理"
 Write-Warn "  - clone-website 用の Node 24 workspace 依存"
 
-# ── 11. Docker (任意) ───────────────────────────────────────────────────
-Write-Step "11. Docker (任意)"
+# ── 12. Docker (任意) ───────────────────────────────────────────────────
+Write-Step "12. Docker (任意)"
 if (Test-Command docker) {
     Write-Ok "Docker インストール済み: $(docker --version)"
     Write-Warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
@@ -454,9 +463,9 @@ if (Test-Command docker) {
     Write-Warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください"
 }
 
-# ── 12. セットアップ検証 ─────────────────────────────────────────────────
+# ── 13. セットアップ検証 ─────────────────────────────────────────────────
 $VerifyStatus = 0
-Write-Step "12. セットアップ検証"
+Write-Step "13. セットアップ検証"
 $VerifyScript = Join-Path $ScriptDir "verify_setup.py"
 if (Test-Path $VerifyScript) {
     try {

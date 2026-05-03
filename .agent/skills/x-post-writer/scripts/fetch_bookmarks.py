@@ -1,5 +1,6 @@
 # XのブックマークをAPIで取得し、初回のみアカウント情報ファイルも初期化するスクリプト。
 # 実アカウントと accounts/*.md の対応を照合し、2回目以降は既存ファイルを再利用する。
+# OAuth 2.0 アクセストークンが期限切れの場合はリフレッシュトークンで自動更新する。
 # 使い方: python fetch_bookmarks.py [--account GUTARA] [--count 5] [--refresh-account-file]
 
 import argparse
@@ -15,9 +16,11 @@ from requests_oauthlib import OAuth1
 
 SCRIPT_DIR = Path(__file__).parent
 SKILL_DIR = SCRIPT_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parent.parent.parent.parent
 ACCOUNT_DIR = SKILL_DIR / "accounts"
 CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
 OUTPUT_FILE = SCRIPT_DIR / "bookmarks_latest.json"
+CLAUDE_SETTINGS_FILE = REPO_ROOT / ".claude" / "settings.local.json"
 AUTO_BLOCK_START = "<!-- x-account:auto:start -->"
 AUTO_BLOCK_END = "<!-- x-account:auto:end -->"
 PROFILE_USER_FIELDS = [
@@ -67,6 +70,88 @@ def get_bookmarks_access_token(account_cfg):
     return None, " or ".join(candidates)
 
 
+def save_tokens_to_settings(account_id, access_token, refresh_token=None):
+    """新しいトークンを settings.local.json の env ブロックに書き戻す。"""
+    if not CLAUDE_SETTINGS_FILE.exists():
+        print("⚠️  settings.local.json が見つからないため、ファイルへの保存をスキップします", file=sys.stderr)
+        return
+    try:
+        config = json.loads(CLAUDE_SETTINGS_FILE.read_text(encoding="utf-8"))
+        env = config.setdefault("env", {})
+        env[f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"] = access_token
+        if refresh_token:
+            env[f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"] = refresh_token
+        CLAUDE_SETTINGS_FILE.write_text(
+            json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"💾 settings.local.json のトークンを更新しました")
+    except Exception as e:
+        print(f"⚠️  settings.local.json の更新に失敗しました: {e}", file=sys.stderr)
+
+
+def refresh_oauth2_token(account_cfg):
+    """リフレッシュトークンを使って新しいアクセストークンを取得する。
+    成功時は (access_token, None)、失敗時は (None, error_message) を返す。"""
+    account_id = account_cfg["id"]
+    refresh_token = os.environ.get(f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}")
+    client_id = (
+        os.environ.get(f"X_OAUTH2_CLIENT_ID_{account_id}")
+        or os.environ.get("X_OAUTH2_CLIENT_ID")
+    )
+    client_secret = (
+        os.environ.get(f"X_OAUTH2_CLIENT_SECRET_{account_id}")
+        or os.environ.get("X_OAUTH2_CLIENT_SECRET")
+    )
+
+    if not refresh_token:
+        return None, f"X_BOOKMARKS_REFRESH_TOKEN_{account_id} が未設定のため自動リフレッシュできません"
+    if not client_id:
+        return None, "X_OAUTH2_CLIENT_ID_GUTARA または X_OAUTH2_CLIENT_ID が未設定です"
+
+    print(f"🔄 アクセストークンが期限切れです。リフレッシュトークンで更新中...")
+
+    data = {"grant_type": "refresh_token", "refresh_token": refresh_token}
+    auth = (
+        requests.auth.HTTPBasicAuth(client_id, client_secret)
+        if client_secret
+        else None
+    )
+    if not client_secret:
+        data["client_id"] = client_id
+
+    try:
+        resp = requests.post(
+            "https://api.twitter.com/2/oauth2/token",
+            data=data,
+            auth=auth,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=30,
+        )
+    except requests.RequestException as e:
+        return None, f"トークンリフレッシュのHTTPリクエストに失敗しました: {e}"
+
+    if resp.status_code != 200:
+        return None, f"トークンリフレッシュに失敗しました: {resp.status_code} {resp.text}"
+
+    token_data = resp.json()
+    new_access_token = token_data.get("access_token")
+    new_refresh_token = token_data.get("refresh_token")
+
+    if not new_access_token:
+        return None, f"レスポンスにアクセストークンが含まれていません: {token_data}"
+
+    # プロセス内の環境変数を即座に更新
+    os.environ[f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"] = new_access_token
+    if new_refresh_token:
+        os.environ[f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"] = new_refresh_token
+
+    # settings.local.json にも書き戻して次回起動後も有効にする
+    save_tokens_to_settings(account_id, new_access_token, new_refresh_token)
+
+    print(f"✅ アクセストークンを更新しました")
+    return new_access_token, None
+
+
 def build_oauth1_client(account_cfg):
     access_token = os.environ.get(account_cfg["token_env"])
     access_token_secret = os.environ.get(account_cfg["token_secret_env"])
@@ -95,15 +180,15 @@ def build_oauth1_client(account_cfg):
     )
 
 
-def build_bookmarks_client(account_cfg):
+def build_bookmarks_client(account_cfg, access_token=None):
     # ブックマークAPIは OAuth 2.0 User Context のみ対応。
-    # X_BOOKMARKS_ACCESS_TOKEN_{ID} にOAuth 2.0アクセストークンを設定する。
-    # 初回は oauth2_setup.py を実行してトークンを取得すること。
+    # access_token が指定されない場合は環境変数から取得する。
     account_id = account_cfg["id"]
-    access_token = (
-        os.environ.get(f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}")
-        or os.environ.get(f"X_OAUTH2_ACCESS_TOKEN_{account_id}")
-    )
+    if not access_token:
+        access_token = (
+            os.environ.get(f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}")
+            or os.environ.get(f"X_OAUTH2_ACCESS_TOKEN_{account_id}")
+        )
     if not access_token:
         print(
             f"❌ ブックマーク取得には OAuth 2.0 アクセストークンが必要です。\n"
@@ -458,7 +543,21 @@ def main():
         sys.exit(1)
 
     bookmarks_client = build_bookmarks_client(account_cfg)
-    profile = fetch_account_profile(bookmarks_client, account_cfg, user_auth=False)
+    try:
+        profile = fetch_account_profile(bookmarks_client, account_cfg, user_auth=False)
+    except tweepy.Unauthorized:
+        # アクセストークンが期限切れの場合、リフレッシュして1回だけ再試行する
+        new_token, err = refresh_oauth2_token(account_cfg)
+        if err:
+            print(
+                f"❌ トークンの自動更新に失敗しました: {err}\n"
+                f"   以下を実行して再認証してください:\n"
+                f"   python3 \"$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/oauth2_setup.py\" --account {args.account}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        bookmarks_client = build_bookmarks_client(account_cfg, access_token=new_token)
+        profile = fetch_account_profile(bookmarks_client, account_cfg, user_auth=False)
     print(f"👤 @{profile['x_username']} (ID: {profile['x_user_id']})")
 
     account_file = ensure_account_file(

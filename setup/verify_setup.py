@@ -134,23 +134,33 @@ def _check_python_toolchain(failures: list[str]) -> None:
         failures.append("setup 検証は Python 3.11 系で実行してください。")
 
 
-def _check_lazy_bootstrap_scripts(repo_root: Path, failures: list[str]) -> None:
+def _check_lazy_bootstrap_scripts(repo_root: Path, failures: list[str], warnings: list[str]) -> None:
     _print_heading("初回自動準備の入口")
-    targets = (
+    # 必須: core スキルが揃っていないと主要機能が動かない
+    required_targets = (
         (repo_root / ".agent" / "skills" / "common" / "scripts" / "team_info_runtime.py", "Remotion / Python runtime bootstrap"),
         (repo_root / ".agent" / "skills" / "common" / "agent-reach" / "scripts" / "team_info_agent_reach.py", "Agent Reach bootstrap"),
         (repo_root / ".agent" / "skills" / "common" / "agent-reach" / "scripts" / "install_team_info_agent_reach.py", "Agent Reach installer"),
+    )
+    # 任意: スキルを初めて使うときに準備するため、未存在は警告扱い
+    optional_targets = (
         (repo_root / ".agent" / "skills" / "common" / "obsidian-claudian" / "scripts" / "team_info_obsidian_claudian.py", "Obsidian / Claudian bootstrap"),
         (repo_root / ".agent" / "skills" / "common" / "shared-agent-assets" / "scripts" / "sync_shared_agent_repo.sh", "Shared agent assets sync"),
         (repo_root / ".agent" / "skills" / "web-design" / "clone-website" / "scripts" / "init_clone_website_template.py", "clone-website bootstrap"),
     )
 
-    for path, label in targets:
+    for path, label in required_targets:
         if path.exists():
             print(f"[OK] {label}: {path}")
         else:
             print(f"[NG] {label}: {path}")
             failures.append(f"{label} が見つかりません。")
+
+    for path, label in optional_targets:
+        if path.exists():
+            print(f"[OK] {label}: {path}")
+        else:
+            print(f"[INFO] {label}: 未作成（初回スキル利用時に準備）")
 
 
 def _check_team_info_root(repo_root: Path, failures: list[str], warnings: list[str]) -> None:
@@ -234,7 +244,7 @@ def main() -> int:
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
     _check_python_toolchain(failures)
-    _check_lazy_bootstrap_scripts(repo_root, failures)
+    _check_lazy_bootstrap_scripts(repo_root, failures, warnings)
     _check_optional_tools(warnings)
 
     _print_heading("まとめ")
