@@ -14,6 +14,8 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $WaitSeconds = if ($env:DOCKER_ENGINE_WAIT_SECONDS) { [int]$env:DOCKER_ENGINE_WAIT_SECONDS } else { 180 }
 $SleepSeconds = if ($env:DOCKER_ENGINE_POLL_SECONDS) { [int]$env:DOCKER_ENGINE_POLL_SECONDS } else { 2 }
+$script:DockerMode = $null
+$script:WslDistro = $null
 
 function Write-Info {
     param([string]$Message)
@@ -35,6 +37,66 @@ function Notify-User {
     [console]::beep(800, 200)
 }
 
+function Test-CommandExists {
+    param([string]$Command)
+    return [bool](Get-Command $Command -ErrorAction SilentlyContinue)
+}
+
+function Get-WslDistroName {
+    if ($env:TEAM_INFO_WSL_DISTRO) {
+        return $env:TEAM_INFO_WSL_DISTRO
+    }
+
+    if (-not (Test-CommandExists "wsl.exe")) {
+        return $null
+    }
+
+    try {
+        $distros = @(wsl.exe -l -q 2>$null) |
+            ForEach-Object { ($_ -replace "`0", "").Trim() } |
+            Where-Object { $_ -and $_ -notin @("docker-desktop", "docker-desktop-data") }
+        if ($distros.Count -gt 0) {
+            return $distros[0]
+        }
+    } catch {
+    }
+
+    return $null
+}
+
+function Get-WslBaseArgs {
+    if (-not $script:WslDistro) {
+        $script:WslDistro = Get-WslDistroName
+    }
+
+    if ($script:WslDistro) {
+        return @("-d", $script:WslDistro)
+    }
+
+    return @()
+}
+
+function Invoke-WslShell {
+    param([string]$Command)
+    $args = @(Get-WslBaseArgs) + @("-e", "sh", "-lc", $Command)
+    & wsl.exe @args
+}
+
+function Invoke-WslCommand {
+    param([string[]]$Arguments)
+    $args = @(Get-WslBaseArgs) + @("-e") + $Arguments
+    & wsl.exe @args
+}
+
+function ConvertTo-WslPath {
+    param([string]$WindowsPath)
+    $converted = Invoke-WslCommand -Arguments @("wslpath", "-a", $WindowsPath) 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $converted) {
+        Write-ErrLog "WSL path への変換に失敗しました: $WindowsPath"
+    }
+    return ($converted | Select-Object -First 1).Trim()
+}
+
 function Test-DockerCli {
     try {
         $null = docker --version 2>$null
@@ -44,7 +106,46 @@ function Test-DockerCli {
     }
 }
 
+function Test-WslDockerCli {
+    if (-not (Test-CommandExists "wsl.exe")) {
+        return $false
+    }
+    $candidateDistro = Get-WslDistroName
+    if (-not $candidateDistro) {
+        return $false
+    }
+    $script:WslDistro = $candidateDistro
+    try {
+        $null = Invoke-WslShell "command -v docker >/dev/null 2>&1 && docker --version >/dev/null 2>&1"
+        return $LASTEXITCODE -eq 0
+    } catch {
+        return $false
+    }
+}
+
+function Test-WslDockerEngine {
+    try {
+        $null = Invoke-WslShell "docker info >/dev/null 2>&1 || docker ps >/dev/null 2>&1"
+        return $LASTEXITCODE -eq 0
+    } catch {
+        return $false
+    }
+}
+
+function Test-WslDockerCompose {
+    try {
+        $null = Invoke-WslShell "docker compose version >/dev/null 2>&1"
+        return $LASTEXITCODE -eq 0
+    } catch {
+        return $false
+    }
+}
+
 function Test-DockerEngine {
+    if ($script:DockerMode -eq "wsl") {
+        return Test-WslDockerEngine
+    }
+
     try {
         $null = docker info 2>$null
         if ($LASTEXITCODE -eq 0) {
@@ -58,6 +159,10 @@ function Test-DockerEngine {
 }
 
 function Test-DockerCompose {
+    if ($script:DockerMode -eq "wsl") {
+        return Test-WslDockerCompose
+    }
+
     try {
         $null = docker compose version 2>$null
         return $LASTEXITCODE -eq 0
@@ -69,24 +174,45 @@ function Test-DockerCompose {
 function Wait-DockerInstall {
     Notify-User
     Write-Host ""
-    Write-Host "Docker Desktop がインストールされていません。"
+    Write-Host "Docker CLI was not found. For Docker Desktop-free usage, install Docker Engine inside WSL2 Ubuntu."
     Write-Host ""
-    Write-Host "以下のページから Docker Desktop をダウンロードしてインストールしてください。"
+    Write-Host "Make sure docker and docker compose work inside Ubuntu. Set TEAM_INFO_WSL_DISTRO if you need a specific distro."
     Write-Host ""
-    Write-Host "https://www.docker.com/ja-jp/get-started/"
+    Write-Host "Check commands:"
+    Write-Host "  wsl -d Ubuntu -- docker version"
+    Write-Host "  wsl -d Ubuntu -- docker compose version"
     Write-Host ""
-    Read-Host "インストールが完了したら Enter を押して続行してください"
+    Read-Host "Press Enter after the WSL Docker Engine setup is complete"
 }
 
 function Ensure-DockerCli {
-    while (-not (Test-DockerCli)) {
+    while ($true) {
+        if (Test-DockerCli) {
+            $script:DockerMode = "native"
+            Write-Info "Docker CLI detected: $(docker --version)"
+            return
+        }
+        if (Test-WslDockerCli) {
+            $script:DockerMode = "wsl"
+            $distroLabel = if ($script:WslDistro) { $script:WslDistro } else { "default" }
+            Write-Info "WSL Docker CLI detected: distro=$distroLabel"
+            return
+        }
         Wait-DockerInstall
     }
-    Write-Info "Docker CLI を確認しました: $(docker --version)"
 }
 
-function Start-DockerDesktop {
-    Write-Info "Docker Desktop を起動します。"
+function Start-DockerEngine {
+    if ($script:DockerMode -eq "wsl") {
+        Write-Info "Trying to start Docker Engine inside WSL."
+        $null = Invoke-WslShell "if command -v systemctl >/dev/null 2>&1; then sudo systemctl start docker; else sudo service docker start; fi" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-WarnLog "Could not start Docker Engine inside WSL automatically. Run 'sudo systemctl start docker' or 'sudo service docker start' in Ubuntu."
+        }
+        return
+    }
+
+    Write-Info "Trying to start Docker Desktop."
     try {
         docker desktop start | Out-Null
         if ($LASTEXITCODE -eq 0) {
@@ -107,23 +233,26 @@ function Start-DockerDesktop {
         }
     }
 
-    Write-WarnLog "Docker Desktop の自動起動に失敗しました。手動で起動してください。"
+    Write-WarnLog "Could not start Docker Desktop automatically. Start Docker Engine manually."
 }
 
 function Wait-DockerEngine {
     $elapsed = 0
     while (-not (Test-DockerEngine)) {
         if ($elapsed -eq 0) {
-            Start-DockerDesktop
+            Start-DockerEngine
         }
         if ($elapsed -ge $WaitSeconds) {
-            Write-ErrLog "Docker Engine の起動待機がタイムアウトしました。Docker Desktop の状態を確認してください。"
+            if ($script:DockerMode -eq "wsl") {
+                Write-ErrLog "Timed out waiting for Docker Engine. Check the docker service inside WSL."
+            }
+            Write-ErrLog "Timed out waiting for Docker Engine. Check Docker Engine status."
         }
         Write-Info "Waiting for Docker Engine to start..."
         Start-Sleep -Seconds $SleepSeconds
         $elapsed += $SleepSeconds
     }
-    Write-Info "Docker Engine が利用可能になりました。"
+    Write-Info "Docker Engine is ready."
 }
 
 function Get-ComposeFileInDirectory {
@@ -182,7 +311,7 @@ function Select-ComposeProject {
     }
 
     if ($validCandidates.Count -eq 0) {
-        Write-ErrLog "docker compose の対象が見つかりません。compose ファイルがあるディレクトリで実行するか、既知の compose プロジェクトを用意してください。"
+        Write-ErrLog "No docker compose target found. Run from a compose directory or add a known compose project."
     }
 
     if ($validCandidates.Count -eq 1) {
@@ -190,7 +319,7 @@ function Select-ComposeProject {
     }
 
     Notify-User
-    Write-Host "docker compose $Action の対象を選んでください。"
+    Write-Host "Select docker compose target for action: $Action"
     for ($i = 0; $i -lt $validCandidates.Count; $i++) {
         $relative = Resolve-Path -Relative $validCandidates[$i]
         Write-Host ("  {0}. {1}" -f ($i + 1), $relative)
@@ -202,32 +331,40 @@ function Select-ComposeProject {
         if ([int]::TryParse($selection, [ref]$index) -and $index -ge 1 -and $index -le $validCandidates.Count) {
             return $validCandidates[$index - 1]
         }
-        Write-WarnLog "有効な番号を入力してください。"
+        Write-WarnLog "Enter a valid number."
     }
 }
 
 Ensure-DockerCli
 if (-not (Test-DockerCompose)) {
-    Write-ErrLog "docker compose が利用できません。Docker Desktop の Compose プラグインを確認してください。"
+    Write-ErrLog "docker compose is not available. Install Docker Compose v2 in Windows or WSL."
 }
 
 if (-not (Test-DockerEngine)) {
     Wait-DockerEngine
 } else {
-    Write-Info "Docker Engine は既に起動しています。"
+    Write-Info "Docker Engine is already running."
 }
 
 $ProjectDir = Select-ComposeProject -ProjectName $Project
 Write-Info "docker compose $Action を実行します: $ProjectDir"
 
-Push-Location $ProjectDir
-try {
-    if ($ComposeArgs.Count -gt 0) {
-        & docker compose $Action @ComposeArgs
-    } else {
-        & docker compose $Action
-    }
+if ($script:DockerMode -eq "wsl") {
+    $WslProjectDir = ConvertTo-WslPath -WindowsPath $ProjectDir
+    Write-Info "WSL path: $WslProjectDir"
+    $wslArgs = @(Get-WslBaseArgs) + @("--cd", $WslProjectDir, "-e", "docker", "compose", $Action) + $ComposeArgs
+    & wsl.exe @wslArgs
     exit $LASTEXITCODE
-} finally {
-    Pop-Location
+} else {
+    Push-Location $ProjectDir
+    try {
+        if ($ComposeArgs.Count -gt 0) {
+            & docker compose $Action @ComposeArgs
+        } else {
+            & docker compose $Action
+        }
+        exit $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
 }

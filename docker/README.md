@@ -119,3 +119,18 @@ docker compose down
 
 - Docker Desktop (または Docker Engine + Compose v2)
 - 利用可能メモリは最低 8GB 推奨（Dify が重いため）
+
+### Windows で Docker Desktop を使わない場合
+
+WSL2 Ubuntu に Docker Engine + Compose v2 を入れて使います。repo には補助スクリプトがあります。
+
+```powershell
+& "$env:TEAM_INFO_ROOT\setup\setup_wsl_docker_engine.ps1" -Distro Ubuntu
+```
+
+セットアップ後は `run.ps1` が WSL 内の Docker を検出して、Windows パスを WSL パスへ変換してから `docker compose` を実行します。
+
+```powershell
+& "$env:TEAM_INFO_ROOT\run.ps1" -Project n8n -d
+& "$env:TEAM_INFO_ROOT\run.ps1" -Project dify -d
+```

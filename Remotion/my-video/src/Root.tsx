@@ -114,20 +114,20 @@ export const RemotionRoot: React.FC = () => {
       </Folder>
 
       <Folder name="Viral">
-        <Folder name="転職">
+        <Folder name="Tenshoku">
           <Composition
-            id="優秀な人が黙って去る会社の特徴3選-20260416"
+            id="TenshokuShort-20260416"
             component={TenshokuShort20260416Safe}
             durationInFrames={2394}
 
             fps={30}
-            width={1920}
-            height={1080}
+            width={1080}
+            height={1920}
           />
         </Folder>
-        <Folder name="アダルトアフィリ">
+        <Folder name="Adult-Affiliate">
           <Composition
-            id="ガチで脱いだ女性芸能人3選-20260313"
+            id="AdultAffiliate-Gachi-20260313"
             component={ViralVideoGachiSafe}
             durationInFrames={1887}
             fps={30}
@@ -135,7 +135,7 @@ export const RemotionRoot: React.FC = () => {
             height={1920}
           />
           <Composition
-            id="事務所に売られた芸能人3選-20260316"
+            id="AdultAffiliate-Jimusho-20260316"
             component={ViralVideoJimushoSafe}
             durationInFrames={1550}
             fps={30}
@@ -144,9 +144,9 @@ export const RemotionRoot: React.FC = () => {
           />
         </Folder>
 
-        <Folder name="転職横動画">
+        <Folder name="Tenshoku-Horizontal">
           <Composition
-            id="会社に見切りをつける直前の人の特徴9選-20260412"
+            id="TenshokuHorizontal-20260412"
             component={JobChangeViralHorizontal20260412Safe}
             durationInFrames={11594}
             fps={30}
@@ -169,11 +169,11 @@ export const RemotionRoot: React.FC = () => {
               durationInFrames: getEditableViralDuration(props),
             })}
           />
-          {viralEditorPresets.map((preset) => {
+          {viralEditorPresets.map((preset, index) => {
             return (
               <Composition
                 key={preset.id}
-                id={`${preset.id}-GUI`}
+                id={`Viral-Studio-Preset-${index + 1}-GUI`}
                 component={EditableViralVideoSafe}
                 schema={viralStudioEditorSchema}
                 durationInFrames={preset.durationInFrames}

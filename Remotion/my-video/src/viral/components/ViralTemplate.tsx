@@ -1,5 +1,14 @@
 import React from "react";
-import { AbsoluteFill, Sequence, Audio, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Audio,
+  Sequence,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+import { formatWrappedText } from "../../textLayout";
 import { VIRAL_ADULT_AFFILIATE_FONT_FAMILY } from "../fonts";
 
 export type ViralSection = {
@@ -8,7 +17,7 @@ export type ViralSection = {
   photoSrc?: string;
   fromFrame: number;
   durationFrames: number;
-  switchFrame?: number; // default: 90
+  switchFrame?: number;
 };
 
 export type ViralSubtitleEntry = {
@@ -39,29 +48,38 @@ export type ViralTemplateProps = {
 };
 
 const SUBTITLE_STYLE = {
-  fontSize: 95,
   fontWeight: "900" as const,
   color: "#000000",
   fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
 };
 
-const SubtitleTrack: React.FC<{ subtitles: ViralSubtitleEntry[]; isHorizontal?: boolean }> = ({ subtitles, isHorizontal }) => {
-  const frame = useCurrentFrame();
+const getLongestLineLength = (text: string) => {
+  return Math.max(...text.split("\n").map((line) => line.length), 1);
+};
 
+const SubtitleTrack: React.FC<{
+  subtitles: ViralSubtitleEntry[];
+  isHorizontal?: boolean;
+}> = ({ subtitles, isHorizontal }) => {
+  const frame = useCurrentFrame();
   const entry = subtitles.find((s) => frame >= s.from && frame < s.to);
-  if (!entry || !entry.text) return null;
+
+  if (!entry || !entry.text) {
+    return null;
+  }
 
   const currentDuration = entry.to - entry.from;
   const progressInSegment = frame - entry.from;
-
-  const fadeInFrames = 3;
-  const fadeOutFrames = 3;
   const opacity = interpolate(
     progressInSegment,
-    [0, fadeInFrames, currentDuration - fadeOutFrames, currentDuration],
+    [0, 3, currentDuration - 3, currentDuration],
     [0, 1, 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
+  const displayText = formatWrappedText(entry.text, {
+    maxCharsPerLine: isHorizontal ? 23 : 12,
+    preserveExistingLineBreaks: false,
+  });
 
   return (
     <AbsoluteFill
@@ -69,7 +87,7 @@ const SubtitleTrack: React.FC<{ subtitles: ViralSubtitleEntry[]; isHorizontal?: 
         display: "flex",
         justifyContent: "flex-end",
         alignItems: "center",
-        paddingBottom: "5%",
+        paddingBottom: isHorizontal ? "5%" : "9%",
         opacity,
         pointerEvents: "none",
         zIndex: 100,
@@ -78,52 +96,52 @@ const SubtitleTrack: React.FC<{ subtitles: ViralSubtitleEntry[]; isHorizontal?: 
       <div
         style={{
           ...SUBTITLE_STYLE,
-          fontSize: isHorizontal ? 55 : 85, // 横動画なら少し小さめ、見切れないようさらに縮小
+          fontSize: isHorizontal ? 55 : 76,
           textAlign: "center",
-          maxWidth: "95%",
+          maxWidth: isHorizontal ? "95%" : "88%",
           whiteSpace: "pre-wrap",
           lineBreak: "strict",
           wordBreak: "keep-all",
-          lineHeight: 1.2,
-          textShadow: "0 4px 10px rgba(255,255,255,0.8), 0 0 15px rgba(255,255,255,0.8)", // 読みやすくするための白枠
+          lineHeight: isHorizontal ? 1.2 : 1.18,
+          letterSpacing: 0,
+          textShadow:
+            "0 4px 10px rgba(255,255,255,0.86), 0 0 15px rgba(255,255,255,0.86)",
         }}
       >
-        {entry.text}
+        {displayText}
       </div>
     </AbsoluteFill>
   );
 };
 
-const SectionLayout: React.FC<{ section: ViralSection; isHorizontal?: boolean }> = ({ section, isHorizontal }) => {
+const SectionLayout: React.FC<{
+  section: ViralSection;
+  isHorizontal?: boolean;
+}> = ({ section, isHorizontal }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-
   const switchFrame = section.switchFrame ?? 90;
+  const titleText = formatWrappedText(section.title, {
+    maxCharsPerLine: isHorizontal ? 18 : 10,
+    preserveExistingLineBreaks: false,
+  });
 
   const imageScale = spring({
     fps,
     frame: Math.max(0, frame - 5),
-    config: { damping: 14, stiffness: 200 }
+    config: { damping: 14, stiffness: 200 },
   });
-
-  const textOpacity = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: "clamp" });
-
-
-  const transitionFrames = 10;
-  
-  const imageOpacity = interpolate(
-    frame,
-    [switchFrame, switchFrame + transitionFrames],
-    [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
-  const photoOpacity = interpolate(
-    frame,
-    [switchFrame, switchFrame + transitionFrames],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
+  const textOpacity = interpolate(frame, [0, 10], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+  const imageOpacity = interpolate(frame, [switchFrame, switchFrame + 10], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const photoOpacity = interpolate(frame, [switchFrame, switchFrame + 10], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#FFFFFF", alignItems: "center" }}>
@@ -133,29 +151,40 @@ const SectionLayout: React.FC<{ section: ViralSection; isHorizontal?: boolean }>
           top: isHorizontal ? "10%" : "4%",
           width: "100%",
           left: 0,
-          padding: "0 4%",
+          padding: isHorizontal ? "0 4%" : "0 6%",
           boxSizing: "border-box",
           textAlign: "center",
           opacity: textOpacity,
+          zIndex: 2,
         }}
       >
         <h2
           style={{
             margin: 0,
-            fontSize: isHorizontal ? Math.min(65, 1150 / section.title.length) : Math.min(85, 750 / section.title.length),
+            fontSize: isHorizontal
+              ? Math.min(65, 1150 / section.title.length)
+              : Math.min(74, 560 / getLongestLineLength(titleText)),
             fontWeight: 900,
             fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
             color: "#000000",
-            lineHeight: 1.2,
-            letterSpacing: "0.01em",
-            whiteSpace: "nowrap",
+            lineHeight: isHorizontal ? 1.2 : 1.12,
+            letterSpacing: 0,
+            whiteSpace: "pre-wrap",
           }}
         >
-          {section.title}
+          {titleText}
         </h2>
       </div>
 
-      <AbsoluteFill style={{ top: isHorizontal ? "25%" : "25%", height: isHorizontal ? "60%" : "40%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <AbsoluteFill
+        style={{
+          top: isHorizontal ? "25%" : "23%",
+          height: isHorizontal ? "60%" : "48%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         {section.imageSrc && (
           <div
             style={{
@@ -166,15 +195,15 @@ const SectionLayout: React.FC<{ section: ViralSection; isHorizontal?: boolean }>
               justifyContent: "center",
               alignItems: "center",
               opacity: imageOpacity,
-              transform: `scale(${imageScale * (isHorizontal ? 1.0 : 1.35)})`,
-              visibility: frame >= switchFrame + transitionFrames ? "hidden" : "visible"
+              transform: `scale(${imageScale * (isHorizontal ? 1 : 1.18)})`,
+              visibility: frame >= switchFrame + 10 ? "hidden" : "visible",
             }}
           >
             <img
               src={section.imageSrc}
-              style={{ 
-                maxHeight: "100%", 
-                maxWidth: "100%", 
+              style={{
+                maxHeight: "100%",
+                maxWidth: isHorizontal ? "100%" : "92%",
                 objectFit: "contain",
               }}
             />
@@ -191,24 +220,63 @@ const SectionLayout: React.FC<{ section: ViralSection; isHorizontal?: boolean }>
               justifyContent: "center",
               alignItems: "center",
               opacity: photoOpacity,
-              visibility: frame < switchFrame ? "hidden" : "visible"
+              visibility: frame < switchFrame ? "hidden" : "visible",
             }}
           >
             <img
               src={section.photoSrc}
-              style={{ 
-                width: isHorizontal ? "60%" : "42%",
+              style={{
+                width: isHorizontal ? "60%" : "76%",
                 height: "auto",
                 aspectRatio: "16/9",
                 objectFit: "cover",
                 borderRadius: "8px",
                 border: "3px solid #FFFFFF",
-                boxShadow: "0 8px 25px rgba(0,0,0,0.1)"
+                boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
               }}
             />
           </div>
         )}
       </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
+const CtaLayout: React.FC<{
+  cta: ViralTemplateProps["cta"];
+  isHorizontal?: boolean;
+}> = ({ cta, isHorizontal }) => {
+  const frame = useCurrentFrame();
+  const src = frame >= cta.switchFrame ? cta.imageSrc2 : cta.imageSrc1;
+  const zoomScale = interpolate(frame, [0, cta.durationFrames], [1, 1.05]);
+
+  if (!src) {
+    return null;
+  }
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: "white" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: isHorizontal ? "15%" : "18%",
+          height: isHorizontal ? "70%" : "56%",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <img
+          src={src}
+          style={{
+            maxHeight: "100%",
+            maxWidth: isHorizontal ? "100%" : "92%",
+            objectFit: "contain",
+            transform: `scale(${zoomScale})`,
+          }}
+        />
+      </div>
     </AbsoluteFill>
   );
 };
@@ -223,13 +291,18 @@ export const ViralTemplate: React.FC<ViralTemplateProps> = ({
   backgroundColor = "#FAFAFA",
   isHorizontal = false,
 }) => {
+  const hookText = formatWrappedText(hook.text, {
+    maxCharsPerLine: isHorizontal ? 18 : 9,
+    preserveExistingLineBreaks: true,
+  });
+
   return (
     <AbsoluteFill style={{ background: backgroundColor }}>
-      <Sequence name="フック" from={0} durationInFrames={hook.durationFrames}>
+      <Sequence name="Hook" from={0} durationInFrames={hook.durationFrames}>
         <div
           style={{
             position: "absolute",
-            bottom: isHorizontal ? "5%" : "8%",
+            bottom: isHorizontal ? "5%" : "9%",
             height: isHorizontal ? "60%" : "45%",
             width: "100%",
             display: "flex",
@@ -240,75 +313,70 @@ export const ViralTemplate: React.FC<ViralTemplateProps> = ({
           {hook.imageSrc && (
             <img
               src={hook.imageSrc}
-              style={{ 
+              style={{
                 maxHeight: "100%",
-                maxWidth: "90%",
+                maxWidth: isHorizontal ? "90%" : "86%",
                 objectFit: "contain",
-                filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.08))"
+                filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.08))",
               }}
             />
           )}
         </div>
 
-        <div style={{ position: "absolute", top: isHorizontal ? "8%" : "8%", width: "100%", display: "flex", justifyContent: "center", zIndex: 10 }}>
-            <div
-              style={{
-                fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
-                fontSize: isHorizontal ? 95 : 135,
-                fontWeight: 900,
-                color: "#ff2a2a",
-                textAlign: "center",
-                whiteSpace: "pre-wrap",
-                lineBreak: "strict",
-                wordBreak: "keep-all",
-                lineHeight: 1.2,
-                textShadow: "0 0 15px white, 0 0 15px white",
-              }}
-            >
-              {hook.text}
-            </div>
+        <div
+          style={{
+            position: "absolute",
+            top: isHorizontal ? "8%" : "7%",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            zIndex: 10,
+            padding: isHorizontal ? "0 4%" : "0 6%",
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: VIRAL_ADULT_AFFILIATE_FONT_FAMILY,
+              fontSize: isHorizontal ? 95 : Math.min(122, 540 / getLongestLineLength(hookText)),
+              fontWeight: 900,
+              color: "#ff2a2a",
+              textAlign: "center",
+              whiteSpace: "pre-wrap",
+              lineBreak: "strict",
+              wordBreak: "keep-all",
+              lineHeight: isHorizontal ? 1.2 : 1.08,
+              letterSpacing: 0,
+              textShadow: "0 0 15px white, 0 0 15px white",
+            }}
+          >
+            {hookText}
+          </div>
         </div>
       </Sequence>
-      
+
       {sections.map((section, idx) => (
-        <Sequence key={idx} name={`セクション${idx + 1}`} from={section.fromFrame} durationInFrames={section.durationFrames}>
+        <Sequence
+          key={idx}
+          name={`Section${idx + 1}`}
+          from={section.fromFrame}
+          durationInFrames={section.durationFrames}
+        >
           <SectionLayout section={section} isHorizontal={isHorizontal} />
         </Sequence>
       ))}
 
       <Sequence name="CTA" from={cta.fromFrame} durationInFrames={cta.durationFrames}>
-        <AbsoluteFill style={{ backgroundColor: "white" }}>
-          <div style={{ position: "absolute", top: "15%", height: isHorizontal ? "70%" : "55%", width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
-            {(() => {
-              const frame = useCurrentFrame();
-              const src = frame >= cta.switchFrame ? cta.imageSrc2 : cta.imageSrc1;
-              if (!src) return null;
-              
-              const zoomScale = interpolate(frame, [0, cta.durationFrames], [1, 1.05]);
-
-              return (
-                <img
-                  src={src}
-                  style={{
-                    maxHeight: "100%",
-                    maxWidth: "100%",
-                    objectFit: "contain",
-                    transform: `scale(${zoomScale})`
-                  }}
-                />
-              );
-            })()}
-          </div>
-        </AbsoluteFill>
+        <CtaLayout cta={cta} isHorizontal={isHorizontal} />
       </Sequence>
 
       {subtitles && subtitles.length > 0 && (
-        <Sequence name="字幕" durationInFrames={totalFrames}>
+        <Sequence name="Subtitles" durationInFrames={totalFrames}>
           <SubtitleTrack subtitles={subtitles} isHorizontal={isHorizontal} />
         </Sequence>
       )}
 
-      <Sequence name="音声" durationInFrames={totalFrames}>
+      <Sequence name="Audio" durationInFrames={totalFrames}>
         <Audio src={audioSrc} />
       </Sequence>
     </AbsoluteFill>
