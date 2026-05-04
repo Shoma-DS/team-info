@@ -21,6 +21,7 @@ GUI_DOMAIN = f"gui/{os.getuid()}"
 PLISTS = {
     "drafts": "com.team-info.x-draft-pipeline.plist",
     "metrics": "com.team-info.x-metrics-hourly.plist",
+    "analysis": "com.team-info.x-daily-analysis.plist",
 }
 
 
@@ -62,6 +63,23 @@ def build_metrics_plist() -> dict:
     }
 
 
+def build_analysis_plist() -> dict:
+    logs_dir = get_logs_dir()
+    script = SCRIPT_DIR / "run_daily_analysis.sh"
+    return {
+        "Label": "com.team-info.x-daily-analysis",
+        "WorkingDirectory": str(REPO_ROOT),
+        "ProgramArguments": ["/bin/bash", str(script)],
+        "EnvironmentVariables": {
+            "TEAM_INFO_ROOT": str(REPO_ROOT),
+            "PYTHONUNBUFFERED": "1",
+        },
+        "StartCalendarInterval": {"Hour": 8, "Minute": 0},
+        "StandardOutPath": str(logs_dir / "launchd-daily-analysis.out.log"),
+        "StandardErrorPath": str(logs_dir / "launchd-daily-analysis.err.log"),
+    }
+
+
 def render_plists() -> list[Path]:
     rendered_dir = get_runtime_root() / "launchd-rendered"
     rendered_dir.mkdir(parents=True, exist_ok=True)
@@ -69,6 +87,7 @@ def render_plists() -> list[Path]:
     mapping = {
         PLISTS["drafts"]: build_draft_plist(),
         PLISTS["metrics"]: build_metrics_plist(),
+        PLISTS["analysis"]: build_analysis_plist(),
     }
 
     paths: list[Path] = []

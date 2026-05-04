@@ -23,6 +23,17 @@ fi
 echo "🚀 Xプレビューサーバーを起動します..."
 echo "🔗 固定URL: ${PUBLIC_URL}"
 
+# ------ 既存プロセスのクリーンアップ ------
+EXISTING_PID=$(lsof -ti tcp:${PORT} 2>/dev/null || true)
+if [ -n "$EXISTING_PID" ]; then
+  echo "⚠️  ポート ${PORT} が使用中です。既存プロセス(PID: ${EXISTING_PID})を終了します..."
+  kill "$EXISTING_PID" 2>/dev/null || true
+  sleep 1
+fi
+
+# ngrok が既に動いていれば停止
+pkill -f "ngrok http.*${NGROK_DOMAIN}" 2>/dev/null || true
+
 # ------ ngrok でトンネル起動 ------
 ngrok http --domain="${NGROK_DOMAIN}" "${PORT}" > /dev/null 2>&1 &
 NGROK_PID=$!
@@ -32,7 +43,20 @@ sleep 2
 export LT_PUBLIC_URL="${PUBLIC_URL}"
 python3 "$SCRIPT_DIR/preview_server.py" &
 SERVER_PID=$!
-sleep 1
+
+# サーバーが実際に起動するまで最大5秒待機
+for i in $(seq 1 5); do
+  sleep 1
+  if lsof -ti tcp:${PORT} >/dev/null 2>&1; then
+    echo "✅ プレビューサーバー起動: http://localhost:${PORT}"
+    break
+  fi
+  if [ "$i" -eq 5 ]; then
+    echo "❌ サーバーの起動に失敗しました (5秒タイムアウト)"
+    kill "$NGROK_PID" 2>/dev/null || true
+    exit 1
+  fi
+done
 
 # ブラウザを開く
 echo "🖥  ブラウザを開いています..."

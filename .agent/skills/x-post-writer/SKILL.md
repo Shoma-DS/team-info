@@ -386,6 +386,7 @@ Phase 1〜6 に加えて、以下のDB連携フローも使える。
 | `scripts/fetch_bookmarks.py` | XブックマークをAPIで取得。初回のみ `accounts/*.md` を自動初期化し、`bookmarks_latest.json` に保存 |
 | `scripts/draft_manager.py` | 下書きをNeon DBに保存・一覧・表示・削除 |
 | `scripts/x_metrics_collector.py` | 投稿メトリクス（いいね・インプレ等）を時系列でNeon DBに保存 |
+| `scripts/daily_analysis.py` | 過去7日分の投稿メトリクスを時系列分析し、Discord通知とaccounts/*.md自動更新を行う |
 | `scripts/scheduled_draft_pipeline.py` | Codex優先 / Claude fallback で新規ブックマークだけを自動下書き化し、画像プロンプトも保存 |
 | `scripts/manage_launch_agents.py` | 上記定時ジョブと毎時メトリクス収集の LaunchAgent を render / install / uninstall する |
 | `scripts/preview_server.py` | ローカルAPIサーバー（port 8765）。下書き一覧・Discord通知を提供 |
@@ -467,6 +468,7 @@ python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/manage_launch_agent
 
 - 下書き生成ジョブ: 毎日 `00:00 / 07:00 / 12:00`
 - メトリクス収集ジョブ: 毎時 `05分`
+- 日次分析ジョブ: 毎日 `08:00`
 - `scheduled_draft_pipeline.py` は処理済みブックマークを state 管理し、重複下書きを避ける
 - Codex が token / context 制限や失敗で止まった場合は Claude Code に自動フォールバックする
 - 画像そのものを自動生成しない場合でも、画像プロンプトをファイル保存し、Discord 報告へ添える

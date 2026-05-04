@@ -286,10 +286,17 @@ def extract_account_file_metadata(path):
 
 
 def resolve_account_file(account_cfg, profile):
-    preferred_path = ACCOUNT_DIR / f"{profile['x_username']}.md"
+    # サブフォルダ（x_username小文字）が存在する場合はその中を優先パスとする
+    sub_dir = ACCOUNT_DIR / profile['x_username'].lower()
+    if sub_dir.exists() and sub_dir.is_dir():
+        preferred_path = sub_dir / f"{profile['x_username']}.md"
+    else:
+        preferred_path = ACCOUNT_DIR / f"{profile['x_username']}.md"
     candidates = []
 
-    for path in sorted(ACCOUNT_DIR.glob("*.md")):
+    # フラットな *.md とサブフォルダ内の *.md を両方検索する
+    all_md = sorted(set(ACCOUNT_DIR.glob("*.md")) | set(ACCOUNT_DIR.glob("*/*.md")))
+    for path in all_md:
         metadata = extract_account_file_metadata(path)
         score = 0
         if metadata["x_user_id"] and metadata["x_user_id"] == profile["x_user_id"]:
@@ -461,6 +468,7 @@ def build_new_account_file(account_cfg, profile):
 def ensure_account_file(account_cfg, profile, refresh=False):
     ACCOUNT_DIR.mkdir(parents=True, exist_ok=True)
     path, metadata, resolution = resolve_account_file(account_cfg, profile)
+    path.parent.mkdir(parents=True, exist_ok=True)  # サブフォルダも自動作成
 
     if path.exists():
         original = path.read_text(encoding="utf-8")
@@ -492,13 +500,71 @@ def ensure_account_file(account_cfg, profile, refresh=False):
     }
 
 
+_THREAD_FETCH_LIMIT = 5  # 1回の実行でスレッド取得を試みる最大ブックマーク数（レート制限対策）
+
+
+def _fetch_thread_parts(client, conversation_id: str, author_id) -> list[dict]:
+    """同じ conversation_id を持つ著者ツイートを取得してスレッド順に返す。"""
+    try:
+        resp = client.get_users_tweets(
+            id=str(author_id),
+            max_results=100,
+            tweet_fields=["conversation_id", "text", "created_at"],
+        )
+    except Exception:
+        return []
+    if not resp.data:
+        return []
+    parts = []
+    for t in resp.data:
+        cid = str(getattr(t, "conversation_id", None) or "")
+        if cid == conversation_id:
+            parts.append({"tweet_id": str(t.id), "text": t.text})
+    parts.sort(key=lambda x: int(x["tweet_id"]))  # 古い順（= スレッド上から）
+    return parts
+
+
+def _extract_media(tweet, media_map: dict) -> list[dict]:
+    """ツイートに添付されたメディア情報を返す。"""
+    attachments = getattr(tweet, "attachments", None) or {}
+    media_keys  = (attachments.get("media_keys") if isinstance(attachments, dict)
+                   else getattr(attachments, "media_keys", None)) or []
+    result = []
+    for key in media_keys:
+        m = media_map.get(key)
+        if not m:
+            continue
+        mtype = getattr(m, "type", None) or ""
+        # 直接URL (photo)
+        photo_url   = getattr(m, "url", None) or None
+        # サムネイル (video / animated_gif)
+        preview_url = getattr(m, "preview_image_url", None) or None
+        # 動画URL: variants の中で最高ビットレートの mp4 を使う
+        video_url = None
+        variants = getattr(m, "variants", None) or []
+        if variants:
+            mp4s = [v for v in variants if getattr(v, "content_type", "") == "video/mp4"]
+            if mp4s:
+                best = max(mp4s, key=lambda v: getattr(v, "bitrate", 0) or 0)
+                video_url = getattr(best, "url", None)
+        result.append({
+            "type":        mtype,
+            "url":         photo_url or preview_url,   # preview 用: 常に画像URLが入るようにする
+            "preview_url": preview_url,
+            "video_url":   video_url,
+        })
+    return result
+
+
 def fetch_bookmarks(client, count, account_cfg=None, user_id=None):
     try:
         response = client.get_bookmarks(
             max_results=min(count, 100),
-            tweet_fields=["text", "created_at", "author_id", "public_metrics"],
-            expansions=["author_id"],
+            tweet_fields=["text", "created_at", "author_id", "public_metrics",
+                          "conversation_id", "attachments"],
+            expansions=["author_id", "attachments.media_keys"],
             user_fields=["username", "name"],
+            media_fields=["url", "preview_image_url", "type", "variants"],
         )
     except (TypeError, tweepy.TweepyException) as exc:
         raise RuntimeError(f"Xブックマーク取得に失敗しました。 詳細: {exc}") from exc
@@ -508,18 +574,52 @@ def fetch_bookmarks(client, count, account_cfg=None, user_id=None):
         return []
 
     users_map = {}
-    if response.includes and response.includes.get("users"):
-        for user in response.includes["users"]:
+    media_map: dict = {}
+    if response.includes:
+        for user in (response.includes.get("users") or []):
             users_map[user.id] = user
+        for media in (response.includes.get("media") or []):
+            media_map[media.media_key] = media
 
     bookmarks = []
+    thread_fetch_count = 0
     for tweet in response.data:
-        author = users_map.get(tweet.author_id)
+        author      = users_map.get(tweet.author_id)
+        username    = author.username if author else "unknown"
+        author_name = author.name    if author else "unknown"
+        conv_id     = str(getattr(tweet, "conversation_id", None) or tweet.id)
+        metrics     = getattr(tweet, "public_metrics", None) or {}
+        reply_count = metrics.get("reply_count", 0) if isinstance(metrics, dict) else getattr(metrics, "reply_count", 0)
+        media       = _extract_media(tweet, media_map)
+
+        # スレッド候補: このツイートが root かつ返信あり、または root でない（返信ツイート）
+        is_root = conv_id == str(tweet.id)
+        should_fetch_thread = (
+            thread_fetch_count < _THREAD_FETCH_LIMIT
+            and (not is_root or reply_count > 0)
+        )
+        thread_parts: list[dict] = []
+        if should_fetch_thread:
+            print(f"  🔗 スレッド取得: @{username} (conversation_id={conv_id})")
+            thread_parts = _fetch_thread_parts(client, conv_id, tweet.author_id)
+            thread_fetch_count += 1
+            if len(thread_parts) > 1:
+                print(f"     → {len(thread_parts)} パーツ取得")
+            else:
+                thread_parts = []
+
+        if media:
+            types = ", ".join(set(m["type"] for m in media))
+            print(f"  📎 メディア取得: @{username} tweet={tweet.id} [{types}]")
+
         bookmarks.append({
-            "tweet_id": str(tweet.id),
-            "text": tweet.text,
-            "author_username": author.username if author else "unknown",
-            "author_name": author.name if author else "unknown",
+            "tweet_id":        str(tweet.id),
+            "text":            tweet.text,
+            "author_username": username,
+            "author_name":     author_name,
+            "conversation_id": conv_id,
+            "thread_parts":    thread_parts,
+            "media":           media,
         })
 
     return bookmarks

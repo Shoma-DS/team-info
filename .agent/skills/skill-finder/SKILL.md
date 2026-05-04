@@ -194,6 +194,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | x-post-writer | アカウント情報・競合投稿・テンプレートを活用してXの投稿文を自動生成し、投稿の型を蓄積する | `.agent/skills/x-post-writer/SKILL.md` |
+| x-vertical-infographic-creator | X投稿用の縦型9:16図解・インフォグラフィック画像を設計・日本語プロンプト化する。アカウントごとのキャラクター情報を管理し、scheduled_draft_pipeline.py と統合して画像プロンプトを自動生成する | `.agent/skills/x-vertical-infographic-creator/SKILL.md` |
 
 ---
 
@@ -281,6 +282,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |
 | バズるショート動画テンプレを作りたい | `viral-template-generator` |
 | X(Twitter)の投稿を作りたい | `x-post-writer` |
+| X投稿用の縦型図解・インフォグラフィック画像を設計・プロンプト化したい | `x-vertical-infographic-creator` |
+| ぐーたらAI社長キャラクターを使った図解プロンプトを作りたい | `x-vertical-infographic-creator` |
+| 下書きパイプラインの画像プロンプトを縦型図解ルールで強化したい | `x-vertical-infographic-creator` |
 | スプレッドシートからバナー画像を自動生成したい | `nanobanana-banner-gen` |
 | YouTubeに動画をアップロードしたい | `youtube-auto-upload` |
 | 動画の公開予約をしたい | `youtube-auto-upload` |

@@ -1,26 +1,28 @@
 # X OAuth 2.0 User Context のアクセストークンを取得する一回限りのセットアップスクリプト。
-# 取得したトークンは settings.local.json の env ブロックへ追記する手順を案内する。
+# コールバックはプレビューサーバー（port 8765）の /oauth2/callback で受け取る。
+# ngrok の別起動は不要（start_preview.sh で起動済みの ngrok をそのまま使う）。
 # 使い方: python oauth2_setup.py --account GUTARA
 
 import argparse
 import json
 import os
 import sys
-import threading
+import time
 import webbrowser
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
+import requests
 import tweepy
 
-SCRIPT_DIR = Path(__file__).parent
+SCRIPT_DIR  = Path(__file__).parent
 CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
-NGROK_DOMAIN = "zinciferous-preludiously-draven.ngrok-free.dev"
-REDIRECT_URI = f"https://{NGROK_DOMAIN}/oauth2/callback"
-SCOPES = ["bookmark.read", "tweet.read", "users.read", "offline.access"]
-CALLBACK_PORT = 8766
-CALLBACK_PATH = "/oauth2/callback"
+
+NGROK_DOMAIN  = "zinciferous-preludiously-draven.ngrok-free.dev"
+REDIRECT_URI  = f"https://{NGROK_DOMAIN}/oauth2/callback"
+PREVIEW_API   = "http://localhost:8765/api/oauth2-callback"
+SCOPES        = ["bookmark.read", "tweet.read", "users.read", "offline.access"]
+POLL_INTERVAL = 2    # 秒
+POLL_TIMEOUT  = 180  # 秒
 
 
 def load_config():
@@ -29,34 +31,38 @@ def load_config():
         return json.loads(raw)
 
 
-class CallbackHandler(BaseHTTPRequestHandler):
-    auth_code = None
-    state_received = None
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path == CALLBACK_PATH:
-            qs = parse_qs(parsed.query)
-            CallbackHandler.auth_code = qs.get("code", [None])[0]
-            CallbackHandler.state_received = qs.get("state", [None])[0]
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(
-                "<html><body><h2>✅ 認証完了！このタブを閉じてターミナルに戻ってください。</h2></body></html>".encode()
-            )
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-    def log_message(self, *args):
-        pass
+def save_tokens_to_settings(account_id, access_token, refresh_token=None):
+    settings_file = SCRIPT_DIR.parent.parent.parent.parent / ".claude" / "settings.local.json"
+    if not settings_file.exists():
+        print("⚠️  settings.local.json が見つからないため、ファイルへの保存をスキップします", file=sys.stderr)
+        return
+    try:
+        config = json.loads(settings_file.read_text(encoding="utf-8"))
+        env = config.setdefault("env", {})
+        env[f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"] = access_token
+        if refresh_token:
+            env[f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"] = refresh_token
+        settings_file.write_text(
+            json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        print("💾 settings.local.json にトークンを保存しました")
+    except Exception as e:
+        print(f"⚠️  settings.local.json の更新に失敗しました: {e}", file=sys.stderr)
 
 
-def run_callback_server():
-    server = HTTPServer(("localhost", CALLBACK_PORT), CallbackHandler)
-    server.handle_request()
-    server.server_close()
+def poll_callback():
+    """プレビューサーバーから OAuth コールバックのコードを受け取るまでポーリングする。"""
+    deadline = time.time() + POLL_TIMEOUT
+    while time.time() < deadline:
+        try:
+            r = requests.get(PREVIEW_API, timeout=5)
+            data = r.json()
+            if data.get("ok") and data.get("code"):
+                return data["code"], data.get("state")
+        except requests.RequestException:
+            pass
+        time.sleep(POLL_INTERVAL)
+    return None, None
 
 
 def main():
@@ -70,9 +76,8 @@ def main():
         print(f"❌ アカウント '{args.account}' が見つかりません", file=sys.stderr)
         sys.exit(1)
 
-    # Client ID / Secret を環境変数から取得
-    account_id = account_cfg["id"]
-    client_id = os.environ.get(f"X_OAUTH2_CLIENT_ID_{account_id}") or os.environ.get("X_OAUTH2_CLIENT_ID")
+    account_id    = account_cfg["id"]
+    client_id     = os.environ.get(f"X_OAUTH2_CLIENT_ID_{account_id}") or os.environ.get("X_OAUTH2_CLIENT_ID")
     client_secret = os.environ.get(f"X_OAUTH2_CLIENT_SECRET_{account_id}") or os.environ.get("X_OAUTH2_CLIENT_SECRET")
 
     if not client_id:
@@ -89,12 +94,21 @@ Claude Code を再起動してからもう一度実行してください。
 """, file=sys.stderr)
         sys.exit(1)
 
+    # プレビューサーバーが起動しているか確認
+    try:
+        requests.get("http://localhost:8765/api/public-url", timeout=3)
+    except requests.RequestException:
+        print(
+            "❌ プレビューサーバーが起動していません。\n"
+            "   先に以下を実行してください:\n"
+            f"   bash \"$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/start_preview.sh\"",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     print(f"🔐 @{account_cfg['x_username']} の OAuth 2.0 認証を開始します")
     print(f"   スコープ: {', '.join(SCOPES)}")
-    print(f"\n⚠️  事前に以下のコマンドで ngrok を起動してください（別ターミナルで）:")
-    print(f"   ngrok http {CALLBACK_PORT} --domain={NGROK_DOMAIN}")
-    print(f"   起動後、Enterキーを押して続行してください...")
-    input()
+    print(f"   コールバック: {REDIRECT_URI}\n")
 
     handler = tweepy.OAuth2UserHandler(
         client_id=client_id,
@@ -105,49 +119,36 @@ Claude Code を再起動してからもう一度実行してください。
 
     auth_url = handler.get_authorization_url()
 
-    # コールバックサーバーをバックグラウンドで起動
-    t = threading.Thread(target=run_callback_server, daemon=True)
-    t.start()
-
     print("🌐 ブラウザを開いてXでログイン・認証してください...")
     webbrowser.open(auth_url)
     print(f"   （ブラウザが開かない場合は以下のURLを手動でコピーしてください）")
     print(f"   {auth_url}\n")
-    print("   認証完了まで待機中...")
+    print(f"   認証完了まで待機中（最大{POLL_TIMEOUT}秒）...")
 
-    t.join(timeout=120)
+    code, state = poll_callback()
 
-    if not CallbackHandler.auth_code:
-        print("❌ 120秒以内に認証が完了しませんでした。もう一度実行してください。", file=sys.stderr)
+    if not code:
+        print(f"❌ {POLL_TIMEOUT}秒以内に認証が完了しませんでした。もう一度実行してください。", file=sys.stderr)
         sys.exit(1)
 
     print("✅ 認証コードを受信しました。トークンを取得中...")
 
     try:
         token = handler.fetch_token(
-            f"{REDIRECT_URI}?code={CallbackHandler.auth_code}&state={CallbackHandler.state_received}"
+            f"{REDIRECT_URI}?code={code}&state={state}"
         )
     except Exception as e:
         print(f"❌ トークン取得に失敗しました: {e}", file=sys.stderr)
         sys.exit(1)
 
-    access_token = token.get("access_token")
+    access_token  = token.get("access_token")
     refresh_token = token.get("refresh_token")
 
-    print(f"""
-✅ OAuth 2.0 認証が完了しました！
+    save_tokens_to_settings(account_id, access_token, refresh_token)
 
-以下の環境変数を settings.local.json の env ブロックに追加してください:
-
-  "X_BOOKMARKS_ACCESS_TOKEN_{account_id}": "{access_token}"
-""")
-
-    if refresh_token:
-        print(f'  "X_BOOKMARKS_REFRESH_TOKEN_{account_id}": "{refresh_token}"')
-        print()
-
-    print("追加後に Claude Code を再起動してください。")
-    print("その後 scheduled_draft_pipeline.py を実行するとブックマーク取得が動きます。")
+    print(f"\n✅ OAuth 2.0 認証が完了しました！")
+    print(f"   アクセストークンとリフレッシュトークンを settings.local.json に保存しました。")
+    print(f"   Claude Code を再起動してから sync_profile_images.py を実行してください。\n")
 
 
 if __name__ == "__main__":

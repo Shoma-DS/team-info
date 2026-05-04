@@ -14,9 +14,16 @@ import tweepy
 
 SCRIPT_DIR = Path(__file__).parent
 CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
+sys.path.insert(0, str(SCRIPT_DIR))
+
+# OAuth 2.0 リフレッシュトークン管理を fetch_bookmarks.py から再利用
+from fetch_bookmarks import (
+    build_bookmarks_client,
+    refresh_oauth2_token,
+)
 SNAPSHOT_WINDOW_HOURS = 168  # 1週間
-COST_PER_READ = 0.001  # $0.001/件（自分の投稿読み取り）
-TWEET_FIELDS = ["created_at", "public_metrics", "text"]
+COST_PER_READ = 0.005  # $0.005/件（投稿読み取り、2026年2月〜従量課金制）
+TWEET_FIELDS = ["created_at", "public_metrics", "text", "in_reply_to_user_id", "conversation_id", "referenced_tweets"]
 
 
 def load_config():
@@ -53,31 +60,103 @@ def get_db_conn():
         sys.exit(1)
 
 
-def upsert_account(cur, x_username, display_name):
-    cur.execute(
-        """
-        INSERT INTO accounts (x_username, display_name)
-        VALUES (%s, %s)
-        ON CONFLICT (x_username) DO UPDATE SET display_name = EXCLUDED.display_name
-        RETURNING account_id
-        """,
-        (x_username, display_name),
-    )
+def upsert_account(cur, x_username, display_name, profile_image_url=None):
+    if profile_image_url:
+        cur.execute(
+            """
+            INSERT INTO accounts (x_username, display_name, profile_image_url)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (x_username) DO UPDATE
+              SET display_name = EXCLUDED.display_name,
+                  profile_image_url = EXCLUDED.profile_image_url
+            RETURNING account_id
+            """,
+            (x_username, display_name, profile_image_url),
+        )
+    else:
+        cur.execute(
+            """
+            INSERT INTO accounts (x_username, display_name)
+            VALUES (%s, %s)
+            ON CONFLICT (x_username) DO UPDATE SET display_name = EXCLUDED.display_name
+            RETURNING account_id
+            """,
+            (x_username, display_name),
+        )
     return cur.fetchone()[0]
 
 
-def upsert_tweet(cur, tweet_id, account_id, content, posted_at, post_type):
+def upsert_tweet(cur, tweet_id, account_id, content, posted_at, post_type,
+                 in_reply_to_tweet_id=None, conversation_id=None, in_reply_to_user_id=None):
     cur.execute(
         """
-        INSERT INTO tweets (tweet_id, account_id, content, posted_at, post_type)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO tweets (tweet_id, account_id, content, posted_at, post_type,
+                            in_reply_to_tweet_id, conversation_id, in_reply_to_user_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (tweet_id) DO UPDATE
         SET account_id = EXCLUDED.account_id,
             content = EXCLUDED.content,
             posted_at = EXCLUDED.posted_at,
-            post_type = EXCLUDED.post_type
+            post_type = EXCLUDED.post_type,
+            in_reply_to_tweet_id = EXCLUDED.in_reply_to_tweet_id,
+            conversation_id = EXCLUDED.conversation_id,
+            in_reply_to_user_id = EXCLUDED.in_reply_to_user_id
         """,
-        (tweet_id, account_id, content, posted_at, post_type),
+        (tweet_id, account_id, content, posted_at, post_type,
+         in_reply_to_tweet_id, conversation_id, in_reply_to_user_id),
+    )
+
+
+def upsert_account_daily_metrics(cur, account_id, public_metrics, today):
+    """フォロワー数と累積メトリクスを account_metrics_daily に当日分として保存する。"""
+    followers = public_metrics.get("followers_count") if public_metrics else None
+    following = public_metrics.get("following_count") if public_metrics else None
+    tweet_count = public_metrics.get("tweet_count") if public_metrics else None
+    listed = public_metrics.get("listed_count") if public_metrics else None
+
+    # 累積メトリクス: DBに保存済みの全ツイートの最新スナップショットを合算
+    cur.execute(
+        """
+        SELECT
+            COALESCE(SUM(s.impression_count), 0),
+            COALESCE(SUM(s.like_count), 0),
+            COALESCE(SUM(s.retweet_count), 0),
+            COALESCE(SUM(s.bookmark_count), 0)
+        FROM tweets t
+        JOIN LATERAL (
+            SELECT impression_count, like_count, retweet_count, bookmark_count
+            FROM tweet_metrics_snapshots
+            WHERE tweet_id = t.tweet_id
+            ORDER BY hours_after_post DESC
+            LIMIT 1
+        ) s ON TRUE
+        WHERE t.account_id = %s
+          AND t.post_type != 'reply'
+        """,
+        (account_id,),
+    )
+    row = cur.fetchone()
+    cum_imp, cum_like, cum_rt, cum_bm = row if row else (0, 0, 0, 0)
+
+    cur.execute(
+        """
+        INSERT INTO account_metrics_daily
+          (account_id, snapshot_date, followers_count, following_count,
+           tweet_count, listed_count,
+           cumulative_impressions, cumulative_likes, cumulative_retweets, cumulative_bookmarks)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (account_id, snapshot_date) DO UPDATE
+          SET followers_count       = EXCLUDED.followers_count,
+              following_count       = EXCLUDED.following_count,
+              tweet_count           = EXCLUDED.tweet_count,
+              listed_count          = EXCLUDED.listed_count,
+              cumulative_impressions= EXCLUDED.cumulative_impressions,
+              cumulative_likes      = EXCLUDED.cumulative_likes,
+              cumulative_retweets   = EXCLUDED.cumulative_retweets,
+              cumulative_bookmarks  = EXCLUDED.cumulative_bookmarks
+        """,
+        (account_id, today, followers, following, tweet_count, listed,
+         cum_imp, cum_like, cum_rt, cum_bm),
     )
 
 
@@ -99,6 +178,41 @@ def insert_snapshot(cur, tweet_id, hours_after, metrics):
             metrics.get("reply_count"),
         ),
     )
+
+
+def should_skip_tweets_api(cur, account_id, now) -> bool:
+    """DBの状態からツイートAPI取得をスキップすべきか判断する。
+    初日（投稿後24h以内）は3時間ごと、2日目以降は1日1回。
+    DBが空・未取得ツイートがある場合は必ず呼ぶ。
+    """
+    cur.execute(
+        """
+        SELECT
+            t.tweet_id,
+            EXTRACT(EPOCH FROM (NOW() - t.posted_at)) / 3600  AS hours_after,
+            EXTRACT(EPOCH FROM (NOW() - MAX(s.snapshot_at))) / 3600 AS elapsed_since_last
+        FROM tweets t
+        LEFT JOIN tweet_metrics_snapshots s ON t.tweet_id = s.tweet_id
+        WHERE t.account_id = %s
+          AND t.post_type != 'reply'
+          AND t.posted_at >= NOW() - INTERVAL '7 days'
+        GROUP BY t.tweet_id, t.posted_at
+        """,
+        (account_id,),
+    )
+    rows = cur.fetchall()
+
+    if not rows:
+        return False  # DBにツイートがない → 新投稿チェックのため呼ぶ
+
+    for _tweet_id, hours_after, elapsed_since_last in rows:
+        if elapsed_since_last is None:
+            return False  # スナップショット未取得のツイートがある
+        interval = 3.0 if float(hours_after) <= 24 else 24.0
+        if float(elapsed_since_last) >= interval:
+            return False  # この投稿は次の収集タイミングに達している
+
+    return True  # 全ツイートがまだ次の収集タイミングでない → スキップ
 
 
 def build_client(api_key, api_secret, access_token, access_token_secret):
@@ -134,6 +248,28 @@ def fetch_recent_tweets(client, user_id, since):
             return tweets
 
 
+def _fetch_profile_image_url(account_cfg, x_username):
+    """OAuth 2.0（リフレッシュトークン対応）でプロフィール画像URLを取得して返す。失敗時は None。"""
+    try:
+        client = build_bookmarks_client(account_cfg)
+        me = client.get_me(user_fields=["profile_image_url"], user_auth=False)
+    except tweepy.Unauthorized:
+        new_token, err = refresh_oauth2_token(account_cfg)
+        if err:
+            print(f"⚠️  @{x_username}: プロフィール画像取得スキップ（トークン更新失敗: {err}）", file=sys.stderr)
+            return None
+        client = build_bookmarks_client(account_cfg, access_token=new_token)
+        me = client.get_me(user_fields=["profile_image_url"], user_auth=False)
+    except Exception as exc:
+        print(f"⚠️  @{x_username}: プロフィール画像取得スキップ（{exc}）", file=sys.stderr)
+        return None
+
+    if not me or not me.data:
+        return None
+    raw_img = getattr(me.data, "profile_image_url", None) or ""
+    return raw_img.replace("_normal.", "_400x400.") if raw_img else None
+
+
 def collect_account(account_cfg, conn):
     env_token = account_cfg["token_env"]
     env_secret = account_cfg["token_secret_env"]
@@ -156,8 +292,8 @@ def collect_account(account_cfg, conn):
     client = build_client(api_key, api_secret, access_token, access_token_secret)
 
     try:
-        # OAuth 1.0a のユーザー文脈で自分のユーザーIDを取得する。
-        me = client.get_me(user_fields=["name", "username"], user_auth=True)
+        # OAuth 1.0a のユーザー文脈で自分のユーザーIDとフォロワー数を取得する。
+        me = client.get_me(user_fields=["name", "username", "public_metrics"], user_auth=True)
         if not me.data:
             print(f"❌ {account_cfg['x_username']}: ユーザー情報取得失敗", file=sys.stderr)
             return 0
@@ -165,6 +301,10 @@ def collect_account(account_cfg, conn):
         user_id = me.data.id
         actual_username = me.data.username or account_cfg["x_username"]
         display_name = me.data.name or actual_username
+
+        # profile_image_url は OAuth 2.0 User Context（リフレッシュトークン対応）で取得する。
+        profile_image_url = _fetch_profile_image_url(account_cfg, actual_username)
+
         if actual_username.lower() != account_cfg["x_username"].lower():
             print(
                 f"⚠️  設定の x_username と認証アカウントが違います: "
@@ -173,12 +313,22 @@ def collect_account(account_cfg, conn):
             )
 
         now = datetime.now(timezone.utc)
-        since = now - timedelta(hours=SNAPSHOT_WINDOW_HOURS)
-        tweets = fetch_recent_tweets(client, user_id, since)
-        read_count = len(tweets)
+        public_metrics = getattr(me.data, "public_metrics", None)
+        today = now.astimezone(timezone(timedelta(hours=9))).date()
 
         with conn.cursor() as cur:
-            account_id = upsert_account(cur, actual_username, display_name)
+            account_id = upsert_account(cur, actual_username, display_name, profile_image_url)
+
+            if should_skip_tweets_api(cur, account_id, now):
+                # フォロワーデータだけ更新してツイート取得はスキップ
+                upsert_account_daily_metrics(cur, account_id, public_metrics, today)
+                conn.commit()
+                print(f"⏭  {actual_username}: 収集間隔未達のためスキップ（コスト節約）")
+                return 0
+
+            since = now - timedelta(hours=SNAPSHOT_WINDOW_HOURS)
+            tweets = fetch_recent_tweets(client, user_id, since)
+            read_count = len(tweets)
 
             for tweet in tweets:
                 posted_at = tweet.created_at
@@ -189,14 +339,30 @@ def collect_account(account_cfg, conn):
                 if hours_after > SNAPSHOT_WINDOW_HOURS:
                     continue
 
-                # スレッド判定（簡易）
-                post_type = "single"
-                if tweet.text.startswith("@"):
+                # スレッド・リプライ判定
+                in_reply_to_user_id = str(tweet.in_reply_to_user_id) if tweet.in_reply_to_user_id else None
+                conversation_id = str(tweet.conversation_id) if tweet.conversation_id else None
+                # referenced_tweets から返信元のツイートIDを取得
+                in_reply_to_tweet_id = None
+                if tweet.referenced_tweets:
+                    for ref in tweet.referenced_tweets:
+                        if ref.type == "replied_to":
+                            in_reply_to_tweet_id = str(ref.id)
+                            break
+
+                if in_reply_to_user_id and in_reply_to_user_id != str(user_id):
+                    # 他人へのリプライ → 除外
+                    post_type = "reply"
+                elif in_reply_to_tweet_id:
+                    # 自分のスレッドへの続き
                     post_type = "thread"
                 elif len(tweet.text) > 200:
                     post_type = "long"
+                else:
+                    post_type = "single"
 
-                upsert_tweet(cur, tweet.id, account_id, tweet.text, posted_at, post_type)
+                upsert_tweet(cur, tweet.id, account_id, tweet.text, posted_at, post_type,
+                             in_reply_to_tweet_id, conversation_id, in_reply_to_user_id)
 
                 metrics = {}
                 if tweet.public_metrics:
@@ -204,6 +370,8 @@ def collect_account(account_cfg, conn):
 
                 insert_snapshot(cur, tweet.id, hours_after, metrics)
 
+            # フォロワー推移と累積メトリクスを当日分として保存
+            upsert_account_daily_metrics(cur, account_id, public_metrics, today)
             conn.commit()
     except tweepy.TooManyRequests as exc:
         conn.rollback()
