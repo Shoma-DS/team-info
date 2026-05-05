@@ -137,6 +137,23 @@ if (-not (Test-Command nvm)) {
 }
 Write-Ok "nvm-windows check done."
 
+# --- 7. PowerShell Aliases ---
+Write-Step "7. PowerShell Aliases (x-post / remotion)"
+$profileDir = Split-Path -Parent $PROFILE
+if (-not (Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force | Out-Null }
+if (-not (Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force | Out-Null }
+$profileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
+if ($profileContent -notlike "*function x-post*") {
+    Add-Content -Path $PROFILE -Value ""
+    Add-Content -Path $PROFILE -Value "# チームツール起動エイリアス (team-info setup により追加)"
+    Add-Content -Path $PROFILE -Value "function setup { & `"`$env:TEAM_INFO_ROOT\setup\setup_windows_safe.ps1`" }"
+    Add-Content -Path $PROFILE -Value "function x-post { bash `"`$env:TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/start_preview.sh`" }"
+    Add-Content -Path $PROFILE -Value "function remotion { npm --prefix `"`$env:TEAM_INFO_ROOT/Remotion/my-video`" run dev }"
+    Write-Ok "PowerShell aliases added: x-post, remotion"
+} else {
+    Write-Ok "PowerShell aliases already set"
+}
+
 # --- Final ---
 Write-Step "Final"
 Write-Ok "Core setup components installed or verified."
