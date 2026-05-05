@@ -25,7 +25,7 @@ PS_FUNCTIONS = [
 
 REGISTERED_FLAG = pathlib.Path.home() / ".config" / "team-info" / "aliases-registered"
 
-# ~/.zshrc に仕込む「ターミナル起動時の自動チェック行」のテンプレート
+# ~/.zshrc などに仕込む「ターミナル起動時の自動チェック行」のテンプレート
 # TEAM_INFO_ROOT が未設定でも動くようにスクリプト絶対パスを直接埋め込む
 _ZSHRC_HOOK_MARKER = "team-info alias auto-check"
 _ZSHRC_HOOK_TMPL = (
@@ -35,10 +35,10 @@ _ZSHRC_HOOK_TMPL = (
 
 
 def _ensure_zshrc_hook(root: pathlib.Path, home: pathlib.Path) -> bool:
-    """~/.zshrc に自動チェック行を追加する（Gemini/Codex 向け）。"""
+    """Interactive shell rc files に自動チェック行を追加する（Gemini/Codex 向け）。"""
     script = root / ".agent" / "skills" / "common" / "scripts" / "register_aliases.py"
     changed = False
-    for rc in [home / ".zshrc", home / ".zprofile", home / ".bashrc", home / ".bash_profile"]:
+    for rc in [home / ".zshrc", home / ".bashrc"]:
         if not rc.exists():
             continue
         content = rc.read_text(encoding="utf-8")
@@ -78,6 +78,8 @@ def register_mac(root: pathlib.Path, home: pathlib.Path) -> bool:
         l for l in existing.splitlines()
         if not any(k in l for k in ("alias setup", "alias x-post", "alias remotion", "alias renda", "チームツール"))
     ]
+    while kept and not kept[-1].strip():
+        kept.pop()
     new_lines = [
         "",
         "# チームツール起動エイリアス (register_aliases.py により自動登録)",

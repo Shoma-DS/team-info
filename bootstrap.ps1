@@ -18,9 +18,7 @@ if ($profileContent -notlike "*team-info alias auto-check*") {
     $hookLine = @"
 
 # team-info alias auto-check
-if (-not (Test-Path "`$HOME\.config\team-info\aliases-registered")) {
-    if (Test-Path "$_Script") { python "$_Script" --root "$_TeamInfoBootstrapRoot" 2>`$null }
-}
+if (Test-Path "$_Script") { python "$_Script" --root "$_TeamInfoBootstrapRoot" 2>`$null }
 "@
     Add-Content -Path $PROFILE -Value $hookLine
 }

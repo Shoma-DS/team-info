@@ -18,13 +18,13 @@ setup() {
   esac
 }
 
-# ~/.zshrc / ~/.zprofile に自動チェック行を追記（Gemini / Codex 対応）
+# ~/.zshrc に自動チェック行を追記（Gemini / Codex 対応）
 _SCRIPT="$_TEAM_INFO_BOOTSTRAP_ROOT/.agent/skills/common/scripts/register_aliases.py"
 _MARKER="team-info alias auto-check"
-for _RC in "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.bashrc" "$HOME/.bash_profile"; do
+for _RC in "$HOME/.zshrc" "$HOME/.bashrc"; do
   [ -f "$_RC" ] || continue
   grep -qF "$_MARKER" "$_RC" && continue
-  printf '\n# %s\n[ ! -f "$HOME/.config/team-info/aliases-registered" ] && [ -f "%s" ] && python "%s" --root "%s" 2>/dev/null\n' \
+  printf '\n# %s\n[ -f "%s" ] && python "%s" --root "%s" 2>/dev/null\n' \
     "$_MARKER" "$_SCRIPT" "$_SCRIPT" "$_TEAM_INFO_BOOTSTRAP_ROOT" >> "$_RC"
 done
 
