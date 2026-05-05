@@ -6,7 +6,7 @@ $_TeamInfoBootstrapRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $_Script = "$_TeamInfoBootstrapRoot\.agent\skills\common\scripts\register_aliases.py"
 
 function setup {
-    & "$_TeamInfoBootstrapRoot\setup\setup_windows_safe.ps1"
+    & "$_TeamInfoBootstrapRoot\setup\setup_all.cmd"
 }
 
 # PowerShell プロファイルに自動チェック行を追記

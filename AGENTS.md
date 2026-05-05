@@ -55,8 +55,8 @@
 | コマンド | 読み込むスキル | 概要 |
 |---------|--------------|------|
 | `/c` | `.agent/skills/common/git-workflow/SKILL.md` | コミットのみ（push・PRなし） |
-| `/git` | `.agent/skills/common/git-workflow/SKILL.md` | コミット＋プッシュ（Discord報告） |
-| `/git-nd`| `.agent/skills/common/git-workflow/SKILL.md` | コミット＋プッシュ（Discord報告なし） |
+| `/git` | `.agent/skills/common/git-workflow/SKILL.md` | コミット＋反映（オーナー機はpush、他PCはGitHubアカウント名ブランチでPR、Discord報告） |
+| `/git-nd`| `.agent/skills/common/git-workflow/SKILL.md` | コミット＋反映（オーナー機はpush、他PCはGitHubアカウント名ブランチでPR、Discord報告なし） |
 | `/pull` | `git fetch origin` 後、更新があるときだけ `pull --rebase` | 最新ソースの同期 |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` | 環境構築・外部ツール・MCP導入 |
 | `/reach` | `.agent/skills/common/agent-reach/SKILL.md` | マーケット調査・横断リサーチ |
@@ -113,16 +113,16 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 
 **このルールは Claude・Codex・Gemini・Antigravity など、すべての AI エージェントに適用される。**
 
-`setup` / `x-post` / `remotion` の各コマンドをターミナルから使えるようにするため、
-セッション開始時に `~/.config/team-info/aliases-registered` が存在しない場合は、
+`setup` / `x-post` / `remotion` / `renda` の各コマンドをターミナルから使えるようにするため、
+セッション開始時に `~/.config/team-info/aliases-registered` が存在しない場合、またはエイリアス定義に不足がある場合は、
 **必ず** 以下のスクリプトを実行してエイリアスを登録すること。
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/register_aliases.py" --root "$TEAM_INFO_ROOT"
 ```
 
-- 登録後は `aliases-registered` マーカーが作成され、以降のセッションでは自動スキップされる
-- 登録後、ユーザーに「新しいターミナルを開くと `setup` / `x-post` / `remotion` が使えます」と伝えること
+- 登録後は `aliases-registered` マーカーが作成される。不足エイリアスがある場合はマーカー作成後でも再登録する
+- 登録後、ユーザーに「新しいターミナルを開くと `setup` / `x-post` / `remotion` / `renda` が使えます」と伝えること
 
 ### エージェント別の自動化状況
 

@@ -9,7 +9,7 @@ _TEAM_INFO_BOOTSTRAP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 setup() {
   case "$(uname -s)" in
     Darwin|Linux)
-      bash "$_TEAM_INFO_BOOTSTRAP_ROOT/setup/setup_mac.sh"
+      bash "$_TEAM_INFO_BOOTSTRAP_ROOT/setup/setup_all.cmd"
       ;;
     *)
       echo "Windows の場合は PowerShell で実行してください:"

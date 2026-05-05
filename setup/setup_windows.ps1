@@ -280,8 +280,11 @@ Write-Step "4. Python $PythonVersion"
 # pyenv-win インストール
 if (-not (Test-Command pyenv)) {
     Write-Info "pyenv-win をインストールします..."
-    $pyenvInstallCmd = "Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1' -OutFile './install-pyenv-win.ps1'; &'./install-pyenv-win.ps1'"
-    Invoke-Expression $pyenvInstallCmd
+    $PyenvInstallScript = Join-Path $env:TEMP "team-info-pyenv-win-install.ps1"
+    Invoke-WebRequest -UseBasicParsing `
+        -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" `
+        -OutFile $PyenvInstallScript
+    & $PyenvInstallScript
     # PATH 更新
     $env:PYENV  = "$env:USERPROFILE\.pyenv\pyenv-win"
     $env:Path   = "$env:PYENV\bin;$env:PYENV\shims;$env:Path"
@@ -343,6 +346,16 @@ if (Test-Path $RuntimeScript) {
         Write-Ok "TEAM_INFO_ROOT を保存しました: $TeamInfoRoot"
     } catch {
         Write-Warn "TEAM_INFO_ROOT の保存に失敗しました: $_"
+    }
+}
+
+$AliasScript = Join-Path $TeamInfoRoot ".agent\skills\common\scripts\register_aliases.py"
+if (Test-Path $AliasScript) {
+    try {
+        & $Python311 $AliasScript --root $TeamInfoRoot | Out-Null
+        Write-Ok "PowerShell 用の setup / x-post / remotion / renda を登録しました"
+    } catch {
+        Write-Warn "PowerShell エイリアス登録に失敗しました: $_"
     }
 }
 
@@ -506,7 +519,7 @@ Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
 Write-Host "  検証結果:      $(if ($VerifyStatus -eq 0) { '成功' } else { '要確認' })"
 Write-Host ""
 Write-Host "次のステップ:"
-Write-Host "  ・PowerShell を再起動して PATH を再読み込みしてください"
+Write-Host "  ・PowerShell を再起動して PATH と setup / x-post / remotion / renda を再読み込みしてください"
 Write-Host "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
 Write-Host "  ・Agent Reach は初回実行時に自動セットアップされます"
 Write-Host "  ・Claudian は必要になったら /claudian を実行してください"

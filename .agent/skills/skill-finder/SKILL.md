@@ -77,6 +77,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | voice-script-launcher | 台本ファイルから音声を一括生成する | `.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md` |
 | script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md` |
 | remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
+| remotion-short-sound-design | 縦ショート動画に効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックする | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
 
 ---
 
@@ -224,6 +225,8 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 歌詞字幕・カラオケ動画を作りたい | `lyric-video-production` |
 | 台本から音声を生成したい | `voice-script-launcher` |
 | YouTube台本を書きたい | `script-writing-accounts-aware` |
+| Remotionの縦ショートに効果音を入れたい | `remotion-short-sound-design` |
+| 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
 | ジモティー投稿を作りたい（工場） | `jmty-posts-factory-14` |
 | ジモティー投稿を作りたい（在宅） | `jmty-posts-remote-14` |
 | ジモティー投稿をGドライブに同期したい | `jmty-posts-gdrive-sync` |

@@ -77,9 +77,10 @@ write_team_info_env_file() {
 export TEAM_INFO_ROOT="$TEAM_INFO_ROOT"
 
 # チームツール起動エイリアス
-alias setup='bash "\$TEAM_INFO_ROOT/setup/setup_mac.sh"'
+alias setup='bash "\$TEAM_INFO_ROOT/setup/setup_all.cmd"'
 alias x-post='bash "\$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/start_preview.sh"'
 alias remotion='npm --prefix "\$TEAM_INFO_ROOT/Remotion/my-video" run dev'
+alias renda='bash "\$TEAM_INFO_ROOT/Remotion/scripts/render_to_outputs.sh"'
 EOF
 }
 
