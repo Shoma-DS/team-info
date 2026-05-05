@@ -398,6 +398,7 @@ def create_zoom_meeting(
         "start_time": start_iso,
         "duration": duration_min,
         "timezone": "Asia/Tokyo",
+        "use_pmi": False,            # PMI（パーソナルミーティング）を使わない
         "settings": {
             "join_before_host": True,
             "waiting_room": False,
@@ -414,7 +415,10 @@ def create_zoom_meeting(
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT_SEC) as resp:
             payload = json.loads(resp.read())
             meeting_id = str(payload.get("id")) if payload.get("id") else None
-            return payload["join_url"], meeting_id, None
+            join_url = payload["join_url"]
+            if payload.get("settings", {}).get("use_pmi"):
+                print(f"[Zoom:{account_label}] 警告: アカウント設定でPMIが強制されています。Zoom設定で「スケジュールにPMIを使用する」をオフにしてください。")
+            return join_url, meeting_id, None
     except Exception as e:
         reason = f"Zoom ミーティング作成失敗: {e}"
         print(f"[Zoom:{account_label}] {reason}（{title}）", file=sys.stderr)
