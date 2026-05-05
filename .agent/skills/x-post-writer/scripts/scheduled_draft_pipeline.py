@@ -326,14 +326,21 @@ def build_generation_prompt(
     account_file_path = Path(account_profile.get("account_file_path") or "")
     account_text = account_file_path.read_text(encoding="utf-8") if account_file_path.exists() else ""
 
+    # 全アカウント共通の図解ルールを読み込む
+    skill_root = Path(__file__).resolve().parent.parent
+    common_rules_path = skill_root / "infographic-rules-common.md"
+    common_rules_text = common_rules_path.read_text(encoding="utf-8") if common_rules_path.exists() else ""
+
     # x-post-writer/accounts/{x_username}/ からアカウント別の図解設定を読み込む
     x_username = (payload.get("x_username") or "").lower().lstrip("@")
-    accounts_dir = Path(__file__).resolve().parent.parent / "accounts"
+    accounts_dir = skill_root / "accounts"
     account_infographic_dir = accounts_dir / x_username
     char_prompt_path = account_infographic_dir / "character-prompt.md"
     rules_path       = account_infographic_dir / "infographic-rules.md"
     character_prompt_text  = char_prompt_path.read_text(encoding="utf-8") if char_prompt_path.exists() else ""
-    infographic_rules_text = rules_path.read_text(encoding="utf-8")       if rules_path.exists()       else ""
+    account_rules_text     = rules_path.read_text(encoding="utf-8")       if rules_path.exists()       else ""
+    # 共通ルール + アカウント固有ルールを合成（共通が先）
+    infographic_rules_text = "\n\n".join(filter(None, [common_rules_text, account_rules_text]))
 
     # キャラクター参照画像のパスを検索（PNG/JPG/JPEG）
     char_image_extensions = ["*.png", "*.jpg", "*.jpeg"]
@@ -350,7 +357,7 @@ def build_generation_prompt(
 - 出力は JSON のみ。Markdown・説明文・コードブロックは禁止。
 - 元ポストをそのままコピペしない。切り口・論点・構造だけ借りて、自分ごとに解釈して書く。
 - アカウントのトンマナ・口調・NG事項を最優先で守る。
-- 各 draft に日本語の縦型9:16インフォグラフィックプロンプトを1つ付ける（元メディアを使う場合は空文字）。
+- 各 draft に日本語の縦型3:4（960×1280px）インフォグラフィックプロンプトを1つ付ける（元メディアを使う場合は空文字）。
 - 不向きな bookmark だけ `skipped` に回す。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -439,7 +446,7 @@ def build_generation_prompt(
 - 自分で画像を作る場合は、以下のアカウント別ルールで **日本語** の縦型インフォグラフィックプロンプトを生成する。
 
 【縦型図解プロンプトルール】
-{infographic_rules_text or "（ルールファイルなし — 汎用的な縦型9:16インフォグラフィックプロンプトを日本語で生成すること）"}
+{infographic_rules_text or "（ルールファイルなし — 汎用的な縦型3:4（960×1280px）インフォグラフィックプロンプトを日本語で生成すること）"}
 
 【キャラクター情報】
 {character_prompt_text or "（キャラクター情報なし）"}
@@ -468,7 +475,7 @@ Xユーザー名: {payload.get("x_username")}
 - `drafts[].memo`: 例 `from @author — タイトル`
 - `drafts[].rationale`: なぜこの構成にしたかを1〜2文
 - `drafts[].image_prompt.copy`: 画像に入れる短い日本語コピー・キャッチコピー（元メディアをそのまま使う場合は空文字）
-- `drafts[].image_prompt.prompt`: 日本語の縦型9:16インフォグラフィックプロンプト（上記【縦型図解プロンプトルール】に従う、元メディアをそのまま使う場合は空文字）
+- `drafts[].image_prompt.prompt`: 日本語の縦型3:4（960×1280px）インフォグラフィックプロンプト（上記【縦型図解プロンプトルール】に従う、元メディアをそのまま使う場合は空文字）
 - `skipped[].reason`: スキップ理由
 """.strip()
     return prompt
