@@ -4,6 +4,7 @@
 
 import json
 import os
+import re
 import sys
 import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -99,13 +100,18 @@ def _load_original_tweet(draft_id: str) -> dict | None:
                          "tweet_url": f"https://x.com/{username}/status/{p['tweet_id']}"}
                         for p in raw_parts
                     ]
+                    text_raw = bm.get("text") or ""
+                    raw_urls = re.findall(r'https?://\S+', text_raw)
+                    urls = [re.sub(r'[.,);]+$', '', u) for u in raw_urls]
                     return {
                         "tweet_id":        tweet_id,
                         "tweet_url":       f"https://x.com/{username}/status/{tweet_id}",
-                        "text":            bm.get("text") or "",
+                        "text":            text_raw,
                         "author_username": username,
                         "author_name":     bm.get("author_name") or "",
                         "thread_parts":    thread_parts,
+                        "media":           bm.get("media") or [],
+                        "urls":            urls,
                     }
         except Exception:
             pass

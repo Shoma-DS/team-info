@@ -87,7 +87,7 @@ const SubtitleTrack: React.FC<{
         display: "flex",
         justifyContent: "flex-end",
         alignItems: "center",
-        paddingBottom: isHorizontal ? "5%" : "9%",
+        paddingBottom: isHorizontal ? "5%" : "16%",
         opacity,
         pointerEvents: "none",
         zIndex: 100,
@@ -178,8 +178,8 @@ const SectionLayout: React.FC<{
 
       <AbsoluteFill
         style={{
-          top: isHorizontal ? "25%" : "23%",
-          height: isHorizontal ? "60%" : "48%",
+          top: isHorizontal ? "25%" : "15%",
+          height: isHorizontal ? "60%" : "50%",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -203,7 +203,7 @@ const SectionLayout: React.FC<{
               src={section.imageSrc}
               style={{
                 maxHeight: "100%",
-                maxWidth: isHorizontal ? "100%" : "92%",
+                maxWidth: isHorizontal ? "100%" : "94%",
                 objectFit: "contain",
               }}
             />
@@ -226,13 +226,13 @@ const SectionLayout: React.FC<{
             <img
               src={section.photoSrc}
               style={{
-                width: isHorizontal ? "60%" : "76%",
+                width: isHorizontal ? "60%" : "88%",
                 height: "auto",
                 aspectRatio: "16/9",
                 objectFit: "cover",
                 borderRadius: "8px",
                 border: "3px solid #FFFFFF",
-                boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
+                boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
               }}
             />
           </div>
@@ -259,8 +259,8 @@ const CtaLayout: React.FC<{
       <div
         style={{
           position: "absolute",
-          top: isHorizontal ? "15%" : "18%",
-          height: isHorizontal ? "70%" : "56%",
+          top: isHorizontal ? "15%" : "12%",
+          height: isHorizontal ? "70%" : "62%",
           width: "100%",
           display: "flex",
           justifyContent: "center",
@@ -302,8 +302,8 @@ export const ViralTemplate: React.FC<ViralTemplateProps> = ({
         <div
           style={{
             position: "absolute",
-            bottom: isHorizontal ? "5%" : "9%",
-            height: isHorizontal ? "60%" : "45%",
+            bottom: isHorizontal ? "5%" : "6%",
+            height: isHorizontal ? "60%" : "53%",
             width: "100%",
             display: "flex",
             justifyContent: "center",
@@ -315,7 +315,7 @@ export const ViralTemplate: React.FC<ViralTemplateProps> = ({
               src={hook.imageSrc}
               style={{
                 maxHeight: "100%",
-                maxWidth: isHorizontal ? "90%" : "86%",
+                maxWidth: isHorizontal ? "90%" : "92%",
                 objectFit: "contain",
                 filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.08))",
               }}

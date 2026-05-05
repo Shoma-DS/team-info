@@ -20,6 +20,10 @@ let pendingDeleteId = null; // 削除モーダル用
 // グループ折りたたみ状態（未投稿: 開く / 投稿済み: 閉じる）
 const groupCollapsed = { draft: false, published: true };
 
+// 未投稿ページング
+let draftPage = 1;
+const DRAFT_PAGE_SIZE = 20;
+
 // 文字数制限
 const CHAR_LIMIT = 25000;
 const CHAR_WARN  = 280;
@@ -114,6 +118,11 @@ function renderDraftList() {
   const renderGroup = (key, label, items) => {
     if (items.length === 0) return '';
     const collapsed = groupCollapsed[key];
+    const displayItems = key === 'draft' ? items.slice(0, draftPage * DRAFT_PAGE_SIZE) : items;
+    const remaining = key === 'draft' ? items.length - displayItems.length : 0;
+    const loadMoreBtn = remaining > 0
+      ? `<button class="load-more-btn" onclick="loadMoreDrafts()">さらに表示 (残り ${remaining} 件)</button>`
+      : '';
     return `
       <div class="group-header" onclick="toggleGroup('${key}')">
         <span class="group-chevron${collapsed ? '' : ' open'}">›</span>
@@ -121,7 +130,8 @@ function renderDraftList() {
         <span class="group-count">${items.length}</span>
       </div>
       <div class="group-body${collapsed ? ' collapsed' : ''}">
-        ${items.map(renderItem).join('')}
+        ${displayItems.map(renderItem).join('')}
+        ${loadMoreBtn}
       </div>`;
   };
 
@@ -139,6 +149,11 @@ function renderDraftList() {
 
 function toggleGroup(key) {
   groupCollapsed[key] = !groupCollapsed[key];
+  renderDraftList();
+}
+
+function loadMoreDrafts() {
+  draftPage++;
   renderDraftList();
 }
 
@@ -179,10 +194,14 @@ function renderPreview(draft) {
   const content    = document.getElementById('preview-content');
   const isThread   = draft.parts.length > 1;
   const isPosted   = draft.status === 'published';
+
+  // 投稿済みのときはプレビューエリア全体の背景を変える
+  const previewArea = document.getElementById('preview-area');
+  previewArea.classList.toggle('is-posted-bg', isPosted);
   const initial    = (draft.display_name || draft.x_username).charAt(0).toUpperCase();
   const previewUrl = `${publicUrl}?draft=${draft.draft_id}`;
   const original   = draft.original_tweet;
-  const hasOrig    = !!(original && original.text);
+  const hasOrig    = !!(original && original.tweet_url);
 
   // ── ヘッダー ──
   const postedBar = isPosted
@@ -292,7 +311,27 @@ function buildOriginalCards(original) {
     </a>
   </div>`;
 
-  return slots + urlBar;
+  // 元投稿のメディア（画像・動画）
+  const mediaItems = original.media || [];
+  const mediaHtml = mediaItems.map(m => {
+    if (m.type === 'photo' && m.url) {
+      return `<div class="orig-media"><img src="${escAttr(m.url)}" alt="元投稿画像" loading="lazy"></div>`;
+    }
+    const thumb = m.preview_url || m.url;
+    if ((m.type === 'video' || m.type === 'animated_gif') && thumb) {
+      const label = m.type === 'animated_gif' ? 'GIF' : '動画';
+      return `<div class="orig-media orig-media-video"><img src="${escAttr(thumb)}" alt="サムネイル" loading="lazy"><div class="orig-media-badge">▶ ${label}</div></div>`;
+    }
+    return '';
+  }).join('');
+
+  // 元投稿テキスト内のURL（t.co 短縮以外を優先表示）
+  const extUrls = (original.urls || []).filter(u => !u.includes('//t.co/'));
+  const urlsHtml = extUrls.length
+    ? `<div class="orig-urls">${extUrls.map(u => `<a href="${escAttr(u)}" target="_blank" class="orig-url-link">🔗 ${esc(u.length > 60 ? u.slice(0, 58) + '…' : u)}</a>`).join('')}</div>`
+    : '';
+
+  return slots + urlBar + mediaHtml + urlsHtml;
 }
 
 async function loadOembed(tweetUrl, slotId) {
@@ -378,25 +417,42 @@ function buildDraftCards(draft, initial, isThread) {
 
 function buildImagePromptBlock(draft) {
   const prompts = draft.image_prompts;
-  if (!prompts || prompts.length === 0) return '';
+  const sourceImgUrl = draft.parts?.[0]?.image_url || null;
+  const first   = (prompts && prompts[0]) || {};
+  const copy    = (first.copy   || '').trim();
+  const prompt  = (first.prompt || '').trim();
 
-  const first  = prompts[0];
-  const copy   = (first.copy   || '').trim();
-  const prompt = (first.prompt || '').trim();
-  if (!prompt) return '';
+  const hasPrompt    = !!prompt;
+  const hasSourceImg = !!sourceImgUrl;
+  if (!hasPrompt && !hasSourceImg) return '';
 
   const copyLabel = copy
     ? `<span class="image-prompt-copy-label">${esc(copy)}</span>`
     : '';
 
+  const sourceImgBtn = hasSourceImg
+    ? `<button class="image-source-copy-btn" onclick="copySourceImageUrl()">元画像をコピー</button>`
+    : '';
+  const promptCopyBtn = hasPrompt
+    ? `<button class="image-prompt-copy-btn" onclick="copyImagePrompt()">プロンプトをコピー</button>`
+    : '';
+
+  const sourceImgPreview = hasSourceImg
+    ? `<div class="source-img-preview"><a href="${escAttr(sourceImgUrl)}" target="_blank">🔗 ${esc(sourceImgUrl.length > 70 ? sourceImgUrl.slice(0, 68) + '…' : sourceImgUrl)}</a></div>`
+    : '';
+
   return `
     <div class="image-prompt-block">
       <div class="image-prompt-header">
-        <span class="image-prompt-title">🖼 画像プロンプト</span>
+        <span class="image-prompt-title">🖼 画像</span>
         ${copyLabel}
-        <button class="image-prompt-copy-btn" onclick="copyImagePrompt()">コピー</button>
+        <div class="image-copy-btns">
+          ${sourceImgBtn}
+          ${promptCopyBtn}
+        </div>
       </div>
-      <pre class="image-prompt-pre">${esc(prompt)}</pre>
+      ${sourceImgPreview}
+      ${hasPrompt ? `<pre class="image-prompt-pre">${esc(prompt)}</pre>` : ''}
     </div>`;
 }
 
@@ -408,6 +464,17 @@ async function copyImagePrompt() {
   try {
     await navigator.clipboard.writeText(text);
     showToast('✓ 画像プロンプトをコピーしました');
+  } catch {
+    showToast('コピーに失敗しました', true);
+  }
+}
+
+async function copySourceImageUrl() {
+  const imageUrl = currentDraft?.parts?.[0]?.image_url;
+  if (!imageUrl) { showToast('元画像URLがありません', true); return; }
+  try {
+    await navigator.clipboard.writeText(imageUrl);
+    showToast('✓ 元画像URLをコピーしました');
   } catch {
     showToast('コピーに失敗しました', true);
   }

@@ -1029,3 +1029,101 @@ body {
 }
 
 .new-reply-area { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── 投稿済みプレビューエリアの背景色 ── */
+.preview-area.is-posted-bg {
+  background: linear-gradient(180deg, rgba(0,186,124,0.06) 0%, var(--bg) 120px);
+}
+
+/* ── さらに表示ボタン ── */
+.load-more-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.load-more-btn:hover { background: var(--bg-hover); }
+
+/* ── 画像コピーボタン2択 ── */
+.image-copy-btns {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.image-source-copy-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, background 0.15s;
+}
+.image-source-copy-btn:hover { background: var(--bg-hover); }
+
+.source-img-preview {
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  word-break: break-all;
+  border-bottom: 1px solid var(--border);
+}
+.source-img-preview a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.source-img-preview a:hover { text-decoration: underline; }
+
+/* ── 元投稿メディア ── */
+.orig-media {
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.orig-media img {
+  width: 100%;
+  display: block;
+  max-height: 300px;
+  object-fit: cover;
+}
+.orig-media-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ── 元投稿URL一覧 ── */
+.orig-urls {
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+}
+.orig-url-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+}
+.orig-url-link:hover { text-decoration: underline; }

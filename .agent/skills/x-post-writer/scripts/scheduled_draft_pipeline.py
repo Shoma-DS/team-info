@@ -371,18 +371,23 @@ def build_generation_prompt(
   - 1行目で「読まなきゃ損」と思わせる。インパクト最優先。
   - 何が起きているか・何のツールか・どんな体験かを3〜5行で凝縮する。
   - 「つまりこういうこと」で締めると読者が次パーツを読む。
+  - **最後の1行に必ず次パーツへの短い誘導（10〜20字）を入れること**
+    例：「比較してみたら衝撃だった↓」「続きで全部変わる話」「次で一気に解説する」
 
 ■ Part 2 ― 比較・仕組み解説
   - 「今まで（従来の方法・よく使われるツール）と何が違うか」を対比で見せる。
   - ChatGPT / 普通の音声bot / 手動作業 / 一般的なAI活用 など読者が知っている手法と対比する。
   - 専門用語は「スマホでいうと〜と同じ」などのアナロジーで即噛み砕く。
   - 初心者が「あ、それなら分かる」と感じる瞬間を作る。
+  - **最後の1行に必ず次パーツへの短い橋渡しを入れること**
+    例：「実際に試したらこうなった↓」「正直ここからが本題」「で、どうなったか」
 
 ■ Part 3 ― 実体験スタイルの具体例
   - 「実際に自分が使ったら/試したら/設定したらこうなった」という一人称視点で書く。
   - 架空でも「飲食店のオーナーがこう使ったら」「副業でnoteを書いている人が使ったら」など具体的シナリオを描く。
   - ①②③の番号付きステップ形式か、before/afterの構成にする。
   - 「むしろこっちのほうが気になった」「正直こっちのほうがやばい」という発見トーンを入れる。
+  - **Part4がある場合は最後の1行に「まとめるとこういうこと↓」など短い誘導を入れること**
 
 ■ Part 4 ― まとめ＋差別化の気づき（情報量が多いときだけ追加）
   - 読者が「これを持ち帰ろう」と思える1つの教訓・視点・行動ヒントで締める。
@@ -919,8 +924,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Xブックマーク定時下書き生成")
     parser.add_argument("--account", default="GUTARA")
     parser.add_argument("--count", type=int, default=20)
-    parser.add_argument("--codex-timeout", type=int, default=900)
-    parser.add_argument("--claude-timeout", type=int, default=900)
+    parser.add_argument("--codex-timeout", type=int, default=1800)
+    parser.add_argument("--claude-timeout", type=int, default=1800)
     parser.add_argument("--fetch-timeout", type=int, default=120)
     parser.add_argument("--refresh-account-file", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
