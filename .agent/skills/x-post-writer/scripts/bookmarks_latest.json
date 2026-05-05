@@ -1,7 +1,7 @@
 {
   "account": "GUTARA",
   "x_username": "gutaraAikatuyou",
-  "fetched_at": "2026-05-04T06:06:14.697473+00:00",
+  "fetched_at": "2026-05-05T08:33:04.255020+00:00",
   "account_profile": {
     "account_id": "GUTARA",
     "x_user_id": "1955982279723114503",
@@ -18,425 +18,457 @@
         "reply_count": 12,
         "like_count": 63,
         "quote_count": 0,
-        "bookmark_count": 4,
-        "impression_count": 3253
+        "bookmark_count": 0,
+        "impression_count": 3270
       },
       "url": "https://x.com/gutaraAikatuyou/status/1979307853694538073"
     },
-    "account_file_path": "/Users/deguchishouma/team-info/.agent/skills/x-post-writer/accounts/gutaraAikatuyou.md"
+    "account_file_path": "/Users/deguchishouma/team-info/.agent/skills/x-post-writer/accounts/gutaraaikatuyou/gutaraAikatuyou.md"
   },
   "bookmarks": [
     {
-      "tweet_id": "2050537043063935327",
-      "text": "再见 CAPCUT 👋\n\nGemini 现在可以在几分钟内编写和编辑完整视频。\n\n无需拖动时间轴。无需手动剪辑。无需创意障碍。\n\n这是 7 个提示让它发生 👇🏽 https://t.co/EcitNjoiRN",
-      "author_username": "AIExplorerTim",
-      "author_name": "AI探路者Tim",
-      "conversation_id": "2050537043063935327",
+      "tweet_id": "2051500696181285132",
+      "text": "ClaudeCodeは月3,000円かかるから\n動画編集でしか使わないのに高すぎる！！\n\nそんな人に朗報です✨\nCodexというOpenAIが出したAIエージェントがあるのですが、そちらでも「/cut」ができるのかを検証してみました！\n\n制限付きですが無料で始められるので、結果を見て判断いただければと思います！ https://t.co/D7kQNqC0s3",
+      "author_username": "fumanpnp",
+      "author_name": "河村風真",
+      "conversation_id": "2051500696181285132",
       "thread_parts": [
         {
-          "tweet_id": "2050537043063935327",
-          "text": "再见 CAPCUT 👋\n\nGemini 现在可以在几分钟内编写和编辑完整视频。\n\n无需拖动时间轴。无需手动剪辑。无需创意障碍。\n\n这是 7 个提示让它发生 👇🏽 https://t.co/EcitNjoiRN"
+          "tweet_id": "2051500696181285132",
+          "text": "ClaudeCodeは月3,000円かかるから\n動画編集でしか使わないのに高すぎる！！\n\nそんな人に朗報です✨\nCodexというOpenAIが出したAIエージェントがあるのですが、そちらでも「/cut」ができるのかを検証してみました！\n\n制限付きですが無料で始められるので、結果を見て判断いただければと思います！ https://t.co/D7kQNqC0s3"
         },
         {
-          "tweet_id": "2050537044951416879",
-          "text": "1. 编辑蓝图\n\n作为一名拥有 15 年以上 YouTube 和纪录片剪辑经验的资深视频剪辑师，我将提供原始素材的描述，进行分析，并创建清晰的、按时间顺序排列的剪辑蓝图，将其转化为精良且引人入胜的视频。我会详细说明每个时刻的操作，包括剪辑点、节奏调整、B-roll"
-        },
-        {
-          "tweet_id": "2050537046641717432",
-          "text": "2. 风格逆向工程"
-        },
-        {
-          "tweet_id": "2050537048508182713",
-          "text": "3. 脚本流程优化\n\n担任内容留存策略师，专注于 YouTube 和短视频。审阅脚本，分析节奏、清晰度和互动性。找出能量下降、重复或观众注意力分散等薄弱环节，并重写开头和前 10"
-        },
-        {
-          "tweet_id": "2050537050349396233",
-          "text": "4. 技术出口设置"
-        },
-        {
-          "tweet_id": "2050537052136153378",
-          "text": "5. 原始素材分类"
-        },
-        {
-          "tweet_id": "2050537053956505770",
-          "text": "6. 最终波兰语审查"
-        },
-        {
-          "tweet_id": "2050537055898489027",
-          "text": "7. 留存率审计"
-        }
-      ],
-      "media": [
-        {
-          "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHT4kQEb0AANrAJ.jpg",
-          "preview_url": null,
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2050279322209149300",
-      "text": "有人刚刚开源了一个金融版的 Claude Code。它名叫 Dexter。它可以发现低估的股票，进行详细分析并构建投资逻辑。100% 免费且开源。 https://t.co/U5LSxTdtCJ",
-      "author_username": "billtheinvestor",
-      "author_name": "Bill The Investor",
-      "conversation_id": "2050279322209149300",
-      "thread_parts": [],
-      "media": [
-        {
-          "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2050279263514120192/img/WYpz8Ex4wtt4ZYTG.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050279263514120192/img/WYpz8Ex4wtt4ZYTG.jpg",
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2050446356976935219",
-      "text": "claude codeで毎日決まった時間に自治体の補助金で公募中や公募開始のものをスクレイピングし、Excelシートに転記してくれるシステムを作成しました！\n自治体の細かな補助金を精度高くキャッチし、秀逸です❗️🙀\n締切日、金額、概要、補助金のURLもあるのですごく便利です✨ https://t.co/nzeHN3aXvA",
-      "author_username": "takuya33777",
-      "author_name": "【補助金申請&医療法人設立サポート】井上卓也＠カミーユ行政書士事務所",
-      "conversation_id": "2050446356976935219",
-      "thread_parts": [
-        {
-          "tweet_id": "2050446356976935219",
-          "text": "claude codeで毎日決まった時間に自治体の補助金で公募中や公募開始のものをスクレイピングし、Excelシートに転記してくれるシステムを作成しました！\n自治体の細かな補助金を精度高くキャッチし、秀逸です❗️🙀\n締切日、金額、概要、補助金のURLもあるのですごく便利です✨ https://t.co/nzeHN3aXvA"
-        },
-        {
-          "tweet_id": "2050510866660134921",
-          "text": "@oishidakazuma ありがとうございます！！"
-        },
-        {
-          "tweet_id": "2050520910978032059",
-          "text": "@taka_growup これはすごく便利ですよね！\nタイムリーに情報収集、共有出来るので助かりますね☺️"
-        },
-        {
-          "tweet_id": "2050862485788565913",
-          "text": "@hp2019tak ありがとうございます！\n嬉しいです！\n一言では説明出来ないですが、必ず出来ると思います☺️"
-        },
-        {
-          "tweet_id": "2050862554189381966",
-          "text": "@akibabungaku ありがとうございます！\n嬉しいです！"
-        },
-        {
-          "tweet_id": "2050906393784524818",
-          "text": "@AI_EC_Hacker ありがとうございます！\n大変参考になります！☺️"
+          "tweet_id": "2051500698274316715",
+          "text": "これなら始められると思った人はコチラから▼\nhttps://t.co/NqEJSaMWei"
         }
       ],
       "media": [
         {
           "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2050446278400905216/img/nuFiVrG_Li6wBLIz.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050446278400905216/img/nuFiVrG_Li6wBLIz.jpg",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051498117963624448/img/owTTQ5CRL4rfRSFk.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051498117963624448/img/owTTQ5CRL4rfRSFk.jpg",
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2050469567332598097",
-      "text": "Pika MCPが登場。Claudeでアバター付き動画の生成が可能に。\n\n基本Claude Codeでの動画生成はRemotionだったが、アバター付きならPikaが良さそう。\n\n・Pika MCPで動画/画像/音声を生成\n・解説動画、Podcast、UGC広告に対応\n・顔/声/性格付きAIアバターも作成\n・URLやGitHubから動画化も可能\n\n↓詳細 https://t.co/1uNGFGdipE",
-      "author_username": "masahirochaen",
-      "author_name": "チャエン | デジライズ CEO《重要AIニュースを毎日最速で発信⚡️》",
-      "conversation_id": "2050469567332598097",
-      "thread_parts": [
-        {
-          "tweet_id": "2050469567332598097",
-          "text": "Pika MCPが登場。Claudeでアバター付き動画の生成が可能に。\n\n基本Claude Codeでの動画生成はRemotionだったが、アバター付きならPikaが良さそう。\n\n・Pika MCPで動画/画像/音声を生成\n・解説動画、Podcast、UGC広告に対応\n・顔/声/性格付きAIアバターも作成\n・URLやGitHubから動画化も可能\n\n↓詳細 https://t.co/1uNGFGdipE"
-        },
-        {
-          "tweet_id": "2050469665944854906",
-          "text": "🎬 Claudeが“動画を作るAI”に近づいた\nhttps://t.co/8tlV1JdrTC\n\nPika MCPは、Claudeに動画生成モデルが直接入る機能ではなく、ClaudeからPikaの制作機能を呼び出せるようにする連携。\n\nできることはかなり広い。\n\n・解説動画\n・Podcast風の対談動画\n・UGC広告\n・商品紹介動画\n・フォトリアル画像"
-        }
-      ],
-      "media": [
-        {
-          "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2050468470014554112/img/x1bG6u0t30EI-nc5.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050468470014554112/img/x1bG6u0t30EI-nc5.jpg",
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2050545974125421003",
-      "text": "これはガチで神。\n\n6兆円規模の電話サポート業界を、たった1社のAI音声エージェントが丸ごと食いに行ってる。\n\n「人間そっくりに電話対応するAI」が公開されました。名前は ElevenLabs Agents。\n\n・70言語で人間と区別つかない自然な会話\n・通話中に予約・注文更新・問い合わせ対応まで自動実行 https://t.co/aT07vhY50D",
-      "author_username": "so_ainsight",
-      "author_name": "そう｜Claude Codeで始めるAI自動化",
-      "conversation_id": "2050545974125421003",
-      "thread_parts": [
-        {
-          "tweet_id": "2050545974125421003",
-          "text": "これはガチで神。\n\n6兆円規模の電話サポート業界を、たった1社のAI音声エージェントが丸ごと食いに行ってる。\n\n「人間そっくりに電話対応するAI」が公開されました。名前は ElevenLabs Agents。\n\n・70言語で人間と区別つかない自然な会話\n・通話中に予約・注文更新・問い合わせ対応まで自動実行 https://t.co/aT07vhY50D"
-        },
-        {
-          "tweet_id": "2050545985877913753",
-          "text": "これ何がすごいかというと、「電話を取って受け答えする」だけじゃなくて、「会話の途中で実際に手を動かす」までAIがやってくれること。\n\n聞いて、読んで、画面を見て、しゃべりながら作業する。"
-        },
-        {
-          "tweet_id": "2050545997613523439",
-          "text": "これって本質的には、「人間がシフトを組んで電話に出る」から「AIが24時間365日、ノータイムで応対する」へのシフト。\n\n・予約受付スタッフ\n・注文管理オペレーター\n・カスタマーサポート1次対応\n・多言語対応コールセンター\n\nこのあたりの役割が全部、1つのAIエージェントに集約されていく。"
-        },
-        {
-          "tweet_id": "2050546009428963575",
-          "text": "例えば、「うちの飲食店の予約電話を任せたい」と設定するだけで、\n\n① お客さんからの電話に自然な日本語で応対\n② カレンダーの空き状況を確認して予約を確定\n③ 予約システムを自動で更新＆確認メールを送信\n\nを全部1人のAIスタッフがやってくれる。"
-        },
-        {
-          "tweet_id": "2050546021080699207",
-          "text": "元ポストはこちら👇\nhttps://t.co/wMiMkCpTge"
-        },
-        {
-          "tweet_id": "2050546033005130063",
-          "text": "この投稿が参考になったら、 @so_ainsight をフォロー。いいね、リポストもよろしく。"
-        },
-        {
-          "tweet_id": "2050728316735541631",
-          "text": "@claude_keiba_ 早く切り替えたいですよね。"
-        }
-      ],
-      "media": [
-        {
-          "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2050545923512823809/img/LY1xNT0w3RAmq83x.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050545923512823809/img/LY1xNT0w3RAmq83x.jpg",
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2050185990313308249",
-      "text": "Mac miniを使わないで\n「月600円」でAI社員を24時間動かす方法、全部書きました。\nㅤ\n①Mac Miniは本体 94,800円\n②VPSは年間約 7,200円\n③セットアップは 15分\n④1台で8体のAIエージェントを常駐\n⑤メモリは短期・長期・FBの3層\n⑥落ちる前提で自動復帰 https://t.co/eX9B9SqAl8 https://t.co/2JltGmrJnE",
+      "tweet_id": "2051545802296930555",
+      "text": "Claude CodeやAntigravity使ってる人は絶対に見たほうがいいプロンプト集が有益だった...\nㅤ\nAIエージェント向けの「Skills 946選」がGitHubで公開されてて、セキュリティ監査、仕様書作成、テスト自動化、インフラ構築まで、実務レベルのスキルが全部入ってる。\nㅤ\nしかもClaude Code、Gemini https://t.co/KxFmkuAzWj",
       "author_username": "SuguruKun_ai",
       "author_name": "すぐる | ChatGPTガチ勢 𝕏",
-      "conversation_id": "2050185990313308249",
-      "thread_parts": [],
+      "conversation_id": "2051545802296930555",
+      "thread_parts": [
+        {
+          "tweet_id": "2051545802296930555",
+          "text": "Claude CodeやAntigravity使ってる人は絶対に見たほうがいいプロンプト集が有益だった...\nㅤ\nAIエージェント向けの「Skills 946選」がGitHubで公開されてて、セキュリティ監査、仕様書作成、テスト自動化、インフラ構築まで、実務レベルのスキルが全部入ってる。\nㅤ\nしかもClaude Code、Gemini https://t.co/KxFmkuAzWj"
+        },
+        {
+          "tweet_id": "2051545816402456584",
+          "text": "そもそもSkillsって何かというと、AIエージェントに「この分野はこうやって考えろ」と教える設定ファイルのこと。 https://t.co/4VlZgRiGtW"
+        },
+        {
+          "tweet_id": "2051545831275438158",
+          "text": "946スキルが9カテゴリに整理されてる：\nㅤ\n1. Architecture — システム設計、C4図\n2. Business — SEO、マーケ、価格戦略\n3. Data &amp; AI — RAG、LLMアプリ、エージェント\n4. Development — TypeScript、Python、React\n5. General — 計画、ドキュメント、執筆\n6. Infrastructure — https://t.co/mia1h6USQp"
+        },
+        {
+          "tweet_id": "2051545845997408492",
+          "text": "対応ツールが9つもある：\nㅤ\n・Claude Code（Anthropic）\n・Gemini CLI（Google）\n・Codex CLI（OpenAI）\n・Kiro CLI（AWS）\n・Antigravity IDE（Google）\n・GitHub Copilot\n・Cursor\n・OpenCode\n・AdaL CLI\nㅤ\nどのツール使ってても同じスキルが使える共通フォーマットになってるのがポイント。 https://t.co/HJJ1ZOzsYa"
+        },
+        {
+          "tweet_id": "2051545858051903637",
+          "text": "導入方法もシンプル：\nㅤ\nnpx antigravity-awesome-skills\nㅤ\nこれだけ。Webアプリが立ち上がって、カテゴリやキーワードで検索・フィルタリングして必要なスキルだけ選べる。\nㅤ\nGitHub: https://t.co/LEJh0qzw75"
+        },
+        {
+          "tweet_id": "2051545869582057863",
+          "text": "個人的にはSecurity系とWorkflow系のスキルが使えそうだった。\nㅤ\n自分でスキル書くのも良いけど、まずはこういうコレクションから引っ張ってくるのが効率いい。 ㅤ\nㅤ\nスキルの質でAIの出力が変わる時代だな...\nㅤ\nAI情報を追うならフォロー\n👉 @SuguruKun_ai\nhttps://t.co/ursvwUSy3Q"
+        }
+      ],
       "media": [
         {
           "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHO5StzaMAA_4D_.jpg",
+          "url": "https://pbs.twimg.com/media/HHiOCRSaQAAnEK4.jpg",
           "preview_url": null,
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2050486703950004309",
-      "text": "⚠️24時間限定\n\n以前29,800円での販売を予定していた\n『GPT Images 2.0 神プロンプト50選』を\n\n24時間限定で0円配布しちゃうぜ！\n\nImages 2.0での画像生成を極めるだけで\n\nCanvaで70分かけていた制作が\nぽちぽち3秒で終了しそうだわw\n\n今すぐ試して一緒に爆益狙いましょう！\n\nこのnoteが欲しい🎁人は https://t.co/GkPe7E7GwV",
-      "author_username": "MuchoAi",
-      "author_name": "むちょ / AIクリエイター",
-      "conversation_id": "2050486703950004309",
-      "thread_parts": [],
+      "tweet_id": "2051231937923334276",
+      "text": "Claudeを使ってOnlyFansで4.3万ドル稼いだ事例が海外で話題になってる。\n\nAI×アダルト領域はすでにレッドオーシャンになりつつあるけど、動画の作り方と市場分析をすれば間違いなく勝てる。 https://t.co/OCjpwP0viQ https://t.co/K4ATHUXUVs",
+      "author_username": "L_go_mrk",
+      "author_name": "AI駆動塾",
+      "conversation_id": "2051231937923334276",
+      "thread_parts": [
+        {
+          "tweet_id": "2051231937923334276",
+          "text": "Claudeを使ってOnlyFansで4.3万ドル稼いだ事例が海外で話題になってる。\n\nAI×アダルト領域はすでにレッドオーシャンになりつつあるけど、動画の作り方と市場分析をすれば間違いなく勝てる。 https://t.co/OCjpwP0viQ https://t.co/K4ATHUXUVs"
+        },
+        {
+          "tweet_id": "2051231940221833717",
+          "text": "https://t.co/iNfGODpEP9"
+        },
+        {
+          "tweet_id": "2051232870962962882",
+          "text": "HiggsFieldMCPよりも、KlingAIのMCPかCLIをくれ！！と思う。マジで頼む。"
+        }
+      ],
       "media": [
         {
           "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHTHtdGaAAAWRzd.jpg",
+          "url": "https://pbs.twimg.com/media/HHdwMcCaQAAHOrI.png",
           "preview_url": null,
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2050516335549988975",
-      "text": "仕事したくない勢、家族持ち、子持ち勢は「年収3000万を半自動化」を目標にAI（今ならClaudeCodeやHermes）とメタ広告でチャリンチャリン狙うのがオススメ。ちょっと気合い入れて働けば1億くらいはいくし、何よりストレスがない。これを達成するために何をやればいいかというと、",
-      "author_username": "ceo_tommy1",
-      "author_name": "トミー",
-      "conversation_id": "2050516335549988975",
+      "tweet_id": "2051369939282407445",
+      "text": "32万星GitHub神级仓库，全网所有免费API都在这里了🔥\n\n每个资深开发者都偷偷收藏着，从没人告诉新人，\n\n它叫 Public APIs，1500+ 免费端点，每条都注明了认证类型、HTTPS 状态、CORS 支持，点进去直达文档，\n\n覆盖范围：\n\n→ 金融、加密货币、股票、银行数据\n→ 天气、地图、地理编码、交通\n→ https://t.co/Mz4M76WpdF",
+      "author_username": "AYi_AInotes",
+      "author_name": "阿绎 AYi",
+      "conversation_id": "2051369939282407445",
+      "thread_parts": [
+        {
+          "tweet_id": "2051369939282407445",
+          "text": "32万星GitHub神级仓库，全网所有免费API都在这里了🔥\n\n每个资深开发者都偷偷收藏着，从没人告诉新人，\n\n它叫 Public APIs，1500+ 免费端点，每条都注明了认证类型、HTTPS 状态、CORS 支持，点进去直达文档，\n\n覆盖范围：\n\n→ 金融、加密货币、股票、银行数据\n→ 天气、地图、地理编码、交通\n→ https://t.co/Mz4M76WpdF"
+        },
+        {
+          "tweet_id": "2051369944940478848",
+          "text": "最爽的用法是做MVP的时候先从这里找免费API跑通流程，等用户量上来了再考虑付费替代，能帮你省掉前期90%的启动成本💰\n\n仓库地址如下，自带搜索和多维度筛选功能，找API比RapidAPI还快还准\nhttps://t.co/gSSicLaqbN"
+        },
+        {
+          "tweet_id": "2051448413489656192",
+          "text": "@hiheimu 超牛逼的哈哈，昨晚看到忍不住赶紧分享出来"
+        },
+        {
+          "tweet_id": "2051451484416475301",
+          "text": "@xaiwind 这个真的必须收藏，特别好用"
+        },
+        {
+          "tweet_id": "2051486413288325421",
+          "text": "@valarzai 很少有人讲，但是它已经在 GitHub 上有 32 万 star 了，老程序员都在给偷偷用哈哈"
+        }
+      ],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHfuFL7W8AAIKPw.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051500517700808826",
+      "text": "打破 AI 信息差：第二期\n\n每天刷 Hacker News、Twitter、Reddit、GitHub，是不是经常被水文、重复内容和噪音淹没？\n\n分享一个我最近在用的新工具：Horizon，你的海外硬核科技新闻雷达。\n\n让 AI 替你盯着全球科技圈，你只需要每天早上打开一份简报。\n\nHorizon 的核心就一句话： https://t.co/Sucwl2myrA https://t.co/Y0ydfNR2CK",
+      "author_username": "BTCqzy1",
+      "author_name": "爱丽丝呀！",
+      "conversation_id": "2051500517700808826",
+      "thread_parts": [
+        {
+          "tweet_id": "2051500517700808826",
+          "text": "打破 AI 信息差：第二期\n\n每天刷 Hacker News、Twitter、Reddit、GitHub，是不是经常被水文、重复内容和噪音淹没？\n\n分享一个我最近在用的新工具：Horizon，你的海外硬核科技新闻雷达。\n\n让 AI 替你盯着全球科技圈，你只需要每天早上打开一份简报。\n\nHorizon 的核心就一句话： https://t.co/Sucwl2myrA https://t.co/Y0ydfNR2CK"
+        },
+        {
+          "tweet_id": "2051502857975914598",
+          "text": "@biren888 对的 这就是信息差 不仅比别人更早知道 还有比别人更精准"
+        },
+        {
+          "tweet_id": "2051503023382557154",
+          "text": "@Stone141319 对的 好的工具就是好的生产力"
+        },
+        {
+          "tweet_id": "2051503274982027458",
+          "text": "@xx03199 不客气 我们一起打破信息差"
+        },
+        {
+          "tweet_id": "2051503339918278781",
+          "text": "@ssovoovo 谢谢帅帅老师支持"
+        },
+        {
+          "tweet_id": "2051503658303721495",
+          "text": "@QT9277 说的太对了 阿台老师 纯粹和高效正是最稀缺的～"
+        },
+        {
+          "tweet_id": "2051503954400620975",
+          "text": "@0008luna 这个功能也在里面的哈～"
+        },
+        {
+          "tweet_id": "2051504154535944398",
+          "text": "@hyyuan99 嗯嗯 对的 在这个信息大爆炸的时代 可以过滤很多信息 只留下精华信息"
+        },
+        {
+          "tweet_id": "2051505410553851937",
+          "text": "@eastweb3eth 嗯嗯 对的 尼卡老师"
+        },
+        {
+          "tweet_id": "2051506006598058154",
+          "text": "@mnmn94253156337 一看就会了～不用讲 哈哈"
+        },
+        {
+          "tweet_id": "2051506457255059520",
+          "text": "@dajingou1 谢谢熊猫老师认可～"
+        },
+        {
+          "tweet_id": "2051506497277010427",
+          "text": "@BubbleBing_666 嗯嗯 很好用的"
+        },
+        {
+          "tweet_id": "2051518513236594838",
+          "text": "@Supers6061 一起挖掘好的工具 好的工具就是好的生产力"
+        },
+        {
+          "tweet_id": "2051542779768308223",
+          "text": "@Reboottttttt 谢谢reboot老师"
+        }
+      ],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051499875158921216/img/ZT0JxOEadJPO8E7w.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051499875158921216/img/ZT0JxOEadJPO8E7w.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051380906678489136",
+      "text": "Chinese engineer made $600,000 in ONE MONTH trading BTC markets on Polymarket.\n\nRight tools + 6-layer execution stack, zero risk and pure math edge farming.\n\nHe wins with an 85% probability - earn roughly $150,000 per week. Every week.\n\nHis wallet: https://t.co/AFabMOsvXm https://t.co/OWrff7D3wV https://t.co/tAJbIwopoa",
+      "author_username": "antpalkin",
+      "author_name": "cvxv666",
+      "conversation_id": "2051380906678489136",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051380377462202368/img/hqKYeAz64wbOubdM.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051380377462202368/img/hqKYeAz64wbOubdM.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051260985781190989",
+      "text": "Truco para tener IA gratis en un pendrive (sin instalar nada en tu PC)\n\nCasi nadie sabe que esto existe.\n\nSolo necesitas tres cosas:\n\nUn PC con Windows\nUn pendrive de 32 GB mínimo\nDos archivos gratuitos\n\n1️⃣ Descarga llamafile\n\nEs un software de código abierto disponible en https://t.co/nnaFQerU7a",
+      "author_username": "IATheYoker",
+      "author_name": "YokerAI",
+      "conversation_id": "2051260985781190989",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "animated_gif",
+          "url": "https://pbs.twimg.com/tweet_video_thumb/HHeK_R0bgAEau0z.jpg",
+          "preview_url": "https://pbs.twimg.com/tweet_video_thumb/HHeK_R0bgAEau0z.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051197112805957842",
+      "text": "10 GitHub Repositories That Keep Earning While You Sleep:\n\n1. AutoHedge\nAn AI agent that handles everything from market analysis to trade execution fully automatically. Create your own dedicated autonomous hedge fund in just minutes.\nhttps://t.co/ey6qag6ptd\n\n2. Vibe-Trading\nA https://t.co/gSazYHkhOW",
+      "author_username": "Ai_Tech_tool",
+      "author_name": "AilaunchX",
+      "conversation_id": "2051197112805957842",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHdQ2luakAAvZb_.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051213811332583769",
+      "text": "AIバグ発見システム「SPECA」がOSSになりました\n\nプロンプトもハーネスもすべて公開してます\n\nどうかホワイトハッカーの皆さん、これを参考にしてあらゆるソフトウェアのバグを潰すのに協力してください https://t.co/NvL2Zk79DB",
+      "author_username": "grandchildrice",
+      "author_name": "gohan 🍚⛩️",
+      "conversation_id": "2051213811332583769",
       "thread_parts": [],
       "media": []
     },
     {
-      "tweet_id": "2050192300140314937",
-      "text": "14歳がGoogleMapで稼いだ方法\n→47分で15万円、月収300万\n\n①Google Mapで星4.9なのにサイトがない会社を見つける\n②レビューをGPTに投げて骨子作成\n③webui ioでサイト生成\n④会社に電話して見せる\n⑤15万円で受注\n\nアメリカだと500万社候補があるらしい\n日本もいける\n\nhttps://t.co/My2n72kxdJ https://t.co/gIluKhhFlo",
-      "author_username": "columbus_ceo",
-      "author_name": "のじ",
-      "conversation_id": "2050192300140314937",
+      "tweet_id": "2051363800277029192",
+      "text": "有人刚刚开源了一个神级 OSINT（开源情报）仪表盘。它被称为 Shadowbroker。它将地球上所有的公开军事信号汇聚到一张地图上：航母打击群、间谍卫星、GPS 干扰区、25,000 多艘船只、2,000 多个实时 CCTV 监控画面。在地球上的任何位置点击右键，即可获取完整的情报档案。100% 开源。 https://t.co/2veG4NEQRd",
+      "author_username": "billtheinvestor",
+      "author_name": "Bill The Investor",
+      "conversation_id": "2051363800277029192",
       "thread_parts": [],
       "media": [
         {
           "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2049583472189026305/img/57_TUUWLGhfwE0CW.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2049583472189026305/img/57_TUUWLGhfwE0CW.jpg",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051363741842001920/img/XSeJhKiT8sBUL6Py.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051363741842001920/img/XSeJhKiT8sBUL6Py.jpg",
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2050411482614251955",
-      "text": "自社の広告、デザイナーに発注している人\nマジでもったいなさすぎるｗ\nもう外注いらないｗ\n\nChatGPTでプロの作るような広告を\n月3,000円、2分で無限に作れるのは正直革命\n\nただ、ある工夫をしないと\n素人っぽいアニメ画像しか出てこない\n\n僕も最初は微妙画像しか出せなかったけど https://t.co/hEXhq5oGHx",
-      "author_username": "okuyama_ai_",
-      "author_name": "奥山幸生｜会社に効くAI活用の専門家",
-      "conversation_id": "2050411482614251955",
+      "tweet_id": "2051250545873043709",
+      "text": "Acabo de encontrar la forma más rápida que he visto de montar un negocio de automatización con IA desde cero\n\nAlguien llamado Czlonkowski llevaba tiempo usando n8n para construir flujos de automatización\n\nEl problema: cada vez que pedía ayuda a Claude o a Cursor, la IA cometía https://t.co/DrCOH5FxY5",
+      "author_username": "Fluyeporlaweb",
+      "author_name": "PA13L0",
+      "conversation_id": "2051250545873043709",
       "thread_parts": [],
       "media": [
         {
-          "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHR56xdbcAA_hP2.jpg",
-          "preview_url": null,
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051250478189563905/img/qnNiMdV7NWLsFpRq.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051250478189563905/img/qnNiMdV7NWLsFpRq.jpg",
           "video_url": null
         },
         {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051250478193819650/img/x-t-IZgOCCRRWA04.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051250478193819650/img/x-t-IZgOCCRRWA04.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051546053779009674",
+      "text": "发现一个超好用的开源 AI 设计神器！Open Design，简直是 Claude Design 和 Google Stitch 的免费平替！🔥\n\n它最大的亮点就是不绑定任何模型，你本地装了啥 AI 工具（Claude, Cursor, Gemini...）它就能调用啥！而且内置了 70 多套大牌设计系统（Apple, Notion, Stripe 风格都有），31 https://t.co/3zMdO9APQX",
+      "author_username": "VincentLogic",
+      "author_name": "Vincent Logic | 信号＞噪音",
+      "conversation_id": "2051546053779009674",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051545646445027328/img/BG7DXzOs4iRcacrP.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051545646445027328/img/BG7DXzOs4iRcacrP.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051467220136657343",
+      "text": "别高估自己的隐私！\n\n其实别人想查你，\n一点都不难。\n\n一个工具，几步操作：\n\n域名、邮箱、服务器、代码\n基本都能被扫一遍。\n\n而且不需要技术。\n\n工具👇\nhttps://t.co/PVLa0SSMwV https://t.co/Su1UOZA8HY",
+      "author_username": "xiaoying_eth",
+      "author_name": "小樱💞｜实用工具分享",
+      "conversation_id": "2051467220136657343",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/ext_tw_video_thumb/2051467161303224320/pu/img/sjvhrkgmncnQs1ya.jpg",
+          "preview_url": "https://pbs.twimg.com/ext_tw_video_thumb/2051467161303224320/pu/img/sjvhrkgmncnQs1ya.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051533658532491464",
+      "text": "AI×インフルエンサーマーケを自動化して稼ぐ方法がコレ\n\n1.  集客したい商品やサービスのURLを「Fastlane」に入力\n2.  数秒でリアルなAIインフルエンサーが生成\n3.  バズってる動画をTinderみたいに選び、構成を学習\n4.  AIがその動画を完璧に模倣して自然に宣伝できるUGC動画を生成 https://t.co/1bzLapDKRG",
+      "author_username": "milbon_",
+      "author_name": "みるぼん@スモビジ",
+      "conversation_id": "2051533658532491464",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051533576449982472/img/WMp-Rn5ZCgYQNIAw.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051533576449982472/img/WMp-Rn5ZCgYQNIAw.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051244695066480768",
+      "text": "まじかよ。\nsuno (AI音楽) の無料代替版がリリースされとる。。。\n\nhttps://t.co/4qKYuuCDIo https://t.co/NFxG25GRkA",
+      "author_username": "L_go_mrk",
+      "author_name": "AI駆動塾",
+      "conversation_id": "2051244695066480768",
+      "thread_parts": [],
+      "media": [
+        {
           "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHR57HVaYAAvvjD.jpg",
+          "url": "https://pbs.twimg.com/media/HHdujwEa8AAwg5I.png",
           "preview_url": null,
           "video_url": null
-        },
-        {
-          "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHR57bcbQAAMSkR.jpg",
-          "preview_url": null,
-          "video_url": null
-        },
-        {
-          "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHR57uSbEAApXK8.jpg",
-          "preview_url": null,
-          "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2050500542179266629",
-      "text": "超絶めんどくさがりの人たちもぜひ真似してね。\nClaude Code、VSCodeを使うときに、もうコマンドを入力するのすら私はめんどくさくて、\nそして覚えてないとか忘れたとかもあるので、\n簡単にコピーできる拡張機能を作っちゃいました。\n超絶便利すぎる。\nこれ需要あるかな？？？ https://t.co/U1aVjx6AGF",
-      "author_username": "deliciousair_",
-      "author_name": "しぃー │AIコンシェルジュ",
-      "conversation_id": "2050500542179266629",
+      "tweet_id": "2051399013791105032",
+      "text": "【事件】\nRiley Brownが「2026年はエージェントの年」と題して\nOpenClaw・Claude Code・Codex・Cursorを\n83分で全部解説した動画を発見😳\nhttps://t.co/iq5W7KSOeh\n有料記事100本読むよりこの動画1本の方が価値あるレベルでやばい。\n彼のフレームワーク👇\n\n・OpenClawは「自律型開発」の最前線",
+      "author_username": "AiAircle34052",
+      "author_name": "Aircle｜学生AIコミュニティ",
+      "conversation_id": "2051399013791105032",
       "thread_parts": [],
       "media": [
         {
           "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2050436255989821440/img/egydfhPSoIv134Fz.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050436255989821440/img/egydfhPSoIv134Fz.jpg",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2050696454826778624/img/BfpoM85nbAu1riZR.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050696454826778624/img/BfpoM85nbAu1riZR.jpg",
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2050159686675226799",
-      "text": "ちなみにこの動画はClaude Code × Remotionで100%作ってる。勝手に作業して勝手に修正まで進めてくれた。\n\nhttps://t.co/ofLkeeTmF8\n\nCodexでもやってみたら同じレベルで作れたので両方の話を今度しちゃいますね。\n\nここから一気に動画周辺は革命が起きそう https://t.co/uza9Iz1uIZ",
-      "author_username": "hikarun_videoai",
-      "author_name": "ひかる｜動画運用AI",
-      "conversation_id": "2050159686675226799",
-      "thread_parts": [],
-      "media": [
-        {
-          "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2043613845936304128/img/bsZxJUxFhW31muFK.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2043613845936304128/img/bsZxJUxFhW31muFK.jpg",
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2050230804283117698",
-      "text": "codexはスマホだとポンコツなので\nとりあえずChatGPTアプリでLP作ってもらった😍\n\nちょっと個性が強すぎたけど\nここまでサクッとできるのやばすぎる！！ https://t.co/gmz3xzxpzc https://t.co/co48tBjLMJ",
-      "author_username": "taya_mama_AI",
-      "author_name": "た〜や｜AI副業ワーママ",
-      "conversation_id": "2050230804283117698",
-      "thread_parts": [],
-      "media": [
-        {
-          "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2050230628004798464/img/FKScggGCQT_UaKOf.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050230628004798464/img/FKScggGCQT_UaKOf.jpg",
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2050681492293222863",
-      "text": "※2日で消す\n\n放置で売れるnoteやBrainを自動で執筆してくれるツールが完成しました\n\nこれに商品名だけ入れると放置でも売れてく有料記事をワンクリ3分で執筆してくれます。\n\nこのツールほしい人は👇 https://t.co/NIxqw3OzT5",
-      "author_username": "ai_lab27",
-      "author_name": "ぽめ｜収益成功率91.6％【ぽめ流SNS方程式】無料配布中",
-      "conversation_id": "2050681492293222863",
-      "thread_parts": [],
-      "media": [
-        {
-          "type": "video",
-          "url": "https://pbs.twimg.com/ext_tw_video_thumb/2050677728798736384/pu/img/veRhPdrfc8Xa7n5s.jpg",
-          "preview_url": "https://pbs.twimg.com/ext_tw_video_thumb/2050677728798736384/pu/img/veRhPdrfc8Xa7n5s.jpg",
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2036571328699056322",
-      "text": "詳しくはこちら👇\nhttps://t.co/BftQriGY8S",
+      "tweet_id": "2051240570165825995",
+      "text": "ClaudeでInstagramのコンテンツ制作を自動化できるようになりました。AIが\n\n・ニッチ選定\n・リール台本の作成\n・フック文の量産\n・カルーセル構成\n・AIナレーション用スクリプト調整\n・視聴維持率を上げるループ構造設計\n・30日分のコンテンツ計画\n・マネタイズ方法の提案\n\n全部設計します。 https://t.co/LkrBVAhglV",
       "author_username": "so_ainsight",
       "author_name": "そう｜Claude Codeで始めるAI自動化",
-      "conversation_id": "2036571281957761347",
-      "thread_parts": [],
-      "media": []
-    },
-    {
-      "tweet_id": "2036663986297737296",
-      "text": "当たり前の話だったら申し訳ないのだが、これまで動画の文字起こしするのに普通のWhisperを使ってた。\n\nこれを、Mac用のmlx whisperに変えたら、1分48秒かかっていた文字起こしが5.4秒になった...（3分尺の動画）\n\n30分尺の動画でも、文字起こし1分10秒。知らなかった... https://t.co/dIpcUiLbSz",
-      "author_username": "usutaku_channel",
-      "author_name": "usutaku",
-      "conversation_id": "2036663986297737296",
+      "conversation_id": "2051240570165825995",
       "thread_parts": [],
       "media": [
         {
           "type": "photo",
-          "url": "https://pbs.twimg.com/media/HEOu-vMa8AAw6lR.jpg",
-          "preview_url": null,
-          "video_url": null
-        },
-        {
-          "type": "photo",
-          "url": "https://pbs.twimg.com/media/HEOu_TqbcAADpHC.jpg",
+          "url": "https://pbs.twimg.com/media/HHd4bcTa0AEynO_.jpg",
           "preview_url": null,
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2032058522435797368",
-      "text": "Claude Codeに言っただけで、不労所得が完成したw\n                  \n「こういうの作りたい」って\n日本語で話しかけただけで\nSNS自動運用システムが完成した🔥\n\nコード？一行も書いてない。\nプログラミング？何それ状態。\n\n俺がやったの\n「こんな感じのほしいんよなぁ」って https://t.co/UL3AAkmlQ5",
-      "author_username": "Ldayo_m",
-      "author_name": "Rくん",
-      "conversation_id": "2032058522435797368",
-      "thread_parts": [],
-      "media": [
-        {
-          "type": "photo",
-          "url": "https://pbs.twimg.com/media/HDMn5J6bQAQmDy3.jpg",
-          "preview_url": null,
-          "video_url": null
-        }
-      ]
-    },
-    {
-      "tweet_id": "2032068926503600305",
-      "text": "エグイです！！自分で作っといてアレなんですけど\nこれガチでエグい精度出てる…\n\nSNS100垢分のデータを入れた「コンセプト設計ツール」を作りました\n\nその結果SNSど素人がバンバン万バズを出してる\nオプチャでバズらせ方のノウハウとかも全部出してるん\nで気になる方は覗いてみてください https://t.co/JucRWzSMJN https://t.co/KI1PEQeO1E",
-      "author_username": "sin_brain1",
-      "author_name": "シン",
-      "conversation_id": "2032068926503600305",
+      "tweet_id": "2051480790538608920",
+      "text": "分享一个免费下载任何 YouTube 视频的GitHub开源项目，非常实用🔥\n\n能做的事，放在一起看有点夸张，\n\n输入：任意 YouTube 链接\n\n↓ 自动下载视频\n↓ 人声分离（干净去除背景音）\n↓ 语音转文字\n↓ 翻译成 100+ 种语言\n↓ 克隆原始声线\n↓ 自动配音合成\n\n输出：完整配音视频\n\n全程：&lt; 2 分钟 https://t.co/9USk7yNMQR",
+      "author_username": "AYi_AInotes",
+      "author_name": "阿绎 AYi",
+      "conversation_id": "2051480790538608920",
       "thread_parts": [],
       "media": [
         {
           "type": "video",
-          "url": "https://pbs.twimg.com/amplify_video_thumb/2032068776343252993/img/2AbPNM5jQ7WJrd0q.jpg",
-          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2032068776343252993/img/2AbPNM5jQ7WJrd0q.jpg",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051480715426971657/img/VQAahlYYoh8ZsRbv.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051480715426971657/img/VQAahlYYoh8ZsRbv.jpg",
           "video_url": null
         }
       ]
     },
     {
-      "tweet_id": "2031990609461018811",
-      "text": "https://t.co/3rMsThYI2V",
-      "author_username": "sawa20200424",
-      "author_name": "すがさわ（25歳）",
-      "conversation_id": "2031990609461018811",
+      "tweet_id": "2051346341742456875",
+      "text": "this tool is seriously dangerous.. your AI agents are about to be overpowered\n\nit can:\n→ search the entire web in under 0.5 seconds\n→ fetch any URL and return clean markdown (not junk HTML)\n→ handle JS-heavy SPAs, dynamic content, anti-bot pages\n→ slot into Claude Code, https://t.co/230pOuyiql https://t.co/QVXX3NSOLO",
+      "author_username": "nrqa__",
+      "author_name": "Nelly;",
+      "conversation_id": "2051346341742456875",
       "thread_parts": [],
-      "media": []
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051346118685138944/img/3jnxTaPICKf_85Lh.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051346118685138944/img/3jnxTaPICKf_85Lh.jpg",
+          "video_url": null
+        }
+      ]
     },
     {
-      "tweet_id": "2031335760142676064",
-      "text": "断言します。まだChatGPTしか使ってない人は生き残れません。\n\n自動化なら「n8n」\n書きたいなら「Claude」\n話したいなら「Gemini」\n図解するなら「Opal」\n資料作りなら「Manus」\nLP作るなら「AntiGravity」\n動画作るなら「Kling」\n整理なら「NotebookLM」\n曲を作るなら「Suno」",
-      "author_username": "hinakira_gpts",
-      "author_name": "ヒナキラ┃AIクリエイティブ × AIツール開発🧑🏻‍💻",
-      "conversation_id": "2031335760142676064",
+      "tweet_id": "2051305789214826930",
+      "text": "⚡ Este desarrollador le dio a Claude y Codex acceso a 257.000 pantallas reales de diseño.\n\nSe llama Lazyweb. Tiene MCP nativo, 6 SKILLS de investigación y CERO límites de uso.\n\nGratis.\nhttps://t.co/Z0CzqnuZQj",
+      "author_username": "VisualconAI",
+      "author_name": "✦ VISUAL AI ✦",
+      "conversation_id": "2051305789214826930",
       "thread_parts": [],
-      "media": []
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2050579628285124608/img/7wAwQaL4Ronlqpem.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2050579628285124608/img/7wAwQaL4Ronlqpem.jpg",
+          "video_url": null
+        }
+      ]
     }
   ]
 }

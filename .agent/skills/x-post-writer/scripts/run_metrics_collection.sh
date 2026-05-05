@@ -4,6 +4,13 @@
 
 set -euo pipefail
 
+# launchd は PATH が /usr/bin:/bin:/usr/sbin:/sbin のみのため pyenv を明示的に追加する
+export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+export PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+if command -v pyenv &>/dev/null; then
+  eval "$(pyenv init -)"
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
