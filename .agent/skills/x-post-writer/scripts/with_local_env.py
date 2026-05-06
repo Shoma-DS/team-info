@@ -20,6 +20,8 @@ def ensure_cli_path(env: dict[str, str]) -> None:
     pyenv_root = Path(env.get("PYENV_ROOT") or home / ".pyenv")
     additions = [
         home / ".local" / "bin",
+        Path("/opt/homebrew/bin"),
+        Path("/usr/local/bin"),
         pyenv_root / "shims",
         pyenv_root / "bin",
     ]

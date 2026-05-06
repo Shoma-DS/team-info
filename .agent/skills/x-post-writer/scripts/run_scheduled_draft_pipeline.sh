@@ -6,7 +6,7 @@ set -euo pipefail
 
 # launchd は PATH が /usr/bin:/bin:/usr/sbin:/sbin のみのため CLI の置き場を明示的に追加する
 export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
-export PATH="$HOME/.local/bin:$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
 if command -v pyenv &>/dev/null; then
   eval "$(pyenv init -)"
 fi

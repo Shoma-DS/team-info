@@ -148,6 +148,8 @@ def build_env() -> dict[str, str]:
     pyenv_root = Path(env.get("PYENV_ROOT") or home / ".pyenv")
     path_additions = [
         home / ".local" / "bin",
+        Path("/opt/homebrew/bin"),
+        Path("/usr/local/bin"),
         pyenv_root / "shims",
         pyenv_root / "bin",
     ]
@@ -707,6 +709,8 @@ def run_claude(
         claude_path,
         "-p",
         "--verbose",
+        "--setting-sources",
+        "local",
         "--permission-mode",
         "dontAsk",
         "--output-format",
@@ -720,10 +724,11 @@ def run_claude(
     accumulated_text = ""
     draft_seen = 0
     result_text = ""
+    result_error = ""
     tool_use_input: dict | None = None  # --json-schema 使用時の構造化出力
 
     def on_line(ln: str) -> None:
-        nonlocal accumulated_text, draft_seen, result_text, tool_use_input
+        nonlocal accumulated_text, draft_seen, result_text, result_error, tool_use_input
         ln = ln.strip()
         if not ln:
             return
@@ -737,6 +742,8 @@ def run_claude(
         # 最終結果を取り出す
         if etype == "result":
             result_text = event.get("result", "")
+            if event.get("is_error") or event.get("api_error_status"):
+                result_error = result_text or json.dumps(event, ensure_ascii=False)
             return
 
         # assistant ブロックを処理
@@ -777,6 +784,8 @@ def run_claude(
         raise JobError("claude 実行がタイムアウトしました")
     if code != 0:
         raise JobError(truncate(combined, 500) or f"claude 実行失敗 (exit={code})")
+    if result_error:
+        raise JobError(f"claude 実行エラー: {truncate(result_error, 500)}")
 
     # --json-schema 使用時は tool_use の input を優先して返す
     if tool_use_input is not None:
