@@ -15,6 +15,20 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 CLAUDE_SETTINGS_FILE = REPO_ROOT / ".claude" / "settings.local.json"
 
 
+def ensure_cli_path(env: dict[str, str]) -> None:
+    home = Path.home()
+    pyenv_root = Path(env.get("PYENV_ROOT") or home / ".pyenv")
+    additions = [
+        home / ".local" / "bin",
+        pyenv_root / "shims",
+        pyenv_root / "bin",
+    ]
+    existing = env.get("PATH") or "/usr/bin:/bin:/usr/sbin:/sbin"
+    parts = [str(path) for path in additions] + existing.split(":")
+    deduped = list(dict.fromkeys(part for part in parts if part))
+    env["PATH"] = ":".join(deduped)
+
+
 def load_settings_env() -> dict[str, str]:
     if not CLAUDE_SETTINGS_FILE.exists():
         return {}
@@ -42,6 +56,7 @@ def main() -> int:
     env = os.environ.copy()
     env.update(load_settings_env())
     env.setdefault("TEAM_INFO_ROOT", str(REPO_ROOT))
+    ensure_cli_path(env)
 
     completed = subprocess.run(args, cwd=str(REPO_ROOT), env=env)
     return completed.returncode

@@ -144,6 +144,15 @@ def build_env() -> dict[str, str]:
     env = os.environ.copy()
     env.update(load_claude_env())
     env.setdefault("TEAM_INFO_ROOT", str(REPO_ROOT))
+    home = Path.home()
+    pyenv_root = Path(env.get("PYENV_ROOT") or home / ".pyenv")
+    path_additions = [
+        home / ".local" / "bin",
+        pyenv_root / "shims",
+        pyenv_root / "bin",
+    ]
+    path_parts = [str(path) for path in path_additions] + (env.get("PATH") or "").split(":")
+    env["PATH"] = ":".join(dict.fromkeys(part for part in path_parts if part))
     return env
 
 
@@ -624,7 +633,7 @@ def run_codex(
     on_progress=None,
     total: int = 0,
 ) -> tuple[dict | None, str]:
-    codex_path = shutil.which("codex")
+    codex_path = shutil.which("codex", path=env.get("PATH"))
     if not codex_path:
         return None, "codex コマンドが見つかりません"
 
@@ -688,7 +697,7 @@ def run_claude(
     on_progress=None,
     total: int = 0,
 ) -> tuple[dict, str]:
-    claude_path = shutil.which("claude")
+    claude_path = shutil.which("claude", path=env.get("PATH"))
     if not claude_path:
         raise JobError("claude コマンドが見つかりません")
 
