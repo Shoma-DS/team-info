@@ -18,7 +18,9 @@ import os
 import re
 import subprocess
 import sys
+import time
 import wave
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Optional, Dict, List
 try:
@@ -58,6 +60,24 @@ def is_voicevox_running() -> bool:
         return False
 
 
+def wait_for_voicevox(timeout_seconds: float = 90.0, interval_seconds: float = 1.5) -> bool:
+    """VOICEVOX Engine 起動直後の ConnectionReset を吸収し、API 応答まで待つ。"""
+    deadline = time.monotonic() + timeout_seconds
+    last_error = ""
+    while time.monotonic() < deadline:
+        try:
+            r = requests.get(f"{VOICEVOX_BASE}/version", timeout=2)
+            if r.status_code == 200:
+                print(f"VOICEVOX Engine ready: {r.text.strip()}")
+                return True
+            last_error = f"HTTP {r.status_code}"
+        except Exception as e:
+            last_error = f"{type(e).__name__}: {e}"
+        time.sleep(interval_seconds)
+    print(f"VOICEVOX Engine の起動待ちがタイムアウトしました: {last_error}")
+    return False
+
+
 def start_voicevox() -> bool:
     """team_info_runtime.py 経由で Docker 上の VOICEVOX Engine を起動する"""
     print("VOICEVOX Engine が起動していません。起動を試みます...")
@@ -79,12 +99,10 @@ def start_voicevox() -> bool:
     )
     if completed.stdout.strip():
         print(completed.stdout.strip())
-    if completed.returncode != 0:
-        if completed.stderr.strip():
-            print(completed.stderr.strip())
-        return False
+    if completed.returncode != 0 and completed.stderr.strip():
+        print(completed.stderr.strip())
 
-    return is_voicevox_running()
+    return wait_for_voicevox()
 
 
 def ensure_voicevox() -> bool:
@@ -181,16 +199,12 @@ def render_sections(
     sections: list[dict],
     speaker_id: int,
     settings: dict[str, float],
+    jobs: int = 2,
 ) -> tuple[list[dict], float]:
     rendered_sections: list[dict] = []
-    total_duration = 0.0
-
     total = len(sections)
-    for i, sec in enumerate(sections):
-        slot_label = SECTION_OUTPUT_SLOTS.get(sec["key"], sec["key"])
-        char_count = len(sec["text"])
-        print(f"\n[{i+1}/{total}] {slot_label}  ({char_count}文字)")
-        print("  → audio_query ...", end="", flush=True)
+
+    def render_one(index: int, sec: dict) -> dict:
         wav_data = synthesize(
             sec["text"],
             speaker_id,
@@ -201,19 +215,41 @@ def render_sections(
             post_phoneme_length=settings["post_phoneme_length"],
         )
         duration = get_wav_duration(wav_data)
-        print(f"\r  ✅ 完了  {duration:.1f}s                    ")
-        rendered_sections.append(
-            {
-                "slot": SECTION_OUTPUT_SLOTS.get(sec["key"], f"{i:02d}_{sec['key']}"),
-                "text": sec["text"],
-                "wav_data": wav_data,
-                "duration": duration,
-            }
-        )
-        total_duration += duration
+        return {
+            "index": index,
+            "slot": SECTION_OUTPUT_SLOTS.get(sec["key"], f"{index:02d}_{sec['key']}"),
+            "text": sec["text"],
+            "wav_data": wav_data,
+            "duration": duration,
+        }
+
+    max_workers = max(1, min(jobs, total))
+    if max_workers == 1:
+        for i, sec in enumerate(sections):
+            slot_label = SECTION_OUTPUT_SLOTS.get(sec["key"], sec["key"])
+            char_count = len(sec["text"])
+            print(f"\n[{i+1}/{total}] {slot_label}  ({char_count}文字)")
+            print("  → audio_query ...", end="", flush=True)
+            result = render_one(i, sec)
+            print(f"\r  ✅ 完了  {result['duration']:.1f}s                    ")
+            rendered_sections.append(result)
+    else:
+        print(f"\nVOICEVOX 並列合成: jobs={max_workers}")
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {}
+            for i, sec in enumerate(sections):
+                slot_label = SECTION_OUTPUT_SLOTS.get(sec["key"], sec["key"])
+                print(f"  [{i+1}/{total}] queued {slot_label} ({len(sec['text'])}文字)")
+                futures[executor.submit(render_one, i, sec)] = slot_label
+            for future in as_completed(futures):
+                result = future.result()
+                print(f"  ✅ {result['slot']} 完了 {result['duration']:.1f}s")
+                rendered_sections.append(result)
+
+    rendered_sections.sort(key=lambda item: item["index"])
+    total_duration = sum(section["duration"] for section in rendered_sections)
 
     return rendered_sections, total_duration
-
 
 def infer_target_seconds(script_path: Path) -> Optional[float]:
     subtitles_path = script_path.with_name("subtitles.json")
@@ -382,6 +418,8 @@ def run(
     target_seconds: Optional[float],
     timeline_ts_path: Optional[Path],
     skip_subtitle_sync: bool,
+    jobs: int,
+    fit_target_mode: str,
 ):
     # 1. VOICEVOX 起動確認
     if not ensure_voicevox():
@@ -438,10 +476,10 @@ def run(
     }
     applied_settings = dict(base_settings)
 
-    rendered_sections, duration = render_sections(sections, speaker_id, applied_settings)
+    rendered_sections, duration = render_sections(sections, speaker_id, applied_settings, jobs=jobs)
 
     duration_tolerance = max(0.3, (target_seconds or 0.0) * 0.01) if target_seconds else 0.0
-    if target_seconds and abs(duration - target_seconds) > duration_tolerance:
+    if target_seconds and abs(duration - target_seconds) > duration_tolerance and fit_target_mode == "exact":
         ratio = duration / target_seconds
         adjusted_settings = dict(base_settings)
         adjusted_settings["speed"] = min(1.8, max(0.6, base_settings["speed"] * ratio))
@@ -459,8 +497,18 @@ def run(
             f"pause={adjusted_settings['pause_length_scale']:.2f}, "
             f"post={adjusted_settings['post_phoneme_length']:.2f}"
         )
-        rendered_sections, duration = render_sections(sections, speaker_id, adjusted_settings)
+        rendered_sections, duration = render_sections(sections, speaker_id, adjusted_settings, jobs=jobs)
         applied_settings = adjusted_settings
+    elif target_seconds and abs(duration - target_seconds) > duration_tolerance:
+        ratio = duration / target_seconds
+        suggested_speed = min(1.8, max(0.6, base_settings["speed"] * ratio))
+        print(
+            "\n目標尺との差がありますが、既定の高速モードでは再合成しません。"
+            f" 差分={duration - target_seconds:+.1f}秒 / "
+            f"exact再生成時の目安 speed={suggested_speed:.2f}"
+        )
+        if fit_target_mode == "fast":
+            print("厳密に合わせる場合は --fit-target-mode exact を付けて再実行してください。")
 
     # 5. セクションごとに書き出し
     all_wav_data = []
@@ -552,6 +600,14 @@ def main():
                         help="同期済み字幕タイムラインの TS モジュール出力先")
     parser.add_argument("--skip-subtitle-sync", action="store_true",
                         help="音源生成後の subtitles.json 同期をスキップする")
+    parser.add_argument("--jobs", type=int, default=2,
+                        help="VOICEVOX セクション合成の並列数。既定は2。重い場合は1にする")
+    parser.add_argument(
+        "--fit-target-mode",
+        choices=["fast", "exact", "off"],
+        default="fast",
+        help="target-seconds との差分処理。fast=再合成なしで高速、exact=尺合わせ再合成、off=差分表示のみ",
+    )
     args = parser.parse_args()
 
     # script パスの決定
@@ -608,6 +664,8 @@ def main():
         target_seconds,
         args.timeline_ts,
         args.skip_subtitle_sync,
+        max(args.jobs, 1),
+        args.fit_target_mode,
     )
 
 

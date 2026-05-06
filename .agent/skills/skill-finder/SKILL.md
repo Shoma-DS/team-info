@@ -100,7 +100,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | team-info-setup | team-info の初回セットアップや再セットアップを始める。core setup と lazy bootstrap 方針の入口 | `.agent/skills/common/team-info-setup/SKILL.md` |
 | agent-reach | team-info 向けに取り込んだ Agent-Reach。初回は自動 bootstrap しつつ、OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査する | `.agent/skills/common/agent-reach/SKILL.md` |
 | repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/team-info-setup/repo-adapted-tool-import/SKILL.md` |
-| obsidian-claudian | official Obsidian CLI と Claudian を team-info 向けに導入・更新し、active vault の plugin、`.claude/` 初期設定、初期 subagent 雛形を整える | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` |
+| obsidian-claudian | official Obsidian CLI、Claudian、各PCの `personal/<account>/obsidian/claude-obsidian/` を team-info 向けに導入・更新し、Codex / Claude Code 共通で使う個人用 Obsidian 知識ベースを整える | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` |
 | shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/team-info-setup/shared-agent-assets/SKILL.md` |
 | repo-information-architecture | repo 全体のフォルダ構成・ファイル配置・スキル配置を整理し、重複役割の統合、検索性向上、トークン節約まで見据えて情報設計を見直す起点スキル | `.agent/skills/common/repo-information-architecture/SKILL.md` |
 | markmap-markdown-writer | Markmap 拡張で崩れにくい Markdown を作る。説明資料や設定メモを mindmap 向けの見出し構造へ整理する | `.agent/skills/common/markmap-markdown-writer/SKILL.md` |

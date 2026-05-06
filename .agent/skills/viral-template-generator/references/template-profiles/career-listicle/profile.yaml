@@ -25,6 +25,8 @@ overrides:
   remotion_mode: image-crossfade
   bgm_mode: light-tension
   sfx_mode: minimal
+  voice_profile: aoyama_ryuusei_normal
+  voice_speaker: 青山龍星 / ノーマル
   jet_cut: true
   forced_alignment: true
 

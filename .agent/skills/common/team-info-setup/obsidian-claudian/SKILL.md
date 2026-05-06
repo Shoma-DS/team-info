@@ -1,12 +1,14 @@
 ---
 name: obsidian-claudian
-description: official Obsidian CLI と Claudian を team-info 向けに導入・更新する。アクティブ vault の plugin 配備、`.claude/claudian-settings.json` の初期化、初期 subagent 雛形の seed まで行う。
+description: official Obsidian CLI と Claudian、各PCの個人用 claude-obsidian vault を team-info 向けに導入・更新する。アクティブ vault の plugin 配備、`.claude/claudian-settings.json` の初期化、Codex/Claude Code 共通の Obsidian 知識ベース整備まで行う。
 ---
 
 # obsidian-claudian スキル
 
 ## 役割
 - official Obsidian CLI と Claudian を、今のマシンとアクティブ vault に合わせて導入する。
+- 各PC・各Gitアカウントごとに `personal/<account>/obsidian/claude-obsidian/` を作り、ローカル知識がそのPCの個人フォルダへ溜まる状態を作る。
+- Codex / Claude Code のどちらでも同じ vault と `skills/` を使えるよう、claude-obsidian の multi-agent 入口を案内する。
 - Claudian plugin を vault に配備し、日本語 UI、`~/.claude` 読み込み、Claude CLI パス、添付フォルダ整合を最小構成で整える。
 - repo には再利用できる installer / doctor を残し、runtime の設定は vault 側へ閉じ込める。
 
@@ -16,6 +18,8 @@ description: official Obsidian CLI と Claudian を team-info 向けに導入・
 - Claudian plugin: `<vault>/.obsidian/plugins/claudian/`
 - Claudian settings: `<vault>/.claude/claudian-settings.json`
 - 初期 subagent 雛形: `<vault>/.claude/agents/`
+- 個人用 claude-obsidian vault: `$TEAM_INFO_ROOT/personal/<account>/obsidian/claude-obsidian/`
+- vault 連携メモ: `<vault>/TEAM_INFO_BRIDGE.md`
 
 ## 導入手順
 1. 公式 Obsidian を 1.12 系以上で入れる。
@@ -30,6 +34,26 @@ description: official Obsidian CLI と Claudian を team-info 向けに導入・
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
 ```
 
+## 個人用 claude-obsidian vault の作成
+
+各PCで次を実行すると、Gitアカウント名から個人フォルダを決め、`personal/<account>/obsidian/claude-obsidian/` を作成・初期化する。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" ensure-vault
+```
+
+現在のPCで使われる vault パスだけ確認する場合:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" vault-path
+```
+
+Codex / Gemini / OpenCode へ claude-obsidian の `skills/` を symlink する場合は、ユーザー確認後に次を使う。ホーム配下へ symlink を作るため、自動実行しない。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" ensure-vault --setup-multi-agent
+```
+
 ## 状態確認
 
 ```bash
@@ -38,6 +62,8 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/s
 
 ## team-info 優先ルール
 - repo の正本はこの `SKILL.md` と `scripts/` 配下。vault 側の `.claude/` は runtime 設定として扱う。
+- claude-obsidian vault は `personal/*/` 配下に置き、共有 git へ知識本体を載せない。
+- Gitアカウント名から算出したフォルダが未作成で、`personal/` 配下に既存アカウントフォルダが1つだけある場合は、重複作成を避けて既存フォルダを優先する。
 - Claudian の `permissionMode` は初期値を `normal` にする。いきなり `yolo` へはしない。
 - `loadUserClaudeSettings` は有効のままにし、既存の `~/.claude/settings.json` を活かす。
 - 添付フォルダは vault の `.obsidian/app.json` を読み、root 保存なら Claudian 側は空文字のままにする。
@@ -62,6 +88,8 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/s
 ## よく使うコマンド
 
 ```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" vault-path
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" ensure-vault
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --vault "/absolute/path/to/vault" --user-name "Shouma"

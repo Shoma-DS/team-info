@@ -59,6 +59,8 @@
 | `/git-nd`| `.agent/skills/common/git-workflow/SKILL.md` | コミット＋反映（オーナー機はpush、他PCはGitHubアカウント名ブランチでPR、Discord報告なし） |
 | `/pull` | `git fetch origin` 後、更新があるときだけ `pull --rebase` | 最新ソースの同期 |
 | `/setup` | `.agent/skills/common/team-info-setup/SKILL.md` | 環境構築・外部ツール・MCP導入 |
+| `/obsidian` | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` | 各PCの個人用 Obsidian / claude-obsidian vault を作成・確認し、Codex / Claude Code 共通で使えるようにする |
+| `/claudian` | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` | Obsidian CLI と Claudian plugin を active vault に導入・更新する |
 | `/reach` | `.agent/skills/common/agent-reach/SKILL.md` | マーケット調査・横断リサーチ |
 | `/ceo` | `.agent/skills/common/agent-org-ceo/SKILL.md` | オーナー配下の CEO と役割別メンバーで仕事を振り分ける |
 | `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |

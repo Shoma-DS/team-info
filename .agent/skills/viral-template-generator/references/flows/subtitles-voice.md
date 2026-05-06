@@ -33,6 +33,22 @@
 - VOICEVOX は必要なときだけ起動する
 - 使い終わったら停止する
 - 合成前にテンプレのトーンに合う音声プロファイルを選ぶ
+- `profile.yaml` に `voice_profile` が指定されている場合は、ユーザーが明示的に別話者を指定しない限り必ずそのプロファイルを使う
+- 転職・キャリア系のテンプレートでは、明示指示がない限り `aoyama_ryuusei_normal`（青山龍星 / ノーマル）を使う
+- `generate_viral_voice.py` は VOICEVOX 起動直後の `ConnectionResetError` を吸収して `/version` 応答まで待つため、同じコマンドを連打しない
+- 既定は高速化のため `--fit-target-mode fast`。尺に厳密に合わせたい場合だけ `--fit-target-mode exact` を付ける
+- 既定の並列数は `--jobs 2`。PC負荷が高い、または VOICEVOX が不安定なら `--jobs 1` に下げる
+
+## 転職・キャリア系の推奨音声生成コマンド
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/viral-template-generator/scripts/generate_viral_voice.py" \
+  --script "$TEAM_INFO_ROOT/[script.md]" \
+  --output-dir "$TEAM_INFO_ROOT/Remotion/my-video/public/audio/[動画フォルダ]" \
+  --profile aoyama_ryuusei_normal \
+  --jobs 2 \
+  --fit-target-mode fast
+```
 
 ## テンプレ差分
 - `profile.yaml` を読む

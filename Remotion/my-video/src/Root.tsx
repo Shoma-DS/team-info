@@ -15,6 +15,7 @@ import {
 import { ViralClipEditor } from "./viral/editor/ViralClipEditor";
 import { viralEditorPresets } from "./viral/editor/presets";
 import { TenshokuShort20260416 } from "./viral/TenshokuShort20260416";
+import { TenshokuShort20260506 } from "./viral/TenshokuShort20260506";
 import { withErrorBoundary } from "./ErrorBoundary";
 
 const SleepTravelLongSafe = withErrorBoundary(SleepTravelLong, "SleepTravelLong");
@@ -30,6 +31,7 @@ const JobChangeViralHorizontal20260412Safe = withErrorBoundary(
 const EditableViralVideoSafe = withErrorBoundary(EditableViralVideo, "EditableViralVideo");
 const ViralClipEditorSafe = withErrorBoundary(ViralClipEditor, "ViralClipEditor");
 const TenshokuShort20260416Safe = withErrorBoundary(TenshokuShort20260416, "転職ショート_20260416");
+const TenshokuShort20260506Safe = withErrorBoundary(TenshokuShort20260506, "転職ショート_20260506");
 
 const getEditableViralDuration = (props: ViralStudioEditorProps): number => {
   return Math.max(
@@ -120,6 +122,14 @@ export const RemotionRoot: React.FC = () => {
             component={TenshokuShort20260416Safe}
             durationInFrames={2394}
 
+            fps={30}
+            width={1080}
+            height={1920}
+          />
+          <Composition
+            id="TenshokuShort-20260506"
+            component={TenshokuShort20260506Safe}
+            durationInFrames={2642}
             fps={30}
             width={1080}
             height={1920}

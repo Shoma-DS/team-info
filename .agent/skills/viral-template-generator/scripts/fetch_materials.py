@@ -78,6 +78,34 @@ SLOT_CONFIG = {
     "99_cta": {"person_idx": None},
 }
 
+CAREER_FALLBACK_QUERIES = [
+    "転職 会社員 悩む",
+    "出社 疲れ",
+    "上司 相談",
+    "残業 仕事",
+    "キャリアアップ",
+    "転職活動",
+]
+
+CAREER_KEYWORD_RULES = [
+    ("朝", "出社 疲れ"),
+    ("出社", "出社 疲れ"),
+    ("疲れ", "仕事 疲れ"),
+    ("日曜", "日曜日 憂鬱"),
+    ("相談", "上司 相談"),
+    ("上司", "上司 相談"),
+    ("人手不足", "人手不足 仕事"),
+    ("残業", "残業 会社員"),
+    ("評価", "評価 面談"),
+    ("成長", "キャリアアップ"),
+    ("挑戦", "キャリアアップ"),
+    ("学び", "勉強 会社員"),
+    ("目標", "キャリア 目標"),
+    ("未来", "将来 仕事"),
+    ("転職", "転職活動"),
+    ("保存", "チェックリスト"),
+]
+
 
 @dataclass(frozen=True)
 class CandidateImage:
@@ -962,16 +990,50 @@ def select_images_by_face(
 def parse_script(script_path: Path) -> dict:
     text = script_path.read_text(encoding="utf-8")
     result: dict = {"hook": "", "sections": []}
-    hook_match = re.search(r"##\s*フック.*?\n+(.*?)(?=\n---|\Z)", text, re.DOTALL)
+    hook_match = re.search(r"##\s*フック.*?\n+(.*?)(?=\n##|\n---|\Z)", text, re.DOTALL)
     if hook_match:
         result["hook"] = hook_match.group(1).strip()
-    for label, body in re.findall(
-        r"##\s*本編\s*セクション\d+[:：]\s*([^\n]+)\n+(.*?)(?=\n---|\Z)",
+    for match in re.finditer(
+        r"##\s*本編\s*セクション\d+(?:[:：]\s*([^\n]+))?\n+(.*?)(?=\n##|\n---|\Z)",
         text,
         re.DOTALL,
     ):
+        label = (match.group(1) or "").strip()
+        body = match.group(2).strip()
+        if not label:
+            first_line = next((line.strip() for line in body.splitlines() if line.strip()), "")
+            label = first_line.rstrip("。")
         result["sections"].append({"label": label.strip(), "text": body.strip()})
     return result
+
+
+def build_career_material_queries(script_path: Path | None, explicit_names: list[str]) -> list[str]:
+    if explicit_names:
+        return unique_strings(explicit_names)
+
+    parsed = parse_script(script_path) if script_path and script_path.exists() else {}
+    raw_groups: list[str] = []
+    if parsed.get("hook"):
+        raw_groups.append(parsed["hook"])
+    raw_groups.extend(
+        " ".join([section.get("label", ""), section.get("text", "")])
+        for section in parsed.get("sections", [])
+    )
+
+    queries: list[str] = []
+    for raw in raw_groups:
+        matched = False
+        for needle, query in CAREER_KEYWORD_RULES:
+            if needle in raw:
+                queries.append(query)
+                matched = True
+                break
+        if not matched:
+            compact = re.sub(r"[^\w\u3040-\u30ff\u3400-\u9fff々ー]+", " ", raw).strip()
+            if compact:
+                queries.append(compact[:24])
+
+    return unique_strings(queries + CAREER_FALLBACK_QUERIES)[:6]
 
 
 def extract_names_from_section(section_text: str) -> list[str]:
@@ -1012,7 +1074,10 @@ def run(
     candidate_base = materials_dir / composition_id if composition_id else materials_dir
     candidate_base.mkdir(parents=True, exist_ok=True)
 
-    if script_path and script_path.exists() and not names:
+    if template_type == "career-listicle":
+        names = build_career_material_queries(script_path, names)
+        print(f"career-listicle 用の素材検索語: {names}")
+    elif script_path and script_path.exists() and not names:
         parsed = parse_script(script_path)
         for section in parsed.get("sections", []):
             names += extract_names_from_section(section["text"])
@@ -1039,7 +1104,7 @@ def run(
 
     hook_output: Path | None = None
     hook_status = "ok"
-    if template_type != "irasutoya" and names:
+    if template_type not in {"irasutoya", "career-listicle"} and names:
         hook_query = build_template_query(names[0], template_type, for_hook=True)
         print(f"  [hook] 検索クエリ: {hook_query}")
         hook_downloaded = fetch_candidates_for_person(
@@ -1060,11 +1125,14 @@ def run(
     person_candidates: dict[str, list[Path]] = {}
     for name in names:
         person_dir = candidate_base / name
-        if template_type == "irasutoya":
+        if template_type in {"irasutoya", "career-listicle"}:
             person_dir.mkdir(parents=True, exist_ok=True)
             n_candidates = max(candidates_per_person * OVERSAMPLE_FACTOR, 1)
             print(f"\n  [{name}] いらすとや素材を検索・取得中... （目標: {n_candidates}枚）")
             irasutoya_candidates = search_irasutoya(name, limit=n_candidates)
+            if template_type == "career-listicle" and len(irasutoya_candidates) < candidates_per_person:
+                print("  → いらすとや候補が不足。Openverse で補完します。")
+                irasutoya_candidates.extend(search_openverse(f"{name} business", limit=n_candidates))
             downloaded: list[Path] = []
             downloaded_records: list[dict] = []
             total_to_download = min(len(irasutoya_candidates), n_candidates)
@@ -1155,7 +1223,7 @@ def run(
     status_per_person: dict[str, list[str]] = {}
     for name in names:
         needed = person_slot_count[name]
-        if template_type == "irasutoya":
+        if template_type in {"irasutoya", "career-listicle"}:
             print(f"\n  [{name}] いらすとや素材を選別中... （必要: {needed}枚）")
             sample_size = min(len(person_candidates[name]), needed)
             selected = random.sample(person_candidates[name], sample_size) if sample_size else []
@@ -1266,8 +1334,8 @@ def main():
         "--template-type",
         type=str,
         default="person",
-        choices=["person", "irasutoya", "adult-affiliate"],
-        help="テンプレート種別。irasutoya=いらすとや素材、adult-affiliate=アダルトアフィリエイト用（人物写真）",
+        choices=["person", "irasutoya", "career-listicle", "adult-affiliate"],
+        help="テンプレート種別。career-listicle=転職系いらすとや優先、irasutoya=いらすとや素材、adult-affiliate=アダルトアフィリエイト用（人物写真）",
     )
     args = parser.parse_args()
 

@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
+"""Manage team-info's per-machine Obsidian + agent bridge.
+
+This script installs Claudian into an Obsidian vault and can also create the
+personal claude-obsidian vault used by Codex, Claude Code, and similar agents.
+Runtime knowledge lives under personal/<account>/ and stays out of shared git.
+"""
 from __future__ import annotations
 
 import argparse
 import json
 import os
 import platform
+import re
 import shutil
+import subprocess
 import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 
+CLAUDE_OBSIDIAN_REPO = "https://github.com/AgriciDaniel/claude-obsidian.git"
 CLAUDIAN_RELEASE_API = "https://api.github.com/repos/YishenTu/claudian/releases/latest"
 CLAUDIAN_ASSETS = ("main.js", "manifest.json", "styles.css")
 DEFAULT_AGENT_TEMPLATES = {
@@ -69,6 +78,136 @@ def load_json(path: Path, default):
 def save_json(path: Path, data) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def run_command(command: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        command,
+        cwd=str(cwd) if cwd else None,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+
+def repo_root_from_args(raw_repo_root: str | None) -> Path:
+    if raw_repo_root:
+        return Path(raw_repo_root).expanduser().resolve()
+    env_root = os.environ.get("TEAM_INFO_ROOT")
+    if env_root:
+        return Path(env_root).expanduser().resolve()
+    return Path.cwd().resolve()
+
+
+def git_user_name(repo_root: Path) -> str:
+    try:
+        result = run_command(["git", "-C", str(repo_root), "config", "user.name"])
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return os.environ.get("USER", "local")
+    return result.stdout.strip() or os.environ.get("USER", "local")
+
+
+def account_slug_from_name(raw_name: str) -> str:
+    slug = re.sub(r"[^0-9A-Za-z\u3040-\u30ff\u3400-\u9fff]+", "", raw_name.lower())
+    return slug or "local"
+
+
+def resolve_personal_account(repo_root: Path, account: str | None = None) -> str:
+    if account:
+        return account
+
+    derived = account_slug_from_name(git_user_name(repo_root))
+    personal_root = repo_root / "personal"
+    derived_path = personal_root / derived
+    if derived_path.exists():
+        return derived
+
+    if personal_root.exists():
+        candidates = [path.name for path in personal_root.iterdir() if path.is_dir()]
+        if len(candidates) == 1:
+            return candidates[0]
+
+    return derived
+
+
+def default_personal_vault_path(repo_root: Path, account: str | None = None) -> Path:
+    account_name = resolve_personal_account(repo_root, account)
+    return repo_root / "personal" / account_name / "obsidian" / "claude-obsidian"
+
+
+def write_team_info_bridge_note(vault_path: Path, repo_root: Path) -> Path:
+    bridge_path = vault_path / "TEAM_INFO_BRIDGE.md"
+    content = f"""# team-info AI bridge
+
+This vault is the local personal knowledge base for team-info agents.
+
+- team-info root: `{repo_root}`
+- vault root: `{vault_path}`
+- source inbox: `.raw/`
+- generated wiki: `wiki/`
+- recent context: `wiki/hot.md`
+
+## Agent usage
+
+For Claude Code, open this vault folder and use `/wiki`, `ingest [file]`,
+`/save`, `lint the wiki`, and `/autoresearch [topic]`.
+
+For Codex, open this vault folder and read `AGENTS.md` first. The same skills
+live in `skills/`; if they are not auto-discovered, run `bash bin/setup-multi-agent.sh`.
+
+Keep runtime knowledge in this vault. Do not move machine-specific notes into
+shared team-info folders unless the user explicitly asks to share them.
+"""
+    if bridge_path.exists() and bridge_path.read_text(encoding="utf-8") == content:
+        return bridge_path
+    bridge_path.write_text(content, encoding="utf-8")
+    return bridge_path
+
+
+def ensure_claude_obsidian_vault(
+    repo_root: Path,
+    vault_path: Path,
+    run_setup: bool,
+    update_existing: bool,
+    setup_multi_agent: bool,
+) -> dict:
+    created = False
+    updated = False
+    if not vault_path.exists():
+        vault_path.parent.mkdir(parents=True, exist_ok=True)
+        run_command(["git", "clone", CLAUDE_OBSIDIAN_REPO, str(vault_path)], cwd=repo_root)
+        created = True
+    elif update_existing and (vault_path / ".git").exists():
+        run_command(["git", "fetch", "origin"], cwd=vault_path)
+        run_command(["git", "pull", "--ff-only"], cwd=vault_path)
+        updated = True
+
+    if run_setup:
+        setup_script = vault_path / "bin" / "setup-vault.sh"
+        if not setup_script.exists():
+            raise RuntimeError(f"setup-vault.sh was not found: {setup_script}")
+        run_command(["bash", str(setup_script), str(vault_path)], cwd=repo_root)
+
+    multi_agent_output = ""
+    if setup_multi_agent:
+        multi_agent_script = vault_path / "bin" / "setup-multi-agent.sh"
+        if not multi_agent_script.exists():
+            raise RuntimeError(f"setup-multi-agent.sh was not found: {multi_agent_script}")
+        result = run_command(["bash", str(multi_agent_script)], cwd=vault_path)
+        multi_agent_output = result.stdout
+
+    bridge_path = write_team_info_bridge_note(vault_path, repo_root)
+    return {
+        "repo_root": str(repo_root),
+        "vault": str(vault_path),
+        "created": created,
+        "updated": updated,
+        "setup_vault_ran": run_setup,
+        "setup_multi_agent_ran": setup_multi_agent,
+        "bridge_note": str(bridge_path),
+        "multi_agent_output": multi_agent_output,
+    }
 
 
 def obsidian_json_path() -> Path:
@@ -376,6 +515,35 @@ def command_install(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_vault_path(args: argparse.Namespace) -> int:
+    repo_root = repo_root_from_args(args.repo_root)
+    vault_path = Path(args.vault).expanduser().resolve() if args.vault else default_personal_vault_path(repo_root, args.account)
+    summary = {
+        "repo_root": str(repo_root),
+        "account": resolve_personal_account(repo_root, args.account),
+        "vault": str(vault_path),
+        "exists": vault_path.exists(),
+    }
+    json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+    sys.stdout.write("\n")
+    return 0
+
+
+def command_ensure_vault(args: argparse.Namespace) -> int:
+    repo_root = repo_root_from_args(args.repo_root)
+    vault_path = Path(args.vault).expanduser().resolve() if args.vault else default_personal_vault_path(repo_root, args.account)
+    summary = ensure_claude_obsidian_vault(
+        repo_root=repo_root,
+        vault_path=vault_path,
+        run_setup=not args.no_setup,
+        update_existing=args.update,
+        setup_multi_agent=args.setup_multi_agent,
+    )
+    json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+    sys.stdout.write("\n")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="team-info helper for Obsidian CLI + Claudian")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -383,6 +551,25 @@ def build_parser() -> argparse.ArgumentParser:
     doctor_parser = subparsers.add_parser("doctor", help="inspect Obsidian / Claudian status")
     doctor_parser.add_argument("--vault", help="override vault path")
     doctor_parser.set_defaults(func=command_doctor)
+
+    vault_path_parser = subparsers.add_parser("vault-path", help="print the default personal claude-obsidian vault path")
+    vault_path_parser.add_argument("--repo-root", help="override TEAM_INFO_ROOT")
+    vault_path_parser.add_argument("--account", help="override personal account slug")
+    vault_path_parser.add_argument("--vault", help="override vault path")
+    vault_path_parser.set_defaults(func=command_vault_path)
+
+    ensure_parser = subparsers.add_parser("ensure-vault", help="create or refresh the default personal claude-obsidian vault")
+    ensure_parser.add_argument("--repo-root", help="override TEAM_INFO_ROOT")
+    ensure_parser.add_argument("--account", help="override personal account slug")
+    ensure_parser.add_argument("--vault", help="override vault path")
+    ensure_parser.add_argument("--no-setup", action="store_true", help="skip bin/setup-vault.sh")
+    ensure_parser.add_argument("--update", action="store_true", help="git fetch + pull --ff-only when the vault already exists")
+    ensure_parser.add_argument(
+        "--setup-multi-agent",
+        action="store_true",
+        help="run bin/setup-multi-agent.sh to link skills into Codex/Gemini/OpenCode config folders",
+    )
+    ensure_parser.set_defaults(func=command_ensure_vault)
 
     install_parser = subparsers.add_parser("install", help="install Claudian into the active vault")
     install_parser.add_argument("--vault", help="override vault path")

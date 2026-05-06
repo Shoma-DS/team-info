@@ -91,11 +91,13 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/agent-reach/scripts/team_info_agent
 
 ### Obsidian / Claudian
 
-- 必要になったタイミングで `/claudian` または installer script を実行します
-- install は Obsidian CLI 有効化、Claudian 配備、`claudian-settings.json` 初期化、初期 subagent 雛形の seed まで行います
+- 必要になったタイミングで `/obsidian` または installer script を実行します
+- `ensure-vault` は各PCのGitアカウント名に合わせて `personal/<account>/obsidian/claude-obsidian/` を作成・初期化します
+- `install` は Obsidian CLI 有効化、Claudian 配備、`claudian-settings.json` 初期化、初期 subagent 雛形の seed まで行います
 
 ```bash
-python "$TEAM_INFO_ROOT/.agent/skills/common/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" ensure-vault
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" install --skip-if-no-vault
 ```
 
 ### clone-website
