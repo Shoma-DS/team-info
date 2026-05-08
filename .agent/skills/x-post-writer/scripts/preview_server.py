@@ -3,10 +3,15 @@
 # 起動: bash start_preview.sh（推奨）または python preview_server.py
 
 import json
+import base64
+import hashlib
+import hmac
+import html
 import mimetypes
 import os
 import queue
 import re
+import secrets
 import shlex
 import select
 import shutil
@@ -18,14 +23,17 @@ import urllib.request
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs, quote as urlquote
+from urllib.parse import urlparse, parse_qs, quote as urlquote, urlencode
+from http.cookies import SimpleCookie
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from runtime_store import (
+    get_runtime_root,
     load_character_setting,
     load_draft_metadata,
     save_character_setting,
     save_draft_metadata,
+    slugify,
 )
 from draft_manager import update_draft_image
 
@@ -35,8 +43,18 @@ BOOKMARKS_FILE = Path(__file__).parent / "bookmarks_latest.json"
 REPO_ROOT = Path(__file__).resolve().parents[4]
 ENV_PATH = REPO_ROOT / ".env"
 ACCOUNTS_CONFIG_PATH = Path(__file__).parent / "accounts_config.json"
+LOGO_PRESETS_PATH = Path(__file__).parent / "logo_presets.json"
 ENV_SETTINGS_ALLOWED_EXACT = {"DISCORD_WEBHOOK_X_DRAFT", "NEON_DATABASE_URL"}
 ENV_SETTINGS_ALLOWED_PREFIXES = ("X_", "NEON_")
+AUTH_SESSION_COOKIE = "x_draft_session"
+AUTH_STATE_COOKIE = "x_draft_oauth_state"
+GOOGLE_OAUTH_SCOPES = "openid email profile"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
+
+
+def esc_html(value: str) -> str:
+    return html.escape(str(value or ""), quote=True)
 
 
 def parse_env_file(path: Path = ENV_PATH) -> dict[str, str]:
@@ -74,6 +92,7 @@ LOCAL_IMAGE_ROOTS = [
     Path(os.environ.get("TEAM_INFO_ROOT", Path.cwd())) / "personal",
     Path.home() / ".codex" / "generated_images",
 ]
+OBSIDIAN_VAULT_ENV_KEYS = ("X_POST_OBSIDIAN_VAULT", "OBSIDIAN_VAULT_PATH")
 
 # oauth2_setup.py からのコールバックを一時保存する（プロセス内共有）
 _oauth2_pending: dict = {}
@@ -97,33 +116,277 @@ def get_db_conn():
     return psycopg2.connect(url)
 
 
-def fetch_drafts(account: str = ""):
+def auth_enabled() -> bool:
+    return bool(os.environ.get("GOOGLE_OAUTH_CLIENT_ID") and os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET"))
+
+
+def session_secret() -> str:
+    return os.environ.get("SESSION_SECRET") or os.environ.get("APP_ENCRYPTION_KEY") or "x-draft-local-dev-session"
+
+
+def b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def sign_session_payload(payload: dict) -> str:
+    body = b64url(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    sig = hmac.new(session_secret().encode("utf-8"), body.encode("ascii"), hashlib.sha256).digest()
+    return f"{body}.{b64url(sig)}"
+
+
+def verify_session_token(token: str) -> dict | None:
+    if not token or "." not in token:
+        return None
+    body, sig = token.rsplit(".", 1)
+    expected = b64url(hmac.new(session_secret().encode("utf-8"), body.encode("ascii"), hashlib.sha256).digest())
+    if not hmac.compare_digest(sig, expected):
+        return None
+    try:
+        padded = body + "=" * (-len(body) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+    except (ValueError, json.JSONDecodeError):
+        return None
+    if int(payload.get("exp") or 0) < int(time.time()):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def parse_cookies(header: str) -> dict[str, str]:
+    cookie = SimpleCookie()
+    cookie.load(header or "")
+    return {key: morsel.value for key, morsel in cookie.items()}
+
+
+def ensure_multi_user_schema() -> None:
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS app_users (
+                    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    google_sub TEXT UNIQUE,
+                    email TEXT,
+                    display_name TEXT,
+                    picture_url TEXT,
+                    role TEXT NOT NULL DEFAULT 'user',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS user_settings (
+                    user_id UUID NOT NULL REFERENCES app_users(user_id) ON DELETE CASCADE,
+                    key TEXT NOT NULL,
+                    value TEXT NOT NULL DEFAULT '',
+                    is_secret BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    PRIMARY KEY (user_id, key)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS global_logo_presets (
+                    logo_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    name TEXT NOT NULL UNIQUE,
+                    aliases JSONB NOT NULL DEFAULT '[]'::jsonb,
+                    image_url TEXT NOT NULL DEFAULT '',
+                    image_path TEXT NOT NULL DEFAULT '',
+                    source_url TEXT NOT NULL DEFAULT '',
+                    usage_note TEXT NOT NULL DEFAULT '',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS user_logo_presets (
+                    logo_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID NOT NULL REFERENCES app_users(user_id) ON DELETE CASCADE,
+                    name TEXT NOT NULL,
+                    aliases JSONB NOT NULL DEFAULT '[]'::jsonb,
+                    image_url TEXT NOT NULL DEFAULT '',
+                    image_path TEXT NOT NULL DEFAULT '',
+                    source_url TEXT NOT NULL DEFAULT '',
+                    usage_note TEXT NOT NULL DEFAULT '',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE (user_id, name)
+                )
+            """)
+            for table in ("accounts", "drafts"):
+                cur.execute(
+                    """
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = %s AND column_name = 'owner_user_id'
+                    """,
+                    (table,),
+                )
+                if not cur.fetchone():
+                    cur.execute(f"ALTER TABLE {table} ADD COLUMN owner_user_id UUID NULL REFERENCES app_users(user_id) ON DELETE SET NULL")
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def upsert_app_user(profile: dict) -> dict:
+    google_sub = str(profile.get("sub") or "").strip()
+    if not google_sub:
+        raise ValueError("Google profile に sub がありません")
     conn = get_db_conn()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            where = ""
-            params: tuple[str, ...] = ()
+            cur.execute("""
+                INSERT INTO app_users (google_sub, email, display_name, picture_url)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (google_sub) DO UPDATE
+                   SET email = EXCLUDED.email,
+                       display_name = EXCLUDED.display_name,
+                       picture_url = EXCLUDED.picture_url,
+                       updated_at = NOW()
+                RETURNING user_id, google_sub, email, display_name, picture_url, role
+            """, (
+                google_sub,
+                profile.get("email") or "",
+                profile.get("name") or profile.get("email") or "",
+                profile.get("picture") or "",
+            ))
+            user = dict(cur.fetchone())
+            conn.commit()
+            return {**user, "user_id": str(user["user_id"])}
+    finally:
+        conn.close()
+
+
+def get_app_user(user_id: str) -> dict | None:
+    if not user_id:
+        return None
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT user_id, google_sub, email, display_name, picture_url, role
+                FROM app_users
+                WHERE user_id = %s
+            """, (user_id,))
+            row = cur.fetchone()
+            return {**dict(row), "user_id": str(row["user_id"])} if row else None
+    finally:
+        conn.close()
+
+
+def get_user_setting(user_id: str | None, key: str) -> str | None:
+    if not user_id:
+        return None
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT value FROM user_settings WHERE user_id = %s AND key = %s", (user_id, key))
+            row = cur.fetchone()
+            return row["value"] if row else None
+    finally:
+        conn.close()
+
+
+def save_user_settings(user_id: str, updates: dict[str, str]) -> dict:
+    if not user_id:
+        raise ValueError("ログインユーザーが必要です")
+    invalid_keys = sorted(
+        str(key).strip()
+        for key in updates
+        if not is_editable_env_key(str(key).strip())
+    )
+    if invalid_keys:
+        raise ValueError("保存できない設定キーです: " + ", ".join(invalid_keys))
+
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            for key, value in updates.items():
+                clean_key = str(key).strip()
+                if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", clean_key):
+                    continue
+                cur.execute("""
+                    INSERT INTO user_settings (user_id, key, value, is_secret)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (user_id, key) DO UPDATE
+                       SET value = EXCLUDED.value,
+                           is_secret = EXCLUDED.is_secret,
+                           updated_at = NOW()
+                """, (user_id, clean_key, str(value), is_sensitive_env_key(clean_key)))
+            conn.commit()
+    finally:
+        conn.close()
+    return {"updated_keys": sorted(str(k).strip() for k in updates)}
+
+
+def fetch_drafts(account: str = "", *, limit: int = 20, offset: int = 0, query: str = ""):
+    limit = max(1, min(int(limit or 20), 100))
+    offset = max(0, int(offset or 0))
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            where_parts = []
+            params: list[str] = []
             if account:
-                where = "WHERE lower(a.x_username) = lower(%s)"
-                params = (account,)
+                where_parts.append("lower(a.x_username) = lower(%s)")
+                params.append(account)
+            if query:
+                like = f"%{query.lower()}%"
+                where_parts.append("""
+                    (
+                        lower(COALESCE(a.display_name, '')) LIKE %s
+                        OR lower(COALESCE(a.x_username, '')) LIKE %s
+                        OR lower(COALESCE(d.memo, '')) LIKE %s
+                        OR EXISTS (
+                            SELECT 1 FROM draft_parts sp
+                            WHERE sp.draft_id = d.draft_id
+                              AND lower(COALESCE(sp.content, '')) LIKE %s
+                        )
+                    )
+                """)
+                params.extend([like, like, like, like])
+            where = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
+
+            cur.execute(f"""
+                SELECT COUNT(*) AS total
+                FROM drafts d
+                JOIN accounts a ON d.account_id = a.account_id
+                {where}
+            """, tuple(params))
+            total = int(cur.fetchone()["total"] or 0)
+
             cur.execute(f"""
                 SELECT d.draft_id, a.x_username, a.display_name,
                        a.profile_image_url,
-                       d.status, d.memo, d.created_at, d.published_at
+                       d.status, d.memo, d.created_at, d.published_at,
+                       (
+                           SELECT COUNT(*)
+                           FROM draft_parts p
+                           WHERE p.draft_id = d.draft_id
+                       ) AS part_count,
+                       (
+                           SELECT p.content
+                           FROM draft_parts p
+                           WHERE p.draft_id = d.draft_id
+                           ORDER BY p.position
+                           LIMIT 1
+                       ) AS preview_content,
+                       EXISTS (
+                           SELECT 1
+                           FROM draft_parts p
+                           WHERE p.draft_id = d.draft_id
+                             AND COALESCE(p.image_url, '') <> ''
+                       ) AS has_image
                 FROM drafts d
                 JOIN accounts a ON d.account_id = a.account_id
                 {where}
                 ORDER BY d.created_at DESC
-            """, params)
+                LIMIT %s OFFSET %s
+            """, tuple([*params, limit, offset]))
             drafts = cur.fetchall()
             result = []
             for draft in drafts:
-                cur.execute("""
-                    SELECT part_id, position, content, image_url
-                    FROM draft_parts WHERE draft_id = %s ORDER BY position
-                """, (str(draft["draft_id"]),))
-                parts = cur.fetchall()
-                has_image = any((p["image_url"] or "").strip() for p in parts)
                 result.append({
                     "draft_id": str(draft["draft_id"]),
                     "x_username": draft["x_username"],
@@ -131,20 +394,19 @@ def fetch_drafts(account: str = ""):
                     "profile_image_url": draft["profile_image_url"] or "",
                     "memo": draft["memo"] or "",
                     "status": draft["status"] or "draft",
-                    "has_image": has_image,
+                    "has_image": bool(draft["has_image"]),
+                    "part_count": int(draft["part_count"] or 0),
+                    "preview_content": draft["preview_content"] or "",
                     "created_at": draft["created_at"].strftime("%Y-%m-%d %H:%M"),
                     "published_at": draft["published_at"].strftime("%Y-%m-%d %H:%M") if draft["published_at"] else None,
-                    "parts": [
-                        {
-                            "part_id": str(p["part_id"]),
-                            "position": p["position"],
-                            "content": p["content"],
-                            "image_url": p["image_url"],
-                        }
-                        for p in parts
-                    ],
                 })
-            return result
+            return {
+                "items": result,
+                "total": total,
+                "limit": limit,
+                "offset": offset,
+                "has_more": offset + len(result) < total,
+            }
     finally:
         conn.close()
 
@@ -411,6 +673,188 @@ def update_draft_status(draft_id, status):
         conn.close()
 
 
+def _git_account_slug() -> str:
+    try:
+        proc = subprocess.run(
+            ["git", "config", "user.name"],
+            cwd=REPO_ROOT,
+            text=True,
+            capture_output=True,
+            timeout=3,
+            check=False,
+        )
+        raw = proc.stdout.strip()
+    except Exception:
+        raw = ""
+    normalized = re.sub(r"[^0-9A-Za-z]+", "", raw.lower())
+    if normalized:
+        return normalized
+
+    personal_root = REPO_ROOT / "personal"
+    if personal_root.exists():
+        accounts = [p.name for p in personal_root.iterdir() if p.is_dir()]
+        if len(accounts) == 1:
+            return accounts[0]
+    return "deguchishouma"
+
+
+def get_obsidian_vault_path() -> Path:
+    for key in OBSIDIAN_VAULT_ENV_KEYS:
+        value = os.environ.get(key, "").strip()
+        if value:
+            return Path(value).expanduser()
+    return REPO_ROOT / "personal" / _git_account_slug() / "obsidian" / "claude-obsidian"
+
+
+def _yaml_quote(value: str) -> str:
+    return '"' + str(value or "").replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _markdown_list(items: list[str]) -> str:
+    clean_items = [str(item).strip() for item in items if str(item).strip()]
+    if not clean_items:
+        return "- なし"
+    return "\n".join(f"- {item}" for item in clean_items)
+
+
+def _draft_markdown_parts(parts: list[dict]) -> str:
+    lines: list[str] = []
+    for part in parts:
+        position = part.get("position") or len(lines) + 1
+        content = str(part.get("content") or "").strip()
+        image_url = str(part.get("image_url") or "").strip()
+        lines.append(f"### Part {position}\n\n{content or '(空)'}")
+        if image_url:
+            lines.append(f"\n画像: {image_url}")
+    return "\n\n".join(lines) if lines else "(下書き本文なし)"
+
+
+def _original_markdown(original: dict | None) -> str:
+    if not original:
+        return "元投稿情報なし"
+    lines = [
+        f"- author: @{original.get('author_username') or ''}",
+        f"- url: {original.get('tweet_url') or ''}",
+    ]
+    if original.get("rewritten_from_draft_id"):
+        lines.append(f"- rewritten_from_draft_id: {original['rewritten_from_draft_id']}")
+    thread_parts = original.get("thread_parts") or []
+    if thread_parts:
+        lines.append("\n### 元投稿スレッド")
+        for part in thread_parts:
+            text = str(part.get("text") or "").strip()
+            url = str(part.get("tweet_url") or "").strip()
+            lines.append(f"\n#### {url}\n\n{text or '(本文なし)'}")
+    else:
+        lines.append("\n### 元投稿本文\n")
+        lines.append(str(original.get("text") or "").strip() or "(本文なし)")
+    urls = original.get("urls") or []
+    if urls:
+        lines.append("\n### 外部リンク\n")
+        lines.append(_markdown_list(urls))
+    return "\n".join(lines)
+
+
+def save_draft_to_obsidian(draft_id: str) -> dict:
+    draft = fetch_draft(draft_id)
+    if not draft:
+        raise ValueError("下書きが見つかりません")
+
+    vault = get_obsidian_vault_path()
+    if not vault.exists():
+        raise FileNotFoundError(f"Obsidian vault が見つかりません: {vault}")
+
+    created_date = str(draft.get("created_at") or datetime.now().strftime("%Y-%m-%d")).split(" ")[0]
+    first_text = draft.get("parts", [{}])[0].get("content", "")
+    title_seed = draft.get("memo") or first_text[:36] or draft_id
+    filename = f"{created_date}-x-{slugify(title_seed, str(draft_id))[:64]}.md"
+    note_dir = vault / "wiki" / "sources" / "x-posts"
+    note_dir.mkdir(parents=True, exist_ok=True)
+    note_path = note_dir / filename
+
+    original = draft.get("original_tweet") or {}
+    source_url = original.get("tweet_url") or ""
+    draft_url = f"{PUBLIC_URL}?draft={draft_id}"
+    account_link = f"[[X/@{draft.get('x_username') or 'unknown'}]]"
+    source_account = original.get("author_username")
+    source_link = f"[[X/@{source_account}]]" if source_account else ""
+    image_prompts = draft.get("image_prompts") or []
+
+    body = f"""---
+type: x-post-knowledge
+source: x-draft-preview
+draft_id: {_yaml_quote(str(draft_id))}
+x_username: {_yaml_quote(draft.get("x_username") or "")}
+status: {_yaml_quote(draft.get("status") or "")}
+created_at: {_yaml_quote(draft.get("created_at") or "")}
+source_url: {_yaml_quote(source_url)}
+tags:
+  - x-post
+  - knowledge-seed
+  - x-draft
+---
+
+# X投稿ナレッジ: {draft.get("memo") or first_text[:48] or draft_id}
+
+関連: [[X投稿]] [[投稿テンプレート]] {account_link}{(" " + source_link) if source_link else ""}
+
+## なぜ保存したか
+
+- GUIから保存したナレッジ候補。後で「刺さった理由」「使える型」「自分の言葉への変換」を追記する。
+
+## 下書き
+
+- account: @{draft.get("x_username") or ""}
+- preview: {draft_url}
+- status: {draft.get("status") or ""}
+
+{_draft_markdown_parts(draft.get("parts") or [])}
+
+## 元投稿
+
+{_original_markdown(original)}
+
+## 抽出したい型
+
+- フック:
+- 展開:
+- 感情:
+- CTA:
+- 自分の投稿へ転用する時の注意:
+"""
+
+    if image_prompts:
+        body += "\n## 画像プロンプト\n\n"
+        for idx, prompt in enumerate(image_prompts, 1):
+            body += f"### Prompt {idx}\n\n"
+            if prompt.get("copy"):
+                body += f"- copy: {prompt.get('copy')}\n\n"
+            body += f"```text\n{prompt.get('prompt') or ''}\n```\n\n"
+
+    if note_path.exists():
+        existing = note_path.read_text(encoding="utf-8")
+        if f"draft_id: {_yaml_quote(str(draft_id))}" in existing:
+            note_path.write_text(body, encoding="utf-8")
+        else:
+            timestamp = datetime.now().strftime("%H%M%S")
+            note_path = note_dir / f"{note_path.stem}-{timestamp}.md"
+            note_path.write_text(body, encoding="utf-8")
+    else:
+        note_path.write_text(body, encoding="utf-8")
+
+    relative = note_path.relative_to(vault)
+    obsidian_url = (
+        "obsidian://open?"
+        f"vault={urlquote(vault.name, safe='')}&file={urlquote(relative.as_posix(), safe='')}"
+    )
+    return {
+        "path": str(note_path),
+        "vault": str(vault),
+        "relative_path": relative.as_posix(),
+        "obsidian_url": obsidian_url,
+    }
+
+
 def update_image_prompt_metadata(draft_id: str, prompt: str, copy_text: str = "") -> dict:
     metadata = load_draft_metadata(str(draft_id)) or {}
     prompts = metadata.get("image_prompts")
@@ -511,6 +955,36 @@ def list_env_settings() -> list[dict]:
             "source": str(ENV_PATH),
         }
         for key in keys
+    ]
+
+
+def list_settings_for_user(user_id: str | None = None) -> list[dict]:
+    env_values = parse_env_file()
+    keys = {key for key in env_values.keys() if is_editable_env_key(key)}
+    user_values: dict[str, str] = {}
+    if user_id:
+        conn = get_db_conn()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute("SELECT key, value FROM user_settings WHERE user_id = %s ORDER BY key", (user_id,))
+                for row in cur.fetchall():
+                    key = row["key"]
+                    if is_editable_env_key(key):
+                        user_values[key] = row["value"]
+                        keys.add(key)
+        finally:
+            conn.close()
+
+    return [
+        {
+            "key": key,
+            "value": user_values.get(key, env_values.get(key, "")),
+            "masked": mask_env_value(user_values.get(key, env_values.get(key, ""))),
+            "is_set": bool(user_values.get(key, env_values.get(key, ""))),
+            "sensitive": is_sensitive_env_key(key),
+            "source": "user_settings" if key in user_values else str(ENV_PATH),
+        }
+        for key in sorted(keys)
     ]
 
 
@@ -799,6 +1273,7 @@ def build_image_generation_request(
     current_image_url: str = "",
     reference_image_url: str = "",
     reference_image_path: str = "",
+    logo_references: list[dict] | None = None,
 ) -> str:
     traits = (character_traits or DEFAULT_CHARACTER_TRAITS).strip()
     negative = (character_negative or DEFAULT_CHARACTER_NEGATIVE).strip()
@@ -817,6 +1292,15 @@ def build_image_generation_request(
         "",
         f"[IMAGE PROMPT]\n{prompt}",
     ]
+    if logo_references:
+        lines.extend([
+            "",
+            "[LOGO REFERENCE IMAGES]",
+            "以下のロゴは参照画像として添付済みです。ロゴを描く必要がある場合は、記憶や推測ではなく添付された参照画像の形・比率・色を優先してください。",
+        ])
+        for logo in logo_references:
+            aliases = ", ".join(logo.get("matched_aliases") or [])
+            lines.append(f"- {logo.get('name')}: {aliases}")
     if feedback or current_image_url or reference_image_url or reference_image_path:
         lines.extend([
             "",
@@ -831,6 +1315,123 @@ def build_image_generation_request(
             "ロゴやマークなど参照画像がある要素は、形状・比率・色・余白を参照画像に寄せてください。",
         ])
     return "\n".join(lines)
+
+
+def seed_global_logo_presets() -> None:
+    if not LOGO_PRESETS_PATH.exists():
+        return
+    try:
+        payload = json.loads(LOGO_PRESETS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    logos = payload.get("logos") if isinstance(payload, dict) else []
+    if not isinstance(logos, list):
+        return
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            for logo in logos:
+                if not isinstance(logo, dict) or not logo.get("name"):
+                    continue
+                cur.execute("""
+                    INSERT INTO global_logo_presets (name, aliases, image_url, image_path, source_url, usage_note)
+                    VALUES (%s, %s::jsonb, %s, %s, %s, %s)
+                    ON CONFLICT (name) DO UPDATE
+                       SET aliases = EXCLUDED.aliases,
+                           image_url = EXCLUDED.image_url,
+                           image_path = EXCLUDED.image_path,
+                           source_url = EXCLUDED.source_url,
+                           usage_note = EXCLUDED.usage_note,
+                           updated_at = NOW()
+                """, (
+                    logo.get("name") or "",
+                    json.dumps(logo.get("aliases") or [], ensure_ascii=False),
+                    logo.get("image_url") or "",
+                    logo.get("image_path") or "",
+                    logo.get("source_url") or "",
+                    logo.get("usage_note") or "",
+                ))
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def load_logo_presets(user_id: str | None = None) -> list[dict]:
+    presets: list[dict] = []
+    try:
+        conn = get_db_conn()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT name, aliases, image_url, image_path, source_url, usage_note
+                FROM global_logo_presets
+                ORDER BY name
+            """)
+            presets.extend(dict(row) for row in cur.fetchall())
+            if user_id:
+                cur.execute("""
+                    SELECT name, aliases, image_url, image_path, source_url, usage_note
+                    FROM user_logo_presets
+                    WHERE user_id = %s
+                    ORDER BY name
+                """, (user_id,))
+                presets.extend(dict(row) for row in cur.fetchall())
+        conn.close()
+    except Exception:
+        presets = []
+    for path in [LOGO_PRESETS_PATH, get_runtime_root() / "logo_presets.json"]:
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        items = payload.get("logos") if isinstance(payload, dict) else payload
+        if isinstance(items, list):
+            presets.extend(item for item in items if isinstance(item, dict))
+    return presets
+
+
+def _normalize_logo_text(text: str) -> str:
+    return re.sub(r"\s+", " ", str(text or "").lower())
+
+
+def detect_logo_references(*texts: str, user_id: str | None = None) -> list[dict]:
+    haystack = _normalize_logo_text("\n".join(texts))
+    detected: list[dict] = []
+    seen: set[str] = set()
+    for preset in load_logo_presets(user_id):
+        name = str(preset.get("name") or "").strip()
+        aliases = [name, *preset.get("aliases", [])]
+        matched = [
+            str(alias).strip()
+            for alias in aliases
+            if str(alias).strip() and _normalize_logo_text(str(alias)) in haystack
+        ]
+        if not name or not matched:
+            continue
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        detected.append({**preset, "matched_aliases": matched})
+    return detected[:6]
+
+
+def build_logo_input_item(logo: dict) -> dict | None:
+    image_path = str(logo.get("image_path") or "").strip()
+    if image_path:
+        path = Path(image_path).expanduser()
+        if not path.is_absolute():
+            path = (LOGO_PRESETS_PATH.parent / path).resolve()
+        if path.exists() and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+            return {"type": "local_image", "path": str(path)}
+
+    image_url = str(logo.get("image_url") or "").strip()
+    if image_url:
+        parsed = urlparse(image_url)
+        if parsed.scheme in {"http", "https"}:
+            return {"type": "image", "url": image_url}
+    return None
 
 
 def resolve_any_local_image(path_text: str) -> Path | None:
@@ -970,6 +1571,7 @@ def start_image_generation_job(
     current_image_url: str = "",
     reference_image_url: str = "",
     reference_image_path: str = "",
+    user_id: str | None = None,
 ) -> dict:
     with _image_generation_lock:
         running = [
@@ -982,8 +1584,10 @@ def start_image_generation_job(
         known_image_paths = sorted(list_generated_image_paths())
 
     job_id = f"{int(time.time() * 1000)}-{draft_id}"
+    logo_references = detect_logo_references(copy_text, prompt, user_id=user_id)
     _image_generation_jobs[job_id] = {
         "draft_id": draft_id,
+        "user_id": user_id or "",
         "started_at": time.time(),
         "known_image_paths": known_image_paths,
         "status": "starting",
@@ -999,7 +1603,9 @@ def start_image_generation_job(
             current_image_url,
             reference_image_url,
             reference_image_path,
+            logo_references,
         ),
+        "logo_references": logo_references,
         "image_url": "",
         "message": "Codex App Server を起動しています",
         "logs": [],
@@ -1049,6 +1655,7 @@ def run_image_generation_job(
         current_image_url,
         reference_image_url,
         reference_image_path,
+        job.get("logo_references") or [],
     )
     task_label = "修正フィードバック付きで再生成" if feedback or current_image_url or reference_image_url or reference_image_path else "生成"
     turn_prompt = f"""
@@ -1097,6 +1704,13 @@ imagegen スキルを使って、以下のX投稿用図解画像を1枚生成し
             if character_item:
                 input_items.append(character_item)
             append_image_generation_log(job, f"キャラクター参照画像を添付: {character_reference_url}")
+        for logo in job.get("logo_references") or []:
+            logo_item = build_logo_input_item(logo)
+            if logo_item:
+                input_items.append(logo_item)
+                append_image_generation_log(job, f"ロゴ参照画像を添付: {logo.get('name')}")
+            else:
+                append_image_generation_log(job, f"ロゴ参照画像が未設定: {logo.get('name')}", level="warn")
         current_item = build_image_input_item(current_image_url)
         if current_item:
             input_items.append(current_item)
@@ -1306,7 +1920,7 @@ def run_auto_post_job(job_id: str) -> None:
             job.update({"progress": 88, "message": "投稿済みステータスを反映しています"})
             append_auto_post_log(job, "X 側の投稿ボタンをクリックしました")
         update_draft_status(job["draft_id"], "published")
-        send_discord(job["draft_id"], parts[0], draft.get("x_username", ""))
+        send_discord(job["draft_id"], parts[0], draft.get("x_username", ""), job.get("user_id") or None)
 
         with _auto_post_lock:
             job.update({"status": "completed", "progress": 100, "message": "自動投稿が完了しました"})
@@ -1317,7 +1931,7 @@ def run_auto_post_job(job_id: str) -> None:
             append_auto_post_log(job, str(exc)[:1000], level="error")
 
 
-def start_auto_post_job(draft_id: str) -> dict:
+def start_auto_post_job(draft_id: str, user_id: str | None = None) -> dict:
     with _auto_post_lock:
         active = [
             job for job in _auto_post_jobs.values()
@@ -1329,6 +1943,7 @@ def start_auto_post_job(draft_id: str) -> dict:
         _auto_post_jobs[job_id] = {
             "job_id": job_id,
             "draft_id": draft_id,
+            "user_id": user_id or "",
             "status": "queued",
             "progress": 2,
             "message": "自動投稿ジョブを作成しました",
@@ -1346,8 +1961,17 @@ def get_auto_post_job(job_id: str) -> dict:
     return dict(job)
 
 
-def send_discord(draft_id, main_content, x_username):
-    if not DISCORD_WEBHOOK:
+def setting_value(key: str, user_id: str | None = None) -> str:
+    if user_id:
+        value = get_user_setting(user_id, key)
+        if value is not None:
+            return value
+    return os.environ.get(key, "")
+
+
+def send_discord(draft_id, main_content, x_username, user_id: str | None = None):
+    webhook = setting_value("DISCORD_WEBHOOK_X_DRAFT", user_id)
+    if not webhook:
         return False, "DISCORD_WEBHOOK_X_DRAFT が未設定"
 
     preview_url = f"{PUBLIC_URL}?draft={draft_id}"
@@ -1377,7 +2001,7 @@ def send_discord(draft_id, main_content, x_username):
 
     body = json.dumps(message).encode("utf-8")
     req = urllib.request.Request(
-        DISCORD_WEBHOOK,
+        webhook,
         data=body,
         headers={"Content-Type": "application/json"},
         method="POST",
@@ -1427,6 +2051,35 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
+    def cookie_header(self, name: str, value: str, *, max_age: int = 60 * 60 * 24 * 30) -> str:
+        secure = " Secure;" if (self.headers.get("X-Forwarded-Proto") or "").lower() == "https" else ""
+        return f"{name}={value}; Path=/; Max-Age={max_age}; HttpOnly; SameSite=Lax;{secure}"
+
+    def clear_cookie_header(self, name: str) -> str:
+        return f"{name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax"
+
+    def current_session_payload(self) -> dict | None:
+        cookies = parse_cookies(self.headers.get("Cookie") or "")
+        return verify_session_token(cookies.get(AUTH_SESSION_COOKIE, ""))
+
+    def current_user(self) -> dict | None:
+        payload = self.current_session_payload()
+        if not payload:
+            return None
+        try:
+            return get_app_user(str(payload.get("user_id") or ""))
+        except Exception:
+            return None
+
+    def current_user_id(self) -> str | None:
+        user = self.current_user()
+        return user["user_id"] if user else None
+
+    def absolute_base_url(self) -> str:
+        proto = self.headers.get("X-Forwarded-Proto") or ("https" if "ngrok" in (self.headers.get("Host") or "") else "http")
+        host = self.headers.get("Host") or f"localhost:{PORT}"
+        return f"{proto}://{host}"
+
     def send_json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -1435,6 +2088,23 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", len(body))
         self.end_headers()
         self.wfile.write(body)
+
+    def send_redirect(self, location: str, headers: list[tuple[str, str]] | None = None):
+        self.send_response(302)
+        self.send_header("Location", location)
+        for key, value in headers or []:
+            self.send_header(key, value)
+        self.end_headers()
+
+    def send_html(self, body: str, status=200, headers: list[tuple[str, str]] | None = None):
+        encoded = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", len(encoded))
+        for key, value in headers or []:
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(encoded)
 
     def send_file(self, path, content_type):
         try:
@@ -1474,6 +2144,83 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
+    def start_google_login(self):
+        if not auth_enabled():
+            self.send_html("<html><body><h2>Google OAuth が未設定です</h2></body></html>", 400)
+            return
+        state = secrets.token_urlsafe(24)
+        redirect_uri = f"{self.absolute_base_url()}/auth/google/callback"
+        params = {
+            "client_id": os.environ["GOOGLE_OAUTH_CLIENT_ID"],
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": GOOGLE_OAUTH_SCOPES,
+            "state": state,
+            "access_type": "offline",
+            "include_granted_scopes": "true",
+            "prompt": "select_account",
+        }
+        self.send_redirect(
+            "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params),
+            headers=[("Set-Cookie", self.cookie_header(AUTH_STATE_COOKIE, state, max_age=600))],
+        )
+
+    def finish_google_login(self, qs: dict):
+        if not auth_enabled():
+            self.send_html("<html><body><h2>Google OAuth が未設定です</h2></body></html>", 400)
+            return
+        cookies = parse_cookies(self.headers.get("Cookie") or "")
+        expected_state = cookies.get(AUTH_STATE_COOKIE, "")
+        state = qs.get("state", [""])[0]
+        code = qs.get("code", [""])[0]
+        if not code or not expected_state or not hmac.compare_digest(state, expected_state):
+            self.send_html("<html><body><h2>認証 state が一致しません</h2></body></html>", 400)
+            return
+
+        redirect_uri = f"{self.absolute_base_url()}/auth/google/callback"
+        token_body = urlencode({
+            "code": code,
+            "client_id": os.environ["GOOGLE_OAUTH_CLIENT_ID"],
+            "client_secret": os.environ["GOOGLE_OAUTH_CLIENT_SECRET"],
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+        }).encode("utf-8")
+        try:
+            token_req = urllib.request.Request(
+                GOOGLE_TOKEN_URL,
+                data=token_body,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                method="POST",
+            )
+            with urllib.request.urlopen(token_req, timeout=10) as resp:
+                token_payload = json.loads(resp.read().decode("utf-8"))
+            access_token = token_payload.get("access_token")
+            if not access_token:
+                raise RuntimeError("access_token が返りませんでした")
+            user_req = urllib.request.Request(
+                GOOGLE_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            with urllib.request.urlopen(user_req, timeout=10) as resp:
+                profile = json.loads(resp.read().decode("utf-8"))
+            user = upsert_app_user(profile)
+            session = sign_session_payload({
+                "user_id": user["user_id"],
+                "email": user.get("email") or "",
+                "exp": int(time.time()) + 60 * 60 * 24 * 30,
+            })
+        except Exception as exc:
+            self.send_html(f"<html><body><h2>Googleログイン失敗</h2><p>{esc_html(str(exc))}</p></body></html>", 500)
+            return
+
+        self.send_redirect(
+            "/",
+            headers=[
+                ("Set-Cookie", self.cookie_header(AUTH_SESSION_COOKIE, session)),
+                ("Set-Cookie", self.clear_cookie_header(AUTH_STATE_COOKIE)),
+            ],
+        )
+
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
@@ -1485,15 +2232,40 @@ class Handler(BaseHTTPRequestHandler):
             self.send_file(PREVIEW_DIR / "style.css", "text/css")
         elif path == "/app.js":
             self.send_file(PREVIEW_DIR / "app.js", "application/javascript")
+        elif path == "/auth/google/start":
+            self.start_google_login()
+        elif path == "/auth/google/callback":
+            self.finish_google_login(qs)
+        elif path == "/auth/logout":
+            self.send_redirect("/", headers=[("Set-Cookie", self.clear_cookie_header(AUTH_SESSION_COOKIE))])
+        elif path == "/api/auth/me":
+            user = self.current_user()
+            self.send_json({
+                "ok": True,
+                "auth_enabled": auth_enabled(),
+                "user": user,
+            })
         elif path == "/api/accounts":
             self.send_json({"ok": True, "accounts": fetch_accounts()})
         elif path == "/api/env-settings":
             if not self.require_local():
                 return
-            self.send_json({"ok": True, "path": str(ENV_PATH), "items": list_env_settings()})
+            user_id = self.current_user_id()
+            self.send_json({
+                "ok": True,
+                "path": str(ENV_PATH),
+                "items": list_settings_for_user(user_id),
+                "storage": "user_settings" if user_id else "env",
+                "user_id": user_id,
+            })
         elif path == "/api/drafts":
             try:
-                self.send_json(fetch_drafts(qs.get("account", [""])[0].strip()))
+                self.send_json(fetch_drafts(
+                    qs.get("account", [""])[0].strip(),
+                    limit=int(qs.get("limit", ["20"])[0] or 20),
+                    offset=int(qs.get("offset", ["0"])[0] or 0),
+                    query=qs.get("q", [""])[0].strip(),
+                ))
             except Exception as e:
                 self.send_json({"error": str(e)}, 500)
         elif path == "/api/draft":
@@ -1664,8 +2436,19 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": False, "error": "updates が必要です"}, 400)
                 return
             try:
-                result = save_env_settings(updates)
-                self.send_json({"ok": True, **result, "items": list_env_settings()})
+                user_id = self.current_user_id()
+                if user_id:
+                    result = save_user_settings(user_id, updates)
+                    self.send_json({
+                        "ok": True,
+                        **result,
+                        "path": str(ENV_PATH),
+                        "storage": "user_settings",
+                        "items": list_settings_for_user(user_id),
+                    })
+                else:
+                    result = save_env_settings(updates)
+                    self.send_json({"ok": True, **result, "storage": "env", "items": list_settings_for_user(None)})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         else:
@@ -1681,7 +2464,7 @@ class Handler(BaseHTTPRequestHandler):
             draft_id = body.get("draft_id")
             main_content = body.get("main_content", "")
             x_username = body.get("x_username", "")
-            ok, err = send_discord(draft_id, main_content, x_username)
+            ok, err = send_discord(draft_id, main_content, x_username, self.current_user_id())
             if ok:
                 self.send_json({"ok": True})
             else:
@@ -1695,6 +2478,18 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 add_draft_part(draft_id, content)
                 self.send_json({"ok": True})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/obsidian/save":
+            if not self.require_local():
+                return
+            draft_id = body.get("draft_id")
+            if not draft_id:
+                self.send_json({"error": "draft_id が必要です"}, 400)
+                return
+            try:
+                result = save_draft_to_obsidian(str(draft_id))
+                self.send_json({"ok": True, **result})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/image-prompt/rewrite":
@@ -1756,6 +2551,7 @@ class Handler(BaseHTTPRequestHandler):
                     current_image_url,
                     reference_image_url,
                     reference_image_path,
+                    self.current_user_id(),
                 )
                 self.send_json({"ok": True, **job})
             except Exception as e:
@@ -1768,7 +2564,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"error": "draft_id が必要です"}, 400)
                 return
             try:
-                job = start_auto_post_job(str(draft_id))
+                job = start_auto_post_job(str(draft_id), self.current_user_id())
                 self.send_json({"ok": True, **job})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
@@ -1778,6 +2574,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    try:
+        ensure_multi_user_schema()
+        seed_global_logo_presets()
+        print("✅ 複数ユーザー用DBスキーマを確認しました")
+    except Exception as exc:
+        print(f"⚠️  複数ユーザー用DBスキーマ確認をスキップ: {exc}")
     print(f"✅ プレビューサーバー起動: http://localhost:{PORT}")
     if PUBLIC_URL != f"http://localhost:{PORT}":
         print(f"🌐 公開URL: {PUBLIC_URL}")

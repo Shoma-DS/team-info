@@ -114,6 +114,10 @@ body {
   align-items: center;
   justify-content: center;
 }
+.account-switch-btn.active {
+  color: var(--green);
+  border-color: rgba(0,186,124,0.45);
+}
 
 .account-summary {
   display: flex;
@@ -568,6 +572,29 @@ body {
 }
 .save-btn:hover { opacity: 0.85; }
 
+.obsidian-save-btn {
+  background: rgba(124, 58, 237, 0.18);
+  color: #c4b5fd;
+  border: 1px solid rgba(167, 139, 250, 0.38);
+  border-radius: 0;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+.obsidian-save-btn:hover {
+  background: rgba(124, 58, 237, 0.28);
+  border-color: rgba(196, 181, 253, 0.6);
+  color: #ddd6fe;
+}
+.obsidian-save-btn:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .cancel-btn {
   background: transparent;
   color: var(--text-muted);
@@ -1015,6 +1042,79 @@ body {
 }
 .error-msg { color: var(--danger); }
 
+.list-loading-panel {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.list-loading-panel.compact {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+}
+.list-loading-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.list-progress {
+  height: 4px;
+  overflow: hidden;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+}
+.list-progress > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.draft-skeleton {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  opacity: 0.55;
+  animation: skeletonPulse 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 70ms);
+}
+.draft-skeleton-avatar {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: var(--bg-hover);
+  flex-shrink: 0;
+}
+.draft-skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.draft-skeleton-lines div {
+  height: 8px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+}
+.draft-skeleton-lines div:nth-child(1) { width: 68%; }
+.draft-skeleton-lines div:nth-child(2) { width: 92%; }
+.draft-skeleton-lines div:nth-child(3) { width: 42%; }
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.38; }
+  50% { opacity: 0.72; }
+}
+.list-loaded-all {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
+}
+
 /* ── 比較レイアウト ── */
 
 /* プレビューエリアが比較モードのときは最大幅を解除 */
@@ -1433,6 +1533,11 @@ body {
   transition: background 0.15s;
 }
 .load-more-btn:hover { background: var(--bg-hover); }
+.load-more-btn:disabled {
+  color: var(--text-muted);
+  cursor: wait;
+  background: var(--bg-hover);
+}
 
 /* ── 画像コピーボタン2択 ── */
 .image-copy-btns {

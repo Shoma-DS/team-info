@@ -25,12 +25,17 @@ let autoPostTimer = null;
 let autoPostDraftId = null;
 let accountPresets = [];
 let selectedAccount = localStorage.getItem('x-preview-selected-account') || 'all';
+let authState = { auth_enabled: false, user: null };
+let draftTotal = 0;
+let draftHasMore = false;
+let draftOffset = 0;
+let draftLoading = false;
+let searchTimer = null;
 
 // グループ折りたたみ状態（未投稿: 開く / 投稿済み: 閉じる）
 const groupCollapsed = { draft: false, published: true };
 
-// 未投稿ページング
-let draftPage = 1;
+// 一覧ページング
 const DRAFT_PAGE_SIZE = 20;
 
 // 文字数制限
@@ -45,8 +50,47 @@ async function init() {
     const data = await res.json();
     publicUrl  = data.url || publicUrl;
   } catch (_) {}
+  await loadAuthState();
   await loadAccounts();
   await loadDraftList();
+}
+
+async function loadAuthState() {
+  try {
+    const res = await apiFetch(`${API}/auth/me`);
+    authState = await res.json();
+  } catch (_) {
+    authState = { auth_enabled: false, user: null };
+  }
+  renderAuthButton();
+}
+
+function renderAuthButton() {
+  const btn = document.getElementById('auth-btn');
+  if (!btn) return;
+  if (!authState.auth_enabled) {
+    btn.textContent = 'G';
+    btn.title = 'Google OAuth 未設定';
+    btn.classList.remove('active');
+    return;
+  }
+  if (authState.user) {
+    btn.textContent = '✓';
+    btn.title = `${authState.user.email || authState.user.display_name || 'ログイン中'} / クリックでログアウト`;
+    btn.classList.add('active');
+  } else {
+    btn.textContent = 'G';
+    btn.title = 'Googleでログイン';
+    btn.classList.remove('active');
+  }
+}
+
+function handleAuthClick() {
+  if (!authState.auth_enabled) {
+    showToast('Google OAuth が未設定です', true);
+    return;
+  }
+  window.location.href = authState.user ? '/auth/logout' : '/auth/google/start';
 }
 
 async function loadAccounts() {
@@ -62,14 +106,35 @@ async function loadAccounts() {
 
 // ── 下書きリスト読み込み ─────────────────────────────
 
-async function loadDraftList() {
+async function loadDraftList({ append = false } = {}) {
   const el = document.getElementById('draft-list');
+  if (draftLoading) return;
+  draftLoading = true;
+  if (!append) {
+    draftOffset = 0;
+    draftTotal = 0;
+    draftHasMore = false;
+    allDrafts = [];
+    renderDraftLoading(0, '下書きを読み込み中...');
+  } else {
+    renderDraftList();
+  }
+
   try {
-    const accountParam = selectedAccount !== 'all'
-      ? `?account=${encodeURIComponent(selectedAccount)}`
-      : '';
-    const res    = await apiFetch(`${API}/drafts${accountParam}`);
-    allDrafts    = await res.json();
+    const params = new URLSearchParams({
+      limit: String(DRAFT_PAGE_SIZE),
+      offset: String(draftOffset),
+    });
+    if (selectedAccount !== 'all') params.set('account', selectedAccount);
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+
+    const res = await apiFetch(`${API}/drafts?${params.toString()}`);
+    const payload = await res.json();
+    const items = Array.isArray(payload) ? payload : (payload.items || []);
+    draftTotal = Array.isArray(payload) ? items.length : Number(payload.total || 0);
+    draftHasMore = Array.isArray(payload) ? false : !!payload.has_more;
+    draftOffset += items.length;
+    allDrafts = append ? [...allDrafts, ...items] : items;
 
     if (!Array.isArray(allDrafts) || allDrafts.length === 0) {
       el.innerHTML = '<div class="loading">下書きがありません</div>';
@@ -84,7 +149,30 @@ async function loadDraftList() {
 
   } catch (e) {
     el.innerHTML = `<div class="error-msg">取得エラー: ${e.message}</div>`;
+  } finally {
+    draftLoading = false;
+    renderDraftList();
   }
+}
+
+function renderDraftLoading(progress = 0, label = '読み込み中...') {
+  const el = document.getElementById('draft-list');
+  const skeletons = Array.from({ length: 8 }, (_, i) => `
+    <div class="draft-skeleton" style="--i:${i}">
+      <div class="draft-skeleton-avatar"></div>
+      <div class="draft-skeleton-lines">
+        <div></div><div></div><div></div>
+      </div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="list-loading-panel">
+      <div class="list-loading-top">
+        <span>${esc(label)}</span>
+        <span>${Math.round(progress)}%</span>
+      </div>
+      <div class="list-progress"><div style="width:${Math.max(8, Math.min(100, progress))}%"></div></div>
+    </div>
+    ${skeletons}`;
 }
 
 // ── 下書きリストをフィルタして描画 ──────────────────
@@ -96,7 +184,7 @@ function renderDraftList() {
   const filtered = q
     ? allDrafts.filter(d => {
         const text = (d.display_name + ' @' + d.x_username + ' ' + (d.memo || '') +
-          d.parts.map(p => p.content).join(' ')).toLowerCase();
+          ' ' + (d.preview_content || '')).toLowerCase();
         return text.includes(q);
       })
     : allDrafts;
@@ -110,15 +198,16 @@ function renderDraftList() {
   const postedItems  = filtered.filter(d => d.status === 'published');
 
   const renderItem = d => {
-    const isThread  = d.parts.length > 1;
+    const partCount = Number(d.part_count || d.parts?.length || 1);
+    const isThread  = partCount > 1;
     const isPosted  = d.status === 'published';
-    const preview   = d.parts[0]?.content?.slice(0, 48) || '';
+    const preview   = (d.preview_content || d.parts?.[0]?.content || '').slice(0, 48);
     const initial   = (d.display_name || d.x_username).charAt(0).toUpperCase();
     const avatarHtml = d.profile_image_url
       ? `<div class="avatar-sm"><img src="${escAttr(d.profile_image_url)}" alt="${esc(initial)}" loading="lazy"></div>`
       : `<div class="avatar-sm">${esc(initial)}</div>`;
     const threadBadge = isThread
-      ? `<span class="badge badge-thread">ツリー ${d.parts.length}</span>`
+      ? `<span class="badge badge-thread">ツリー ${partCount}</span>`
       : `<span class="badge badge-single">単発</span>`;
     const imageBadge = d.has_image
       ? `<span class="badge badge-image">画像付き</span>`
@@ -146,11 +235,7 @@ function renderDraftList() {
   const renderGroup = (key, label, items) => {
     if (items.length === 0) return '';
     const collapsed = groupCollapsed[key];
-    const displayItems = key === 'draft' ? items.slice(0, draftPage * DRAFT_PAGE_SIZE) : items;
-    const remaining = key === 'draft' ? items.length - displayItems.length : 0;
-    const loadMoreBtn = remaining > 0
-      ? `<button class="load-more-btn" onclick="loadMoreDrafts()">さらに表示 (残り ${remaining} 件)</button>`
-      : '';
+    const displayItems = items;
     return `
       <div class="group-header" onclick="toggleGroup('${key}')">
         <span class="group-chevron${collapsed ? '' : ' open'}">›</span>
@@ -159,13 +244,31 @@ function renderDraftList() {
       </div>
       <div class="group-body${collapsed ? ' collapsed' : ''}">
         ${displayItems.map(renderItem).join('')}
-        ${loadMoreBtn}
       </div>`;
   };
 
+  const loaded = allDrafts.length;
+  const total = Math.max(draftTotal, loaded);
+  const progress = total ? Math.round((loaded / total) * 100) : 0;
+  const loadMoreBtn = draftHasMore
+    ? `<button class="load-more-btn" onclick="loadMoreDrafts()" ${draftLoading ? 'disabled' : ''}>
+         ${draftLoading ? '読み込み中...' : `さらに表示 (${loaded}/${total})`}
+       </button>`
+    : `<div class="list-loaded-all">読み込み完了 (${loaded}/${total})</div>`;
+  const progressBar = `
+    <div class="list-loading-panel compact">
+      <div class="list-loading-top">
+        <span>${searchQuery.trim() ? '検索結果' : '下書き一覧'}</span>
+        <span>${loaded}/${total} ・ ${progress}%</span>
+      </div>
+      <div class="list-progress"><div style="width:${Math.max(6, progress)}%"></div></div>
+    </div>`;
+
   el.innerHTML =
+    progressBar +
     renderGroup('draft',  '未投稿', pendingItems) +
-    renderGroup('published', '投稿済', postedItems);
+    renderGroup('published', '投稿済', postedItems) +
+    loadMoreBtn;
 
   // アクティブ状態を再適用
   if (currentDraft) {
@@ -181,15 +284,17 @@ function toggleGroup(key) {
 }
 
 function loadMoreDrafts() {
-  draftPage++;
-  renderDraftList();
+  if (!draftHasMore || draftLoading) return;
+  loadDraftList({ append: true });
 }
 
 // ── 検索 ─────────────────────────────────────────────
 
 function onSearch(value) {
   searchQuery = value;
-  renderDraftList();
+  clearTimeout(searchTimer);
+  renderDraftLoading(20, '検索中...');
+  searchTimer = setTimeout(() => loadDraftList(), 250);
 }
 
 function getSelectedAccountPreset() {
@@ -288,7 +393,6 @@ async function selectAccountPreset(accountKey) {
   selectedAccount = accountKey || 'all';
   localStorage.setItem('x-preview-selected-account', selectedAccount);
   currentDraft = null;
-  draftPage = 1;
   renderAccountSummary();
   closeAccountModal();
   await loadDraftList();
@@ -350,6 +454,7 @@ function renderPreview(draft) {
     ? `<button class="image-source-copy-btn" onclick="openImagePromptModal('rewrite')">AIリライト</button>`
     : '';
   const characterBtn = `<button class="image-source-copy-btn" onclick="openCharacterSettingsModal()">キャラ設定</button>`;
+  const obsidianBtn = `<button class="obsidian-save-btn" id="obsidian-save-btn" onclick="saveToObsidian()">Obsidianへ保存</button>`;
 
   const header = `
     <div class="preview-header">
@@ -366,6 +471,7 @@ function renderPreview(draft) {
       </div>
       <div class="header-actions">
         ${draft.memo ? `<span class="preview-memo">📝 ${esc(draft.memo)}</span>` : ''}
+        ${obsidianBtn}
         ${characterBtn}
         ${rewriteImageBtn}
         ${statusBtn}
@@ -411,10 +517,10 @@ function renderPreview(draft) {
 
   const toggleBar = `
     <div class="compare-toggle-bar" id="compare-toggle-bar">
-      <button class="compare-toggle-btn active" id="ctoggle-draft"
-              onclick="switchCompareCol('draft')">下書き</button>
       <button class="compare-toggle-btn" id="ctoggle-original"
               onclick="switchCompareCol('original')">元投稿</button>
+      <button class="compare-toggle-btn active" id="ctoggle-draft"
+              onclick="switchCompareCol('draft')">下書き</button>
     </div>`;
 
   const body = `
@@ -1139,12 +1245,12 @@ function ensureEnvSettingsModal() {
     <div class="modal env-modal" onclick="event.stopPropagation()">
       <div class="thread-modal-header">
         <div>
-          <div class="thread-step-label">/Users/deguchishouma/team-info/.env</div>
-          <h3 class="image-modal-title">環境変数設定</h3>
+          <div class="thread-step-label" id="env-settings-source">設定</div>
+          <h3 class="image-modal-title">認証・連携設定</h3>
         </div>
         <button class="thread-close-btn" onclick="closeEnvSettingsModal()">✕</button>
       </div>
-      <p class="image-modal-help">この画面は localhost から開いたときだけ保存できます。編集できるのは X / Neon / 下書き通知用の環境変数だけです。</p>
+      <p class="image-modal-help">Googleログイン中はユーザー別DB設定へ保存します。未ログイン時だけローカル .env へ保存します。</p>
       <div id="env-settings-error" class="error-msg" style="display:none"></div>
       <div id="env-settings-list" class="env-settings-list">
         <div class="loading">読み込み中...</div>
@@ -1189,15 +1295,17 @@ async function loadEnvSettings() {
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || '取得できませんでした');
     const items = Array.isArray(data.items) ? data.items : [];
+    const source = document.getElementById('env-settings-source');
+    if (source) source.textContent = data.storage === 'user_settings' ? 'ユーザー別DB設定' : data.path || '.env';
     if (items.length === 0) {
-      list.innerHTML = '<div class="loading">.env に環境変数がありません</div>';
+      list.innerHTML = '<div class="loading">設定がありません</div>';
       return;
     }
     list.innerHTML = items.map(item => `
       <label class="env-row">
-        <span class="env-row-key">
-          <span>${esc(item.key)}</span>
-          <span>${item.is_set ? esc(item.masked || 'set') : '未設定'}</span>
+          <span class="env-row-key">
+            <span>${esc(item.key)}</span>
+          <span>${item.source === 'user_settings' ? 'ユーザー別' : 'fallback'} ・ ${item.is_set ? esc(item.masked || 'set') : '未設定'}</span>
         </span>
         <input class="image-modal-input env-input" data-env-key="${escAttr(item.key)}"
           type="${item.sensitive ? 'password' : 'text'}"
@@ -1232,7 +1340,7 @@ async function saveEnvSettings() {
     });
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || '保存できませんでした');
-    showToast('✓ .env を保存しました');
+    showToast(data.storage === 'user_settings' ? '✓ ユーザー別設定を保存しました' : '✓ .env を保存しました');
     document.getElementById('env-new-key').value = '';
     document.getElementById('env-new-value').value = '';
     await loadEnvSettings();
@@ -1654,6 +1762,34 @@ async function notifyDiscord(mainContent) {
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = '<span>𝕏</span> 投稿する';
+    }
+  }
+}
+
+async function saveToObsidian() {
+  if (!currentDraft?.draft_id) return;
+  const btn = document.getElementById('obsidian-save-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '保存中…';
+  }
+
+  try {
+    const res = await apiFetch(`${API}/obsidian/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentDraft.draft_id }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '保存に失敗しました');
+    showToast(`✓ Obsidianに保存しました: ${data.relative_path || data.path}`);
+    if (data.obsidian_url) window.open(data.obsidian_url, '_blank');
+  } catch (e) {
+    showToast(`Obsidian保存エラー: ${e.message}`, true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Obsidianへ保存';
     }
   }
 }
