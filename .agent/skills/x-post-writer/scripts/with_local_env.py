@@ -1,17 +1,21 @@
-# .claude/settings.local.json の env を読み込み、指定コマンドをその環境で実行する。
+# repo直下の .env を読み込み、指定コマンドをその環境で実行する。
 # launchd から起動したジョブでも、X API や Neon の秘密情報を同じ正本から参照できるようにする。
+# 旧settings.local.jsonの env は移行期間だけfallbackとして読む。
 # 使い方: python with_local_env.py -- <command> [args...]
 
 from __future__ import annotations
 
 import json
 import os
+import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
+ENV_FILE = REPO_ROOT / ".env"
 CLAUDE_SETTINGS_FILE = REPO_ROOT / ".claude" / "settings.local.json"
 
 
@@ -29,6 +33,27 @@ def ensure_cli_path(env: dict[str, str]) -> None:
     parts = [str(path) for path in additions] + existing.split(":")
     deduped = list(dict.fromkeys(part for part in parts if part))
     env["PATH"] = ":".join(deduped)
+
+
+def load_dotenv(path: Path = ENV_FILE) -> dict[str, str]:
+    if not path.exists():
+        return {}
+
+    loaded: dict[str, str] = {}
+    pattern = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$")
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(raw_line)
+        if not match:
+            continue
+        key, raw_value = match.groups()
+        raw_value = raw_value.strip()
+        try:
+            parts = shlex.split(raw_value, comments=True, posix=True)
+            value = parts[0] if parts else ""
+        except ValueError:
+            value = raw_value.strip("\"'")
+        loaded[key] = value
+    return loaded
 
 
 def load_settings_env() -> dict[str, str]:
@@ -56,7 +81,9 @@ def main() -> int:
         return 1
 
     env = os.environ.copy()
-    env.update(load_settings_env())
+    for key, value in load_settings_env().items():
+        env.setdefault(key, value)
+    env.update(load_dotenv())
     env.setdefault("TEAM_INFO_ROOT", str(REPO_ROOT))
     ensure_cli_path(env)
 

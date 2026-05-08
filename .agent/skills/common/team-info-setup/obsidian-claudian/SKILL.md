@@ -9,6 +9,7 @@ description: official Obsidian CLI と Claudian、各PCの個人用 claude-obsid
 - official Obsidian CLI と Claudian を、今のマシンとアクティブ vault に合わせて導入する。
 - 各PC・各Gitアカウントごとに `personal/<account>/obsidian/claude-obsidian/` を作り、ローカル知識がそのPCの個人フォルダへ溜まる状態を作る。
 - Codex / Claude Code のどちらでも同じ vault と `skills/` を使えるよう、claude-obsidian の multi-agent 入口を案内する。
+- Obsidian が未導入のPCでは個人 vault 作成や agent 連携をスキップし、通常の team-info 作業だけ続けられるようにする。
 - Claudian plugin を vault に配備し、日本語 UI、`~/.claude` 読み込み、Claude CLI パス、添付フォルダ整合を最小構成で整える。
 - repo には再利用できる installer / doctor を残し、runtime の設定は vault 側へ閉じ込める。
 
@@ -36,7 +37,25 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/s
 
 ## 個人用 claude-obsidian vault の作成
 
-各PCで次を実行すると、Gitアカウント名から個人フォルダを決め、`personal/<account>/obsidian/claude-obsidian/` を作成・初期化する。
+Obsidian が入っているPCだけで個人用 vault を作成・確認する標準入口は `bootstrap`。Gitアカウント名から個人フォルダを決め、`personal/<account>/obsidian/claude-obsidian/` を作成・初期化する。Obsidian が未導入なら JSON で `skipped: obsidian_not_installed` を返して何もしない。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap
+```
+
+Codex でも claude-obsidian skills を使えるようにする場合は、ユーザー確認後に `--setup-multi-agent` を付ける。ホーム配下の `~/.codex/skills/claude-obsidian` などへ symlink を作るため、自動実行しない。
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap --setup-multi-agent
+```
+
+実行前に変更内容だけ確認する場合:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap --dry-run
+```
+
+`ensure-vault` は Obsidian 導入有無を見ずに vault 作成を行う低レベルコマンド。通常の `/obsidian` 対応では `bootstrap` を優先する。
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" ensure-vault
@@ -63,6 +82,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/s
 ## team-info 優先ルール
 - repo の正本はこの `SKILL.md` と `scripts/` 配下。vault 側の `.claude/` は runtime 設定として扱う。
 - claude-obsidian vault は `personal/*/` 配下に置き、共有 git へ知識本体を載せない。
+- `/obsidian` は `bootstrap` を標準入口にし、Obsidian が未導入なら個人 vault 作成をスキップする。
 - Gitアカウント名から算出したフォルダが未作成で、`personal/` 配下に既存アカウントフォルダが1つだけある場合は、重複作成を避けて既存フォルダを優先する。
 - Claudian の `permissionMode` は初期値を `normal` にする。いきなり `yolo` へはしない。
 - `loadUserClaudeSettings` は有効のままにし、既存の `~/.claude/settings.json` を活かす。
@@ -88,6 +108,9 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/s
 ## よく使うコマンド
 
 ```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap --dry-run
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap --setup-multi-agent
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" vault-path
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" ensure-vault
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" doctor

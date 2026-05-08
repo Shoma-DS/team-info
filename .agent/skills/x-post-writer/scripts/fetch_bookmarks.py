@@ -6,6 +6,8 @@
 import argparse
 import json
 import os
+import re
+import shlex
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,7 +22,7 @@ REPO_ROOT = SCRIPT_DIR.parent.parent.parent.parent
 ACCOUNT_DIR = SKILL_DIR / "accounts"
 CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
 OUTPUT_FILE = SCRIPT_DIR / "bookmarks_latest.json"
-CLAUDE_SETTINGS_FILE = REPO_ROOT / ".claude" / "settings.local.json"
+ENV_FILE = REPO_ROOT / ".env"
 AUTO_BLOCK_START = "<!-- x-account:auto:start -->"
 AUTO_BLOCK_END = "<!-- x-account:auto:end -->"
 PROFILE_USER_FIELDS = [
@@ -59,54 +61,111 @@ def truncate_text(text, limit=180):
 def get_bookmarks_access_token(account_cfg):
     account_id = account_cfg["id"]
     candidates = [
+        account_cfg.get("bookmarks_access_token_env"),
+        account_cfg.get("oauth2_access_token_env"),
         f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}",
         f"X_OAUTH2_ACCESS_TOKEN_{account_id}",
         "X_BEARER_TOKEN",
     ]
     for key in candidates:
+        if not key:
+            continue
         value = os.environ.get(key)
         if value:
             return value, key
     return None, " or ".join(candidates)
 
 
-def save_tokens_to_settings(account_id, access_token, refresh_token=None):
-    """新しいトークンを settings.local.json の env ブロックに書き戻す。"""
-    if not CLAUDE_SETTINGS_FILE.exists():
-        print("⚠️  settings.local.json が見つからないため、ファイルへの保存をスキップします", file=sys.stderr)
-        return
+def load_dotenv(path=ENV_FILE):
+    if not path.exists():
+        return {}
+
+    loaded = {}
+    pattern = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$")
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(raw_line)
+        if not match:
+            continue
+        key, raw_value = match.groups()
+        raw_value = raw_value.strip()
+        try:
+            parts = shlex.split(raw_value, comments=True, posix=True)
+            value = parts[0] if parts else ""
+        except ValueError:
+            value = raw_value.strip("\"'")
+        loaded[key] = value
+    return loaded
+
+
+def dotenv_quote(value):
+    if value == "":
+        return '""'
+    if re.fullmatch(r"[A-Za-z0-9_@%+=:,./-]+", value):
+        return value
+    return "'" + value.replace("'", "'\"'\"'") + "'"
+
+
+def save_env_values(updates):
+    ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
+    lines = ENV_FILE.read_text(encoding="utf-8").splitlines() if ENV_FILE.exists() else []
+    pattern = re.compile(r"^(\s*(?:export\s+)?)([A-Za-z_][A-Za-z0-9_]*)(\s*=\s*).*$")
+    seen = set()
+    next_lines = []
+
+    for line in lines:
+        match = pattern.match(line)
+        if not match:
+            next_lines.append(line)
+            continue
+        prefix, key, sep = match.groups()
+        if key not in updates:
+            next_lines.append(line)
+            continue
+        next_lines.append(f"{prefix}{key}{sep}{dotenv_quote(updates[key])}")
+        seen.add(key)
+
+    for key in sorted(set(updates) - seen):
+        next_lines.append(f"{key}={dotenv_quote(updates[key])}")
+
+    ENV_FILE.write_text("\n".join(next_lines).rstrip() + "\n", encoding="utf-8")
+
+
+def save_tokens_to_settings(account_cfg, access_token, refresh_token=None):
+    """新しいトークンを repo 直下の .env に書き戻す。"""
+    account_id = account_cfg["id"]
+    access_token_env = account_cfg.get("bookmarks_access_token_env") or f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"
+    refresh_token_env = account_cfg.get("bookmarks_refresh_token_env") or f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"
     try:
-        config = json.loads(CLAUDE_SETTINGS_FILE.read_text(encoding="utf-8"))
-        env = config.setdefault("env", {})
-        env[f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"] = access_token
+        updates = {access_token_env: access_token}
         if refresh_token:
-            env[f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"] = refresh_token
-        CLAUDE_SETTINGS_FILE.write_text(
-            json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        print(f"💾 settings.local.json のトークンを更新しました")
+            updates[refresh_token_env] = refresh_token
+        save_env_values(updates)
+        print(".env のトークンを更新しました")
     except Exception as e:
-        print(f"⚠️  settings.local.json の更新に失敗しました: {e}", file=sys.stderr)
+        print(f"⚠️  .env の更新に失敗しました: {e}", file=sys.stderr)
 
 
 def refresh_oauth2_token(account_cfg):
     """リフレッシュトークンを使って新しいアクセストークンを取得する。
     成功時は (access_token, None)、失敗時は (None, error_message) を返す。"""
     account_id = account_cfg["id"]
-    refresh_token = os.environ.get(f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}")
+    refresh_token_env = account_cfg.get("bookmarks_refresh_token_env") or f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"
+    client_id_env = account_cfg.get("oauth2_client_id_env") or f"X_OAUTH2_CLIENT_ID_{account_id}"
+    client_secret_env = account_cfg.get("oauth2_client_secret_env") or f"X_OAUTH2_CLIENT_SECRET_{account_id}"
+    refresh_token = os.environ.get(refresh_token_env)
     client_id = (
-        os.environ.get(f"X_OAUTH2_CLIENT_ID_{account_id}")
+        os.environ.get(client_id_env)
         or os.environ.get("X_OAUTH2_CLIENT_ID")
     )
     client_secret = (
-        os.environ.get(f"X_OAUTH2_CLIENT_SECRET_{account_id}")
+        os.environ.get(client_secret_env)
         or os.environ.get("X_OAUTH2_CLIENT_SECRET")
     )
 
     if not refresh_token:
-        return None, f"X_BOOKMARKS_REFRESH_TOKEN_{account_id} が未設定のため自動リフレッシュできません"
+        return None, f"{refresh_token_env} が未設定のため自動リフレッシュできません"
     if not client_id:
-        return None, "X_OAUTH2_CLIENT_ID_GUTARA または X_OAUTH2_CLIENT_ID が未設定です"
+        return None, f"{client_id_env} または X_OAUTH2_CLIENT_ID が未設定です"
 
     print(f"🔄 アクセストークンが期限切れです。リフレッシュトークンで更新中...")
 
@@ -141,12 +200,13 @@ def refresh_oauth2_token(account_cfg):
         return None, f"レスポンスにアクセストークンが含まれていません: {token_data}"
 
     # プロセス内の環境変数を即座に更新
-    os.environ[f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"] = new_access_token
+    access_token_env = account_cfg.get("bookmarks_access_token_env") or f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"
+    os.environ[access_token_env] = new_access_token
     if new_refresh_token:
-        os.environ[f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"] = new_refresh_token
+        os.environ[refresh_token_env] = new_refresh_token
 
-    # settings.local.json にも書き戻して次回起動後も有効にする
-    save_tokens_to_settings(account_id, new_access_token, new_refresh_token)
+    # .env にも書き戻して次回起動後も有効にする
+    save_tokens_to_settings(account_cfg, new_access_token, new_refresh_token)
 
     print(f"✅ アクセストークンを更新しました")
     return new_access_token, None
@@ -186,7 +246,9 @@ def build_bookmarks_client(account_cfg, access_token=None):
     account_id = account_cfg["id"]
     if not access_token:
         access_token = (
-            os.environ.get(f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}")
+            os.environ.get(account_cfg.get("bookmarks_access_token_env") or "")
+            or os.environ.get(account_cfg.get("oauth2_access_token_env") or "")
+            or os.environ.get(f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}")
             or os.environ.get(f"X_OAUTH2_ACCESS_TOKEN_{account_id}")
         )
     if not access_token:
@@ -626,6 +688,9 @@ def fetch_bookmarks(client, count, account_cfg=None, user_id=None):
 
 
 def main():
+    for key, value in load_dotenv().items():
+        os.environ.setdefault(key, value)
+
     parser = argparse.ArgumentParser(description="Xブックマーク取得")
     parser.add_argument("--account", default="GUTARA")
     parser.add_argument("--count", type=int, default=5)

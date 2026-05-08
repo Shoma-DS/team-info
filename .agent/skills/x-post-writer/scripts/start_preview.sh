@@ -5,6 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 PORT=8765
 NGROK_DOMAIN="zinciferous-preludiously-draven.ngrok-free.dev"
 PUBLIC_URL="https://${NGROK_DOMAIN}"
@@ -13,10 +14,17 @@ PUBLIC_URL="https://${NGROK_DOMAIN}"
 command -v python3 >/dev/null 2>&1 || { echo "❌ python3 が見つかりません"; exit 1; }
 command -v ngrok >/dev/null 2>&1 || { echo "❌ ngrok が見つかりません。brew install ngrok を実行してください"; exit 1; }
 
+if [ -f "$REPO_ROOT/.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "$REPO_ROOT/.env"
+  set +a
+fi
+
 # NEON_DATABASE_URL の確認
 if [ -z "$NEON_DATABASE_URL" ]; then
   echo "❌ NEON_DATABASE_URL が設定されていません"
-  echo "   ~/.zshrc に export NEON_DATABASE_URL=\"...\" を追加して source ~/.zshrc を実行してください"
+  echo "   $REPO_ROOT/.env に NEON_DATABASE_URL=\"...\" を設定してください"
   exit 1
 fi
 

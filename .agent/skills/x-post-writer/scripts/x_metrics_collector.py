@@ -1,11 +1,13 @@
 # X APIで自分のアカウントの投稿メトリクスを取得しNeon PostgreSQLに保存するスクリプト。
-# accounts_config.jsonからアカウント一覧を読み込み、投稿後168時間以内の投稿を対象に
-# impression/like/retweet/bookmark/replyをスナップショットとして記録する。
+# accounts_config.jsonからアカウント一覧を読み込み、投稿後72時間以内のメイン投稿を対象に
+# impression/like/retweet/bookmark/replyに加え、取得可能なクリック系指標も
+# スナップショットとして記録し、後から投稿量と成果の関係を分析できる形にする。
 # 実行後に今日のAPI使用コスト概算を表示する。
 
 import json
 import os
 import sys
+import argparse
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -21,9 +23,27 @@ from fetch_bookmarks import (
     build_bookmarks_client,
     refresh_oauth2_token,
 )
-SNAPSHOT_WINDOW_HOURS = 168  # 1週間
+SNAPSHOT_WINDOW_HOURS = 72  # 3日間
 COST_PER_READ = 0.005  # $0.005/件（投稿読み取り、2026年2月〜従量課金制）
-TWEET_FIELDS = ["created_at", "public_metrics", "text", "in_reply_to_user_id", "conversation_id", "referenced_tweets"]
+TWEET_FIELDS = [
+    "created_at",
+    "public_metrics",
+    "non_public_metrics",
+    "organic_metrics",
+    "text",
+    "in_reply_to_user_id",
+    "conversation_id",
+    "referenced_tweets",
+]
+TRACKED_POST_TYPES = ("single", "long")
+
+
+def metric_value(metrics, key):
+    if not metrics:
+        return None
+    if isinstance(metrics, dict):
+        return metrics.get(key)
+    return getattr(metrics, key, None)
 
 
 def load_config():
@@ -121,30 +141,66 @@ def upsert_account_daily_metrics(cur, account_id, public_metrics, today):
             COALESCE(SUM(s.impression_count), 0),
             COALESCE(SUM(s.like_count), 0),
             COALESCE(SUM(s.retweet_count), 0),
-            COALESCE(SUM(s.bookmark_count), 0)
+            COALESCE(SUM(s.bookmark_count), 0),
+            COALESCE(SUM(s.reply_count), 0),
+            COALESCE(SUM(s.quote_count), 0),
+            COALESCE(SUM(s.profile_click_count), 0),
+            COALESCE(SUM(s.url_link_click_count), 0),
+            COALESCE(SUM(s.engagement_count), 0)
         FROM tweets t
         JOIN LATERAL (
-            SELECT impression_count, like_count, retweet_count, bookmark_count
+            SELECT
+                impression_count,
+                like_count,
+                retweet_count,
+                bookmark_count,
+                reply_count,
+                quote_count,
+                profile_click_count,
+                url_link_click_count,
+                engagement_count
             FROM tweet_metrics_snapshots
             WHERE tweet_id = t.tweet_id
             ORDER BY hours_after_post DESC
             LIMIT 1
         ) s ON TRUE
         WHERE t.account_id = %s
-          AND t.post_type != 'reply'
+          AND t.post_type = ANY(%s)
         """,
-        (account_id,),
+        (account_id, list(TRACKED_POST_TYPES)),
     )
     row = cur.fetchone()
-    cum_imp, cum_like, cum_rt, cum_bm = row if row else (0, 0, 0, 0)
+    if row:
+        cum_imp, cum_like, cum_rt, cum_bm, cum_reply, cum_quote, cum_profile_click, cum_url_click, cum_engagement = row
+    else:
+        cum_imp = cum_like = cum_rt = cum_bm = cum_reply = cum_quote = cum_profile_click = cum_url_click = cum_engagement = 0
+
+    cur.execute(
+        """
+        SELECT
+            COUNT(*) FILTER (WHERE post_type = ANY(%s)),
+            COUNT(*) FILTER (WHERE post_type = 'reply'),
+            COUNT(*) FILTER (WHERE post_type = 'thread'),
+            COUNT(*) FILTER (WHERE post_type = 'long')
+        FROM tweets
+        WHERE account_id = %s
+          AND posted_at >= %s::date
+          AND posted_at < (%s::date + INTERVAL '1 day')
+        """,
+        (list(TRACKED_POST_TYPES), account_id, today, today),
+    )
+    post_row = cur.fetchone()
+    daily_posts, daily_replies, daily_threads, daily_longs = post_row if post_row else (0, 0, 0, 0)
 
     cur.execute(
         """
         INSERT INTO account_metrics_daily
           (account_id, snapshot_date, followers_count, following_count,
            tweet_count, listed_count,
-           cumulative_impressions, cumulative_likes, cumulative_retweets, cumulative_bookmarks)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+           cumulative_impressions, cumulative_likes, cumulative_retweets, cumulative_bookmarks,
+           cumulative_replies, cumulative_quotes, cumulative_profile_clicks, cumulative_url_link_clicks,
+           cumulative_engagements, daily_post_count, daily_reply_count, daily_thread_count, daily_long_count)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (account_id, snapshot_date) DO UPDATE
           SET followers_count       = EXCLUDED.followers_count,
               following_count       = EXCLUDED.following_count,
@@ -153,29 +209,53 @@ def upsert_account_daily_metrics(cur, account_id, public_metrics, today):
               cumulative_impressions= EXCLUDED.cumulative_impressions,
               cumulative_likes      = EXCLUDED.cumulative_likes,
               cumulative_retweets   = EXCLUDED.cumulative_retweets,
-              cumulative_bookmarks  = EXCLUDED.cumulative_bookmarks
+              cumulative_bookmarks  = EXCLUDED.cumulative_bookmarks,
+              cumulative_replies    = EXCLUDED.cumulative_replies,
+              cumulative_quotes     = EXCLUDED.cumulative_quotes,
+              cumulative_profile_clicks = EXCLUDED.cumulative_profile_clicks,
+              cumulative_url_link_clicks = EXCLUDED.cumulative_url_link_clicks,
+              cumulative_engagements = EXCLUDED.cumulative_engagements,
+              daily_post_count      = EXCLUDED.daily_post_count,
+              daily_reply_count     = EXCLUDED.daily_reply_count,
+              daily_thread_count    = EXCLUDED.daily_thread_count,
+              daily_long_count      = EXCLUDED.daily_long_count
         """,
         (account_id, today, followers, following, tweet_count, listed,
-         cum_imp, cum_like, cum_rt, cum_bm),
+         cum_imp, cum_like, cum_rt, cum_bm, cum_reply, cum_quote,
+         cum_profile_click, cum_url_click, cum_engagement,
+         daily_posts, daily_replies, daily_threads, daily_longs),
     )
 
 
-def insert_snapshot(cur, tweet_id, hours_after, metrics):
+def insert_snapshot(cur, tweet_id, hours_after, public_metrics, non_public_metrics=None, organic_metrics=None):
     cur.execute(
         """
         INSERT INTO tweet_metrics_snapshots
           (tweet_id, snapshot_at, hours_after_post,
-           impression_count, like_count, retweet_count, bookmark_count, reply_count)
-        VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s)
+           impression_count, like_count, retweet_count, bookmark_count, reply_count, quote_count,
+           profile_click_count, url_link_click_count, engagement_count,
+           organic_impression_count, organic_like_count, organic_retweet_count, organic_reply_count,
+           organic_profile_click_count, organic_url_link_click_count)
+        VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (
             tweet_id,
             round(hours_after, 2),
-            metrics.get("impression_count"),
-            metrics.get("like_count"),
-            metrics.get("retweet_count"),
-            metrics.get("bookmark_count"),
-            metrics.get("reply_count"),
+            metric_value(public_metrics, "impression_count"),
+            metric_value(public_metrics, "like_count"),
+            metric_value(public_metrics, "retweet_count"),
+            metric_value(public_metrics, "bookmark_count"),
+            metric_value(public_metrics, "reply_count"),
+            metric_value(public_metrics, "quote_count"),
+            metric_value(non_public_metrics, "user_profile_clicks"),
+            metric_value(non_public_metrics, "url_link_clicks"),
+            metric_value(non_public_metrics, "engagements"),
+            metric_value(organic_metrics, "impression_count"),
+            metric_value(organic_metrics, "like_count"),
+            metric_value(organic_metrics, "retweet_count"),
+            metric_value(organic_metrics, "reply_count"),
+            metric_value(organic_metrics, "user_profile_clicks"),
+            metric_value(organic_metrics, "url_link_clicks"),
         ),
     )
 
@@ -183,7 +263,7 @@ def insert_snapshot(cur, tweet_id, hours_after, metrics):
 def should_skip_tweets_api(cur, account_id, now) -> bool:
     """DBの状態からツイートAPI取得をスキップすべきか判断する。
     初日（投稿後24h以内）は3時間ごと、2日目以降は1日1回。
-    DBが空・未取得ツイートがある場合は必ず呼ぶ。
+    対象はメイン投稿のみ。DBが空・未取得ツイートがある場合は必ず呼ぶ。
     """
     cur.execute(
         """
@@ -194,11 +274,11 @@ def should_skip_tweets_api(cur, account_id, now) -> bool:
         FROM tweets t
         LEFT JOIN tweet_metrics_snapshots s ON t.tweet_id = s.tweet_id
         WHERE t.account_id = %s
-          AND t.post_type != 'reply'
-          AND t.posted_at >= NOW() - INTERVAL '7 days'
+          AND t.post_type = ANY(%s)
+          AND t.posted_at >= NOW() - INTERVAL '3 days'
         GROUP BY t.tweet_id, t.posted_at
         """,
-        (account_id,),
+        (account_id, list(TRACKED_POST_TYPES)),
     )
     rows = cur.fetchall()
 
@@ -235,6 +315,7 @@ def fetch_recent_tweets(client, user_id, since):
             start_time=since,
             max_results=100,
             tweet_fields=TWEET_FIELDS,
+            exclude=["replies"],
             user_auth=True,
             pagination_token=pagination_token,
         )
@@ -270,7 +351,7 @@ def _fetch_profile_image_url(account_cfg, x_username):
     return raw_img.replace("_normal.", "_400x400.") if raw_img else None
 
 
-def collect_account(account_cfg, conn):
+def collect_account(account_cfg, conn, force=False):
     env_token = account_cfg["token_env"]
     env_secret = account_cfg["token_secret_env"]
     access_token = os.environ.get(env_token)
@@ -319,7 +400,7 @@ def collect_account(account_cfg, conn):
         with conn.cursor() as cur:
             account_id = upsert_account(cur, actual_username, display_name, profile_image_url)
 
-            if should_skip_tweets_api(cur, account_id, now):
+            if not force and should_skip_tweets_api(cur, account_id, now):
                 # フォロワーデータだけ更新してツイート取得はスキップ
                 upsert_account_daily_metrics(cur, account_id, public_metrics, today)
                 conn.commit()
@@ -364,11 +445,17 @@ def collect_account(account_cfg, conn):
                 upsert_tweet(cur, tweet.id, account_id, tweet.text, posted_at, post_type,
                              in_reply_to_tweet_id, conversation_id, in_reply_to_user_id)
 
-                metrics = {}
-                if tweet.public_metrics:
-                    metrics.update(tweet.public_metrics)
+                if post_type not in TRACKED_POST_TYPES:
+                    continue
 
-                insert_snapshot(cur, tweet.id, hours_after, metrics)
+                insert_snapshot(
+                    cur,
+                    tweet.id,
+                    hours_after,
+                    getattr(tweet, "public_metrics", None),
+                    getattr(tweet, "non_public_metrics", None),
+                    getattr(tweet, "organic_metrics", None),
+                )
 
             # フォロワー推移と累積メトリクスを当日分として保存
             upsert_account_daily_metrics(cur, account_id, public_metrics, today)
@@ -397,7 +484,14 @@ def collect_account(account_cfg, conn):
     return read_count
 
 
+def build_parser():
+    parser = argparse.ArgumentParser(description="Collect X post metrics into Neon PostgreSQL")
+    parser.add_argument("--force", action="store_true", help="収集間隔に関係なくX APIを呼び、最新スナップショットを保存する")
+    return parser
+
+
 def main():
+    args = build_parser().parse_args()
     config = load_config()
     conn = get_db_conn()
 
@@ -405,7 +499,7 @@ def main():
     try:
         for account in config["accounts"]:
             print(f"\n▶ {account['x_username']} を処理中...")
-            total_reads += collect_account(account, conn)
+            total_reads += collect_account(account, conn, force=args.force)
     finally:
         conn.close()
 

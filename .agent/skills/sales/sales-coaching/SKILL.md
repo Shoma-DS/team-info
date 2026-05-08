@@ -164,6 +164,38 @@ create table if not exists public.sales_coaching_transcripts (
 
 ---
 
+## STEP 3.5: 面談分析用 SQLite DB へ保存する
+
+Neon 連携の有無に関わらず、面接・2回目面談の後続分析に使うデータはローカル SQLite にも保存する。
+候補者属性、悩み、興味、強み、リスク、面談タグ、文字起こし全文、文字起こしセグメントを保持する。
+
+保存先:
+
+```text
+personal/deguchishouma/sales/coaching/database/interview_analysis.sqlite3
+```
+
+取り込みスクリプト:
+
+```bash
+python3 "$TEAM_INFO_ROOT/personal/deguchishouma/sales/coaching/database/scripts/import_interview_db.py" \
+  --loom-export-dir "/tmp/loom-mcp/<video_id>" \
+  --event-json '{"candidate_name":"<氏名>","account_name":"<アカウント名>","gender":"<性別>","age":<年齢>,"phone":"<電話番号>","application_reason":"<応募理由>","calendar_title":"<予定名>","calendar_start":"<YYYY-MM-DD HH:MM>","calendar_end":"<YYYY-MM-DD HH:MM>","meeting_round":"initial","closing_owner":"出口"}'
+```
+
+主なテーブル:
+
+| テーブル | 用途 |
+|---------|------|
+| `interview_sessions` | 候補者属性・面談メタデータ・文字起こし全文 |
+| `interview_labels` | `pain` / `interest` / `strength` / `risk` / `fit` / `attribute` タグ |
+| `interview_transcript_segments` | タイムスタンプ付き文字起こし行 |
+
+カレンダーから候補者情報が取れている場合は、`event-json` に必ず氏名・アカウント名・性別・年齢・応募理由・予定名・予定時刻を入れる。
+これにより、社内分析や今後の面談分析で検索・集計しやすくなる。
+
+---
+
 ## STEP 4: 詳細分析（Claude Code担当）
 
 ユーザーが以下のように指示する：

@@ -27,6 +27,7 @@ REMOTE1_IMAGE_COL = "R"
 REMOTE1_POST_INDEX = 18    # S
 REMOTE2_IMAGE_COL = "T"
 REMOTE2_POST_INDEX = 20    # U
+ROTATION_REPORT_FILENAME = "rotation_report.md"
 
 EXPECTED_IMAGE_FILENAMES = {
     "factory": "工場.jpg",
@@ -236,12 +237,142 @@ def batch_update_sheet(data: list[dict]) -> None:
     )
 
 
+def row_value(row: list[str], index: int) -> str:
+    return str(row[index]).strip() if len(row) > index else ""
+
+
+def cell_value(row: list[str], index: int) -> str:
+    return str(row[index]) if len(row) > index else ""
+
+
+def ensure_row_width(row: list[str], width: int) -> None:
+    if len(row) < width:
+        row.extend([""] * (width - len(row)))
+
+
+def rotate_bundles(rows: list[list[str]], target_indexes: list[int], column_indexes: list[int]) -> dict[int, list[str]]:
+    old_bundles = {
+        row_idx: [cell_value(rows[row_idx], col_idx) for col_idx in column_indexes]
+        for row_idx in target_indexes
+    }
+    if len(target_indexes) <= 1:
+        return old_bundles
+
+    rotated: dict[int, list[str]] = {}
+    for pos, row_idx in enumerate(target_indexes):
+        source_idx = target_indexes[pos - 1]
+        rotated[row_idx] = old_bundles[source_idx]
+    return rotated
+
+
+def render_rotation_report(rows: list[list[str]], factory_rows: list[int], remote_rows: list[int]) -> str:
+    lines = [
+        "【地域ローテーション確認】",
+        "■ 工場（H列）",
+        "| アカウント名 | 担当エリア（ローテーション後） |",
+        "|------------|---------------------------|",
+    ]
+    for row_idx in factory_rows:
+        row = rows[row_idx]
+        account_name = re.sub(r"\s+", " ", row_value(row, 1)) or "未設定"
+        lines.append(f"| {account_name} | {normalize_prefecture(row_value(row, FACTORY_REGION_INDEX)) or '未設定'} |")
+
+    lines.extend(
+        [
+            "",
+            "■ 在宅（Q列）",
+            "| アカウント名 | 担当エリア（ローテーション後） |",
+            "|------------|---------------------------|",
+        ]
+    )
+    for row_idx in remote_rows:
+        row = rows[row_idx]
+        account_name = re.sub(r"\s+", " ", row_value(row, 1)) or "未設定"
+        lines.append(f"| {account_name} | {normalize_prefecture(row_value(row, REMOTE_REGION_INDEX)) or '未設定'} |")
+    return "\n".join(lines)
+
+
+def rotate_sheet(output_root: Path, dry_run: bool) -> None:
+    rows = read_sheet_rows()
+    for row in rows:
+        ensure_row_width(row, REMOTE2_POST_INDEX + 1)
+
+    factory_rows = [idx for idx, row in enumerate(rows) if row_value(row, FACTORY_POST_INDEX)]
+    remote_rows = [
+        idx
+        for idx, row in enumerate(rows)
+        if row_value(row, REMOTE1_POST_INDEX) and row_value(row, REMOTE2_POST_INDEX)
+    ]
+
+    factory_rotated = rotate_bundles(rows, factory_rows, [FACTORY_REGION_INDEX, FACTORY_POST_INDEX])
+    remote_rotated = rotate_bundles(rows, remote_rows, [REMOTE_REGION_INDEX, REMOTE1_POST_INDEX, REMOTE2_POST_INDEX])
+
+    for row_idx, values in factory_rotated.items():
+        rows[row_idx][FACTORY_REGION_INDEX] = values[0]
+        rows[row_idx][FACTORY_POST_INDEX] = values[1]
+    for row_idx, values in remote_rotated.items():
+        rows[row_idx][REMOTE_REGION_INDEX] = values[0]
+        rows[row_idx][REMOTE1_POST_INDEX] = values[1]
+        rows[row_idx][REMOTE2_POST_INDEX] = values[2]
+
+    report = render_rotation_report(rows, factory_rows, remote_rows)
+    print(report)
+
+    output_root.mkdir(parents=True, exist_ok=True)
+    (output_root / ROTATION_REPORT_FILENAME).write_text(report + "\n", encoding="utf-8")
+
+    if dry_run:
+        print(json.dumps({"dry_run": True, "factory_rows": len(factory_rows), "remote_rows": len(remote_rows)}, ensure_ascii=False))
+        return
+
+    updates: list[dict] = []
+    for row_idx, values in factory_rotated.items():
+        sheet_row = row_idx + 7
+        updates.extend(
+            [
+                {"range": f"{SHEET_NAME}!H{sheet_row}", "values": [[values[0]]]},
+                {"range": f"{SHEET_NAME}!J{sheet_row}", "values": [[values[1]]]},
+            ]
+        )
+    for row_idx, values in remote_rotated.items():
+        sheet_row = row_idx + 7
+        updates.extend(
+            [
+                {"range": f"{SHEET_NAME}!Q{sheet_row}", "values": [[values[0]]]},
+                {"range": f"{SHEET_NAME}!S{sheet_row}", "values": [[values[1]]]},
+                {"range": f"{SHEET_NAME}!U{sheet_row}", "values": [[values[2]]]},
+            ]
+        )
+
+    if updates:
+        batch_update_sheet(updates)
+    print(
+        json.dumps(
+            {
+                "dry_run": False,
+                "factory_rows": len(factory_rows),
+                "remote_rows": len(remote_rows),
+                "updated_cells": len(updates),
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
 def normalize_prefecture(value: str) -> str:
     text = clean_display_text(value)
     if not text:
         return ""
     if text.endswith(("都", "道", "府", "県")):
         return text
+    special_names = {
+        "北海道": "北海道",
+        "東京": "東京都",
+        "大阪": "大阪府",
+        "京都": "京都府",
+    }
+    if text in special_names:
+        return special_names[text]
     return f"{text}県"
 
 
@@ -982,6 +1113,9 @@ def main() -> int:
 
     subparsers.add_parser("prepare")
 
+    rotate_parser = subparsers.add_parser("rotate-sheet")
+    rotate_parser.add_argument("--dry-run", action="store_true")
+
     sync_parser = subparsers.add_parser("sync-drive")
     sync_parser.add_argument("--purge-existing", action="store_true")
 
@@ -990,6 +1124,8 @@ def main() -> int:
 
     if args.command == "prepare":
         prepare(output_root)
+    elif args.command == "rotate-sheet":
+        rotate_sheet(output_root, dry_run=args.dry_run)
     elif args.command == "sync-drive":
         sync_drive(output_root, purge_existing=args.purge_existing)
 

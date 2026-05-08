@@ -6,6 +6,8 @@
 import argparse
 import json
 import os
+import re
+import shlex
 import sys
 import time
 import webbrowser
@@ -16,6 +18,8 @@ import tweepy
 
 SCRIPT_DIR  = Path(__file__).parent
 CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
+REPO_ROOT   = SCRIPT_DIR.parent.parent.parent.parent
+ENV_FILE    = REPO_ROOT / ".env"
 
 NGROK_DOMAIN  = "zinciferous-preludiously-draven.ngrok-free.dev"
 REDIRECT_URI  = f"https://{NGROK_DOMAIN}/oauth2/callback"
@@ -31,23 +35,72 @@ def load_config():
         return json.loads(raw)
 
 
-def save_tokens_to_settings(account_id, access_token, refresh_token=None):
-    settings_file = SCRIPT_DIR.parent.parent.parent.parent / ".claude" / "settings.local.json"
-    if not settings_file.exists():
-        print("⚠️  settings.local.json が見つからないため、ファイルへの保存をスキップします", file=sys.stderr)
-        return
+def load_dotenv(path=ENV_FILE):
+    if not path.exists():
+        return {}
+
+    loaded = {}
+    pattern = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$")
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(raw_line)
+        if not match:
+            continue
+        key, raw_value = match.groups()
+        raw_value = raw_value.strip()
+        try:
+            parts = shlex.split(raw_value, comments=True, posix=True)
+            value = parts[0] if parts else ""
+        except ValueError:
+            value = raw_value.strip("\"'")
+        loaded[key] = value
+    return loaded
+
+
+def dotenv_quote(value):
+    if value == "":
+        return '""'
+    if re.fullmatch(r"[A-Za-z0-9_@%+=:,./-]+", value):
+        return value
+    return "'" + value.replace("'", "'\"'\"'") + "'"
+
+
+def save_env_values(updates):
+    ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
+    lines = ENV_FILE.read_text(encoding="utf-8").splitlines() if ENV_FILE.exists() else []
+    pattern = re.compile(r"^(\s*(?:export\s+)?)([A-Za-z_][A-Za-z0-9_]*)(\s*=\s*).*$")
+    seen = set()
+    next_lines = []
+
+    for line in lines:
+        match = pattern.match(line)
+        if not match:
+            next_lines.append(line)
+            continue
+        prefix, key, sep = match.groups()
+        if key not in updates:
+            next_lines.append(line)
+            continue
+        next_lines.append(f"{prefix}{key}{sep}{dotenv_quote(updates[key])}")
+        seen.add(key)
+
+    for key in sorted(set(updates) - seen):
+        next_lines.append(f"{key}={dotenv_quote(updates[key])}")
+
+    ENV_FILE.write_text("\n".join(next_lines).rstrip() + "\n", encoding="utf-8")
+
+
+def save_tokens_to_settings(account_cfg, access_token, refresh_token=None):
+    account_id = account_cfg["id"]
+    access_token_env = account_cfg.get("bookmarks_access_token_env") or f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"
+    refresh_token_env = account_cfg.get("bookmarks_refresh_token_env") or f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"
     try:
-        config = json.loads(settings_file.read_text(encoding="utf-8"))
-        env = config.setdefault("env", {})
-        env[f"X_BOOKMARKS_ACCESS_TOKEN_{account_id}"] = access_token
+        updates = {access_token_env: access_token}
         if refresh_token:
-            env[f"X_BOOKMARKS_REFRESH_TOKEN_{account_id}"] = refresh_token
-        settings_file.write_text(
-            json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-        )
-        print("💾 settings.local.json にトークンを保存しました")
+            updates[refresh_token_env] = refresh_token
+        save_env_values(updates)
+        print(".env にトークンを保存しました")
     except Exception as e:
-        print(f"⚠️  settings.local.json の更新に失敗しました: {e}", file=sys.stderr)
+        print(f"⚠️  .env の更新に失敗しました: {e}", file=sys.stderr)
 
 
 def poll_callback():
@@ -66,6 +119,9 @@ def poll_callback():
 
 
 def main():
+    for key, value in load_dotenv().items():
+        os.environ.setdefault(key, value)
+
     parser = argparse.ArgumentParser(description="X OAuth 2.0 セットアップ")
     parser.add_argument("--account", default="GUTARA", help="アカウントID")
     args = parser.parse_args()
@@ -76,21 +132,23 @@ def main():
         print(f"❌ アカウント '{args.account}' が見つかりません", file=sys.stderr)
         sys.exit(1)
 
-    account_id    = account_cfg["id"]
-    client_id     = os.environ.get(f"X_OAUTH2_CLIENT_ID_{account_id}") or os.environ.get("X_OAUTH2_CLIENT_ID")
-    client_secret = os.environ.get(f"X_OAUTH2_CLIENT_SECRET_{account_id}") or os.environ.get("X_OAUTH2_CLIENT_SECRET")
+    account_id = account_cfg["id"]
+    client_id_env = account_cfg.get("oauth2_client_id_env") or f"X_OAUTH2_CLIENT_ID_{account_id}"
+    client_secret_env = account_cfg.get("oauth2_client_secret_env") or f"X_OAUTH2_CLIENT_SECRET_{account_id}"
+    client_id = os.environ.get(client_id_env) or os.environ.get("X_OAUTH2_CLIENT_ID")
+    client_secret = os.environ.get(client_secret_env) or os.environ.get("X_OAUTH2_CLIENT_SECRET")
 
     if not client_id:
         print(f"""
 ❌ OAuth 2.0 Client ID が未設定です。
 
 X Developer Portal でアプリの OAuth 2.0 を有効にして、
-以下の環境変数を settings.local.json の env ブロックに追加してください:
+以下の環境変数を repo 直下の .env に追加してください:
 
-  "X_OAUTH2_CLIENT_ID_{account_id}": "ここにClient IDを貼り付け"
-  "X_OAUTH2_CLIENT_SECRET_{account_id}": "ここにClient Secretを貼り付け"
+  {client_id_env}=ここにClient IDを貼り付け
+  {client_secret_env}=ここにClient Secretを貼り付け
 
-Claude Code を再起動してからもう一度実行してください。
+保存してからもう一度実行してください。
 """, file=sys.stderr)
         sys.exit(1)
 
@@ -144,11 +202,11 @@ Claude Code を再起動してからもう一度実行してください。
     access_token  = token.get("access_token")
     refresh_token = token.get("refresh_token")
 
-    save_tokens_to_settings(account_id, access_token, refresh_token)
+    save_tokens_to_settings(account_cfg, access_token, refresh_token)
 
     print(f"\n✅ OAuth 2.0 認証が完了しました！")
-    print(f"   アクセストークンとリフレッシュトークンを settings.local.json に保存しました。")
-    print(f"   Claude Code を再起動してから sync_profile_images.py を実行してください。\n")
+    print(f"   アクセストークンとリフレッシュトークンを .env に保存しました。")
+    print(f"   sync_profile_images.py を実行してください。\n")
 
 
 if __name__ == "__main__":

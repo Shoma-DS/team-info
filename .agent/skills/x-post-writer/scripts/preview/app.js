@@ -16,6 +16,15 @@ let currentDraft = null; // 現在選択中の下書き
 let publicUrl    = window.location.origin;
 let searchQuery  = '';   // 検索クエリ
 let pendingDeleteId = null; // 削除モーダル用
+let imagePromptModalMode = 'generate';
+let imageGenerationJob = null;
+let imageGenerationTimer = null;
+let imageGenerationDraftId = null;
+let autoPostJob = null;
+let autoPostTimer = null;
+let autoPostDraftId = null;
+let accountPresets = [];
+let selectedAccount = localStorage.getItem('x-preview-selected-account') || 'all';
 
 // グループ折りたたみ状態（未投稿: 開く / 投稿済み: 閉じる）
 const groupCollapsed = { draft: false, published: true };
@@ -36,7 +45,19 @@ async function init() {
     const data = await res.json();
     publicUrl  = data.url || publicUrl;
   } catch (_) {}
+  await loadAccounts();
   await loadDraftList();
+}
+
+async function loadAccounts() {
+  try {
+    const res = await apiFetch(`${API}/accounts`);
+    const data = await res.json();
+    accountPresets = Array.isArray(data.accounts) ? data.accounts : [];
+  } catch (_) {
+    accountPresets = [];
+  }
+  renderAccountSummary();
 }
 
 // ── 下書きリスト読み込み ─────────────────────────────
@@ -44,7 +65,10 @@ async function init() {
 async function loadDraftList() {
   const el = document.getElementById('draft-list');
   try {
-    const res    = await apiFetch(`${API}/drafts`);
+    const accountParam = selectedAccount !== 'all'
+      ? `?account=${encodeURIComponent(selectedAccount)}`
+      : '';
+    const res    = await apiFetch(`${API}/drafts${accountParam}`);
     allDrafts    = await res.json();
 
     if (!Array.isArray(allDrafts) || allDrafts.length === 0) {
@@ -96,6 +120,9 @@ function renderDraftList() {
     const threadBadge = isThread
       ? `<span class="badge badge-thread">ツリー ${d.parts.length}</span>`
       : `<span class="badge badge-single">単発</span>`;
+    const imageBadge = d.has_image
+      ? `<span class="badge badge-image">画像付き</span>`
+      : '';
     return `
       <div class="draft-item${isPosted ? ' posted' : ''}" data-id="${d.draft_id}"
            onclick="selectDraft('${d.draft_id}')">
@@ -109,6 +136,7 @@ function renderDraftList() {
         <div class="draft-item-preview">${esc(preview)}${preview.length >= 48 ? '…' : ''}</div>
         <div class="draft-item-meta">
           ${threadBadge}
+          ${imageBadge}
           <span class="draft-item-date">${d.created_at}</span>
           ${d.memo ? `<span class="draft-item-date">・${esc(d.memo)}</span>` : ''}
         </div>
@@ -164,6 +192,108 @@ function onSearch(value) {
   renderDraftList();
 }
 
+function getSelectedAccountPreset() {
+  if (selectedAccount === 'all') return null;
+  return accountPresets.find(a => a.x_username === selectedAccount || a.id === selectedAccount) || null;
+}
+
+function renderAccountSummary() {
+  const nameEl = document.getElementById('account-summary-name');
+  const userEl = document.getElementById('account-summary-user');
+  const avatarEl = document.querySelector('.account-summary-avatar');
+  if (!nameEl || !userEl || !avatarEl) return;
+  const preset = getSelectedAccountPreset();
+  if (!preset) {
+    nameEl.textContent = 'すべてのアカウント';
+    userEl.textContent = '下書き全体を表示';
+    avatarEl.innerHTML = '𝕏';
+    return;
+  }
+  nameEl.textContent = preset.display_name || preset.x_username || preset.id;
+  userEl.textContent = preset.x_username ? `@${preset.x_username}` : preset.id;
+  avatarEl.innerHTML = preset.profile_image_url
+    ? `<img src="${escAttr(preset.profile_image_url)}" alt="${escAttr(preset.display_name || preset.x_username)}" loading="lazy">`
+    : esc((preset.display_name || preset.x_username || preset.id || 'X').charAt(0).toUpperCase());
+}
+
+function ensureAccountModal() {
+  let overlay = document.getElementById('account-modal');
+  if (overlay) return overlay;
+  overlay = document.createElement('div');
+  overlay.id = 'account-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div class="modal account-modal" onclick="event.stopPropagation()">
+      <div class="thread-modal-header">
+        <div>
+          <div class="thread-step-label">プリセット</div>
+          <h3 class="image-modal-title">アカウント変更</h3>
+        </div>
+        <button class="thread-close-btn" onclick="closeAccountModal()">✕</button>
+      </div>
+      <div id="account-preset-list" class="account-preset-list"></div>
+    </div>`;
+  overlay.onclick = closeAccountModal;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+async function openAccountModal() {
+  const overlay = ensureAccountModal();
+  if (accountPresets.length === 0) await loadAccounts();
+  renderAccountPresetList();
+  overlay.style.display = 'flex';
+}
+
+function closeAccountModal() {
+  const overlay = document.getElementById('account-modal');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function renderAccountPresetList() {
+  const list = document.getElementById('account-preset-list');
+  if (!list) return;
+  const allSelected = selectedAccount === 'all';
+  const allCard = `
+    <button class="account-preset-card ${allSelected ? 'active' : ''}" onclick="selectAccountPreset('all')">
+      <span class="avatar-sm account-preset-avatar">𝕏</span>
+      <span class="account-preset-main">
+        <span class="account-preset-name">すべてのアカウント</span>
+        <span class="account-preset-user">全下書きを表示</span>
+      </span>
+      <span class="account-preset-check">${allSelected ? '✓' : ''}</span>
+    </button>`;
+  const cards = accountPresets.map(account => {
+    const key = account.x_username || account.id;
+    const selected = selectedAccount === key;
+    const initial = (account.display_name || account.x_username || account.id || 'X').charAt(0).toUpperCase();
+    const avatar = account.profile_image_url
+      ? `<img src="${escAttr(account.profile_image_url)}" alt="${escAttr(account.display_name || account.x_username)}" loading="lazy">`
+      : esc(initial);
+    return `
+      <button class="account-preset-card ${selected ? 'active' : ''}" onclick="selectAccountPreset('${escAttr(key)}')">
+        <span class="avatar-sm account-preset-avatar">${avatar}</span>
+        <span class="account-preset-main">
+          <span class="account-preset-name">${esc(account.display_name || account.x_username || account.id)}</span>
+          <span class="account-preset-user">@${esc(account.x_username || account.id)}${Number(account.draft_count || 0) ? ` ・ ${Number(account.draft_count)}件` : ''}</span>
+        </span>
+        <span class="account-preset-check">${selected ? '✓' : ''}</span>
+      </button>`;
+  }).join('');
+  list.innerHTML = allCard + cards;
+}
+
+async function selectAccountPreset(accountKey) {
+  selectedAccount = accountKey || 'all';
+  localStorage.setItem('x-preview-selected-account', selectedAccount);
+  currentDraft = null;
+  draftPage = 1;
+  renderAccountSummary();
+  closeAccountModal();
+  await loadDraftList();
+}
+
 // ── 下書き選択 ───────────────────────────────────────
 
 async function selectDraft(draftId) {
@@ -210,9 +340,16 @@ function renderPreview(draft) {
   const statusBtn = isPosted
     ? `<button class="revert-draft-btn" onclick="setStatus('${draft.draft_id}','draft')">未投稿に戻す</button>`
     : `<button class="post-btn" onclick="onPostClick()"><span>𝕏</span> 投稿する</button>`;
+  const autoPostBtn = isPosted
+    ? ''
+    : `<button class="auto-post-btn" id="auto-post-btn" onclick="startAutoPost()"><span>▶</span> 自動投稿</button>`;
   const markPostedBtn = isPosted
     ? ''
     : `<button class="mark-posted-btn" id="mark-posted-btn" onclick="setStatus('${draft.draft_id}','published')">✓ 投稿済みにする</button>`;
+  const rewriteImageBtn = draft.image_prompts?.[0]?.prompt
+    ? `<button class="image-source-copy-btn" onclick="openImagePromptModal('rewrite')">AIリライト</button>`
+    : '';
+  const characterBtn = `<button class="image-source-copy-btn" onclick="openCharacterSettingsModal()">キャラ設定</button>`;
 
   const header = `
     <div class="preview-header">
@@ -222,11 +359,17 @@ function renderPreview(draft) {
             @${esc(draft.x_username)}
           </span>
         </h3>
-        <p>${isThread ? `ツリー (${draft.parts.length} パーツ)` : '単発'} ・ ${draft.created_at}</p>
+        <p>
+          ${isThread ? `ツリー (${draft.parts.length} パーツ)` : '単発'} ・ ${draft.created_at}
+          ${draft.has_image ? '<span class="badge badge-image preview-image-badge">画像付き</span>' : ''}
+        </p>
       </div>
       <div class="header-actions">
         ${draft.memo ? `<span class="preview-memo">📝 ${esc(draft.memo)}</span>` : ''}
+        ${characterBtn}
+        ${rewriteImageBtn}
         ${statusBtn}
+        ${autoPostBtn}
         ${markPostedBtn}
       </div>
     </div>
@@ -234,6 +377,7 @@ function renderPreview(draft) {
     <div class="preview-url-bar">
       🔗 <a href="${previewUrl}" target="_blank">${previewUrl}</a>
     </div>
+    <div id="auto-post-progress-slot"></div>
   `;
 
   // ── 下書きカード列 ──
@@ -245,6 +389,7 @@ function renderPreview(draft) {
     // 比較なし — 従来レイアウト
     content.className = 'preview-content';
     content.innerHTML = header + draftCards + imagePromptBlock;
+    if (autoPostDraftId === draft.draft_id) renderAutoPostProgress(autoPostJob);
     return;
   }
 
@@ -279,6 +424,7 @@ function renderPreview(draft) {
     </div>`;
 
   content.innerHTML = header + labelBar + toggleBar + body;
+  if (autoPostDraftId === draft.draft_id) renderAutoPostProgress(autoPostJob);
 
   // モバイル初期状態: 下書きのみ表示
   if (window.innerWidth <= 640) switchCompareCol('draft');
@@ -304,6 +450,10 @@ function buildOriginalCards(original) {
       <div class="oembed-loading">読み込み中...</div>
     </div>`;
   }).join('');
+
+  const textHtml = original.text
+    ? `<div class="original-text-fallback">${formatText(original.text)}</div>`
+    : '';
 
   const urlBar = `<div class="oembed-url-bar">
     <a href="${escAttr(original.tweet_url)}" target="_blank" title="Xで元投稿を開く">
@@ -331,7 +481,7 @@ function buildOriginalCards(original) {
     ? `<div class="orig-urls">${extUrls.map(u => `<a href="${escAttr(u)}" target="_blank" class="orig-url-link">🔗 ${esc(u.length > 60 ? u.slice(0, 58) + '…' : u)}</a>`).join('')}</div>`
     : '';
 
-  return slots + urlBar + mediaHtml + urlsHtml;
+  return slots + textHtml + urlBar + mediaHtml + urlsHtml;
 }
 
 async function loadOembed(tweetUrl, slotId) {
@@ -375,7 +525,13 @@ function buildDraftCards(draft, initial, isThread) {
       ? `<div class="thread-line-wrapper">${avatarEl}<div class="thread-line"></div></div>`
       : avatarEl;
     const imageHtml = part.image_url
-      ? `<div class="tweet-image"><img src="${escAttr(part.image_url)}" alt="画像" loading="lazy"></div>`
+      ? `<div class="tweet-image">
+          <div class="tweet-image-toolbar">
+            <button class="image-source-copy-btn" onclick="saveGeneratedImageFromUrl('${escAttr(part.image_url)}')">画像保存</button>
+            <button class="image-source-copy-btn" onclick="copyGeneratedImageFromUrl('${escAttr(part.image_url)}')">画像をコピー</button>
+          </div>
+          <img src="${escAttr(part.image_url)}" alt="画像" loading="lazy">
+        </div>`
       : '';
 
     return `
@@ -431,14 +587,24 @@ function buildImagePromptBlock(draft) {
     : '';
 
   const sourceImgBtn = hasSourceImg
-    ? `<button class="image-source-copy-btn" onclick="copySourceImageUrl()">元画像をコピー</button>`
+    ? `<button class="image-source-copy-btn" onclick="copyGeneratedImage()">画像をコピー</button>`
     : '';
-  const promptCopyBtn = hasPrompt
+  const saveImgBtn = hasSourceImg
+    ? `<button class="image-source-copy-btn" onclick="saveGeneratedImage()">画像保存</button>`
+    : '';
+  const promptCopyBtn = hasPrompt && !hasSourceImg
     ? `<button class="image-prompt-copy-btn" onclick="copyImagePrompt()">プロンプトをコピー</button>`
     : '';
+  const generateBtn = hasPrompt
+    ? `<button class="image-source-copy-btn" onclick="startImageGeneration()">画像生成</button>`
+    : '';
+  const refineBtn = hasPrompt && hasSourceImg
+    ? `<button class="image-source-copy-btn" onclick="openImagePromptModal('refine')">修正依頼</button>`
+    : '';
+  const attachBtn = `<button class="image-source-copy-btn" onclick="openImagePromptModal('attach')">画像を添付</button>`;
 
   const sourceImgPreview = hasSourceImg
-    ? `<div class="source-img-preview"><a href="${escAttr(sourceImgUrl)}" target="_blank">🔗 ${esc(sourceImgUrl.length > 70 ? sourceImgUrl.slice(0, 68) + '…' : sourceImgUrl)}</a></div>`
+    ? `<div class="source-img-preview"><img src="${escAttr(sourceImgUrl)}" alt="生成済み画像" loading="lazy"><a href="${escAttr(sourceImgUrl)}" target="_blank">🔗 ${esc(sourceImgUrl.length > 70 ? sourceImgUrl.slice(0, 68) + '…' : sourceImgUrl)}</a></div>`
     : '';
 
   return `
@@ -447,13 +613,664 @@ function buildImagePromptBlock(draft) {
         <span class="image-prompt-title">🖼 画像</span>
         ${copyLabel}
         <div class="image-copy-btns">
+          ${generateBtn}
+          ${refineBtn}
+          ${attachBtn}
+          ${saveImgBtn}
           ${sourceImgBtn}
           ${promptCopyBtn}
         </div>
       </div>
+      <div id="image-generation-progress-slot"></div>
       ${sourceImgPreview}
       ${hasPrompt ? `<pre class="image-prompt-pre">${esc(prompt)}</pre>` : ''}
     </div>`;
+}
+
+function ensureImagePromptModal() {
+  let overlay = document.getElementById('image-prompt-modal');
+  if (overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'image-prompt-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div class="modal image-modal" onclick="event.stopPropagation()">
+      <div class="thread-modal-header">
+        <div>
+          <div class="thread-step-label" id="image-modal-label">画像プロンプト</div>
+          <h3 class="image-modal-title" id="image-modal-title">画像生成</h3>
+        </div>
+        <button class="thread-close-btn" onclick="closeImagePromptModal()">✕</button>
+      </div>
+      <label class="image-modal-label">画像コピー</label>
+      <input class="image-modal-input" id="image-copy-input" type="text" placeholder="画像内コピー">
+      <label class="image-modal-label">画像プロンプト</label>
+      <textarea class="image-modal-textarea" id="image-prompt-textarea" rows="9"></textarea>
+      <label class="image-modal-label">リライト/追記指示</label>
+      <textarea class="image-modal-instruction" id="image-rewrite-instruction" rows="3"
+        placeholder="例: もっとスマホで読みやすく。文字を減らして、3ステップを強調して"></textarea>
+      <div id="image-refine-fields" class="image-refine-fields" style="display:none">
+        <div class="image-refine-preview-grid">
+          <div>
+            <span class="image-modal-label">現在の生成画像</span>
+            <img id="image-refine-current-preview" class="image-refine-preview" alt="現在の生成画像">
+          </div>
+          <div>
+            <span class="image-modal-label">参照画像プレビュー</span>
+            <img id="image-refine-reference-preview" class="image-refine-preview" alt="参照画像">
+          </div>
+        </div>
+        <label class="image-modal-label">参照画像URL</label>
+        <input class="image-modal-input" id="reference-image-url" type="url"
+          placeholder="https://.../codex-logo.png">
+        <label class="image-modal-label">参照画像ローカルパス</label>
+        <input class="image-modal-input" id="reference-image-path" type="text"
+          placeholder="/Users/.../reference.png">
+      </div>
+      <label class="image-modal-label">生成済み画像パス</label>
+      <input class="image-modal-input" id="generated-image-path" type="text"
+        placeholder="/Users/.../.codex/generated_images/.../image.png">
+      <p class="image-modal-help" id="image-modal-help"></p>
+      <div class="image-modal-actions">
+        <button class="cancel-btn" onclick="closeImagePromptModal()">閉じる</button>
+        <button class="image-source-copy-btn" onclick="copyImageGenerationRequest()">生成依頼をコピー</button>
+        <button class="image-source-copy-btn" onclick="rewriteImagePrompt()">Codexでリライト</button>
+        <button class="image-source-copy-btn" id="image-refine-start-btn" onclick="startImageRefinement()" style="display:none">フィードバックで再生成</button>
+        <button class="image-source-copy-btn" onclick="attachGeneratedImage()">画像を添付</button>
+        <button class="save-btn" onclick="saveImagePrompt()">保存</button>
+      </div>
+    </div>`;
+  overlay.onclick = closeImagePromptModal;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function openImagePromptModal(mode = 'generate') {
+  if (!currentDraft) return;
+  imagePromptModalMode = mode;
+  const overlay = ensureImagePromptModal();
+  const first = currentDraft.image_prompts?.[0] || {};
+  document.getElementById('image-copy-input').value = first.copy || '';
+  document.getElementById('image-prompt-textarea').value = first.prompt || '';
+  document.getElementById('image-rewrite-instruction').value = '';
+  document.getElementById('generated-image-path').value = '';
+  const refineFields = document.getElementById('image-refine-fields');
+  const referenceUrlInput = document.getElementById('reference-image-url');
+  const referencePathInput = document.getElementById('reference-image-path');
+  const currentPreview = document.getElementById('image-refine-current-preview');
+  const referencePreview = document.getElementById('image-refine-reference-preview');
+  if (referenceUrlInput) referenceUrlInput.value = '';
+  if (referencePathInput) referencePathInput.value = '';
+  if (currentPreview) currentPreview.src = currentDraft.parts?.[0]?.image_url || '';
+  if (referencePreview) referencePreview.removeAttribute('src');
+  if (refineFields) refineFields.style.display = mode === 'refine' ? 'block' : 'none';
+  const refineStartBtn = document.getElementById('image-refine-start-btn');
+  if (refineStartBtn) refineStartBtn.style.display = mode === 'refine' ? 'inline-flex' : 'none';
+  if (referenceUrlInput) {
+    referenceUrlInput.oninput = () => {
+      if (referencePreview) referencePreview.src = referenceUrlInput.value.trim();
+    };
+  }
+
+  const title = mode === 'rewrite' ? 'AIリライト' : mode === 'attach' ? '生成画像を添付' : mode === 'refine' ? '画像の修正依頼' : 'Codex画像生成';
+  document.getElementById('image-modal-title').textContent = title;
+  document.getElementById('image-modal-help').textContent =
+    mode === 'generate'
+      ? 'APIは使いません。生成依頼をコピーしてCodex/ChatGPTサブスク内の画像生成に渡してください。生成後の画像パスを貼ると1投稿目に添付できます。'
+      : mode === 'rewrite'
+        ? 'リライト指示を書いて「Codexでリライト」を押すと、現在のプロンプトを後から改善できます。'
+        : mode === 'refine'
+          ? '現在の生成画像に対して、参照画像と修正フィードバックを渡して再生成します。例: Codexロゴは参照画像の形に合わせる。'
+          : '生成済み画像のローカルパスを貼ると、1投稿目の画像としてプレビューに表示します。';
+  overlay.style.display = 'flex';
+}
+
+function closeImagePromptModal() {
+  const overlay = document.getElementById('image-prompt-modal');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function getImageModalValues() {
+  return {
+    copy: document.getElementById('image-copy-input')?.value?.trim() || '',
+    prompt: document.getElementById('image-prompt-textarea')?.value?.trim() || '',
+    instruction: document.getElementById('image-rewrite-instruction')?.value?.trim() || '',
+    imagePath: document.getElementById('generated-image-path')?.value?.trim() || '',
+    referenceImageUrl: document.getElementById('reference-image-url')?.value?.trim() || '',
+    referenceImagePath: document.getElementById('reference-image-path')?.value?.trim() || '',
+  };
+}
+
+async function copyImageGenerationRequest() {
+  const { copy, prompt, instruction, referenceImageUrl, referenceImagePath } = getImageModalValues();
+  if (!prompt) { showToast('画像プロンプトがありません', true); return; }
+  const request = buildImageGenerationRequest(copy, prompt, {
+    feedback: imagePromptModalMode === 'refine' ? instruction : '',
+    currentImageUrl: imagePromptModalMode === 'refine' ? currentDraft?.parts?.[0]?.image_url || '' : '',
+    referenceImageUrl,
+    referenceImagePath,
+  });
+  try {
+    await navigator.clipboard.writeText(request);
+    showToast('✓ 画像生成依頼をコピーしました');
+  } catch {
+    showToast('コピーに失敗しました', true);
+  }
+}
+
+async function copyActiveImageGenerationRequest() {
+  if (!imageGenerationJob?.request) return;
+  try {
+    await navigator.clipboard.writeText(imageGenerationJob.request);
+    showToast('✓ 画像生成依頼を再コピーしました');
+  } catch {
+    showToast('コピーに失敗しました', true);
+  }
+}
+
+async function startImageGeneration() {
+  if (!currentDraft) return;
+  const first = currentDraft.image_prompts?.[0] || {};
+  const copy = (first.copy || '').trim();
+  const prompt = (first.prompt || '').trim();
+  if (!prompt) { showToast('画像プロンプトがありません', true); return; }
+
+  clearInterval(imageGenerationTimer);
+  try {
+    const res = await apiFetch(`${API}/image-generation/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draft_id: currentDraft.draft_id,
+        copy,
+        prompt,
+        character_reference_url: getCharacterReferenceUrl(),
+        character_traits: getCharacterTraits(),
+        character_negative: getCharacterNegative(),
+        character_placement: getCharacterPlacement(),
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    imageGenerationJob = data;
+    imageGenerationDraftId = currentDraft.draft_id;
+    renderImageGenerationProgress(data);
+    showToast('Codex App Serverで画像生成を開始しました');
+    imageGenerationTimer = setInterval(pollImageGeneration, 2500);
+  } catch (e) {
+    showToast(`画像生成開始失敗: ${e.message}`, true);
+  }
+}
+
+async function startImageRefinement() {
+  if (!currentDraft) return;
+  const { copy, prompt, instruction, referenceImageUrl, referenceImagePath } = getImageModalValues();
+  const currentImageUrl = currentDraft.parts?.[0]?.image_url || '';
+  if (!prompt) { showToast('画像プロンプトがありません', true); return; }
+  if (!currentImageUrl) { showToast('修正元の画像がありません', true); return; }
+  if (!instruction) { showToast('修正フィードバックを入力してください', true); return; }
+
+  clearInterval(imageGenerationTimer);
+  try {
+    const res = await apiFetch(`${API}/image-generation/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draft_id: currentDraft.draft_id,
+        copy,
+        prompt,
+        feedback: instruction,
+        current_image_url: currentImageUrl,
+        reference_image_url: referenceImageUrl,
+        reference_image_path: referenceImagePath,
+        character_reference_url: getCharacterReferenceUrl(),
+        character_traits: getCharacterTraits(),
+        character_negative: getCharacterNegative(),
+        character_placement: getCharacterPlacement(),
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    imageGenerationJob = data;
+    imageGenerationDraftId = currentDraft.draft_id;
+    closeImagePromptModal();
+    renderImageGenerationProgress(data);
+    showToast('修正フィードバック付きで再生成を開始しました');
+    imageGenerationTimer = setInterval(pollImageGeneration, 2500);
+  } catch (e) {
+    showToast(`再生成開始失敗: ${e.message}`, true);
+  }
+}
+
+function renderImageGenerationProgress(job) {
+  const slot = document.getElementById('image-generation-progress-slot');
+  if (!slot || !job) return;
+  const progress = Math.max(0, Math.min(100, Number(job.progress || 0)));
+  const label = job.message || (
+    job.status === 'completed'
+      ? '画像生成完了。プレビューに反映しました。'
+      : job.status === 'failed'
+        ? '画像生成に失敗しました。'
+        : 'Codex App Serverで画像生成中です。'
+  );
+  const retryButton = job.status === 'failed' && job.request
+    ? `<button class="image-generation-copy-btn" onclick="copyActiveImageGenerationRequest()">生成依頼をコピー</button>`
+    : '';
+  const logs = Array.isArray(job.logs) ? job.logs.slice(-12) : [];
+  const logBlock = logs.length
+    ? `<div class="image-generation-log">
+        ${logs.map(log => `
+          <div class="image-generation-log-row ${escAttr(log.level || 'info')}">
+            <span class="image-generation-log-time">${esc(log.at || '')}</span>
+            <span class="image-generation-log-message">${esc(log.message || '')}</span>
+          </div>`).join('')}
+      </div>`
+    : '';
+  slot.innerHTML = `
+    <div class="image-generation-progress ${job.status === 'failed' ? 'failed' : ''}">
+      <div class="image-generation-progress-top">
+        <span>${esc(label)}</span>
+        <span>${progress}%</span>
+      </div>
+      <div class="image-generation-bar"><div style="width:${progress}%"></div></div>
+      ${retryButton}
+      ${logBlock}
+    </div>`;
+}
+
+function buildImageGenerationRequest(copy, prompt, options = {}) {
+  const characterReferenceUrl = getCharacterReferenceUrl();
+  const traits = getCharacterTraits();
+  const negative = getCharacterNegative();
+  const placement = getCharacterPlacement();
+  const lines = [
+    'Codex/ChatGPTサブスク内の画像生成で、次のX投稿用図解を1枚生成してください。',
+    'APIは使わないでください。',
+    '添付されたプロフィール画像をキャラクター参照として使い、同じキャラクターの外見を図解内に入れてください。',
+    `重要特徴: ${traits}`,
+    `禁止する見た目: ${negative}`,
+    `配置: ${placement}`,
+    '',
+    `[CHARACTER REFERENCE]\n${characterReferenceUrl || '(なし)'}`,
+    '',
+    `[COPY]\n${copy || '(なし)'}`,
+    '',
+    `[IMAGE PROMPT]\n${prompt}`,
+  ];
+  if (options.currentImageUrl || options.feedback || options.referenceImageUrl || options.referenceImagePath) {
+    lines.push(
+      '',
+      '[REGENERATION CONTEXT]',
+      `現在の生成画像: ${options.currentImageUrl || '(なし)'}`,
+      `参照画像URL: ${options.referenceImageUrl || '(なし)'}`,
+      `参照画像ローカルパス: ${options.referenceImagePath || '(なし)'}`,
+      '',
+      `[USER FEEDBACK]\n${options.feedback || '(なし)'}`,
+      '',
+      '現在の生成画像の良い部分は保ち、ユーザーのフィードバックと参照画像を優先して再生成してください。'
+    );
+  }
+  return lines.join('\n');
+}
+
+async function pollImageGeneration() {
+  const draftId = imageGenerationDraftId || currentDraft?.draft_id;
+  if (!imageGenerationJob?.job_id || !draftId) return;
+  try {
+    const res = await apiFetch(`${API}/image-generation/status?id=${encodeURIComponent(imageGenerationJob.job_id)}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    imageGenerationJob = data;
+    renderImageGenerationProgress(data);
+
+    // サーバー側のジョブ完了イベントが遅れても、下書きに画像が入ったら即時反映する。
+    const reflected = await refreshDraftAfterImageGeneration(draftId, data.status === 'completed');
+    if (reflected) {
+      clearInterval(imageGenerationTimer);
+      imageGenerationTimer = null;
+      imageGenerationDraftId = null;
+      showToast('✓ 画像をプレビューに反映しました');
+      return;
+    }
+
+    if (data.status === 'failed') {
+      clearInterval(imageGenerationTimer);
+      imageGenerationTimer = null;
+      imageGenerationDraftId = null;
+      showToast(`画像生成失敗: ${data.message || '不明'}`, true);
+      return;
+    }
+    if (data.status === 'completed') {
+      clearInterval(imageGenerationTimer);
+      imageGenerationTimer = null;
+      imageGenerationDraftId = null;
+    }
+  } catch (e) {
+    clearInterval(imageGenerationTimer);
+    imageGenerationTimer = null;
+    imageGenerationDraftId = null;
+    showToast(`画像生成確認失敗: ${e.message}`, true);
+  }
+}
+
+async function refreshDraftAfterImageGeneration(draftId, forceRender = false) {
+  const reloadRes = await apiFetch(`${API}/draft?id=${encodeURIComponent(draftId)}`);
+  const draft = await reloadRes.json();
+  const imageAttached = !!draft.parts?.some(part => (part.image_url || '').trim());
+  if (!imageAttached && !forceRender) return false;
+
+  const item = allDrafts.find(d => d.draft_id === draft.draft_id);
+  if (item) {
+    item.parts = draft.parts;
+    item.has_image = imageAttached;
+    item.status = draft.status;
+    item.memo = draft.memo;
+  }
+  if (currentDraft?.draft_id === draft.draft_id) {
+    currentDraft = draft;
+    renderDraftList();
+    renderPreview(currentDraft);
+  } else {
+    renderDraftList();
+  }
+  return imageAttached;
+}
+
+async function rewriteImagePrompt() {
+  if (!currentDraft) return;
+  const { copy, prompt, instruction } = getImageModalValues();
+  if (!prompt) { showToast('画像プロンプトがありません', true); return; }
+  showToast('Codexでリライト中...');
+  try {
+    const res = await apiFetch(`${API}/image-prompt/rewrite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draft_id: currentDraft.draft_id,
+        copy,
+        prompt,
+        instruction,
+        character_reference_url: getCharacterReferenceUrl(),
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    document.getElementById('image-prompt-textarea').value = data.prompt;
+    showToast('✓ リライトしました。保存すると反映されます');
+  } catch (e) {
+    showToast(`リライト失敗: ${e.message}`, true);
+  }
+}
+
+async function saveImagePrompt() {
+  if (!currentDraft) return;
+  const { copy, prompt } = getImageModalValues();
+  if (!prompt) { showToast('画像プロンプトがありません', true); return; }
+  try {
+    const res = await apiFetch(`${API}/image-prompt`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draft_id: currentDraft.draft_id,
+        copy,
+        prompt,
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    currentDraft.image_prompts = [data.image_prompt];
+    renderPreview(currentDraft);
+    showToast('✓ 画像プロンプトを保存しました');
+  } catch (e) {
+    showToast(`保存失敗: ${e.message}`, true);
+  }
+}
+
+function ensureCharacterSettingsModal() {
+  let overlay = document.getElementById('character-settings-modal');
+  if (overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'character-settings-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div class="modal image-modal character-modal" onclick="event.stopPropagation()">
+      <div class="thread-modal-header">
+        <div>
+          <div class="thread-step-label">アカウント別に保存</div>
+          <h3 class="image-modal-title">キャラクター設定</h3>
+        </div>
+        <button class="thread-close-btn" onclick="closeCharacterSettingsModal()">✕</button>
+      </div>
+      <div class="character-preview-row">
+        <img id="character-reference-preview" class="character-reference-preview" alt="参照画像">
+        <div class="character-preview-meta">
+          <div id="character-account-label" class="thread-step-label"></div>
+          <p class="image-modal-help">この設定は保存され、サーバー再起動後も画像生成で使われます。</p>
+        </div>
+      </div>
+      <label class="image-modal-label">参照画像URL</label>
+      <input class="image-modal-input" id="character-reference-url-input" type="url"
+        placeholder="https://pbs.twimg.com/profile_images/...jpg">
+      <label class="image-modal-label">キャラクターの重要特徴</label>
+      <textarea class="image-modal-textarea" id="character-traits-input" rows="4"></textarea>
+      <label class="image-modal-label">禁止する見た目</label>
+      <textarea class="image-modal-instruction" id="character-negative-input" rows="3"></textarea>
+      <label class="image-modal-label">配置ルール</label>
+      <input class="image-modal-input" id="character-placement-input" type="text">
+      <div class="image-modal-actions">
+        <button class="cancel-btn" onclick="closeCharacterSettingsModal()">閉じる</button>
+        <button class="save-btn" onclick="saveCharacterSettings()">保存</button>
+      </div>
+    </div>`;
+  overlay.onclick = closeCharacterSettingsModal;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+async function openCharacterSettingsModal() {
+  if (!currentDraft) return;
+  const overlay = ensureCharacterSettingsModal();
+  const accountKey = currentDraft.x_username || currentDraft.draft_id;
+  try {
+    const res = await apiFetch(`${API}/character-settings?account=${encodeURIComponent(accountKey)}&fallback_url=${encodeURIComponent(currentDraft.profile_image_url || '')}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    currentDraft.character_setting = data.setting;
+  } catch (e) {
+    showToast(`キャラ設定取得失敗: ${e.message}`, true);
+  }
+  const setting = getCharacterSetting();
+  document.getElementById('character-account-label').textContent = `@${accountKey}`;
+  document.getElementById('character-reference-url-input').value = setting.reference_url || '';
+  document.getElementById('character-traits-input').value = setting.traits || '';
+  document.getElementById('character-negative-input').value = setting.negative || '';
+  document.getElementById('character-placement-input').value = setting.placement || '';
+  const preview = document.getElementById('character-reference-preview');
+  preview.src = setting.reference_url || currentDraft.profile_image_url || '';
+  overlay.style.display = 'flex';
+}
+
+function closeCharacterSettingsModal() {
+  const overlay = document.getElementById('character-settings-modal');
+  if (overlay) overlay.style.display = 'none';
+}
+
+async function saveCharacterSettings() {
+  if (!currentDraft) return;
+  const accountKey = currentDraft.x_username || currentDraft.draft_id;
+  const payload = {
+    account_key: accountKey,
+    reference_url: document.getElementById('character-reference-url-input')?.value?.trim() || '',
+    traits: document.getElementById('character-traits-input')?.value?.trim() || '',
+    negative: document.getElementById('character-negative-input')?.value?.trim() || '',
+    placement: document.getElementById('character-placement-input')?.value?.trim() || '',
+  };
+  try {
+    const res = await apiFetch(`${API}/character-settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    currentDraft.character_setting = data.setting;
+    const first = currentDraft.image_prompts?.[0];
+    if (first) first.character_reference_url = data.setting.reference_url;
+    showToast('✓ キャラクター設定を保存しました');
+    closeCharacterSettingsModal();
+    renderPreview(currentDraft);
+  } catch (e) {
+    showToast(`キャラ設定保存失敗: ${e.message}`, true);
+  }
+}
+
+function ensureEnvSettingsModal() {
+  let overlay = document.getElementById('env-settings-modal');
+  if (overlay) return overlay;
+  overlay = document.createElement('div');
+  overlay.id = 'env-settings-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div class="modal env-modal" onclick="event.stopPropagation()">
+      <div class="thread-modal-header">
+        <div>
+          <div class="thread-step-label">/Users/deguchishouma/team-info/.env</div>
+          <h3 class="image-modal-title">環境変数設定</h3>
+        </div>
+        <button class="thread-close-btn" onclick="closeEnvSettingsModal()">✕</button>
+      </div>
+      <p class="image-modal-help">この画面は localhost から開いたときだけ保存できます。編集できるのは X / Neon / 下書き通知用の環境変数だけです。</p>
+      <div id="env-settings-error" class="error-msg" style="display:none"></div>
+      <div id="env-settings-list" class="env-settings-list">
+        <div class="loading">読み込み中...</div>
+      </div>
+      <div class="env-add-row">
+        <input id="env-new-key" class="image-modal-input" type="text" placeholder="X_... / NEON_... / DISCORD_WEBHOOK_X_DRAFT">
+        <input id="env-new-value" class="image-modal-input" type="password" placeholder="値">
+      </div>
+      <div class="image-modal-actions">
+        <button class="cancel-btn" onclick="closeEnvSettingsModal()">閉じる</button>
+        <button class="save-btn" onclick="saveEnvSettings()">保存</button>
+      </div>
+    </div>`;
+  overlay.onclick = closeEnvSettingsModal;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+async function openEnvSettingsModal() {
+  const overlay = ensureEnvSettingsModal();
+  overlay.style.display = 'flex';
+  await loadEnvSettings();
+}
+
+function closeEnvSettingsModal() {
+  const overlay = document.getElementById('env-settings-modal');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function isEditableEnvKey(key) {
+  return key === 'DISCORD_WEBHOOK_X_DRAFT' || key === 'NEON_DATABASE_URL' || key.startsWith('X_') || key.startsWith('NEON_');
+}
+
+async function loadEnvSettings() {
+  const list = document.getElementById('env-settings-list');
+  const error = document.getElementById('env-settings-error');
+  if (!list || !error) return;
+  error.style.display = 'none';
+  list.innerHTML = '<div class="loading">読み込み中...</div>';
+  try {
+    const res = await apiFetch(`${API}/env-settings`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || '取得できませんでした');
+    const items = Array.isArray(data.items) ? data.items : [];
+    if (items.length === 0) {
+      list.innerHTML = '<div class="loading">.env に環境変数がありません</div>';
+      return;
+    }
+    list.innerHTML = items.map(item => `
+      <label class="env-row">
+        <span class="env-row-key">
+          <span>${esc(item.key)}</span>
+          <span>${item.is_set ? esc(item.masked || 'set') : '未設定'}</span>
+        </span>
+        <input class="image-modal-input env-input" data-env-key="${escAttr(item.key)}"
+          type="${item.sensitive ? 'password' : 'text'}"
+          value="${escAttr(item.value || '')}"
+          autocomplete="off">
+      </label>`).join('');
+  } catch (e) {
+    list.innerHTML = '';
+    error.textContent = e.message;
+    error.style.display = 'block';
+  }
+}
+
+async function saveEnvSettings() {
+  const updates = {};
+  document.querySelectorAll('.env-input').forEach(input => {
+    const key = input.dataset.envKey;
+    if (key) updates[key] = input.value;
+  });
+  const newKey = document.getElementById('env-new-key')?.value?.trim() || '';
+  const newValue = document.getElementById('env-new-value')?.value || '';
+  if (newKey && !isEditableEnvKey(newKey)) {
+    showToast('X / Neon / DISCORD_WEBHOOK_X_DRAFT のキーだけ追加できます', true);
+    return;
+  }
+  if (newKey) updates[newKey] = newValue;
+  try {
+    const res = await apiFetch(`${API}/env-settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || '保存できませんでした');
+    showToast('✓ .env を保存しました');
+    document.getElementById('env-new-key').value = '';
+    document.getElementById('env-new-value').value = '';
+    await loadEnvSettings();
+    await loadAccounts();
+  } catch (e) {
+    showToast(`環境変数保存失敗: ${e.message}`, true);
+  }
+}
+
+async function attachGeneratedImage() {
+  if (!currentDraft) return;
+  const { imagePath } = getImageModalValues();
+  if (!imagePath) { showToast('画像パスを入力してください', true); return; }
+  try {
+    const res = await apiFetch(`${API}/draft/image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draft_id: currentDraft.draft_id,
+        image_path: imagePath,
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+
+    const reloadRes = await apiFetch(`${API}/draft?id=${currentDraft.draft_id}`);
+    currentDraft = await reloadRes.json();
+    const item = allDrafts.find(d => d.draft_id === currentDraft.draft_id);
+    if (item) {
+      item.parts = currentDraft.parts;
+      item.has_image = true;
+    }
+    renderDraftList();
+    renderPreview(currentDraft);
+    showToast('✓ 1投稿目に画像を添付しました');
+  } catch (e) {
+    showToast(`画像添付失敗: ${e.message}`, true);
+  }
 }
 
 async function copyImagePrompt() {
@@ -477,6 +1294,69 @@ async function copySourceImageUrl() {
     showToast('✓ 元画像URLをコピーしました');
   } catch {
     showToast('コピーに失敗しました', true);
+  }
+}
+
+async function copyGeneratedImage() {
+  const imageUrl = currentDraft?.parts?.[0]?.image_url;
+  return copyGeneratedImageFromUrl(imageUrl);
+}
+
+async function saveGeneratedImage() {
+  const imageUrl = currentDraft?.parts?.[0]?.image_url;
+  return saveGeneratedImageFromUrl(imageUrl);
+}
+
+async function saveGeneratedImageFromUrl(imageUrl) {
+  if (!imageUrl) { showToast('画像がありません', true); return; }
+  const absoluteUrl = new URL(imageUrl, window.location.href).href;
+  const filename = imageUrl.split('?')[0].split('/').pop() || `x-draft-${currentDraft?.draft_id || 'image'}.png`;
+  try {
+    const res = await fetch(absoluteUrl);
+    if (!res.ok) throw new Error('image fetch failed');
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    triggerImageDownload(objectUrl, filename);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 3000);
+    showToast('✓ 画像を保存しました');
+  } catch {
+    triggerImageDownload(absoluteUrl, filename);
+    showToast('画像保存を開始しました');
+  }
+}
+
+function triggerImageDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function copyGeneratedImageFromUrl(imageUrl) {
+  if (!imageUrl) { showToast('画像がありません', true); return; }
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) throw new Error('image fetch failed');
+    const blob = await res.blob();
+    if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+      await navigator.clipboard.writeText(new URL(imageUrl, window.location.href).href);
+      showToast('画像URLをコピーしました');
+      return;
+    }
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type || 'image/png']: blob })
+    ]);
+    showToast('✓ 画像をコピーしました');
+  } catch {
+    try {
+      await navigator.clipboard.writeText(new URL(imageUrl, window.location.href).href);
+      showToast('画像URLをコピーしました');
+    } catch {
+      showToast('画像コピーに失敗しました', true);
+    }
   }
 }
 
@@ -578,6 +1458,115 @@ async function onPostClick() {
     const text = currentDraft.parts[0]?.content || '';
     openXCompose(text);
     await notifyDiscord(text);
+  }
+}
+
+async function startAutoPost() {
+  if (!currentDraft) return;
+  const ok = window.confirm('OpenClaw の専用ブラウザで X を開き、この下書きを自動投稿します。X にログイン済みの状態で実行してください。');
+  if (!ok) return;
+  clearInterval(autoPostTimer);
+  try {
+    const res = await apiFetch(`${API}/auto-post/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentDraft.draft_id }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || '不明');
+    autoPostJob = data;
+    autoPostDraftId = currentDraft.draft_id;
+    renderAutoPostProgress(data);
+    setAutoPostButtonState(true);
+    showToast('自動投稿を開始しました');
+    autoPostTimer = setInterval(pollAutoPost, 2500);
+  } catch (e) {
+    showToast(`自動投稿開始失敗: ${e.message}`, true);
+  }
+}
+
+async function pollAutoPost() {
+  if (!autoPostJob?.job_id) return;
+  try {
+    const res = await apiFetch(`${API}/auto-post/status?id=${encodeURIComponent(autoPostJob.job_id)}`);
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || '不明');
+    autoPostJob = data;
+    renderAutoPostProgress(data);
+    if (data.status === 'completed') {
+      clearInterval(autoPostTimer);
+      autoPostTimer = null;
+      setAutoPostButtonState(false);
+      showToast('✓ 自動投稿が完了しました');
+      await refreshDraftAfterAutoPost(autoPostDraftId || currentDraft?.draft_id);
+      autoPostDraftId = null;
+      return;
+    }
+    if (data.status === 'failed') {
+      clearInterval(autoPostTimer);
+      autoPostTimer = null;
+      setAutoPostButtonState(false);
+      autoPostDraftId = null;
+      showToast(`自動投稿失敗: ${data.message || '不明'}`, true);
+    }
+  } catch (e) {
+    clearInterval(autoPostTimer);
+    autoPostTimer = null;
+    setAutoPostButtonState(false);
+    autoPostDraftId = null;
+    showToast(`自動投稿確認失敗: ${e.message}`, true);
+  }
+}
+
+function setAutoPostButtonState(isRunning) {
+  const btn = document.getElementById('auto-post-btn');
+  if (!btn) return;
+  btn.disabled = !!isRunning;
+  btn.innerHTML = isRunning ? '<span>…</span> 自動投稿中' : '<span>▶</span> 自動投稿';
+}
+
+function renderAutoPostProgress(job) {
+  const slot = document.getElementById('auto-post-progress-slot');
+  if (!slot || !job) return;
+  const progress = Math.max(0, Math.min(100, Number(job.progress || 0)));
+  const logs = Array.isArray(job.logs) ? job.logs.slice(-10) : [];
+  const logBlock = logs.length
+    ? `<div class="auto-post-log">
+        ${logs.map(log => `
+          <div class="image-generation-log-row ${escAttr(log.level || 'info')}">
+            <span class="image-generation-log-time">${esc(log.at || '')}</span>
+            <span class="image-generation-log-message">${esc(log.message || '')}</span>
+          </div>`).join('')}
+      </div>`
+    : '';
+  slot.innerHTML = `
+    <div class="auto-post-progress ${job.status === 'failed' ? 'failed' : ''}">
+      <div class="image-generation-progress-top">
+        <span>${esc(job.message || '自動投稿中です')}</span>
+        <span>${progress}%</span>
+      </div>
+      <div class="image-generation-bar"><div style="width:${progress}%"></div></div>
+      ${logBlock}
+    </div>`;
+}
+
+async function refreshDraftAfterAutoPost(draftId) {
+  if (!draftId) return;
+  const reloadRes = await apiFetch(`${API}/draft?id=${encodeURIComponent(draftId)}`);
+  const draft = await reloadRes.json();
+  const item = allDrafts.find(d => d.draft_id === draft.draft_id);
+  if (item) {
+    item.status = draft.status;
+    item.published_at = draft.published_at;
+    item.parts = draft.parts;
+    item.memo = draft.memo;
+  }
+  if (currentDraft?.draft_id === draft.draft_id) {
+    currentDraft = draft;
+    renderDraftList();
+    renderPreview(currentDraft);
+  } else {
+    renderDraftList();
   }
 }
 
@@ -897,6 +1886,36 @@ function esc(str) {
 }
 
 function escAttr(str) { return String(str ?? '').replace(/"/g,'&quot;'); }
+
+function normalizeXProfileImageUrl(url) {
+  return String(url || '').replace('_normal.', '_400x400.');
+}
+
+function getCharacterSetting() {
+  return currentDraft?.character_setting || {};
+}
+
+function getCharacterReferenceUrl() {
+  return getCharacterSetting().reference_url ||
+    currentDraft?.image_prompts?.[0]?.character_reference_url ||
+    currentDraft?.character_reference?.url ||
+    normalizeXProfileImageUrl(currentDraft?.profile_image_url);
+}
+
+function getCharacterTraits() {
+  return getCharacterSetting().traits ||
+    '半目、眠そうな表情、舌を少し出す、頬杖、黒い短髪、黒いスーツ、白シャツ、赤ネクタイ、気だるい表情';
+}
+
+function getCharacterNegative() {
+  return getCharacterSetting().negative ||
+    '明るい丸目の少年、パーカー、元気な笑顔、指差しポーズ';
+}
+
+function getCharacterPlacement() {
+  return getCharacterSetting().placement ||
+    '右下20〜25%。図解が主役、キャラクターは補助。';
+}
 
 // ── 起動 ─────────────────────────────────────────────
 

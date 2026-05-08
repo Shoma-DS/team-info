@@ -102,7 +102,18 @@ personal/deguchishouma/sales/coaching/transcripts/interview/<ファイル名>.tx
 2. Loom 動画タイトル
 3. 文字起こし本文
 
-### STEP 2: 候補者プロファイルを抽出する
+### STEP 2: 分析用 DB 保存状況を確認する
+
+面接台本を作る対象の transcript は、可能な限り次の SQLite DB に保存してから分析する。
+
+```text
+personal/deguchishouma/sales/coaching/database/interview_analysis.sqlite3
+```
+
+保存されていない場合は `sales-coaching` の DB 保存フローを使い、候補者属性・悩み・興味・リスク・文字起こしセグメントを登録する。
+台本作成後の最終報告では、保存済みの `session_id` または DB 保存先も返す。
+
+### STEP 3: 候補者プロファイルを抽出する
 
 `prompts/extract_prospect.md` のプロンプトを使い、以下を抽出する。
 
@@ -119,12 +130,12 @@ personal/deguchishouma/sales/coaching/transcripts/interview/<ファイル名>.tx
 - 価値観の原体験・憧れの人物・将来像
 - 販売上の最大フックと注意点
 
-### STEP 3: 商品テンプレートを選ぶ
+### STEP 4: 商品テンプレートを選ぶ
 
 ユーザーが指定した `templates/<商品ID>/` を読む。  
 未指定の場合はテンプレート一覧を提示して選んでもらう。
 
-### STEP 4: 既存フォーマットで戦略・台本を生成する
+### STEP 5: 既存フォーマットで戦略・台本を生成する
 
 `prompts/generate_sales_flow.md` と商品テンプレートを合わせて、  
 既存の `personal/deguchishouma/sales/coaching/scripts/interview/*.md` と同じ構成で台本を生成する。
@@ -142,7 +153,7 @@ personal/deguchishouma/sales/coaching/transcripts/interview/<ファイル名>.tx
 - `## フェーズ8: 反論処理集`
 - `## <候補者名>固有の注意点`
 
-### STEP 5: 出力を保存する
+### STEP 6: 出力を保存する
 
 **ファイル命名規則**: 相手の名前と作成日を日本語で付ける
 

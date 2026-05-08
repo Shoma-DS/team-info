@@ -1,13 +1,18 @@
 // X メトリクス収集対象アカウントの設定ファイル。
-// 認証情報は環境変数名のみ記載。値は各自が settings.local.json か ~/.zshrc で設定する。
+// 認証情報は環境変数名のみ記載。値は repo 直下の .env で設定する。
 // 新しいアカウントを追加する場合はこのファイルに追記し、対応する環境変数を各自設定すること。
 {
   "accounts": [
     {
       "id": "GUTARA",
       "x_username": "gutaraAikatuyou",
-      "token_env": "X_ACCESS_TOKEN_GUTARA",
-      "token_secret_env": "X_ACCESS_TOKEN_SECRET_GUTARA"
+      "token_env": "X_ACCESS_TOKEN_GUTARAAIKATUYOU",
+      "token_secret_env": "X_ACCESS_TOKEN_SECRET_GUTARAAIKATUYOU",
+      "bookmarks_access_token_env": "X_BOOKMARKS_ACCESS_TOKEN_GUTARAAIKATUYOU",
+      "bookmarks_refresh_token_env": "X_BOOKMARKS_REFRESH_TOKEN_GUTARAAIKATUYOU",
+      "oauth2_access_token_env": "X_OAUTH2_ACCESS_TOKEN_GUTARAAIKATUYOU",
+      "oauth2_client_id_env": "X_OAUTH2_CLIENT_ID_GUTARAAIKATUYOU",
+      "oauth2_client_secret_env": "X_OAUTH2_CLIENT_SECRET_GUTARAAIKATUYOU"
     }
   ]
 }

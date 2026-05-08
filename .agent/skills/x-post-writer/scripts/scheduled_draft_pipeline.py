@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -17,10 +18,11 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from draft_manager import save_draft, update_draft_image
+from draft_manager import get_db_conn, save_draft, update_draft_image
 from runtime_store import (
     get_logs_dir,
     load_processed_bookmarks,
+    save_bookmark_status,
     save_processed_bookmarks,
     save_draft_metadata,
     write_image_prompt_file,
@@ -31,6 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 SCRIPT_DIR = Path(__file__).parent
 FETCH_BOOKMARKS_SCRIPT = SCRIPT_DIR / "fetch_bookmarks.py"
 BOOKMARKS_FILE = SCRIPT_DIR / "bookmarks_latest.json"
+CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
 SCHEMA_FILE = SCRIPT_DIR / "draft_generation_schema.json"
 CLAUDE_SETTINGS_FILE = REPO_ROOT / ".claude" / "settings.local.json"
 DEFAULT_PREVIEW_URL = "https://zinciferous-preludiously-draven.ngrok-free.dev"
@@ -42,6 +45,13 @@ TOKEN_LIMIT_PATTERNS = (
     r"too many tokens",
     r"prompt is too long",
 )
+
+
+def normalize_x_profile_image_url(url: str | None) -> str:
+    """Xのプロフィール画像URLを、画像生成の参照に使いやすい高解像度URLへ寄せる。"""
+    if not url:
+        return ""
+    return str(url).replace("_normal.", "_400x400.")
 
 
 class JobError(RuntimeError):
@@ -117,6 +127,35 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_json_with_comments(path: Path) -> dict:
+    text = path.read_text(encoding="utf-8")
+    json_text = "\n".join(
+        line for line in text.splitlines() if not line.lstrip().startswith("//")
+    )
+    return json.loads(json_text)
+
+
+def load_dotenv(path: Path = REPO_ROOT / ".env") -> dict[str, str]:
+    if not path.exists():
+        return {}
+
+    loaded: dict[str, str] = {}
+    pattern = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$")
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(raw_line)
+        if not match:
+            continue
+        key, raw_value = match.groups()
+        raw_value = raw_value.strip()
+        try:
+            parts = shlex.split(raw_value, comments=True, posix=True)
+            value = parts[0] if parts else ""
+        except ValueError:
+            value = raw_value.strip("\"'")
+        loaded[key] = value
+    return loaded
+
+
 def truncate(text: str, limit: int) -> str:
     text = " ".join((text or "").split())
     if len(text) <= limit:
@@ -142,7 +181,9 @@ def load_claude_env() -> dict[str, str]:
 
 def build_env() -> dict[str, str]:
     env = os.environ.copy()
-    env.update(load_claude_env())
+    for key, value in load_claude_env().items():
+        env.setdefault(key, value)
+    env.update(load_dotenv())
     env.setdefault("TEAM_INFO_ROOT", str(REPO_ROOT))
     home = Path.home()
     pyenv_root = Path(env.get("PYENV_ROOT") or home / ".pyenv")
@@ -253,6 +294,11 @@ def contains_token_limit(text: str) -> bool:
 
 
 def fetch_bookmarks_payload(args, env: dict[str, str]) -> dict:
+    if args.use_latest:
+        if not BOOKMARKS_FILE.exists():
+            raise JobError(f"bookmarks_latest.json が見つかりません: {BOOKMARKS_FILE}")
+        return load_json(BOOKMARKS_FILE)
+
     cmd = [
         sys.executable,
         str(FETCH_BOOKMARKS_SCRIPT),
@@ -280,6 +326,87 @@ def fetch_bookmarks_payload(args, env: dict[str, str]) -> dict:
     if not BOOKMARKS_FILE.exists():
         raise JobError(f"bookmarks_latest.json が見つかりません: {BOOKMARKS_FILE}")
     return load_json(BOOKMARKS_FILE)
+
+
+def fetch_db_drafts_payload(args) -> dict:
+    """Neon DBの既存下書きを、生成プロンプト用のbookmark互換payloadへ変換する。"""
+    account_cfg = next(
+        (a for a in load_json_with_comments(CONFIG_FILE)["accounts"] if a["id"] == args.account),
+        None,
+    )
+    if not account_cfg:
+        raise JobError(f"accounts_config.json に account={args.account} が見つかりません")
+
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT d.draft_id, d.memo, d.created_at, a.x_username
+                 FROM drafts d
+                 JOIN accounts a ON a.account_id = d.account_id
+                 WHERE a.x_username = %s
+                   AND d.status = 'draft'
+                   AND (d.memo IS NULL OR d.memo NOT LIKE 'rewrite from draft %%')
+                 ORDER BY d.created_at ASC
+                """,
+                (account_cfg["x_username"],),
+            )
+            rows = cur.fetchall()
+
+            bookmarks: list[dict] = []
+            for draft_id, memo, created_at, x_username in rows:
+                cur.execute(
+                    """
+                    SELECT position, content, image_url
+                      FROM draft_parts
+                     WHERE draft_id = %s
+                     ORDER BY position ASC
+                    """,
+                    (draft_id,),
+                )
+                parts = cur.fetchall()
+                text_parts = [str(content or "").strip() for _pos, content, _image_url in parts if str(content or "").strip()]
+                if not text_parts:
+                    continue
+                bookmarks.append(
+                    {
+                        "tweet_id": f"draft-{draft_id}",
+                        "author_username": f"{x_username}_db_draft",
+                        "text": "\n---\n".join(text_parts),
+                        "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else str(created_at),
+                        "conversation_id": f"draft-{draft_id}",
+                        "thread_parts": [
+                            {"tweet_id": f"draft-{draft_id}-p{position}", "text": str(content or "")}
+                            for position, content, _image_url in parts
+                            if str(content or "").strip()
+                        ],
+                        "media": [
+                            {"type": "photo", "url": image_url}
+                            for _position, _content, image_url in parts
+                            if image_url
+                        ],
+                        "source_type": "db_draft",
+                        "source_draft_id": str(draft_id),
+                        "source_memo": memo or "",
+                    }
+                )
+    finally:
+        conn.close()
+
+    account_profile = {}
+    existing_payload = load_json(BOOKMARKS_FILE) if BOOKMARKS_FILE.exists() else {}
+    if existing_payload.get("account") == args.account:
+        account_profile = existing_payload.get("account_profile") or {}
+
+    return {
+        "source": "db_drafts",
+        "account": args.account,
+        "x_username": account_cfg["x_username"],
+        "fetched_at": utc_now(),
+        "account_profile": account_profile,
+        "bookmarks": bookmarks,
+    }
 
 
 def filter_new_bookmarks(bookmarks: list[dict], processed: set[str]) -> tuple[list[dict], list[dict]]:
@@ -334,6 +461,7 @@ def build_generation_prompt(
     research: dict[str, list[dict]] | None = None,
 ) -> str:
     account_profile = payload.get("account_profile", {})
+    profile_image_url = normalize_x_profile_image_url(account_profile.get("profile_image_url"))
     account_file_path = Path(account_profile.get("account_file_path") or "")
     account_text = account_file_path.read_text(encoding="utf-8") if account_file_path.exists() else ""
 
@@ -369,7 +497,11 @@ def build_generation_prompt(
 - 元ポストをそのままコピペしない。切り口・論点・構造だけ借りて、自分ごとに解釈して書く。
 - アカウントのトンマナ・口調・NG事項を最優先で守る。
 - 各 draft に日本語の縦型3:4（960×1280px）インフォグラフィックプロンプトを1つ付ける（元メディアを使う場合は空文字）。
-- 不向きな bookmark だけ `skipped` に回す。
+- 原則として、取得済みの bookmark はすべて `drafts` にして下書き化する。
+- `skipped` に回してよいのは、本文がほぼ空で素材が足りない、成人向け・投資助言・自動売買・高額収益保証・危険行為など、アカウントのNGや安全性に明確に抵触する場合だけ。
+- 話題が重複している、優先度が低い、開発者寄り、少し読者に遠い、という理由だけで skipped にしない。必ず別切り口に変換して draft にする。
+- `source` が `db_drafts` の場合、入力は既存DB下書きです。元の下書きを改善対象として扱い、同じ内容の言い換えではなく、ターゲット・フック・説明粒度を今回のルールに合わせて全面リライトする。
+- `source_type: db_draft` の項目は必ず `memo` に `rewrite from draft <source_draft_id>` を含める。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【投稿形式：全件ツリー型（最重要・必須）】
@@ -381,15 +513,22 @@ def build_generation_prompt(
 ■ Part 1 ― フック＋要約
   - 1行目で「読まなきゃ損」と思わせる。インパクト最優先。
   - 何が起きているか・何のツールか・どんな体験かを3〜5行で凝縮する。
+  - ChatGPT以外のツール名を出す場合は、読者が知らない前提で「ざっくり何をする道具か」を1行で添える。
+    例: 「Difyは、AIチャットボットを自分用に作れる道具」
   - 「つまりこういうこと」で締めると読者が次パーツを読む。
   - **最後の1行に必ず次パーツへの短い誘導（10〜20字）を入れること**
     例：「比較してみたら衝撃だった↓」「続きで全部変わる話」「次で一気に解説する」
 
 ■ Part 2 ― 比較・仕組み解説
   - 「今まで（従来の方法・よく使われるツール）と何が違うか」を対比で見せる。
-  - ChatGPT / 普通の音声bot / 手動作業 / 一般的なAI活用 など読者が知っている手法と対比する。
-  - 専門用語は「スマホでいうと〜と同じ」などのアナロジーで即噛み砕く。
-  - 初心者が「あ、それなら分かる」と感じる瞬間を作る。
+  - ツリーで扱う中心ツールについて、必要なら最初に「そもそも何のツールか」を必ず説明する。
+    ChatGPTがやっと普及したくらいの世の中という前提で、Claude / Gemini / Dify / n8n / Cursor / AIエージェントは初見でも分かる入口を作る。
+  - ChatGPT / Claude / Gemini / Dify / n8n / Cursor / AIエージェント / 普通の音声bot / 手動作業など、具体的なツール名・専門用語は隠さず出す。
+  - ただし読者はツール名すら知らない前提で書く。ツール名を初めて出すときは「何をする道具か」を必ず1フレーズで添える。
+    例: 「Claude＝文章や資料作りを手伝うAI」「n8n＝作業の流れをつなぐ自動化ツール」
+  - 専門用語やツール名を出した直後に、必ずメタファーか一言補足を入れる。
+    例: 「AIエージェント＝指示したら作業を進めてくれる新人アシスタントみたいなもの」
+  - 初心者が「あ、それなら分かる」「知らなかったけど面白そう」「自分でも触れそう」と感じる瞬間を作る。
   - **最後の1行に必ず次パーツへの短い橋渡しを入れること**
     例：「実際に試したらこうなった↓」「正直ここからが本題」「で、どうなったか」
 
@@ -412,16 +551,32 @@ def build_generation_prompt(
 以下のうち最低2つを各ドラフトに盛り込む:
 
   a) 実体験・実感の描写（「実際に試したら〜だった」「使ってみて気づいたのは〜」）
-  b) 既存ツール・従来手法との具体的比較（「ChatGPTだと手動だが〜」「これまでは外注が必要だったのに〜」）
-  c) 初心者・副業層に直接刺さるノウハウ（「副業でこれを使うなら〜」「稼げない人がやりがちなのは〜」）
+  b) 既存ツール・従来手法との具体的比較（「ChatGPTだと手動だが〜」「ClaudeのArtifactsなら〜」「これまでは外注が必要だったのに〜」）
+  c) 非エンジニア・副業初心者に直接刺さるノウハウ（「副業でこれを使うなら〜」「稼げない人がやりがちなのは〜」「最初はこの画面を触ればOK」）
   d) 数字・ステップ・シナリオで「再現できる」感を出す（「①〜②〜③〜 これだけ」）
 
 「これを読んだだけで何か学んだ」と感じさせる情報密度にする。
+抽象的な精神論だけで終わらせない。ツール名・機能名・使い道・副業での具体例を必ず入れる。
+ただしツール名の羅列は禁止。知らない人でも意味が分かるように「道具名 → 何ができる → 副業でどう使える」の順で説明する。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【フックのルール（必須）】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - インパクト最優先。具体的な数字・逆張り・原因指摘・意外な事実のどれかを必ず使う。
+- 元投稿の1行目・冒頭3行・強い言い回しから「なぜ目が止まるか」を先に分解し、
+  そのまま写さず、別の心理トリガーへ展開してから Part 1 の1行目を作る。
+- 各 bookmark につき、内部で最低5種類のフック案を作ってから最強の1つだけを採用する。
+  5種類は以下から重複なく選ぶ:
+    1) 逆張り: 常識や思い込みを否定する
+    2) 原因指摘: 失敗・伸びない理由をズバッと言う
+    3) 体験告白: 「実際にやったら/見たら」の驚きで始める
+    4) 数字・期間: 金額/時間/手順数/日数で具体化する
+    5) 比較: 従来手法や有名ツールとの差を見せる
+    6) 損失回避: 知らないと損・置いていかれる不安を出す
+    7) 初心者救済: 「難しくない」「これだけでいい」で安心させる
+    8) 中級者への刺し: 量産している人の盲点を突く
+- 採用するフックは、元投稿と同じ語順・同じ決め台詞・同じ煽り文を避ける。
+- `drafts[].rationale` には、採用したフック型を必ず `hook: 原因指摘` のように短く書く。
 - 3層すべてが「自分ごと」に読める切り口を選ぶ:
     初心者: 「え、これだけでいいの？」という意外性・簡単さ
     副業探し層: 「なぜ稼げないか」の原因ズバリ指摘
@@ -429,14 +584,27 @@ def build_generation_prompt(
 - フックワード例（アカウントの実投稿より）:
     「ちょっとヤバいことに気づいた。」「やばい体験した。」「正直〜ちょっと驚いた。」
     「〜一択。」「勝ち確定ｗ」「フォロワー少なくてもマネタイズできます」
+- ただし上の例文を毎回使い回さない。元投稿ごとに語尾・主語・感情の種類を変え、
+  同一実行内で Part 1 の1行目が似た形に偏らないようにする。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【ターゲット設計（必須）】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-以下の3層すべてを1スレッドで取りこぼさない構成にする:
-- 完全初心者層: AIをほぼ使っていない → 「これだけでOK」「難しくない」という安心感で引き留める
-- うだつが上がらない副業探し層: 稼ごうとしているが成果が出ない → 「なぜ稼げないか」の原因指摘で刺す
-- AI量産中級者層: 大量生成しているが差別化できていない → 「量より差別化」という気づきで刺す
+最重要ターゲットは「非エンジニアで、副業もAIも初心者」の人。
+投稿を読んだ後に「AIエージェント触ってみようかな」「AIで副業した方がよさそう」と思わせることを最優先にする。
+読者は ChatGPT 以外のツール名をほぼ知らない可能性がある。知らなくても理解でき、むしろ「そんな道具あるんだ、触ってみたい」と興味が湧く形にする。
+世の中の前提は「ChatGPTがようやく普及したくらい」。ChatGPT以外のAIツール・AIエージェント・自動化ツールは、初出時に必ず“そもそも何か”を説明する。
+
+以下の3層すべてを1スレッドで取りこぼさない構成にする。ただし比重は 1 と 2 を重くする:
+- 非エンジニア完全初心者: AIをほぼ使っていない → 「コードが書けなくても触れる」「これだけでOK」「難しくない」という安心感で引き留める
+- 副業初心者層: 稼ごうとしているが何から始めるか分からない → 「AIを使うと作業時間が減る」「小さく試せる」という入口を見せる
+- AI量産中級者層: 大量生成しているが差別化できていない → 「量より設計・使い方」という気づきで刺す
+
+避けること:
+- エンジニア前提の説明にしない。
+- 「API」「ワークフロー」「自動化」「プロンプト」「エージェント」やツール名を説明なしで置かない。
+- 「Claudeなら〜」「Difyなら〜」のように、知っている人だけ分かる書き方にしない。
+- 逆に「すごい」「便利」「未来」だけで抽象化しすぎない。必ず具体的なツール名・作業例・副業用途へ落とす。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【トーンのルール】
@@ -444,7 +612,10 @@ def build_generation_prompt(
 - キャラ: ぐーたら・怠け者・でも結果は出ている。自己矛盾をキャラにしている。
 - 口調: カジュアル寄り。「ｗ」「〜だよね」「〜だけど」を適度に使う。断言調。
 - 参考トーン @MakeAI_CEO: 専門知識を自信を持って伝えつつ、難しい概念を初心者向けに嚙み砕く。
-- 専門用語は使った直後に平易な言葉で補足する（アナロジー型が効果的）。
+- 専門用語は使った直後に必ず平易な言葉で補足する（メタファー・アナロジー必須）。
+  例: 「API＝アプリ同士の受付窓口」「ワークフロー＝作業の流れをレシピ化したもの」「AIエージェント＝作業を任せられるAIアシスタント」
+- 専門用語を避けすぎない。ChatGPT / Claude / Gemini / Cursor / Dify / n8n / API / AIエージェントなど、読者が次に検索できる固有名詞は明示する。
+- 固有名詞は「知らない人向けの短い説明」とセットにする。読み終えた人が検索する前から、おおよその価値が分かる状態にする。
 - 「正直僕もよく分かってない。笑」のような非エンジニア共感フレーズを適所で使う。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -468,7 +639,18 @@ def build_generation_prompt(
 {character_prompt_text or "（キャラクター情報なし）"}
 
 【キャラクター参照画像】
+第1優先: アカウントのプロフィール画像URLをキャラクター参照として使うこと。
+{profile_image_url or "（プロフィール画像URLなし）"}
+
+第2優先: ローカルのキャラクター参照画像。
 {f"以下の画像ファイルを Read ツールで読み込み、キャラクターの外見を実際に確認してから画像プロンプトに組み込んでください:{chr(10)}{str(char_image_path)}" if char_image_path and char_image_path.exists() else "（画像ファイルなし — character-prompt.md のテキスト説明のみ参照すること）"}
+
+画像プロンプトには必ず次を明記すること。
+- プロフィール画像URLをキャラクター参照として使う
+- 同じ人物/マスコットの特徴を保つ
+- 重要特徴: 半目、眠そうな表情、舌を少し出す、頬杖、黒い短髪、黒いスーツ、白シャツ、赤ネクタイ
+- キャラクターは図解の右下など20〜25%以内に置き、主役は図解にする
+- 明るい丸目の少年、パーカー、元気な笑顔、指差しポーズは禁止
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -804,6 +986,7 @@ def persist_generation(
     payload: dict,
     result: dict,
     agent_used: str,
+    processed: set[str],
 ) -> tuple[list[dict], set[str]]:
     handled_ids: set[str] = set()
     created: list[dict] = []
@@ -814,15 +997,28 @@ def persist_generation(
         author_username = item["author_username"]
         memo = item["memo"] or f"from @{author_username}"
         draft_id = save_draft(payload["account"], item["parts"], memo=memo)
-        handled_ids.add(tweet_id)
+        save_bookmark_status(
+            tweet_id=tweet_id,
+            status="draft_saved",
+            draft_id=draft_id,
+        )
 
         image_prompt = item.get("image_prompt", {})
+        character_reference_url = normalize_x_profile_image_url(
+            (payload.get("account_profile") or {}).get("profile_image_url")
+        )
         prompt_file = write_image_prompt_file(
             draft_id=draft_id,
             position=1,
             copy_text=image_prompt.get("copy", ""),
             prompt_text=image_prompt.get("prompt", ""),
             source_tweet_id=tweet_id,
+        )
+        save_bookmark_status(
+            tweet_id=tweet_id,
+            status="image_prompt_saved",
+            draft_id=draft_id,
+            image_prompt_path=str(prompt_file),
         )
 
         # image_prompt が空なら元ブックマークのメディアをフォールバックとして draft_parts に保存する
@@ -860,10 +1056,27 @@ def persist_generation(
                     "copy": image_prompt.get("copy", ""),
                     "prompt": image_prompt.get("prompt", ""),
                     "file_path": str(prompt_file),
+                    "character_reference_url": character_reference_url,
                 }
             ],
+            "character_reference": {
+                "type": "x_profile_image",
+                "url": character_reference_url,
+                "instruction": "このプロフィール画像のキャラクター外見を参照して、図解内の右下などに20〜25%以内で入れる。",
+            },
         }
         metadata_path = save_draft_metadata(draft_id, metadata)
+        # 処理済みフラグは、下書き本体・画像プロンプト・メタデータが揃った後だけ付ける。
+        save_bookmark_status(
+            tweet_id=tweet_id,
+            status="completed",
+            draft_id=draft_id,
+            metadata_path=str(metadata_path),
+            image_prompt_path=str(prompt_file),
+        )
+        handled_ids.add(tweet_id)
+        processed.add(tweet_id)
+        save_processed_bookmarks(processed)
 
         created.append(
             {
@@ -877,9 +1090,6 @@ def persist_generation(
                 "metadata_path": str(metadata_path),
             }
         )
-
-    for skipped in result.get("skipped", []):
-        handled_ids.add(str(skipped["bookmark_tweet_id"]))
 
     return created, handled_ids
 
@@ -948,28 +1158,43 @@ def main() -> int:
     parser.add_argument("--refresh-account-file", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true", help="既処理ブックマークも再生成対象にする")
+    parser.add_argument("--use-latest", action="store_true", help="X APIを呼ばず、既存のbookmarks_latest.jsonだけを使う")
+    parser.add_argument("--source", choices=["bookmarks", "db-drafts"], default="bookmarks", help="入力元。db-drafts はDB内の既存下書きを全件リライトする")
     args = parser.parse_args()
 
     env = build_env()
+    os.environ.update(env)
     webhook_url = env.get(DISCORD_WEBHOOK_ENV, "").strip()
 
     print(f"\n📋 X 自動下書きパイプライン開始  (account={args.account})\n")
 
     try:
-        # ── Step 1: ブックマーク取得 ──────────────────────────────
-        with _Spinner(f"[1/4] ブックマーク取得中 (最大 {args.count} 件)...") as sp:
-            payload = fetch_bookmarks_payload(args, env)
+        # ── Step 1: 入力取得 ──────────────────────────────
+        if args.source == "db-drafts":
+            source_label = "DB下書き全件読込"
+        else:
+            source_label = "既存bookmarks_latest.json読込" if args.use_latest else f"ブックマーク取得中 (最大 {args.count} 件)"
+        with _Spinner(f"[1/4] {source_label}...") as sp:
+            payload = fetch_db_drafts_payload(args) if args.source == "db-drafts" else fetch_bookmarks_payload(args, env)
             total = len(payload.get("bookmarks", []))
-            sp.finish_ok(f"[1/4] ブックマーク取得完了: {total} 件")
+            if args.source == "db-drafts":
+                done_label = "DB下書き読込完了"
+            else:
+                done_label = "既存ブックマーク読込完了" if args.use_latest else "ブックマーク取得完了"
+            sp.finish_ok(f"[1/4] {done_label}: {total} 件")
 
         processed = load_processed_bookmarks()
         new_bookmarks, already_done = filter_new_bookmarks(payload.get("bookmarks", []), processed)
-        if args.force and not new_bookmarks:
-            new_bookmarks = already_done
+        if args.force:
+            new_bookmarks = payload.get("bookmarks", [])
             already_done = []
-            print(f"     🔄 強制再生成モード: {len(new_bookmarks)} 件")
+            print(f"     🔄 全件リライトモード: {len(new_bookmarks)} 件")
         else:
             print(f"     🆕 新規: {len(new_bookmarks)} 件  /  ⏭ 既処理: {len(already_done)} 件")
+
+        if args.source == "db-drafts" and args.count > 0 and len(new_bookmarks) > args.count:
+            print(f"     📦 DB下書きバッチ処理: {len(new_bookmarks)} 件中 {args.count} 件だけ処理")
+            new_bookmarks = new_bookmarks[:args.count]
 
         if not new_bookmarks:
             write_log(
@@ -1006,7 +1231,13 @@ def main() -> int:
                 on_progress=_codex_progress, total=total_new,
             )
             if result is not None:
-                sp.finish_ok(f"[2/4] Codex 生成完了: {len(result.get('drafts', []))}/{total_new} 件")
+                generated_count = len(result.get("drafts", []))
+                if generated_count < total_new:
+                    codex_status = f"codex generated only {generated_count}/{total_new} drafts"
+                    result = None
+                    sp.finish_warn(f"[2/4] Codex 生成不足: {generated_count}/{total_new} 件")
+                else:
+                    sp.finish_ok(f"[2/4] Codex 生成完了: {generated_count}/{total_new} 件")
 
         if result is None:
             print(f"     ⚠️  Codex フォールバック: {truncate(codex_status, 100)}")
@@ -1065,6 +1296,7 @@ def main() -> int:
                 payload=payload,
                 result=result,
                 agent_used=agent_used,
+                processed=processed,
             )
             skipped_count = len(result.get("skipped", []))
             sp.finish_ok(f"[3/4] 保存完了: {len(created)} 件作成 / {skipped_count} 件スキップ")

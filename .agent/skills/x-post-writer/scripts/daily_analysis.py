@@ -1,4 +1,4 @@
-# X投稿の過去7日分メトリクスをNeon DBから取得し、時系列分析・傾向抽出・Discord通知を行うスクリプト。
+# X投稿の過去3日分メトリクスをNeon DBから取得し、時系列分析・傾向抽出・Discord通知を行うスクリプト。
 # 投稿時間帯・post_type別のエンゲージメント傾向を分析し、accounts/*.mdの「最近の傾向」セクションを自動更新する。
 # 使い方: python daily_analysis.py [--account GUTARA]
 
@@ -19,12 +19,15 @@ import requests
 SCRIPT_DIR = Path(__file__).parent
 CONFIG_FILE = SCRIPT_DIR / "accounts_config.json"
 ACCOUNTS_DIR = SCRIPT_DIR.parent / "accounts"
-ANALYSIS_WINDOW_DAYS = 7
+ANALYSIS_WINDOW_DAYS = 3
+TRACKED_POST_TYPES = ("single", "long")
 
 
 def load_settings_env() -> dict[str, str]:
-    from with_local_env import load_settings_env as _load
-    return _load()
+    from with_local_env import load_dotenv, load_settings_env as _load_fallback
+    env = _load_fallback()
+    env.update(load_dotenv())
+    return env
 
 
 def load_config() -> dict:
@@ -47,7 +50,7 @@ def get_db_conn():
 
 
 def fetch_tweets_with_latest_metrics(cur, x_username: str, since: datetime) -> list[dict]:
-    """過去7日間の投稿と最新スナップショットを取得する。"""
+    """過去3日間のメイン投稿と最新スナップショットを取得する。"""
     cur.execute(
         """
         SELECT
@@ -71,9 +74,10 @@ def fetch_tweets_with_latest_metrics(cur, x_username: str, since: datetime) -> l
         ) s ON TRUE
         WHERE a.x_username = %s
           AND t.posted_at >= %s
+          AND t.post_type = ANY(%s)
         ORDER BY t.posted_at ASC
         """,
-        (x_username, since),
+        (x_username, since, list(TRACKED_POST_TYPES)),
     )
     cols = ["tweet_id", "content", "posted_at", "post_type",
             "impression_count", "like_count", "retweet_count", "bookmark_count", "reply_count"]
@@ -98,7 +102,7 @@ def analyze(tweets: list[dict]) -> dict:
     def safe_int(v) -> int:
         return v if isinstance(v, int) else 0
 
-    # 週次サマリー
+    # 直近3日間サマリー
     total = len(tweets)
     avg_like = sum(safe_int(t["like_count"]) for t in tweets) / total
     avg_impression = sum(safe_int(t["impression_count"]) for t in tweets) / total
@@ -166,12 +170,12 @@ def analyze(tweets: list[dict]) -> dict:
 
 def format_report(x_username: str, result: dict, date_str: str) -> str:
     if result["total"] == 0:
-        return f"📊 @{x_username} 週次X分析レポート ({date_str})\n\nデータなし（この1週間に投稿が記録されていません）"
+        return f"📊 @{x_username} 3日間X分析レポート ({date_str})\n\nデータなし（直近3日間にメイン投稿が記録されていません）"
 
-    lines = [f"📊 @{x_username} 週次X分析レポート ({date_str})", ""]
+    lines = [f"📊 @{x_username} 3日間X分析レポート ({date_str})", ""]
 
     # サマリー
-    lines.append("【今週のサマリー】")
+    lines.append("【直近3日間のサマリー】")
     lines.append(
         f"投稿数: {result['total']}件 | 平均いいね: {result['avg_like']:.1f} | "
         f"平均インプレ: {result['avg_impression']:.0f} | 平均RT: {result['avg_rt']:.1f} | "
@@ -209,7 +213,7 @@ def format_report(x_username: str, result: dict, date_str: str) -> str:
 
     # 上位3件
     if result["top3"]:
-        lines.append("【今週のトップ投稿】")
+        lines.append("【直近3日間のトップ投稿】")
         for i, t in enumerate(result["top3"], 1):
             snippet = (t["content"] or "")[:50].replace("\n", " ")
             lines.append(
@@ -286,7 +290,7 @@ def update_account_md(x_username: str, result: dict, date_str: str) -> None:
     new_section = f"""## 最近の傾向（自動分析）
 最終更新: {date_str}
 
-### 週次サマリー
+### 直近3日間サマリー
 - 投稿数: {result['total']}件
 - 平均いいね: {result['avg_like']:.1f}
 - 平均インプレ: {result['avg_impression']:.0f}
@@ -338,7 +342,7 @@ def run_account(account_cfg: dict, conn) -> None:
 
 
 def main() -> None:
-    # .claude/settings.local.json から環境変数を読み込む
+    # repo直下の .env から環境変数を読み込む
     sys.path.insert(0, str(SCRIPT_DIR))
     env = load_settings_env()
     for k, v in env.items():

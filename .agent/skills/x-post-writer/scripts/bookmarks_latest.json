@@ -1,7 +1,7 @@
 {
   "account": "GUTARA",
   "x_username": "gutaraAikatuyou",
-  "fetched_at": "2026-05-06T06:05:10.346802+00:00",
+  "fetched_at": "2026-05-08T03:00:08.357510+00:00",
   "account_profile": {
     "account_id": "GUTARA",
     "x_user_id": "1955982279723114503",
@@ -16,10 +16,10 @@
       "public_metrics": {
         "retweet_count": 2,
         "reply_count": 12,
-        "like_count": 63,
+        "like_count": 64,
         "quote_count": 0,
         "bookmark_count": 0,
-        "impression_count": 3286
+        "impression_count": 3354
       },
       "url": "https://x.com/gutaraAikatuyou/status/1979307853694538073"
     },
@@ -27,16 +27,376 @@
   },
   "bookmarks": [
     {
-      "tweet_id": "2051425406096691692",
-      "text": "Karpathyが「理想のAIナレッジシステム」を語った、それをObsidianで再現した人が出た👇\nClaude Code × Obsidian。セットアップ10分。\n→\nVaultが寝てる間に自動で書いて整理してくれる\n→\nしかもKarpathy本人のLLM Wikiパターンがベース https://t.co/oO79iLNkjh https://t.co/s74oUmhWgn",
-      "author_username": "obsidianstudio9",
-      "author_name": "りゅう@Obsidianガチ勢",
-      "conversation_id": "2051425406096691692",
+      "tweet_id": "2052303167778427190",
+      "text": "このポストが296万インプ、6600いいねいきました。\n\nこれからX伸ばしたい人がやるべきことは「この構文をパクって連続で出し続ける」です。\n\nついつい「フォロワーが同じの見たら飽きるよな」と思って違う構文を使ってしまいますが、中身は少し変えるとしても切り口や構文は同じだと伸びやすいです。 https://t.co/pa6U75yxK0",
+      "author_username": "ceo_tommy1",
+      "author_name": "トミー",
+      "conversation_id": "2052303167778427190",
+      "thread_parts": [],
+      "media": []
+    },
+    {
+      "tweet_id": "2052022671546994745",
+      "text": "每天刷Hacker News、Twitter、Reddit、GitHub，你烦不烦？全是水文、重复内容、噪音，跟垃圾堆一样。😩\n\n我最近挖到一个新工具：Horizon，硬核科技新闻雷达。让它替你盯着全球科技圈，你只需要每天早上开一份简报。\n\n核心就一个字：把噪音全干掉，精华端到你面前。\n\n1️⃣ https://t.co/ruXgk3crl2",
+      "author_username": "NFTCPS",
+      "author_name": "鸟哥 | 蓝鸟会🕊️",
+      "conversation_id": "2052022671546994745",
       "thread_parts": [],
       "media": [
         {
           "type": "photo",
-          "url": "https://pbs.twimg.com/media/HHggiO6bYAAjjcF.jpg",
+          "url": "https://pbs.twimg.com/media/HHo_pNha4AAKnLj.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052285760280367159",
+      "text": "インスタグラムに何も投稿しないでインスタのフォロワーを増やす裏技でフォロワーが爆増しているので、やり方教えます。\n\n結論はとある方法でスレッズを活用すること。 https://t.co/6qHZAvwsc0",
+      "author_username": "4610_hotel",
+      "author_name": "ど素人ホテル再建計画 / 42アカウントバズらせ中",
+      "conversation_id": "2052285760280367159",
+      "thread_parts": [
+        {
+          "tweet_id": "2052285760280367159",
+          "text": "インスタグラムに何も投稿しないでインスタのフォロワーを増やす裏技でフォロワーが爆増しているので、やり方教えます。\n\n結論はとある方法でスレッズを活用すること。 https://t.co/6qHZAvwsc0"
+        },
+        {
+          "tweet_id": "2052292346809893088",
+          "text": "@CBTS_noguchi 時間との戦いですよねw\n\n僕はこのジャンルの研究職みたいなもんなので、たっぷり時間投下してますww"
+        },
+        {
+          "tweet_id": "2052543401443402218",
+          "text": "バズ塾でもスレッズに関する質問が最近増えてきたので、ショート動画だけでなく、Xやスレッズ攻略について話す機会でも作ろうかな。"
+        }
+      ],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2052285695096766464/img/kY1dYnzqg114EZaQ.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2052285695096766464/img/kY1dYnzqg114EZaQ.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052235121416188114",
+      "text": "https://t.co/1gCU5MmJ6n",
+      "author_username": "cyrilXBT",
+      "author_name": "CyrilXBT",
+      "conversation_id": "2052235121416188114",
+      "thread_parts": [
+        {
+          "tweet_id": "2052235121416188114",
+          "text": "https://t.co/1gCU5MmJ6n"
+        },
+        {
+          "tweet_id": "2052244622894653773",
+          "text": "@rohit4verse 🫡love that"
+        },
+        {
+          "tweet_id": "2052255195245990177",
+          "text": "@Av1dlive Thanks g"
+        },
+        {
+          "tweet_id": "2052355651641184692",
+          "text": "@alphabatcher My g thanks"
+        },
+        {
+          "tweet_id": "2052355694150484137",
+          "text": "@eng_khairallah1 Thanks bro"
+        },
+        {
+          "tweet_id": "2052398356115145069",
+          "text": "While you here also read my last drop:\nhttps://t.co/14pTxbKzVm"
+        }
+      ],
+      "media": []
+    },
+    {
+      "tweet_id": "2052066156929044816",
+      "text": "NotebookLMにしれっと神アップデート！\n大量のソースを自動ラベル付け＆カテゴライズしてくれるようになりました✨\n「ソース増えすぎてどこに何があるか分からん問題」が一気に解決します。 https://t.co/W1CggcgSjx https://t.co/cqfDJ9rsJo",
+      "author_username": "RemasterX_g",
+      "author_name": "山口彰宏",
+      "conversation_id": "2052066156929044816",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpnSzuawAAmTxj.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpnS1YaUAAUdlS.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpnS2gagAAtc01.png",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052270989640335554",
+      "text": "海外で話題のハーネス\nHermesが動画界隈でも急速に広まってる\n\nhttps://t.co/GsfZgZHh6w\n\n・チャットボットでも編集ソフトでもない\n・動画制作のルーティン作業をスキルとして保存・再利用できる\n\n自分好みの24時間働く編集者を作り上げることが可能\n\nまずは触ってみて欲しい↓ https://t.co/P5OzUSScID",
+      "author_username": "hikarun_videoai",
+      "author_name": "ひかる｜動画運用AI",
+      "conversation_id": "2052270989640335554",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2051635560876511232/img/TUN2NIC0yrmejKVa.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2051635560876511232/img/TUN2NIC0yrmejKVa.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2047813013395427587",
+      "text": "Create Motion Graphic Videos w/ Remotion\nUsing GPT 5.5 inside Codex\n\n(Full Guide)\n\nTIME STAMPS:\n00:00 Intro\n02:40 What is @Remotion\n04:31 Setting Up the Remotion Plugin\n05:47 First Prompt: Hello World (First Test)\n15:53 Building Brand Assets &amp; File Organization\n19:25 Adding Music https://t.co/YwYVyhMpzz",
+      "author_username": "rileybrown",
+      "author_name": "Riley Brown",
+      "conversation_id": "2047813013395427587",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2047810877207023616/img/v5fVdWX31rNyI5dI.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2047810877207023616/img/v5fVdWX31rNyI5dI.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051972206809239624",
+      "text": "https://t.co/TzvP7iAFWT",
+      "author_username": "zenkaiAI",
+      "author_name": "まこちん|妄想全開AIクリエイター",
+      "conversation_id": "2051972206809239624",
+      "thread_parts": [],
+      "media": []
+    },
+    {
+      "tweet_id": "2052230375423012991",
+      "text": "月1000万以上稼ぐ現役アフィリエイターが使う『アフィのためのプロンプト20選』保存して使ってみて↓ https://t.co/GEcJKaOCkZ",
+      "author_username": "mamiya_afi",
+      "author_name": "まみや@AIで2.3億",
+      "conversation_id": "2052230375423012991",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHr8mvVaoAADmll.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052258052397760946",
+      "text": "年で売上50億稼いでる\nメンタリストDAIGOのマネタイズ動線がやばすぎた。\n\n全て徹底分析してみた‼️↓ https://t.co/BetJmNYLTW",
+      "author_username": "kkk_cun",
+      "author_name": "Kくん",
+      "conversation_id": "2052258052397760946",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHsVz0NaQAADyIR.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHsVzGHbgAA9B-l.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHsV0Hha8AA_qri.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHsV0F6aIAA1khA.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051812303461572855",
+      "text": "よく聞かれる「今20代だったらなにをしますか」への答えの2つ目は\n【自分の目標に対してちょっと先に進んでいる人たちのコミュニティに入る】\nです。\n私の場合はビットバレーというコミュニティや、起業家したばっかりの友達コミュニティに入っていたことにとても感謝しています。",
+      "author_username": "ozarnozarn",
+      "author_name": "小澤隆生（おざーん）",
+      "conversation_id": "2051812303461572855",
+      "thread_parts": [],
+      "media": []
+    },
+    {
+      "tweet_id": "2052067399088664981",
+      "text": "Live from Code with Claude: we're launching dreaming in Claude Managed Agents as a research preview.\n\nOutcomes, multiagent orchestration, and webhooks are now in public beta. https://t.co/p4DFRzFEd8",
+      "author_username": "claudeai",
+      "author_name": "Claude",
+      "conversation_id": "2052067399088664981",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/media/HHpoqNAXcAcHY8h.jpg",
+          "preview_url": "https://pbs.twimg.com/media/HHpoqNAXcAcHY8h.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052164028873728031",
+      "text": "Googleが「Code Wiki」を完全無料で公開しました。\n\nGitHubに公開されているリポジトリのURLを貼るだけで、そのコードの中身を解説した最新版マニュアルが自動で出来上がります。\n\n・コードが更新されたら解説も自動で書き直し\n・「この処理どこ？」と聞けばAIが該当箇所まで案内 https://t.co/0O2Uf2a8bW",
+      "author_username": "so_ainsight",
+      "author_name": "そう｜Claude Codeで始めるAI自動化",
+      "conversation_id": "2052164028873728031",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHrATw_aUAAR1P2.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052010743231635771",
+      "text": "AIっぽさのある投稿って絶対伸びないです\n\nあなたは「バレてない」と思っているのかもしれませんが\nAIで作った投稿って一瞬でわかります\n\nAIを使ってもAIぽくならない方法はあります\n\n人が書いたような文に変えるプロンプトです↓",
+      "author_username": "osaruproducer",
+      "author_name": "マーケターおさる┃グループ総年商30億┃YouTube登録者50万人┃Brainオーナー",
+      "conversation_id": "2052010743231635771",
+      "thread_parts": [],
+      "media": []
+    },
+    {
+      "tweet_id": "2052025880340521255",
+      "text": "有人刚刚搭建了一个可以免费获取开源软件的网站 —— 只需找到一个开源项目，然后 —— 开始你的开源贡献之旅。 https://t.co/NzYlCUkx5v",
+      "author_username": "billtheinvestor",
+      "author_name": "Bill The Investor",
+      "conversation_id": "2052025880340521255",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2052025754649874432/img/u8b-guD7dMyi29_7.jpg",
+          "preview_url": "https://pbs.twimg.com/amplify_video_thumb/2052025754649874432/img/u8b-guD7dMyi29_7.jpg",
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051906755022704662",
+      "text": "Windows版 Codex Appの許可ループ、「自動レビュー」というモードで抜けられるかも。\n\n自分は「フルアクセス」と「自動レビュー」を両方設定して使い分けてます。違いはこんな感じです。（違ったらごめんなさい）\n\nフルアクセス：サンドボックスを外して承認もスキップ。フル任せ、使い捨て環境向き https://t.co/OAwEJslV1x https://t.co/qDHHGB1uU1",
+      "author_username": "sora_biz",
+      "author_name": "そら",
+      "conversation_id": "2051906755022704662",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHnShdybgAA6NjM.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHnS3xQaYAAmb-L.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051901036932255826",
+      "text": "え、ガチ？\nObsidian Canvasでノートを空間配置したら思考の整理スピードが別次元になった😳\nマインドマップとノートリンクが融合してる。テキストだけじゃ見えなかった繋がりが一瞬で見える。\n使い方は図解にまとめたので見てほしい👇\n\nこの下の記事を読むと理解が一気に深まる。マジでおすすめ👇 https://t.co/2yojjWBqAy https://t.co/DxCR1lkUdE",
+      "author_username": "obsidianstudio9",
+      "author_name": "りゅう@Obsidianガチ勢",
+      "conversation_id": "2051901036932255826",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHnRHmvaUAAYzzF.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2051981307727806714",
+      "text": "【衝撃】\nOpenAI Codexが「単なるCLI」じゃなくなる\n拡張ツールが★2.7万超え🔥\n\noh-my-codex\n\nこれ何ができるかというと👇\n・複数エージェントをチームとして同時稼働\n・フックで処理の前後に自動アクション追加\n・HUDでリアルタイム状態監視\n\nつまり何が起きるかというと…\nCodexが1人の助手から",
+      "author_username": "opensourcelab9",
+      "author_name": "オープンソース研究所",
+      "conversation_id": "2051981307727806714",
+      "thread_parts": [],
+      "media": []
+    },
+    {
+      "tweet_id": "2052143406424653825",
+      "text": "【ガチで革命です】\n\nイーロンマスクのSpaceXと\nClaudeのAnthropicと手を組みました\n\nClaude Codeも同じ料金で倍使えるようになりました\n\nCodexに浮気した人は帰ってきてください https://t.co/XcMJsHJvdt https://t.co/Lcbolfy4zw",
+      "author_username": "mercarioji",
+      "author_name": "メルおじ | AI × X | FFFの民🐟",
+      "conversation_id": "2052143406424653825",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHqti9Kb0AANFhO.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHqti9KaUAAQICL.jpg",
+          "preview_url": null,
+          "video_url": null
+        }
+      ]
+    },
+    {
+      "tweet_id": "2052030946040496378",
+      "text": "GPT Image2×占いがアホほど儲かりそう。\n \nプロンプトとマネタイズ方法はリプで解説 https://t.co/UA51GyjrpV",
+      "author_username": "kkk_cun",
+      "author_name": "Kくん",
+      "conversation_id": "2052030946040496378",
+      "thread_parts": [],
+      "media": [
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpHDDgbEAAu4I2.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpHDDyasAAy_E6.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpHDDuaMAATsnT.jpg",
+          "preview_url": null,
+          "video_url": null
+        },
+        {
+          "type": "photo",
+          "url": "https://pbs.twimg.com/media/HHpHNg9aYAAkQSL.jpg",
           "preview_url": null,
           "video_url": null
         }

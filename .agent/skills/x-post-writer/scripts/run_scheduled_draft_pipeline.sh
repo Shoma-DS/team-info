@@ -1,6 +1,6 @@
 #!/bin/bash
 # Xブックマーク→下書き生成の定時ジョブを launchd から起動するラッパー。
-# .claude/settings.local.json の env を読み込み、repo ルートを固定して実行する。
+# repo直下の .env を読み込み、repo ルートを固定して実行する。
 
 set -euo pipefail
 

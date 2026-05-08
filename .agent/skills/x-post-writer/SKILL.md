@@ -380,6 +380,7 @@ X（Twitter）の図解投稿画像は **必ずアスペクト比 3:4（推奨 9
 - 画像プロンプトを生成する際は、出力条件に `縦型 3:4 / 960×1280px` を必ず含める
 - `infographic-rules.md` がないアカウントでも、このアスペクト比はデフォルト適用する
 - 9:16 など他のアスペクト比を使わない（ユーザーから別途指定があった場合を除く）
+- Codex に画像生成まで依頼された場合は、ユーザーが明示的にAPI利用を指定しない限り、Codex / ChatGPT サブスク内の画像生成機能で対応する。画像生成API、APIキー、`OPENAI_API_KEY`、`gpt-image-*` の直接呼び出し、画像生成用スクリプト作成は提案・実行しない。
 
 ---
 
@@ -393,8 +394,8 @@ Phase 1〜6 に加えて、以下のDB連携フローも使える。
 |-----------|------|
 | `scripts/fetch_bookmarks.py` | XブックマークをAPIで取得。初回のみ `accounts/*.md` を自動初期化し、`bookmarks_latest.json` に保存 |
 | `scripts/draft_manager.py` | 下書きをNeon DBに保存・一覧・表示・削除 |
-| `scripts/x_metrics_collector.py` | 投稿メトリクス（いいね・インプレ等）を時系列でNeon DBに保存 |
-| `scripts/daily_analysis.py` | 過去7日分の投稿メトリクスを時系列分析し、Discord通知とaccounts/*.md自動更新を行う |
+| `scripts/x_metrics_collector.py` | 直近3日分のメイン投稿メトリクス（いいね・インプレ等）を時系列でNeon DBに保存 |
+| `scripts/daily_analysis.py` | 過去3日分のメイン投稿メトリクスを時系列分析し、Discord通知とaccounts/*.md自動更新を行う |
 | `scripts/scheduled_draft_pipeline.py` | Codex優先 / Claude fallback で新規ブックマークだけを自動下書き化し、画像プロンプトも保存 |
 | `scripts/manage_launch_agents.py` | 上記定時ジョブと毎時メトリクス収集の LaunchAgent を render / install / uninstall する |
 | `scripts/preview_server.py` | ローカルAPIサーバー（port 8765）。下書き一覧・Discord通知を提供 |
@@ -413,7 +414,7 @@ Phase 1〜6 に加えて、以下のDB連携フローも使える。
    - X API からプロフィール文 / 表示名 / X User ID / 固定投稿を取得
    - 対応する `accounts/*.md` を自動作成または自動取得セクションだけ更新
    - ブックマーク取得には OAuth 2.0 user token も必要
-     （`X_BOOKMARKS_ACCESS_TOKEN_GUTARA` / `X_OAUTH2_ACCESS_TOKEN_GUTARA` /
+     （`X_BOOKMARKS_ACCESS_TOKEN_GUTARAAIKATUYOU` / `X_OAUTH2_ACCESS_TOKEN_GUTARAAIKATUYOU` /
       `X_BEARER_TOKEN` の順で参照）
 
 2. エージェント（Claude Code / Codex）が bookmarks_latest.json を読み込む
@@ -425,6 +426,9 @@ Phase 1〜6 に加えて、以下のDB連携フローも使える。
 
 4. 各ブックマークに対してX投稿の下書きを生成する
    → 原文の「型・視点・テーマ」を借りて自分のトンマナで書き直す
+   → 元投稿の冒頭フックはそのまま使わず、最低5種類の心理トリガーへ展開してから最強の1案を採用する
+   → 非エンジニア・副業初心者を最優先ターゲットにし、ツール名を知らない人でも理解できるように「何をする道具か」とメタファーを添える
+   → ChatGPT以外のツールを扱うツリーでは、必要に応じて「そもそもそのツールは何か」を必ず説明する
    → 長文（有料課金ユーザー向け・25,000文字以内）対応
    → ツリー投稿は「---」で区切って生成
 
@@ -458,7 +462,8 @@ Phase 1〜6 に加えて、以下のDB連携フローも使える。
 ### メトリクス収集
 
 ```
-# 直近1週間の投稿のインプレッション・いいね等をNeon DBに保存
+# 直近3日間のメイン投稿のインプレッション・いいね等をNeon DBに保存
+# ツリー投稿は1投稿目だけを追跡し、続き投稿の数値は追跡しない
 python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/x_metrics_collector.py"
 ```
 
@@ -488,9 +493,9 @@ python3 "$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/manage_launch_agent
 | `NEON_DATABASE_URL` | Neon PostgreSQL接続URL |
 | `X_API_KEY` | X APIキー（`fetch_bookmarks.py` は `X_CONSUMER_KEY` でも可） |
 | `X_API_SECRET` | X APIシークレット（`fetch_bookmarks.py` は `X_CONSUMER_SECRET` でも可） |
-| `X_ACCESS_TOKEN_GUTARA` | GUTARAアカウントのアクセストークン |
-| `X_ACCESS_TOKEN_SECRET_GUTARA` | GUTARAアカウントのアクセストークンシークレット |
-| `X_BOOKMARKS_ACCESS_TOKEN_GUTARA` | ブックマーク取得用 OAuth 2.0 user token（なければ `X_OAUTH2_ACCESS_TOKEN_GUTARA` → `X_BEARER_TOKEN` を順に参照） |
+| `X_ACCESS_TOKEN_GUTARAAIKATUYOU` | gutaraAikatuyouアカウントのアクセストークン |
+| `X_ACCESS_TOKEN_SECRET_GUTARAAIKATUYOU` | gutaraAikatuyouアカウントのアクセストークンシークレット |
+| `X_BOOKMARKS_ACCESS_TOKEN_GUTARAAIKATUYOU` | ブックマーク取得用 OAuth 2.0 user token（なければ `X_OAUTH2_ACCESS_TOKEN_GUTARAAIKATUYOU` → `X_BEARER_TOKEN` を順に参照） |
 | `DISCORD_WEBHOOK_X_DRAFT` | Discord Webhook URL（投稿通知先） |
 
 ### Codex での使い方

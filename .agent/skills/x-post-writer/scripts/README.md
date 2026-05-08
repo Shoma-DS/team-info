@@ -8,10 +8,8 @@
 `.env.example` を見ながら、必要な環境変数を自分のパソコンに設定します。
 Git に入るファイルへ本物のキーは書かないでください。
 
-よく使う置き場所は次のどちらかです。
-
-- `~/.zshrc`
-- `settings.local.json`
+置き場所は repo 直下の `.env` を正本にします。
+プレビュー画面の環境変数設定UIも、この `.env` を読み書きします。
 
 ## ライブラリを入れる
 
@@ -44,8 +42,11 @@ python "$env:TEAM_INFO_ROOT\.agent\skills\x-post-writer\scripts\x_metrics_collec
 ## このスクリプトがやること
 
 1. `accounts_config.json` を読む
-2. 対象アカウントの最近の投稿を取る
+2. 対象アカウントの直近3日間のメイン投稿を取る
 3. いいねや表示回数などを DB に入れる
+
+ツリー型の投稿は、1投稿目だけを分析対象にします。
+X API取得時に返信形式の続き投稿を除外し、DB分析でも続き投稿の数値は追いません。
 
 ## ブックマーク取得時の初回セットアップ
 
@@ -63,8 +64,8 @@ python "$env:TEAM_INFO_ROOT\.agent\skills\x-post-writer\scripts\x_metrics_collec
 ブックマーク取得自体は、プロフィール取得とは別に OAuth 2.0 user token が必要です。
 使う環境変数の優先順は次です。
 
-- `X_BOOKMARKS_ACCESS_TOKEN_GUTARA`
-- `X_OAUTH2_ACCESS_TOKEN_GUTARA`
+- `X_BOOKMARKS_ACCESS_TOKEN_GUTARAAIKATUYOU`
+- `X_OAUTH2_ACCESS_TOKEN_GUTARAAIKATUYOU`
 - `X_BEARER_TOKEN`（中身が OAuth 2.0 user token の場合のみ）
 
 ## 定時自動化

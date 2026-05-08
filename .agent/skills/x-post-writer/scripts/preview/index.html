@@ -16,8 +16,18 @@
       <div class="sidebar-header">
         <div class="x-logo">𝕏</div>
         <span class="sidebar-title">DRAFTS</span>
+        <button class="refresh-btn account-switch-btn" onclick="openAccountModal()" title="アカウント変更">👤</button>
+        <button class="refresh-btn account-switch-btn" onclick="openEnvSettingsModal()" title="設定">⚙</button>
         <button id="refresh-btn" class="refresh-btn" onclick="loadDraftList()" title="一覧を更新">↻</button>
       </div>
+
+      <button id="account-summary" class="account-summary" onclick="openAccountModal()">
+        <span class="avatar-sm account-summary-avatar">𝕏</span>
+        <span class="account-summary-main">
+          <span id="account-summary-name">すべてのアカウント</span>
+          <span id="account-summary-user">下書き全体を表示</span>
+        </span>
+      </button>
 
       <div class="search-wrap">
         <input

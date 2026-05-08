@@ -13,6 +13,7 @@ from pathlib import Path
 APP_NAME = "team-info"
 FEATURE_DIR = "x-post-writer"
 BOOKMARK_STATE_FILENAME = "processed_bookmarks_state.json"
+CHARACTER_SETTINGS_FILENAME = "character-settings.json"
 
 
 def get_config_root() -> Path:
@@ -48,6 +49,70 @@ def get_draft_metadata_dir() -> Path:
 
 def get_bookmark_state_path() -> Path:
     return get_runtime_root() / BOOKMARK_STATE_FILENAME
+
+
+def get_character_settings_path() -> Path:
+    return get_runtime_root() / CHARACTER_SETTINGS_FILENAME
+
+
+def load_character_settings_payload() -> dict:
+    path = get_character_settings_path()
+    if not path.exists():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def save_character_settings_payload(payload: dict) -> Path:
+    path = get_character_settings_path()
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def load_character_setting(account_key: str) -> dict:
+    payload = load_character_settings_payload()
+    settings = payload.get("accounts")
+    if not isinstance(settings, dict):
+        return {}
+    setting = settings.get(str(account_key))
+    return setting if isinstance(setting, dict) else {}
+
+
+def save_character_setting(account_key: str, setting: dict) -> Path:
+    payload = load_character_settings_payload()
+    settings = payload.get("accounts")
+    if not isinstance(settings, dict):
+        settings = {}
+    settings[str(account_key)] = setting
+    payload["accounts"] = settings
+    return save_character_settings_payload(payload)
+
+
+def load_bookmark_state_payload() -> dict:
+    path = get_bookmark_state_path()
+    if not path.exists():
+        return {}
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def save_bookmark_state_payload(payload: dict) -> Path:
+    path = get_bookmark_state_path()
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return path
 
 
 def slugify(text: str, fallback: str = "draft") -> str:
@@ -103,15 +168,7 @@ def load_draft_metadata(draft_id: str) -> dict | None:
 
 
 def load_processed_bookmarks() -> set[str]:
-    path = get_bookmark_state_path()
-    if not path.exists():
-        return set()
-
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return set()
-
+    payload = load_bookmark_state_payload()
     items = payload.get("processed_tweet_ids", [])
     if not isinstance(items, list):
         return set()
@@ -119,10 +176,35 @@ def load_processed_bookmarks() -> set[str]:
 
 
 def save_processed_bookmarks(tweet_ids: set[str]) -> Path:
-    path = get_bookmark_state_path()
-    payload = {"processed_tweet_ids": sorted(tweet_ids)}
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    return path
+    payload = load_bookmark_state_payload()
+    payload["processed_tweet_ids"] = sorted(tweet_ids)
+    return save_bookmark_state_payload(payload)
+
+
+def save_bookmark_status(
+    *,
+    tweet_id: str,
+    status: str,
+    draft_id: str | None = None,
+    metadata_path: str | None = None,
+    image_prompt_path: str | None = None,
+) -> Path:
+    payload = load_bookmark_state_payload()
+    statuses = payload.get("bookmark_status")
+    if not isinstance(statuses, dict):
+        statuses = {}
+
+    entry = statuses.get(str(tweet_id))
+    if not isinstance(entry, dict):
+        entry = {}
+    entry["status"] = status
+    if draft_id:
+        entry["draft_id"] = draft_id
+    if metadata_path:
+        entry["metadata_path"] = metadata_path
+    if image_prompt_path:
+        entry["image_prompt_path"] = image_prompt_path
+
+    statuses[str(tweet_id)] = entry
+    payload["bookmark_status"] = statuses
+    return save_bookmark_state_payload(payload)

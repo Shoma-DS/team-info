@@ -151,10 +151,15 @@ This vault is the local personal knowledge base for team-info agents.
 ## Agent usage
 
 For Claude Code, open this vault folder and use `/wiki`, `ingest [file]`,
-`/save`, `lint the wiki`, and `/autoresearch [topic]`.
+`/save`, `lint the wiki`, and `/autoresearch [topic]`. Claude Code can use
+this folder directly because it contains the claude-obsidian plugin metadata.
 
 For Codex, open this vault folder and read `AGENTS.md` first. The same skills
-live in `skills/`; if they are not auto-discovered, run `bash bin/setup-multi-agent.sh`.
+live in `skills/`. If they are not auto-discovered, run this from team-info:
+
+```bash
+python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap --setup-multi-agent
+```
 
 Keep runtime knowledge in this vault. Do not move machine-specific notes into
 shared team-info folders unless the user explicitly asks to share them.
@@ -544,6 +549,93 @@ def command_ensure_vault(args: argparse.Namespace) -> int:
     return 0
 
 
+def codex_skill_link_status(vault_path: Path) -> dict:
+    target = vault_path / "skills"
+    destination = Path.home() / ".codex" / "skills" / "claude-obsidian"
+    status = {
+        "destination": str(destination),
+        "target": str(target),
+        "exists": destination.exists() or destination.is_symlink(),
+        "is_symlink": destination.is_symlink(),
+        "points_to_target": False,
+    }
+    if destination.is_symlink():
+        try:
+            status["points_to_target"] = destination.resolve() == target.resolve()
+        except FileNotFoundError:
+            status["points_to_target"] = False
+    return status
+
+
+def claude_code_vault_status(vault_path: Path) -> dict:
+    return {
+        "vault": str(vault_path),
+        "agent_instructions": str(vault_path / "AGENTS.md"),
+        "claude_instructions": str(vault_path / "CLAUDE.md"),
+        "plugin_manifest": str(vault_path / ".claude-plugin" / "plugin.json"),
+        "skills_dir": str(vault_path / "skills"),
+        "agent_instructions_exists": (vault_path / "AGENTS.md").exists(),
+        "claude_instructions_exists": (vault_path / "CLAUDE.md").exists(),
+        "plugin_manifest_exists": (vault_path / ".claude-plugin" / "plugin.json").exists(),
+        "skills_dir_exists": (vault_path / "skills").is_dir(),
+    }
+
+
+def command_bootstrap(args: argparse.Namespace) -> int:
+    repo_root = repo_root_from_args(args.repo_root)
+    account = resolve_personal_account(repo_root, args.account)
+    vault_path = Path(args.vault).expanduser().resolve() if args.vault else default_personal_vault_path(repo_root, account)
+
+    if not obsidian_app_exists():
+        summary = {
+            "skipped": "obsidian_not_installed",
+            "repo_root": str(repo_root),
+            "account": account,
+            "vault": str(vault_path),
+            "message": "Obsidian is not installed on this machine, so no personal knowledge vault was created.",
+        }
+        json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+        sys.stdout.write("\n")
+        return 0
+
+    summary = {
+        "repo_root": str(repo_root),
+        "account": account,
+        "vault": str(vault_path),
+        "obsidian_app_exists": True,
+        "dry_run": args.dry_run,
+    }
+
+    if args.dry_run:
+        summary.update(
+            {
+                "would_create_or_update_vault": True,
+                "would_run_setup_vault": not args.no_setup,
+                "would_setup_multi_agent": args.setup_multi_agent,
+                "codex_skill_link": codex_skill_link_status(vault_path),
+                "claude_code": claude_code_vault_status(vault_path),
+            }
+        )
+        json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+        sys.stdout.write("\n")
+        return 0
+
+    vault_summary = ensure_claude_obsidian_vault(
+        repo_root=repo_root,
+        vault_path=vault_path,
+        run_setup=not args.no_setup,
+        update_existing=args.update,
+        setup_multi_agent=args.setup_multi_agent,
+    )
+    summary.update(vault_summary)
+    summary["codex_skill_link"] = codex_skill_link_status(vault_path)
+    summary["claude_code"] = claude_code_vault_status(vault_path)
+
+    json.dump(summary, sys.stdout, ensure_ascii=False, indent=2)
+    sys.stdout.write("\n")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="team-info helper for Obsidian CLI + Claudian")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -570,6 +662,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="run bin/setup-multi-agent.sh to link skills into Codex/Gemini/OpenCode config folders",
     )
     ensure_parser.set_defaults(func=command_ensure_vault)
+
+    bootstrap_parser = subparsers.add_parser(
+        "bootstrap",
+        help="set up the personal claude-obsidian vault only when Obsidian is installed",
+    )
+    bootstrap_parser.add_argument("--repo-root", help="override TEAM_INFO_ROOT")
+    bootstrap_parser.add_argument("--account", help="override personal account slug")
+    bootstrap_parser.add_argument("--vault", help="override vault path")
+    bootstrap_parser.add_argument("--no-setup", action="store_true", help="skip bin/setup-vault.sh")
+    bootstrap_parser.add_argument("--update", action="store_true", help="git fetch + pull --ff-only when the vault already exists")
+    bootstrap_parser.add_argument(
+        "--setup-multi-agent",
+        action="store_true",
+        help="run bin/setup-multi-agent.sh to link skills into Codex/Gemini/OpenCode config folders",
+    )
+    bootstrap_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="show what would be configured without cloning, writing, or linking",
+    )
+    bootstrap_parser.set_defaults(func=command_bootstrap)
 
     install_parser = subparsers.add_parser("install", help="install Claudian into the active vault")
     install_parser.add_argument("--vault", help="override vault path")
