@@ -2137,6 +2137,18 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"ok": False, "error": "この操作は localhost からのみ使えます"}, 403)
         return False
 
+    def require_auth(self):
+        if not auth_enabled():
+            self.send_json({"ok": False, "error": "Googleログイン設定が未完了です"}, 503)
+            return False
+        if self.current_user():
+            return True
+        self.send_json({"ok": False, "error": "ログインが必要です"}, 401)
+        return False
+
+    def is_public_api_path(self, path: str) -> bool:
+        return path in ("/api/auth/me", "/api/public-url")
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -2225,6 +2237,10 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         qs = parse_qs(parsed.query)
+
+        if path.startswith("/api/") and not self.is_public_api_path(path):
+            if not self.require_auth():
+                return
 
         if path in ("/", "/index.html"):
             self.send_file(PREVIEW_DIR / "index.html", "text/html; charset=utf-8")
@@ -2353,6 +2369,9 @@ class Handler(BaseHTTPRequestHandler):
         path = parsed.path
         qs = parse_qs(parsed.query)
 
+        if path.startswith("/api/") and not self.require_auth():
+            return
+
         if path == "/api/draft":
             draft_id = qs.get("id", [None])[0]
             if not draft_id:
@@ -2370,6 +2389,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_PUT(self):
         parsed = urlparse(self.path)
         path = parsed.path
+
+        if path.startswith("/api/") and not self.require_auth():
+            return
 
         if path == "/api/draft/part":
             body = self.read_body()
@@ -2390,6 +2412,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_PATCH(self):
         parsed = urlparse(self.path)
         path = parsed.path
+
+        if path.startswith("/api/") and not self.require_auth():
+            return
 
         if path == "/api/draft/status":
             body = self.read_body()
@@ -2458,6 +2483,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
         path = parsed.path
+
+        if path.startswith("/api/") and not self.require_auth():
+            return
+
         body = self.read_body()
 
         if path == "/api/notify":

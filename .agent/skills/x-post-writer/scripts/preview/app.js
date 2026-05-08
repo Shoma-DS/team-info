@@ -51,6 +51,11 @@ async function init() {
     publicUrl  = data.url || publicUrl;
   } catch (_) {}
   await loadAuthState();
+  if (!authState.user) {
+    renderLoginGate();
+    return;
+  }
+  clearLoginGate();
   await loadAccounts();
   await loadDraftList();
 }
@@ -91,6 +96,33 @@ function handleAuthClick() {
     return;
   }
   window.location.href = authState.user ? '/auth/logout' : '/auth/google/start';
+}
+
+function renderLoginGate() {
+  document.body.classList.add('auth-required');
+  const existing = document.getElementById('login-gate');
+  if (existing) existing.remove();
+
+  const gate = document.createElement('main');
+  gate.id = 'login-gate';
+  gate.className = 'login-gate';
+  const canLogin = !!authState.auth_enabled;
+  gate.innerHTML = `
+    <section class="login-panel">
+      <div class="login-mark">𝕏</div>
+      <h1>X 下書きプレビュー</h1>
+      <p>${canLogin ? 'Googleアカウントでログインしてください。' : 'Googleログイン設定がまだ有効ではありません。'}</p>
+      <button class="google-login-btn" onclick="handleAuthClick()" ${canLogin ? '' : 'disabled'}>
+        <span>G</span>
+        <strong>Googleでログイン</strong>
+      </button>
+    </section>`;
+  document.body.appendChild(gate);
+}
+
+function clearLoginGate() {
+  document.body.classList.remove('auth-required');
+  document.getElementById('login-gate')?.remove();
 }
 
 async function loadAccounts() {
