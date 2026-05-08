@@ -40,6 +40,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | `寝ながらトラベル/` | sleep_travel チャンネルのレンダリング動画 |
 | `note記事/` | 愛され女子あゆみ の note 記事 MD |
 | `gws-dashboard/` | gws CLI で取得したスプレッドシート可視化HTML |
+| `X長文記事/` | X長文記事・スレッド記事のMarkdown下書き |
 
 新規チャンネル・新規用途の場合は上記に追加し、このテーブルも更新すること。
 
@@ -195,6 +196,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | x-post-writer | アカウント情報・競合投稿・テンプレートを活用してXの投稿文を自動生成し、投稿の型を蓄積する | `.agent/skills/x-post-writer/SKILL.md` |
+| x-long-article-writer | セミナー台本・Obsidianノート・既存記事を、アカウント別トンマナに合わせてX長文記事・スレッド記事へ再構成しMarkdown保存する | `.agent/skills/x-long-article-writer/SKILL.md` |
 | x-vertical-infographic-creator | X投稿用の縦型9:16図解・インフォグラフィック画像を設計・日本語プロンプト化する。アカウントごとのキャラクター情報を管理し、scheduled_draft_pipeline.py と統合して画像プロンプトを自動生成する | `.agent/skills/x-vertical-infographic-creator/SKILL.md` |
 
 ---
