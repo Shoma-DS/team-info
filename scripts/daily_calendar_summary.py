@@ -34,6 +34,7 @@ import base64
 import re
 import os
 import pathlib
+import shutil
 import subprocess
 import uuid
 from dataclasses import dataclass, field
@@ -46,6 +47,8 @@ SCRIPT_DIR = pathlib.Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
 ZOOM_CREDS_PATH = pathlib.Path.home() / ".config" / "zoom" / "credentials.json"
 GWS_BIN = str(pathlib.Path("/usr/local/bin/gws")) if pathlib.Path("/usr/local/bin/gws").exists() else "gws"
+INTERVIEW_CLOSING_SKILL = REPO_ROOT / ".agent" / "skills" / "personal" / "deguchishouma" / "calendar-interview-closing" / "SKILL.md"
+INTERVIEW_CLOSING_PAYLOAD_DIR = pathlib.Path("/tmp") / "team-info-daily-summary"
 AUTO_GWS_CREDENTIALS_PATH = pathlib.Path.home() / ".config" / "team-info" / "gws_credentials_auto.json"
 _AUTO_GWS_CREDENTIALS_CHECKED = False
 _AUTO_GWS_CREDENTIALS_FILE: pathlib.Path | None = None
@@ -1534,6 +1537,95 @@ def send_discord(webhook_url: str, content: str) -> None:
     print(f"[Discord] 送信完了: {preview}", file=sys.stderr, flush=True)
 
 
+# ── 面接クロージング台本への橋渡し ───────────────────────────────
+
+def is_interview_closing_candidate(event: dict) -> bool:
+    """朝通知後にクロージング台本へ回す面接候補を判定する。"""
+    title = str(event.get("title") or "")
+    description = str(event.get("description") or "")
+    text = f"{title}\n{description}"
+    if "面接" in text:
+        return True
+    if "2回目" in description:
+        return True
+    try:
+        return int(event.get("duration") or 0) >= 90
+    except (TypeError, ValueError):
+        return False
+
+
+def write_interview_closing_payload(date_str: str, events: List[dict], skip_discord_summary: bool) -> Optional[pathlib.Path]:
+    candidates = [
+        event
+        for event in events
+        if not event.get("allDay") and is_interview_closing_candidate(event)
+    ]
+    if not candidates:
+        return None
+
+    INTERVIEW_CLOSING_PAYLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    payload_path = INTERVIEW_CLOSING_PAYLOAD_DIR / f"calendar-interview-closing-{date_str}.json"
+    payload_path.write_text(
+        json.dumps(
+            {
+                "date": date_str,
+                "source": "daily-calendar-summary",
+                "skip_discord_summary": skip_discord_summary,
+                "selection_rules": [
+                    "summary または description に `面接` が入っている",
+                    "description に `2回目` が入っている",
+                    "duration が 90 分以上",
+                ],
+                "events": candidates,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return payload_path
+
+
+def run_interview_closing_skill(payload_path: pathlib.Path) -> int:
+    codex_bin = shutil.which("codex") or "/usr/local/bin/codex"
+    if not pathlib.Path(codex_bin).exists():
+        print(f"[InterviewClosing] codex が見つからないためスキップ: {codex_bin}", file=sys.stderr, flush=True)
+        return 127
+    if not INTERVIEW_CLOSING_SKILL.exists():
+        print(f"[InterviewClosing] スキルが見つからないためスキップ: {INTERVIEW_CLOSING_SKILL}", file=sys.stderr, flush=True)
+        return 127
+
+    prompt = (
+        f"Read and follow this skill file exactly: {INTERVIEW_CLOSING_SKILL}. "
+        f"Use the already fetched Google Calendar events from this JSON file: {payload_path}. "
+        "Do not fetch Google Calendar again unless the JSON is unreadable. "
+        "For every event in the JSON, fetch the matching Loom transcript via the existing Loom MCP/search workflow, "
+        "then generate and save the closing sales script using the existing interview-product-sales format. "
+        "Default the current closing owner to 出口 when unspecified. Do not ask clarifying questions; "
+        "if a Loom video is ambiguous, save a Loom未特定 note/script for that candidate and continue with the others."
+    )
+    print(f"[InterviewClosing] 起動: {payload_path}", file=sys.stderr, flush=True)
+    process = subprocess.run(
+        [codex_bin, "exec", "-C", str(REPO_ROOT), prompt],
+        text=True,
+        cwd=REPO_ROOT,
+        env={**os.environ, "PYTHONUNBUFFERED": "1"},
+    )
+    print(f"[InterviewClosing] 終了 code={process.returncode}", file=sys.stderr, flush=True)
+    return process.returncode
+
+
+def handoff_interview_closing(date_str: str, events: List[dict], skip_discord_summary: bool, skip_handoff: bool) -> None:
+    if skip_handoff:
+        print("[InterviewClosing] スキップ指定あり", file=sys.stderr, flush=True)
+        return
+    payload_path = write_interview_closing_payload(date_str, events, skip_discord_summary)
+    if not payload_path:
+        print("[InterviewClosing] 対象予定なし", file=sys.stderr, flush=True)
+        return
+    run_interview_closing_skill(payload_path)
+
+
 # ── メイン ──────────────────────────────────────────────────────
 
 def main() -> None:
@@ -1553,6 +1645,7 @@ def main() -> None:
 
     date_str = data.get("date", datetime.now().strftime("%Y-%m-%d"))
     skip_discord_summary = bool(data.get("skip_discord_summary"))
+    skip_interview_closing = bool(data.get("skip_interview_closing"))
     events_raw: List[dict] = data.get("events", [])
 
     all_day_titles = [e["title"] for e in events_raw if e.get("allDay")]
@@ -1680,6 +1773,7 @@ def main() -> None:
             f"[完了] 手動再実行: 対象{len(processed)}件 / Discord朝サマリー送信なし",
             file=sys.stderr,
         )
+        handoff_interview_closing(date_str, processed, skip_discord_summary, skip_interview_closing)
         return
 
     # ── メッセージ 1: 一覧概要 ──
@@ -1729,6 +1823,7 @@ def main() -> None:
         send_discord(webhook_url, "\n".join(block))
 
     print(f"[完了] 送信数: 概要1件 + 詳細{len(processed)}件")
+    handoff_interview_closing(date_str, processed, skip_discord_summary, skip_interview_closing)
 
 
 if __name__ == "__main__":

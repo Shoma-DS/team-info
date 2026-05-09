@@ -131,7 +131,8 @@ Windows:
 ```
 
 - `n8n` を起動したいときは `dify` を `n8n` に置き換える。
-- このランチャーが Docker Desktop の有無確認、起動、Engine 待機まで面倒を見る。
+- このランチャーが Docker CLI / Engine / Compose v2 の確認と Engine 待機まで面倒を見る。
+- Docker Desktop は必須ではない。macOS は Colima / OrbStack など、Windows は WSL2 Docker Engine でもよい。
 
 ### GitHub 認証のやり直し
 

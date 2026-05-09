@@ -22,16 +22,6 @@
             "statusMessage": "最新のコードを確認中..."
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR/.agent/skills/common/scripts/register_aliases.py\"",
-            "timeout": 10,
-            "statusMessage": "エイリアス登録を確認中..."
-          }
-        ]
       }
     ]
   },

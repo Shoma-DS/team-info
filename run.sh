@@ -7,6 +7,7 @@ SLEEP_SECONDS="${DOCKER_ENGINE_POLL_SECONDS:-2}"
 PROJECT_NAME="auto"
 ACTION="up"
 COMPOSE_ARGS=()
+COMPOSE_CMD=()
 
 log() {
   printf '[INFO] %s\n' "$*"
@@ -47,19 +48,32 @@ docker_engine_ready() {
 }
 
 docker_compose_ready() {
-  docker compose version >/dev/null 2>&1
+  if docker compose version >/dev/null 2>&1; then
+    COMPOSE_CMD=(docker compose)
+    return 0
+  fi
+  if command -v docker-compose >/dev/null 2>&1 && docker-compose version >/dev/null 2>&1; then
+    COMPOSE_CMD=(docker-compose)
+    return 0
+  fi
+  return 1
 }
 
 wait_for_enter_install() {
   notify
   cat <<'EOF'
-Docker Desktop がインストールされていません。
+Docker CLI が見つかりません。
 
-以下のページから Docker Desktop をダウンロードしてインストールしてください。
+Docker Desktop は必須ではありません。Docker Engine + Compose v2 を使える状態にしてください。
 
-https://www.docker.com/ja-jp/get-started/
+macOS の例:
+  brew install docker docker-compose colima
+  colima start
 
-インストールが完了したら Enter を押して続行してください。
+Linux の例:
+  Docker Engine と docker compose plugin をインストールして、docker サービスを起動してください。
+
+準備が完了したら Enter を押して続行してください。
 EOF
   read -r
 }
@@ -71,30 +85,44 @@ ensure_docker_cli() {
   log "Docker CLI を確認しました: $(docker --version)"
 }
 
-start_docker_desktop() {
+run_custom_docker_start_command() {
+  if [[ -n "${TEAM_INFO_DOCKER_START_COMMAND:-}" ]]; then
+    log "TEAM_INFO_DOCKER_START_COMMAND を実行します。"
+    sh -lc "$TEAM_INFO_DOCKER_START_COMMAND" || warn "TEAM_INFO_DOCKER_START_COMMAND の実行に失敗しました。"
+    return 0
+  fi
+  return 1
+}
+
+start_docker_engine() {
+  run_custom_docker_start_command && return
+
   case "$(uname -s)" in
     Darwin)
-      log "Docker Desktop を起動します。"
-      open -a Docker >/dev/null 2>&1 || error "Docker Desktop の起動に失敗しました。"
+      if command -v colima >/dev/null 2>&1; then
+        log "Colima を起動します。"
+        colima start >/dev/null 2>&1 || warn "Colima の起動に失敗しました。手動で 'colima start' を実行してください。"
+      elif [[ -d "/Applications/OrbStack.app" ]]; then
+        log "OrbStack を起動します。"
+        open -a OrbStack >/dev/null 2>&1 || warn "OrbStack の起動に失敗しました。手動で起動してください。"
+      elif [[ -d "/Applications/Rancher Desktop.app" ]]; then
+        log "Rancher Desktop を起動します。"
+        open -a "Rancher Desktop" >/dev/null 2>&1 || warn "Rancher Desktop の起動に失敗しました。手動で起動してください。"
+      else
+        warn "Docker Engine の自動起動方法を見つけられませんでした。Colima / OrbStack / Docker Engine などを手動で起動してください。"
+      fi
       ;;
     Linux)
-      if docker desktop start >/dev/null 2>&1; then
-        log "Docker Desktop を起動しました。"
-      elif command -v systemctl >/dev/null 2>&1; then
-        warn "docker desktop start は使えませんでした。Docker デーモンの起動を試みます。"
-        if systemctl --user start docker-desktop >/dev/null 2>&1; then
-          log "docker-desktop を起動しました。"
-        elif sudo systemctl start docker >/dev/null 2>&1; then
-          log "docker サービスを起動しました。"
-        else
-          warn "Docker の自動起動に失敗しました。Docker Desktop または Docker Engine を手動で起動してください。"
-        fi
+      if command -v systemctl >/dev/null 2>&1 && sudo systemctl start docker >/dev/null 2>&1; then
+        log "docker サービスを起動しました。"
+      elif command -v service >/dev/null 2>&1 && sudo service docker start >/dev/null 2>&1; then
+        log "docker サービスを起動しました。"
       else
-        warn "Docker の自動起動方法を見つけられませんでした。Docker Desktop または Docker Engine を手動で起動してください。"
+        warn "Docker Engine の自動起動に失敗しました。Docker Engine を手動で起動してください。"
       fi
       ;;
     *)
-      warn "この OS の自動起動は未対応です。Docker Desktop を手動で起動してください。"
+      warn "この OS の自動起動は未対応です。Docker Engine を手動で起動してください。"
       ;;
   esac
 }
@@ -103,10 +131,10 @@ wait_for_docker_engine() {
   local elapsed=0
   while ! docker_engine_ready; do
     if (( elapsed == 0 )); then
-      start_docker_desktop
+      start_docker_engine
     fi
     if (( elapsed >= WAIT_SECONDS )); then
-      error "Docker Engine の起動待機がタイムアウトしました。Docker Desktop の状態を確認してください。"
+      error "Docker Engine の起動待機がタイムアウトしました。Colima / OrbStack / Docker Engine の状態を確認してください。"
     fi
     log "Waiting for Docker Engine to start..."
     sleep "$SLEEP_SECONDS"
@@ -246,7 +274,7 @@ main() {
   parse_args "$@"
   ensure_docker_cli
   if ! docker_compose_ready; then
-    error "docker compose が利用できません。Docker Desktop の Compose プラグインを確認してください。"
+    error "docker compose が利用できません。Docker Compose v2 プラグインをインストールしてください。"
   fi
 
   if ! docker_engine_ready; then
@@ -262,9 +290,9 @@ main() {
   (
     cd "$project_dir"
     if (( ${#COMPOSE_ARGS[@]} > 0 )); then
-      docker compose "$ACTION" "${COMPOSE_ARGS[@]}"
+      "${COMPOSE_CMD[@]}" "$ACTION" "${COMPOSE_ARGS[@]}"
     else
-      docker compose "$ACTION"
+      "${COMPOSE_CMD[@]}" "$ACTION"
     fi
   )
 }

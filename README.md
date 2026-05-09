@@ -17,10 +17,10 @@ Windows:
 ## このスクリプトがやること
 
 - Docker CLI の有無を確認する
-- Docker Desktop 未インストールなら案内を表示して Enter 待ちする
-- Docker Engine が未起動なら Docker Desktop の起動を試みる
+- Docker CLI が無ければ Docker Engine + Compose v2 の準備案内を表示して Enter 待ちする
+- Docker Engine が未起動なら、利用可能な互換ランタイムの起動を試みる
 - Docker Engine が利用可能になるまで待機する
-- `docker compose` を実行する
+- `docker compose` を実行する（環境によっては `docker-compose` にフォールバック）
 
 ## compose 対象の決まり方
 
@@ -33,7 +33,9 @@ Windows:
 
 ## 補足
 
-- Docker Desktop が既に起動している場合は、そのまま `docker compose up` へ進む
+- Docker Desktop は必須ではありません。Docker Engine + Compose v2 が使えれば動きます
+- macOS は Colima / OrbStack / Rancher Desktop / Docker Engine などを使えます
+- `TEAM_INFO_DOCKER_START_COMMAND` に起動コマンドを入れると、共通ランチャーが最初に実行します
 - 追加オプションを渡したい場合は、そのまま後ろに付けられる
 
 Mac / Linux:
@@ -54,9 +56,18 @@ Windows:
 ./run.ps1 -Project dify -Action ps
 ```
 
-## Docker Desktop を使わない Windows 運用
+## Docker Desktop を使わない運用
 
-Windows で Docker Desktop を使わない場合は、WSL2 Ubuntu 側に Docker Engine + Compose v2 を入れて、`run.ps1` から WSL 内の `docker compose` を呼び出します。
+macOS では Colima などの Docker Engine 互換ランタイムを使えます。
+
+```bash
+brew install docker docker-compose colima
+colima start
+docker compose version || docker-compose version
+bash "$TEAM_INFO_ROOT/run.sh" --project dify -d
+```
+
+Windows では、WSL2 Ubuntu 側に Docker Engine + Compose v2 を入れて、`run.ps1` から WSL 内の `docker compose` を呼び出します。
 
 ```powershell
 & "$env:TEAM_INFO_ROOT\setup\setup_wsl_docker_engine.ps1" -Distro Ubuntu

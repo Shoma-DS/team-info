@@ -80,6 +80,7 @@ export TEAM_INFO_ROOT="$TEAM_INFO_ROOT"
 alias setup='bash "\$TEAM_INFO_ROOT/setup/setup_all.cmd"'
 alias x-post='bash "\$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/start_preview.sh"'
 alias remotion='npm --prefix "\$TEAM_INFO_ROOT/Remotion/my-video" run dev'
+alias remodex='npx remodex'
 alias renda='bash "\$TEAM_INFO_ROOT/Remotion/scripts/render_to_outputs.sh"'
 EOF
 }
@@ -332,7 +333,8 @@ if command -v docker &>/dev/null; then
   warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
 else
   warn "Docker が見つかりません。"
-  warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください。"
+  warn "→ Docker Desktop は必須ではありません。必要時に Docker Engine + Compose v2 を準備してください。"
+  warn "→ macOS では例: brew install docker docker-compose colima && colima start"
 fi
 
 # ── 14. セットアップ検証 ─────────────────────────────────────────────────────

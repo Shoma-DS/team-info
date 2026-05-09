@@ -151,7 +151,7 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shar
 - GitHub 招待の承認
 - `gh auth login`
 - Google Drive の `gdrive` remote 初回認証（`rclone config`）
-- Docker Desktop 本体
+- Docker Engine + Compose v2（Docker Desktop は必須ではない）
 - 外部サービスの cookie / API key / secret
 - Obsidian vault や Claudian を使う場合の実 vault 選定
 

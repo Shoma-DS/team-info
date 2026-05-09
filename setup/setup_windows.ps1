@@ -473,7 +473,8 @@ if (Test-Command docker) {
     Write-Warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
 } else {
     Write-Warn "Docker が見つかりません。"
-    Write-Warn "→ https://www.docker.com/products/docker-desktop/ からインストールしてください"
+    Write-Warn "→ Docker Desktop は必須ではありません。必要時に WSL2 Docker Engine + Compose v2 を準備してください。"
+    Write-Warn "→ & `"$env:TEAM_INFO_ROOT\setup\setup_wsl_docker_engine.ps1`" -Distro Ubuntu"
 }
 
 # ── 13. セットアップ検証 ─────────────────────────────────────────────────

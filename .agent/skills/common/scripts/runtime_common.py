@@ -499,7 +499,7 @@ def ensure_docker_available() -> None:
     if _docker_available():
         return
     raise RuntimeError(
-        "Docker が必要です。Docker Desktop / Docker Engine を起動してから再実行してください。"
+        "Docker が必要です。Docker Engine + Compose v2 を起動してから再実行してください。Docker Desktop は必須ではありません。"
     )
 
 

@@ -16,6 +16,7 @@ $WaitSeconds = if ($env:DOCKER_ENGINE_WAIT_SECONDS) { [int]$env:DOCKER_ENGINE_WA
 $SleepSeconds = if ($env:DOCKER_ENGINE_POLL_SECONDS) { [int]$env:DOCKER_ENGINE_POLL_SECONDS } else { 2 }
 $script:DockerMode = $null
 $script:WslDistro = $null
+$script:DockerComposeCommand = $null
 
 function Write-Info {
     param([string]$Message)
@@ -135,7 +136,16 @@ function Test-WslDockerEngine {
 function Test-WslDockerCompose {
     try {
         $null = Invoke-WslShell "docker compose version >/dev/null 2>&1"
-        return $LASTEXITCODE -eq 0
+        if ($LASTEXITCODE -eq 0) {
+            $script:DockerComposeCommand = @("docker", "compose")
+            return $true
+        }
+        $null = Invoke-WslShell "command -v docker-compose >/dev/null 2>&1 && docker-compose version >/dev/null 2>&1"
+        if ($LASTEXITCODE -eq 0) {
+            $script:DockerComposeCommand = @("docker-compose")
+            return $true
+        }
+        return $false
     } catch {
         return $false
     }
@@ -165,7 +175,18 @@ function Test-DockerCompose {
 
     try {
         $null = docker compose version 2>$null
-        return $LASTEXITCODE -eq 0
+        if ($LASTEXITCODE -eq 0) {
+            $script:DockerComposeCommand = @("docker", "compose")
+            return $true
+        }
+        if (Test-CommandExists "docker-compose") {
+            $null = docker-compose version 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                $script:DockerComposeCommand = @("docker-compose")
+                return $true
+            }
+        }
+        return $false
     } catch {
         return $false
     }
@@ -189,6 +210,16 @@ function Ensure-DockerCli {
     while ($true) {
         if (Test-DockerCli) {
             $script:DockerMode = "native"
+            if (Test-DockerEngine) {
+                Write-Info "Docker CLI detected: $(docker --version)"
+                return
+            }
+            if (Test-WslDockerCli) {
+                $script:DockerMode = "wsl"
+                $distroLabel = if ($script:WslDistro) { $script:WslDistro } else { "default" }
+                Write-Info "WSL Docker CLI detected: distro=$distroLabel"
+                return
+            }
             Write-Info "Docker CLI detected: $(docker --version)"
             return
         }
@@ -212,28 +243,13 @@ function Start-DockerEngine {
         return
     }
 
-    Write-Info "Trying to start Docker Desktop."
-    try {
-        docker desktop start | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            return
-        }
-    } catch {
+    if ($env:TEAM_INFO_DOCKER_START_COMMAND) {
+        Write-Info "Running TEAM_INFO_DOCKER_START_COMMAND."
+        cmd.exe /c $env:TEAM_INFO_DOCKER_START_COMMAND | Out-Null
+        return
     }
 
-    $exeCandidates = @(
-        "C:\Program Files\Docker\Docker\Docker Desktop.exe",
-        "C:\Program Files (x86)\Docker\Docker\Docker Desktop.exe"
-    )
-
-    foreach ($candidate in $exeCandidates) {
-        if (Test-Path $candidate) {
-            Start-Process -FilePath $candidate | Out-Null
-            return
-        }
-    }
-
-    Write-WarnLog "Could not start Docker Desktop automatically. Start Docker Engine manually."
+    Write-WarnLog "Could not start Docker Engine automatically. Start Docker Engine manually, or run setup\setup_wsl_docker_engine.ps1 and use WSL Docker Engine."
 }
 
 function Wait-DockerEngine {
@@ -352,16 +368,18 @@ Write-Info "docker compose $Action を実行します: $ProjectDir"
 if ($script:DockerMode -eq "wsl") {
     $WslProjectDir = ConvertTo-WslPath -WindowsPath $ProjectDir
     Write-Info "WSL path: $WslProjectDir"
-    $wslArgs = @(Get-WslBaseArgs) + @("--cd", $WslProjectDir, "-e", "docker", "compose", $Action) + $ComposeArgs
+    $wslArgs = @(Get-WslBaseArgs) + @("--cd", $WslProjectDir, "-e") + $script:DockerComposeCommand + @($Action) + $ComposeArgs
     & wsl.exe @wslArgs
     exit $LASTEXITCODE
 } else {
     Push-Location $ProjectDir
     try {
+        $ComposeExecutable = $script:DockerComposeCommand[0]
+        $ComposePrefixArgs = @($script:DockerComposeCommand | Select-Object -Skip 1)
         if ($ComposeArgs.Count -gt 0) {
-            & docker compose $Action @ComposeArgs
+            & $ComposeExecutable @ComposePrefixArgs $Action @ComposeArgs
         } else {
-            & docker compose $Action
+            & $ComposeExecutable @ComposePrefixArgs $Action
         }
         exit $LASTEXITCODE
     } finally {

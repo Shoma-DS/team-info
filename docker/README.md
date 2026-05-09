@@ -37,7 +37,7 @@ Windows:
 ```
 
 - 既に `docker/n8n/.env` があればそのまま起動できる。
-- 起動前の Docker Desktop 確認と Engine 待機は共通ランチャーが処理する。
+- 起動前の Docker CLI / Engine / Compose v2 確認と Engine 待機は共通ランチャーが処理する。
 
 ### アクセス
 
@@ -83,7 +83,7 @@ cd docker
 
 ### 起動前チェック（重要）
 
-`Cannot connect to the Docker daemon` が出る場合は Docker Desktop が未起動です。
+`Cannot connect to the Docker daemon` が出る場合は Docker Engine が未起動です。
 
 Docker が起動してから再実行する代わりに、共通ランチャーを使う:
 
@@ -117,8 +117,22 @@ docker compose down
 
 ## 4) 事前条件
 
-- Docker Desktop (または Docker Engine + Compose v2)
+- Docker Engine + Compose v2
 - 利用可能メモリは最低 8GB 推奨（Dify が重いため）
+
+### macOS で Docker Desktop を使わない場合
+
+Colima などの Docker Engine 互換ランタイムを使います。
+
+```bash
+brew install docker docker-compose colima
+colima start
+docker compose version || docker-compose version
+bash "$TEAM_INFO_ROOT/run.sh" --project n8n -d
+bash "$TEAM_INFO_ROOT/run.sh" --project dify -d
+```
+
+OrbStack や Rancher Desktop を使う場合も、`docker info` と `docker compose version` または `docker-compose version` が通れば同じランチャーで起動できます。
 
 ### Windows で Docker Desktop を使わない場合
 

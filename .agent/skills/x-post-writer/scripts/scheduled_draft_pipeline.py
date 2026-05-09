@@ -69,6 +69,7 @@ class _Spinner:
     def __init__(self, message: str) -> None:
         self._msg = message
         self._ok_msg: str | None = None
+        self._warn_msg: str | None = None
         self._running = False
         self._thread: threading.Thread | None = None
 
@@ -77,6 +78,11 @@ class _Spinner:
 
     def finish_ok(self, message: str) -> None:
         self._ok_msg = message
+        self._warn_msg = None
+
+    def finish_warn(self, message: str) -> None:
+        self._warn_msg = message
+        self._ok_msg = None
 
     def __enter__(self) -> "_Spinner":
         if _IS_TTY:
@@ -92,10 +98,16 @@ class _Spinner:
         if self._thread:
             self._thread.join()
         if _IS_TTY:
-            icon = "✅" if exc_type is None else "❌"
-            label = self._ok_msg if (exc_type is None and self._ok_msg) else self._msg
+            if exc_type is None and self._warn_msg:
+                icon = "⚠️"
+                label = self._warn_msg
+            else:
+                icon = "✅" if exc_type is None else "❌"
+                label = self._ok_msg if (exc_type is None and self._ok_msg) else self._msg
             sys.stdout.write(f"\r\033[K{icon} {label}\n")
             sys.stdout.flush()
+        elif exc_type is None and self._warn_msg:
+            print(f"  ⚠️  {self._warn_msg}", flush=True)
         elif exc_type is None and self._ok_msg:
             print(f"  ✅ {self._ok_msg}", flush=True)
 

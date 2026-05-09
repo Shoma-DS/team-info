@@ -111,33 +111,32 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 
 ---
 
-## エイリアス自動登録ルール（全エージェント共通・必須）
+## エイリアス登録ルール（セットアップ時のみ）
 
 **このルールは Claude・Codex・Gemini・Antigravity など、すべての AI エージェントに適用される。**
 
-`setup` / `x-post` / `remotion` / `renda` の各コマンドをターミナルから使えるようにするため、
-セッション開始時に `~/.config/team-info/aliases-registered` が存在しない場合、またはエイリアス定義に不足がある場合は、
-**必ず** 以下のスクリプトを実行してエイリアスを登録すること。
+`setup` / `x-post` / `remotion` / `remodex` / `renda` の各コマンドは、セットアップ時に登録する。
+通常のセッション開始時やターミナル起動時に、エージェントが毎回エイリアス確認・再登録を行ってはいけない。
+エイリアスを追加・変更したとき、またはユーザーが明示的に登録を依頼したときだけ、以下のスクリプトを実行する。
 
 ```bash
 python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/register_aliases.py" --root "$TEAM_INFO_ROOT"
 ```
 
-- 登録後は `aliases-registered` マーカーが作成される。不足エイリアスがある場合はマーカー作成後でも再登録する
-- 登録後、ユーザーに「新しいターミナルを開くと `setup` / `x-post` / `remotion` / `renda` が使えます」と伝えること
+- 登録後、ユーザーに「新しいターミナルを開くと `setup` / `x-post` / `remotion` / `remodex` / `renda` が使えます」と伝えること
 
 ### エージェント別の自動化状況
 
-| エージェント | 自動登録の仕組み |
+| エージェント | 登録の仕組み |
 |-------------|----------------|
-| Claude Code | `SessionStart` hook（`.claude/settings.json`）が `register_aliases.py` を自動実行 |
-| Gemini CLI / Codex / Antigravity など | `~/.zshrc` に仕込まれた自動チェック行がターミナル起動時に実行（`bootstrap.sh` または Claude Code の初回起動で設定済みの場合） |
-| 上記が未設定の新規環境 | このルールに従い、エージェント自身がセッション冒頭で `register_aliases.py` を実行する |
+| Claude Code | `setup` 実行時、またはユーザー明示依頼時のみ `register_aliases.py` を実行 |
+| Gemini CLI / Codex / Antigravity など | `setup` 実行時、またはユーザー明示依頼時のみ `register_aliases.py` を実行 |
+| 新規環境 | まず `setup/setup_all.cmd` の流れを優先し、その中で登録する |
 
 ### bootstrap について
 
-`~/.zshrc` の自動チェック行がまだ設定されていない場合（`grep "team-info alias auto-check" ~/.zshrc` で確認）は、
-リポジトリルートで以下を実行することで設定される。
+`bootstrap.sh` は一時的に `setup` 関数を使えるようにする入口であり、ターミナル起動時の自動エイリアス確認は登録しない。
+リポジトリルートで以下を実行すると、セットアップを開始できる。
 
 ```bash
 source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux

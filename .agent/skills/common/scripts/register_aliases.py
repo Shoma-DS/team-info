@@ -1,6 +1,6 @@
 # チームツール用エイリアスをシェル設定に登録するスクリプト。
-# Claude SessionStart hook / bootstrap.sh / ~/.zshrc の自動チェックから呼ばれ、
-# 不足しているエイリアスがある場合のみ書き込む（冪等）。引数でリポジトリルートを渡せる。
+# setup / bootstrap から呼ばれ、不足しているエイリアスがある場合のみ書き込む（冪等）。
+# 引数でリポジトリルートを渡せる。
 # macOS/Linux は ~/.config/team-info/env.sh、Windows は PowerShell プロファイルに追記する。
 
 import json
@@ -13,6 +13,7 @@ ALIASES = [
     ("setup",    'bash "{root}/setup/setup_all.cmd"'),
     ("x-post",   'bash "{root}/.agent/skills/x-post-writer/scripts/start_preview.sh"'),
     ("remotion", 'npm --prefix "{root}/Remotion/my-video" run dev'),
+    ("remodex",  'npx remodex'),
     ("renda",    'bash "{root}/Remotion/scripts/render_to_outputs.sh"'),
 ]
 
@@ -20,50 +21,11 @@ PS_FUNCTIONS = [
     ("setup",    '& "{root}\\setup\\setup_windows.ps1"'),
     ("x-post",   'bash "{root}/.agent/skills/x-post-writer/scripts/start_preview.sh"'),
     ("remotion", 'npm --prefix "{root}/Remotion/my-video" run dev'),
+    ("remodex",  'npx remodex'),
     ("renda",    'bash "{root}/Remotion/scripts/render_to_outputs.sh"'),
 ]
 
 REGISTERED_FLAG = pathlib.Path.home() / ".config" / "team-info" / "aliases-registered"
-
-# ~/.zshrc などに仕込む「ターミナル起動時の自動チェック行」のテンプレート
-# TEAM_INFO_ROOT が未設定でも動くようにスクリプト絶対パスを直接埋め込む
-_ZSHRC_HOOK_MARKER = "team-info alias auto-check"
-_ZSHRC_HOOK_TMPL = (
-    "\n# {marker}\n"
-    "[ -f \"{script}\" ] && python \"{script}\" --root \"{root}\" 2>/dev/null\n"
-)
-
-
-def _ensure_zshrc_hook(root: pathlib.Path, home: pathlib.Path) -> bool:
-    """Interactive shell rc files に自動チェック行を追加する（Gemini/Codex 向け）。"""
-    script = root / ".agent" / "skills" / "common" / "scripts" / "register_aliases.py"
-    changed = False
-    for rc in [home / ".zshrc", home / ".bashrc"]:
-        if not rc.exists():
-            continue
-        content = rc.read_text(encoding="utf-8")
-        hook_line = _ZSHRC_HOOK_TMPL.format(
-            marker=_ZSHRC_HOOK_MARKER,
-            script=script,
-            root=root,
-        )
-        lines = content.splitlines()
-        filtered_lines = []
-        skip_next = False
-        for line in lines:
-            if skip_next:
-                skip_next = False
-                continue
-            if _ZSHRC_HOOK_MARKER in line:
-                skip_next = True
-                continue
-            filtered_lines.append(line)
-        new_content = "\n".join(filtered_lines).rstrip() + hook_line
-        if new_content != content:
-            rc.write_text(new_content, encoding="utf-8")
-            changed = True
-
-    return changed
 
 
 def register_mac(root: pathlib.Path, home: pathlib.Path) -> bool:
@@ -76,7 +38,7 @@ def register_mac(root: pathlib.Path, home: pathlib.Path) -> bool:
     # 古いエイリアス行を除去してから書き直す
     kept = [
         l for l in existing.splitlines()
-        if not any(k in l for k in ("alias setup", "alias x-post", "alias remotion", "alias renda", "チームツール"))
+        if not any(k in l for k in ("alias setup", "alias x-post", "alias remotion", "alias remodex", "alias renda", "チームツール"))
     ]
     while kept and not kept[-1].strip():
         kept.pop()
@@ -154,13 +116,11 @@ def main() -> None:
         registered = register_windows(root, home)
     else:
         registered = register_mac(root, home)
-        # Gemini / Codex 向けに zshrc へ自動チェック行を仕込む
-        registered = _ensure_zshrc_hook(root, home) or registered
 
     if registered:
         REGISTERED_FLAG.parent.mkdir(parents=True, exist_ok=True)
         REGISTERED_FLAG.touch()
-        msg = "✅ エイリアス自動登録完了 (setup / x-post / remotion / renda) — 新しいターミナルで使えます"
+        msg = "✅ エイリアス自動登録完了 (setup / x-post / remotion / remodex / renda) — 新しいターミナルで使えます"
         print(json.dumps({"systemMessage": msg}))
 
 
