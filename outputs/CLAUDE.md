@@ -11,7 +11,6 @@
 | `acoriel/descriptions/` | アコリエル YouTube 概要欄（.md ファイル） | `acoriel-video-description` |
 | `common/` | 汎用スクリプト・共通出力 | — |
 | `common/airthmate/` | AirthMate のプレビュー・納品用 HTML / PDF | — |
-| `jmty/` | ジモティー投稿文（.txt / .md） | `jmty-posts-*` |
 | `note/` | note 記事（.md） | `note-article-ayumi` |
 | `sleep_travel/` | 寝ながらトラベル 動画出力 | `remotion-template-sleep-travel-*` |
 | `viral-analysis/` | バズ動画解析結果（動画ごとにサブフォルダ） | `viral-template-generator` |

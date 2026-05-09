@@ -89,7 +89,7 @@ npx skills remove
 - このリポジトリでは、スキルの正本は `.agent/skills/` のみです。
 - 導入後は `AGENTS.md` のスキル一覧も最新にそろえる前提で運用します。
 - 各スキルの詳細な使い方は、`.agent/skills/<スキル名>/SKILL.md` ファイルを参照してください。
-- 既存のスキル（`git-workflow` や `jmty-posts` など）もこのコマンドで一覧表示・管理が可能です。
+- 既存のスキル（`git-workflow` や `x-post-writer` など）もこのコマンドで一覧表示・管理が可能です。
 
 ---
 

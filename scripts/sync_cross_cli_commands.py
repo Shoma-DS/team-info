@@ -105,12 +105,6 @@ COMMANDS: list[dict[str, str]] = [
         "skill_path": ".agent/skills/remotion/voice-script-launcher/SKILL.md",
     },
     {
-        "name": "jmty",
-        "description": "ジモティー投稿文スキルを起動する",
-        "kind": "skill",
-        "skill_path": ".agent/skills/jmty/jmty-posts/SKILL.md",
-    },
-    {
         "name": "x",
         "description": "X投稿文スキルを起動する",
         "kind": "skill",
