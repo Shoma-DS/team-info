@@ -22,13 +22,6 @@
 - `script-writing-accounts-aware_skill.md`
 - `voice-script-launcher_skill.md`
 
-### Jmty（ジモティー）
-- `jmty-posts_skill.md`（親スキル）
-- `jmty-posts-factory-12_skill.md`
-- `jmty-posts-remote-12_skill.md`
-- `jmty-posts-gdrive-sync_skill.md`
-- `jmty-posts-12-variants_skill.md`
-
 ### Common（共通）
 - `git-workflow_skill.md`
 - `team-info-setup_skill.md`

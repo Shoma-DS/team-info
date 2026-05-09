@@ -39,8 +39,6 @@ category_for_composition() {
     echo "acoriel/renders"
   elif [[ "$composition_id" == SleepTravel* ]]; then
     echo "sleep_travel/renders"
-  elif [[ "$composition_id" == Jmty* ]]; then
-    echo "jmty/renders"
   elif [[ "$composition_id" == Viral* || "$composition_id" == Tenshoku* || "$composition_id" == AdultAffiliate* ]]; then
     echo "viral/renders"
   else

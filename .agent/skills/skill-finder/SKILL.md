@@ -34,7 +34,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | `アコリエル/` | acoriel チャンネルのレンダリング動画 |
 | `アコリエル/概要欄/` | acoriel チャンネルの YouTube 概要欄 MD |
 | `insta-company/` | Instagram AI会社のログ・調査メモ・投稿案 |
-| `jmty_posts/` | ジモティー投稿テキスト |
 | `loom-calendar-rename/` | Loom の仮タイトル動画と Google カレンダー照合の判定メモ |
 | `営業台本/` | 面接文字起こしから生成したクロージング台本 |
 | `寝ながらトラベル/` | sleep_travel チャンネルのレンダリング動画 |
@@ -45,7 +44,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 新規チャンネル・新規用途の場合は上記に追加し、このテーブルも更新すること。
 
 ## 使い方
-1. ユーザーのやりたいことを確認する（例: 「ジモティー投稿を作りたい」「アコリエルの動画を作りたい」）
+1. ユーザーのやりたいことを確認する（例: 「アコリエルの動画を作りたい」「note記事を書きたい」）
 2. 下記のカテゴリ一覧からマッチするスキルを探す
 3. 該当スキルの SKILL.md を読み込み、そのスキルとして動作する
 
@@ -79,18 +78,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md` |
 | remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
 | remotion-short-sound-design | 縦ショート動画に効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックする | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
-
----
-
-### 📋 jmty/jmty-posts/
-| スキル名 | 概要 | パス |
-|---------|------|------|
-| jmty-posts | ジモティー投稿作成の起点スキル（工場/在宅を選択） | `.agent/skills/jmty/jmty-posts/SKILL.md` |
-| jmty-posts-factory-14 | 工場系案件から、アカウント情報シートの担当エリアに合わせた投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-factory-14/SKILL.md` |
-| jmty-posts-remote-14 | 在宅系見本から、アカウント情報シートの担当エリアに合わせた投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-remote-14/SKILL.md` |
-| jmty-posts-14-variants | 汎用的に投稿文を14本作成する | `.agent/skills/jmty/jmty-posts/jmty-posts-14-variants/SKILL.md` |
-| jmty-posts-gdrive-sync | 投稿出力をGoogleドライブへ同期する | `.agent/skills/jmty/jmty-posts/jmty-posts-gdrive-sync/SKILL.md` |
-| jmty-image-organizer | スプレッドシート画像とドライブフォルダを整理・同期する | `.agent/skills/jmty/jmty-image-organizer/SKILL.md` |
 
 ---
 
@@ -145,7 +132,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
 | insta-company-post-idea-generator | 秘書ログとリサーチログから Instagram 投稿案を content ログへ生成する | `.agent/skills/common/insta-company-post-idea-generator/SKILL.md` |
 | monthly-kpi-planner | 今月のKPIをmarkdownで一覧化し、先月比/KPI比を軸にした評価・ファネル転換率の再計算・週次アクションスケジュール・Notion共有用のKPI Hub作成を行う | `.agent/skills/personal/deguchishouma/monthly-kpi-planner/SKILL.md` |
-| jmty-kpi-update | あおぞら入金履歴とユーザー情報の月間流入数、form_8 生データを見て、ピボットと照合しながら JMTY の KPI 関連 Markdown 4ファイルを順番に更新する | `.agent/skills/personal/deguchishouma/jmty-kpi-update/SKILL.md` |
 
 ---
 
@@ -229,10 +215,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | YouTube台本を書きたい | `script-writing-accounts-aware` |
 | Remotionの縦ショートに効果音を入れたい | `remotion-short-sound-design` |
 | 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
-| ジモティー投稿を作りたい（工場） | `jmty-posts-factory-14` |
-| ジモティー投稿を作りたい（在宅） | `jmty-posts-remote-14` |
-| ジモティー投稿をGドライブに同期したい | `jmty-posts-gdrive-sync` |
-| ジモティーの画像をアカウントフォルダに整理・移動したい | `jmty-image-organizer` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |
@@ -260,7 +242,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Instagram の競合・バズ調査ログを作りたい | `insta-company-research-brief` |
 | Instagram の投稿ネタや構成案を出したい | `insta-company-post-idea-generator` |
 | 今月のKPIを整理して進捗を確認したい | `monthly-kpi-planner` |
-| ジモティーKPIを銀行入金と月間流入数、form_8 生データから更新したい | `jmty-kpi-update` |
 | 営業の文字起こしを分析・改善トークスクリプトを作りたい（1S・面接） | `sales-coaching` |
 | 面接の文字起こしから商品販売の戦略・台本を、既存の販売台本フォーマット維持で作りたい | `interview-product-sales` |
 | 今日のカレンダーから面接や2回目予定を拾って、Loom 文字起こし取得からクロージング台本保存までまとめてやりたい | `calendar-interview-closing` |

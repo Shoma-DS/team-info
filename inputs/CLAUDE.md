@@ -7,9 +7,6 @@
 
 | フォルダ | 用途 | 対応スキル |
 |---|---|---|
-| `jmty_cases/` | ジモティー案件情報（テキスト・PDF） | `jmty-posts` |
-| `jmty_factory_cases/` | 工場求人案件素材 | `jmty-posts-factory-12` |
-| `jmty_remote_samples/` | 在宅求人サンプル文 | `jmty-posts-remote-12` |
 | `viral-analysis/` | バズ動画解析インボックス（.mp4 を置く） | `viral-template-generator` |
 
 ## viral-analysis インボックスの使い方

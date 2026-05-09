@@ -28,16 +28,12 @@
 team-info/
 ├── .agent/skills/         AIスキル定義（SKILL.md + スクリプト）
 ├── inputs/                解析・生成の素材インボックス
-│   ├── jmty_cases/        ジモティー案件素材
-│   ├── jmty_factory_cases/ 工場求人素材
-│   ├── jmty_remote_samples/ 在宅求人素材
 │   └── viral-analysis/    バズ動画解析インボックス（.mp4 を置く）
 ├── outputs/               共有で扱う生成物の出力先
 │   ├── acoriel/
 │   │   ├── descriptions/ アコリエル YouTube 概要欄 .md
 │   │   └── renders/      アコリエル動画レンダリング出力
 │   ├── common/            汎用出力
-│   ├── jmty/              ジモティー投稿文
 │   ├── note/              note 記事
 │   ├── sleep_travel/      寝ながらトラベル動画出力
 │   └── viral-analysis/    バズ動画解析結果（analysis.json + remotion/）
@@ -89,7 +85,6 @@ team-info/
 |---|---|---|
 | acoriel | `.agent/skills/acoriel/` | アコリエルチャンネル動画制作 |
 | remotion | `.agent/skills/remotion/` | Remotion 動画全般 |
-| jmty | `.agent/skills/jmty/` | ジモティー投稿文生成 |
 | common | `.agent/skills/common/` | 汎用（Git・OS互換・note記事等） |
 | web-design | `.agent/skills/web-design/` | Web フロントエンド制作 |
 | viral-template-generator | `.agent/skills/viral-template-generator/` | バズ動画テンプレ自動生成 |
