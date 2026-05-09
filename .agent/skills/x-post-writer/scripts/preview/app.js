@@ -18,11 +18,20 @@ let searchQuery  = '';   // 検索クエリ
 let pendingDeleteId = null; // 削除モーダル用
 let imagePromptModalMode = 'generate';
 let imageGenerationJob = null;
+let imageGenerationJobId = null;
 let imageGenerationTimer = null;
 let imageGenerationDraftId = null;
+let imageRewriteJob = null;
+let imageRewriteTimer = null;
+let imageRewriteDraftId = null;
 let autoPostJob = null;
 let autoPostTimer = null;
 let autoPostDraftId = null;
+let pendingAutoPostAfterImage = null;
+let shownAgentPromptNotices = new Set();
+let lastObsidianSave = null;
+let savedObsidianDraftIds = new Set();
+let obsidianSaveByDraftId = new Map();
 let accountPresets = [];
 let selectedAccount = localStorage.getItem('x-preview-selected-account') || 'all';
 let authState = { auth_enabled: false, user: null };
@@ -31,6 +40,12 @@ let draftHasMore = false;
 let draftOffset = 0;
 let draftLoading = false;
 let searchTimer = null;
+let imageFilter = 'all'; // 'all', 'yes', 'no'
+let logoDetectionByDraftId = new Map();
+let logoDetectionLoadingDraftId = null;
+let logoRegisterLoadingDraftId = null;
+let logoManualTarget = null;
+let logoShowHiddenDraftIds = new Set();
 
 // グループ折りたたみ状態（未投稿: 開く / 投稿済み: 閉じる）
 const groupCollapsed = { draft: false, published: true };
@@ -72,19 +87,23 @@ async function loadAuthState() {
 
 function renderAuthButton() {
   const btn = document.getElementById('auth-btn');
+  const logoutBtn = document.getElementById('logout-btn');
   if (!btn) return;
+  btn.innerHTML = '<span class="google-g" aria-hidden="true">G</span>';
+  if (logoutBtn) logoutBtn.style.display = 'none';
   if (!authState.auth_enabled) {
-    btn.textContent = 'G';
     btn.title = 'Google OAuth 未設定';
     btn.classList.remove('active');
     return;
   }
   if (authState.user) {
-    btn.textContent = '✓';
-    btn.title = `${authState.user.email || authState.user.display_name || 'ログイン中'} / クリックでログアウト`;
+    btn.title = `${authState.user.email || authState.user.display_name || 'ログイン中'}`;
     btn.classList.add('active');
+    if (logoutBtn) {
+      logoutBtn.style.display = 'inline-flex';
+      logoutBtn.title = `${authState.user.email || authState.user.display_name || 'ログイン中'} からログアウト`;
+    }
   } else {
-    btn.textContent = 'G';
     btn.title = 'Googleでログイン';
     btn.classList.remove('active');
   }
@@ -95,7 +114,15 @@ function handleAuthClick() {
     showToast('Google OAuth が未設定です', true);
     return;
   }
-  window.location.href = authState.user ? '/auth/logout' : '/auth/google/start';
+  if (authState.user) {
+    showToast('ログイン済みです。ログアウトは隣のボタンから行えます');
+    return;
+  }
+  window.location.href = '/auth/google/start';
+}
+
+function handleLogoutClick() {
+  window.location.href = '/auth/logout';
 }
 
 function renderLoginGate() {
@@ -113,7 +140,7 @@ function renderLoginGate() {
       <h1>X 下書きプレビュー</h1>
       <p>${canLogin ? 'Googleアカウントでログインしてください。' : 'Googleログイン設定がまだ有効ではありません。'}</p>
       <button class="google-login-btn" onclick="handleAuthClick()" ${canLogin ? '' : 'disabled'}>
-        <span>G</span>
+        <span class="google-g">G</span>
         <strong>Googleでログイン</strong>
       </button>
     </section>`;
@@ -159,6 +186,7 @@ async function loadDraftList({ append = false } = {}) {
     });
     if (selectedAccount !== 'all') params.set('account', selectedAccount);
     if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (imageFilter !== 'all') params.set('image', imageFilter);
 
     const res = await apiFetch(`${API}/drafts?${params.toString()}`);
     const payload = await res.json();
@@ -169,14 +197,16 @@ async function loadDraftList({ append = false } = {}) {
     allDrafts = append ? [...allDrafts, ...items] : items;
 
     if (!Array.isArray(allDrafts) || allDrafts.length === 0) {
-      el.innerHTML = '<div class="loading">下書きがありません</div>';
+      renderDraftList();
       return;
     }
 
     renderDraftList();
 
     // 現在の選択を維持 or 先頭を選択
-    const targetId = currentDraft?.draft_id || allDrafts[0].draft_id;
+    const targetId = allDrafts.some(d => d.draft_id === currentDraft?.draft_id)
+      ? currentDraft.draft_id
+      : allDrafts[0].draft_id;
     selectDraft(targetId);
 
   } catch (e) {
@@ -213,7 +243,7 @@ function renderDraftList() {
   const el = document.getElementById('draft-list');
   const q  = searchQuery.trim().toLowerCase();
 
-  const filtered = q
+  const filteredBySearch = q
     ? allDrafts.filter(d => {
         const text = (d.display_name + ' @' + d.x_username + ' ' + (d.memo || '') +
           ' ' + (d.preview_content || '')).toLowerCase();
@@ -221,8 +251,22 @@ function renderDraftList() {
       })
     : allDrafts;
 
+  let filtered = filteredBySearch;
+  if (imageFilter === 'yes') {
+    filtered = filtered.filter(d => d.has_image);
+  } else if (imageFilter === 'no') {
+    filtered = filtered.filter(d => !d.has_image);
+  }
+
+  const filtersHtml = `
+    <div class="list-filters">
+      <button id="filter-img-all" class="filter-btn ${imageFilter === 'all' ? 'active' : ''}" onclick="setImageFilter('all')">すべて</button>
+      <button id="filter-img-yes" class="filter-btn ${imageFilter === 'yes' ? 'active' : ''}" onclick="setImageFilter('yes')">画像あり</button>
+      <button id="filter-img-no" class="filter-btn ${imageFilter === 'no' ? 'active' : ''}" onclick="setImageFilter('no')">画像なし</button>
+    </div>`;
+
   if (filtered.length === 0) {
-    el.innerHTML = '<div class="loading">該当なし</div>';
+    el.innerHTML = filtersHtml + '<div class="loading">該当なし</div>';
     return;
   }
 
@@ -244,6 +288,9 @@ function renderDraftList() {
     const imageBadge = d.has_image
       ? `<span class="badge badge-image">画像付き</span>`
       : '';
+    const obsidianBadge = d.obsidian_save?.saved
+      ? `<span class="badge badge-obsidian">Obsidian保存済み</span>`
+      : '';
     return `
       <div class="draft-item${isPosted ? ' posted' : ''}" data-id="${d.draft_id}"
            onclick="selectDraft('${d.draft_id}')">
@@ -258,6 +305,7 @@ function renderDraftList() {
         <div class="draft-item-meta">
           ${threadBadge}
           ${imageBadge}
+          ${obsidianBadge}
           <span class="draft-item-date">${d.created_at}</span>
           ${d.memo ? `<span class="draft-item-date">・${esc(d.memo)}</span>` : ''}
         </div>
@@ -297,6 +345,7 @@ function renderDraftList() {
     </div>`;
 
   el.innerHTML =
+    filtersHtml +
     progressBar +
     renderGroup('draft',  '未投稿', pendingItems) +
     renderGroup('published', '投稿済', postedItems) +
@@ -329,6 +378,15 @@ function onSearch(value) {
   searchTimer = setTimeout(() => loadDraftList(), 250);
 }
 
+function setImageFilter(val) {
+  imageFilter = val;
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `filter-img-${val}`);
+  });
+  currentDraft = null;
+  loadDraftList();
+}
+
 function getSelectedAccountPreset() {
   if (selectedAccount === 'all') return null;
   return accountPresets.find(a => a.x_username === selectedAccount || a.id === selectedAccount) || null;
@@ -338,19 +396,27 @@ function renderAccountSummary() {
   const nameEl = document.getElementById('account-summary-name');
   const userEl = document.getElementById('account-summary-user');
   const avatarEl = document.querySelector('.account-summary-avatar');
-  if (!nameEl || !userEl || !avatarEl) return;
   const preset = getSelectedAccountPreset();
+  const headerAvatarEl = document.getElementById('header-account-avatar');
+
   if (!preset) {
     nameEl.textContent = 'すべてのアカウント';
     userEl.textContent = '下書き全体を表示';
-    avatarEl.innerHTML = '𝕏';
+    const silhouette = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    avatarEl.innerHTML = silhouette;
+    if (headerAvatarEl) headerAvatarEl.innerHTML = silhouette;
     return;
   }
+
   nameEl.textContent = preset.display_name || preset.x_username || preset.id;
   userEl.textContent = preset.x_username ? `@${preset.x_username}` : preset.id;
-  avatarEl.innerHTML = preset.profile_image_url
+
+  const avatarContent = preset.profile_image_url
     ? `<img src="${escAttr(preset.profile_image_url)}" alt="${escAttr(preset.display_name || preset.x_username)}" loading="lazy">`
     : esc((preset.display_name || preset.x_username || preset.id || 'X').charAt(0).toUpperCase());
+
+  avatarEl.innerHTML = avatarContent;
+  if (headerAvatarEl) headerAvatarEl.innerHTML = avatarContent;
 }
 
 function ensureAccountModal() {
@@ -475,18 +541,34 @@ function renderPreview(draft) {
     : '';
   const statusBtn = isPosted
     ? `<button class="revert-draft-btn" onclick="setStatus('${draft.draft_id}','draft')">未投稿に戻す</button>`
-    : `<button class="post-btn" onclick="onPostClick()"><span>𝕏</span> 投稿する</button>`;
-  const autoPostBtn = isPosted
+    : `<button class="post-btn" onclick="onPostClick(false)"><span>𝕏</span> 投稿する</button>`;
+  const quotePostBtn = isPosted || !hasOrig
     ? ''
-    : `<button class="auto-post-btn" id="auto-post-btn" onclick="startAutoPost()"><span>▶</span> 自動投稿</button>`;
+    : `<button class="post-btn quote-post-btn" onclick="onPostClick(true)"><span>𝕏</span> 引用リツイートする</button>`;
+  const autoPostBtn = '';
+  const autoQuotePostBtn = '';
   const markPostedBtn = isPosted
     ? ''
     : `<button class="mark-posted-btn" id="mark-posted-btn" onclick="setStatus('${draft.draft_id}','published')">✓ 投稿済みにする</button>`;
   const rewriteImageBtn = draft.image_prompts?.[0]?.prompt
     ? `<button class="image-source-copy-btn" onclick="openImagePromptModal('rewrite')">AIリライト</button>`
     : '';
-  const characterBtn = `<button class="image-source-copy-btn" onclick="openCharacterSettingsModal()">キャラ設定</button>`;
-  const obsidianBtn = `<button class="obsidian-save-btn" id="obsidian-save-btn" onclick="saveToObsidian()">Obsidianへ保存</button>`;
+  const draftIdStr = String(draft.draft_id);
+  const serverObsidianSave = draft.obsidian_save?.saved ? draft.obsidian_save : null;
+  if (serverObsidianSave) {
+    savedObsidianDraftIds.add(draftIdStr);
+    obsidianSaveByDraftId.set(draftIdStr, serverObsidianSave);
+  }
+  const obsidianSave = obsidianSaveByDraftId.get(draftIdStr) || serverObsidianSave;
+  const alreadySavedToObsidian = savedObsidianDraftIds.has(draftIdStr);
+  const obsidianSavedPath = obsidianSave?.relative_path || obsidianSave?.path || '';
+  const obsidianBtn = `
+    <div class="obsidian-save-controls">
+      <button class="obsidian-save-btn ${alreadySavedToObsidian ? 'is-saved' : ''}" id="obsidian-save-btn" onclick="saveToObsidian()" ${alreadySavedToObsidian ? 'disabled' : ''}>${alreadySavedToObsidian ? '保存完了' : 'Obsidianへ保存'}</button>
+      <button class="obsidian-open-btn" id="obsidian-open-btn" onclick="openSavedObsidian()" ${obsidianSave?.obsidian_url ? '' : 'hidden'}>Obsidianで開く</button>
+      <span class="obsidian-save-status" id="obsidian-save-status" title="${esc(obsidianSave?.path || obsidianSavedPath)}">${alreadySavedToObsidian && obsidianSavedPath ? `保存済み: ${esc(obsidianSavedPath)}` : ''}</span>
+    </div>
+  `;
 
   const header = `
     <div class="preview-header">
@@ -503,12 +585,17 @@ function renderPreview(draft) {
       </div>
       <div class="header-actions">
         ${draft.memo ? `<span class="preview-memo">📝 ${esc(draft.memo)}</span>` : ''}
-        ${obsidianBtn}
-        ${characterBtn}
-        ${rewriteImageBtn}
-        ${statusBtn}
-        ${autoPostBtn}
-        ${markPostedBtn}
+        <div class="header-action-row header-action-primary">
+          ${statusBtn}
+          ${quotePostBtn}
+          ${autoPostBtn}
+          ${autoQuotePostBtn}
+        </div>
+        <div class="header-action-row header-action-secondary">
+          ${obsidianBtn}
+          ${rewriteImageBtn}
+          ${markPostedBtn}
+        </div>
       </div>
     </div>
     ${postedBar}
@@ -589,37 +676,7 @@ function buildOriginalCards(original) {
     </div>`;
   }).join('');
 
-  const textHtml = original.text
-    ? `<div class="original-text-fallback">${formatText(original.text)}</div>`
-    : '';
-
-  const urlBar = `<div class="oembed-url-bar">
-    <a href="${escAttr(original.tweet_url)}" target="_blank" title="Xで元投稿を開く">
-      🔗 ${esc(original.tweet_url)}
-    </a>
-  </div>`;
-
-  // 元投稿のメディア（画像・動画）
-  const mediaItems = original.media || [];
-  const mediaHtml = mediaItems.map(m => {
-    if (m.type === 'photo' && m.url) {
-      return `<div class="orig-media"><img src="${escAttr(m.url)}" alt="元投稿画像" loading="lazy"></div>`;
-    }
-    const thumb = m.preview_url || m.url;
-    if ((m.type === 'video' || m.type === 'animated_gif') && thumb) {
-      const label = m.type === 'animated_gif' ? 'GIF' : '動画';
-      return `<div class="orig-media orig-media-video"><img src="${escAttr(thumb)}" alt="サムネイル" loading="lazy"><div class="orig-media-badge">▶ ${label}</div></div>`;
-    }
-    return '';
-  }).join('');
-
-  // 元投稿テキスト内のURL（t.co 短縮以外を優先表示）
-  const extUrls = (original.urls || []).filter(u => !u.includes('//t.co/'));
-  const urlsHtml = extUrls.length
-    ? `<div class="orig-urls">${extUrls.map(u => `<a href="${escAttr(u)}" target="_blank" class="orig-url-link">🔗 ${esc(u.length > 60 ? u.slice(0, 58) + '…' : u)}</a>`).join('')}</div>`
-    : '';
-
-  return slots + textHtml + urlBar + mediaHtml + urlsHtml;
+  return slots;
 }
 
 async function loadOembed(tweetUrl, slotId) {
@@ -636,11 +693,17 @@ async function loadOembed(tweetUrl, slotId) {
         window.twttr.widgets.load(slot);
       }
     } else {
-      slot.innerHTML = '<div class="oembed-loading oembed-error">元投稿を読み込めませんでした</div>';
+      slot.innerHTML = `<div class="oembed-loading oembed-error">
+        元投稿を読み込めませんでした
+        <a href="${escAttr(tweetUrl)}" target="_blank">Xで開く</a>
+      </div>`;
     }
   } catch (_) {
     if (slot.isConnected) {
-      slot.innerHTML = '<div class="oembed-loading oembed-error">元投稿を読み込めませんでした</div>';
+      slot.innerHTML = `<div class="oembed-loading oembed-error">
+        元投稿を読み込めませんでした
+        <a href="${escAttr(tweetUrl)}" target="_blank">Xで開く</a>
+      </div>`;
     }
   }
 }
@@ -736,6 +799,15 @@ function buildImagePromptBlock(draft) {
   const generateBtn = hasPrompt
     ? `<button class="image-source-copy-btn" onclick="startImageGeneration()">画像生成</button>`
     : '';
+  const logoDetectBtn = hasPrompt
+    ? `<button class="image-source-copy-btn" onclick="detectLogosForCurrentDraft()" ${logoDetectionLoadingDraftId === draft.draft_id ? 'disabled' : ''}>${logoDetectionLoadingDraftId === draft.draft_id ? '検出中...' : 'ツール検出'}</button>`
+    : '';
+  const activeImageGeneration = imageGenerationJobId
+    && imageGenerationDraftId === draft.draft_id
+    && !['completed', 'failed', 'cancelled'].includes(imageGenerationJob?.status || '');
+  const stopGenerationBtn = activeImageGeneration
+    ? `<button class="image-source-copy-btn image-generation-cancel-btn" onclick="cancelImageGeneration()">停止して再実行</button>`
+    : '';
   const refineBtn = hasPrompt && hasSourceImg
     ? `<button class="image-source-copy-btn" onclick="openImagePromptModal('refine')">修正依頼</button>`
     : '';
@@ -751,7 +823,9 @@ function buildImagePromptBlock(draft) {
         <span class="image-prompt-title">🖼 画像</span>
         ${copyLabel}
         <div class="image-copy-btns">
+          ${stopGenerationBtn}
           ${generateBtn}
+          ${logoDetectBtn}
           ${refineBtn}
           ${attachBtn}
           ${saveImgBtn}
@@ -760,9 +834,200 @@ function buildImagePromptBlock(draft) {
         </div>
       </div>
       <div id="image-generation-progress-slot"></div>
+      ${renderLogoDetectionPanel(draft)}
       ${sourceImgPreview}
       ${hasPrompt ? `<pre class="image-prompt-pre">${esc(prompt)}</pre>` : ''}
     </div>`;
+}
+
+function logoSelectionKey(draftId) {
+  return `x-preview-logo-selection:${draftId}`;
+}
+
+function getSelectedLogoNames(draftId) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(logoSelectionKey(draftId)) || '[]');
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function setSelectedLogoNames(draftId, names) {
+  localStorage.setItem(logoSelectionKey(draftId), JSON.stringify(Array.from(new Set(names.filter(Boolean)))));
+}
+
+function hasLogoDetection(draftId) {
+  return logoDetectionByDraftId.has(draftId);
+}
+
+function logoPreviewUrl(candidate) {
+  if (candidate.image_path && /\.(png|jpe?g|webp|gif|svg|ico)$/i.test(candidate.image_path)) {
+    return `${window.location.origin}/local-image?path=${encodeURIComponent(candidate.image_path)}`;
+  }
+  return candidate.image_url || '';
+}
+
+function renderLogoDetectionPanel(draft) {
+  const candidates = logoDetectionByDraftId.get(draft.draft_id);
+  if (!candidates) return '';
+  const selected = new Set(getSelectedLogoNames(draft.draft_id));
+  const showHidden = logoShowHiddenDraftIds.has(draft.draft_id);
+  const visibleCandidates = showHidden ? candidates : candidates.filter(candidate => selected.has(candidate.name || ''));
+  const hiddenCount = Math.max(0, candidates.length - visibleCandidates.length);
+  const rows = visibleCandidates.length
+    ? visibleCandidates.map((candidate, index) => {
+        const name = candidate.name || '';
+        const previewUrl = logoPreviewUrl(candidate);
+        const checked = selected.has(name);
+        const statusLabel = candidate.registered
+          ? '登録済み'
+          : candidate.image_path || candidate.image_url
+            ? '取得済み・確認待ち'
+            : candidate.fetch_error
+              ? '取得失敗'
+              : '未登録';
+        const source = candidate.source_url
+          ? `<a href="${escAttr(candidate.source_url)}" target="_blank">公式候補</a>`
+          : '';
+        const confirmButton = !candidate.registered && (candidate.image_path || candidate.image_url)
+          ? `<button class="logo-action-btn ok" onclick='event.preventDefault(); event.stopPropagation(); confirmLogoCandidate(${JSON.stringify(draft.draft_id)}, ${JSON.stringify(name)})'>このロゴでOK</button>`
+          : '';
+        const manualButton = !candidate.registered
+          ? `<button class="logo-action-btn" onclick='event.preventDefault(); event.stopPropagation(); openManualLogoModal(${JSON.stringify(draft.draft_id)}, ${JSON.stringify(name)})'>手動登録</button>`
+          : '';
+        const preview = previewUrl
+          ? `<img class="logo-detection-thumb" src="${escAttr(previewUrl)}" alt="${escAttr(name)} logo" loading="lazy">`
+          : '<span class="logo-detection-thumb empty">?</span>';
+        return `
+          <label class="logo-detection-row ${checked ? '' : 'is-hidden-candidate'}">
+            <input type="checkbox" ${checked ? 'checked' : ''} onchange='toggleLogoSelection(${JSON.stringify(draft.draft_id)}, ${JSON.stringify(name)}, this.checked)'>
+            ${preview}
+            <span class="logo-detection-main">
+              <span class="logo-detection-name">${esc(name)}</span>
+              <span class="logo-detection-meta">${esc(statusLabel)}${source ? ` · ${source}` : ''}${candidate.fetch_error ? ` · ${esc(candidate.fetch_error)}` : ''}</span>
+              <span class="logo-detection-actions">${confirmButton}${manualButton}</span>
+            </span>
+          </label>`;
+      }).join('')
+    : '<div class="logo-detection-empty">表示中のロゴ候補はありません。もう一度表示したい場合は「ツール検出」を押してください。</div>';
+  const selectedCount = selected.size;
+  const hiddenLabel = hiddenCount ? ` / ${hiddenCount}件を非表示` : '';
+  const toggleHiddenButton = hiddenCount || showHidden
+    ? `<button class="image-source-copy-btn" onclick='toggleHiddenLogoCandidates(${JSON.stringify(draft.draft_id)})'>${showHidden ? '非表示を隠す' : '非表示も表示'}</button>`
+    : '';
+  return `
+    <div class="logo-detection-panel">
+      <div class="logo-detection-head">
+        <div>
+          <strong>検出ツール・ロゴ候補</strong>
+          <span>${selectedCount}件を画像生成に使います${hiddenLabel}</span>
+        </div>
+        <div class="logo-detection-head-actions">
+          ${toggleHiddenButton}
+          <button class="image-source-copy-btn" onclick='addManualLogoCandidate(${JSON.stringify(draft.draft_id)})'>ツール名を追加</button>
+          <button class="image-source-copy-btn" onclick="registerSelectedLogos()" ${logoRegisterLoadingDraftId === draft.draft_id || selectedCount === 0 ? 'disabled' : ''}>${logoRegisterLoadingDraftId === draft.draft_id ? '取得中...' : '選択ロゴを取得'}</button>
+        </div>
+      </div>
+      <div class="logo-detection-list">${rows}</div>
+      <div class="logo-detection-note">取得したロゴは「このロゴでOK」を押すまで辞書登録しません。登録済みロゴだけが画像生成時に参照画像として添付されます。</div>
+    </div>`;
+}
+
+function toggleLogoSelection(draftId, name, checked) {
+  const selected = new Set(getSelectedLogoNames(draftId));
+  if (checked) selected.add(name);
+  else selected.delete(name);
+  setSelectedLogoNames(draftId, Array.from(selected));
+  if (currentDraft?.draft_id === draftId) renderPreview(currentDraft);
+}
+
+function toggleHiddenLogoCandidates(draftId) {
+  if (logoShowHiddenDraftIds.has(draftId)) logoShowHiddenDraftIds.delete(draftId);
+  else logoShowHiddenDraftIds.add(draftId);
+  if (currentDraft?.draft_id === draftId) renderPreview(currentDraft);
+}
+
+function addManualLogoCandidate(draftId) {
+  const name = window.prompt('追加するツール名・サービス名');
+  const cleanName = (name || '').trim();
+  if (!cleanName) return;
+  const candidates = logoDetectionByDraftId.get(draftId) || [];
+  const exists = candidates.some(item => String(item.name || '').toLowerCase() === cleanName.toLowerCase());
+  if (!exists) {
+    logoDetectionByDraftId.set(draftId, [
+      ...candidates,
+      {
+        name: cleanName,
+        registered: false,
+        image_url: '',
+        image_path: '',
+        source_url: '',
+        matched_aliases: [cleanName],
+        reason: '手動追加',
+      },
+    ]);
+  }
+  const selected = new Set(getSelectedLogoNames(draftId));
+  selected.add(cleanName);
+  setSelectedLogoNames(draftId, Array.from(selected));
+  logoShowHiddenDraftIds.add(draftId);
+  if (currentDraft?.draft_id === draftId) renderPreview(currentDraft);
+}
+
+function ensureLogoManualModal() {
+  let overlay = document.getElementById('logo-manual-modal');
+  if (overlay) return overlay;
+  overlay = document.createElement('div');
+  overlay.id = 'logo-manual-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div class="modal image-modal logo-manual-modal" onclick="event.stopPropagation()">
+      <div class="thread-modal-header">
+        <div>
+          <div class="thread-step-label">ロゴ辞書</div>
+          <h3 class="image-modal-title">ロゴを手動登録</h3>
+        </div>
+        <button class="thread-close-btn" onclick="closeLogoManualModal()">✕</button>
+      </div>
+      <label class="image-modal-label">ツール/サービス名</label>
+      <input class="image-modal-input" id="manual-logo-name" type="text" placeholder="Remotion">
+      <label class="image-modal-label">ロゴ画像URL</label>
+      <input class="image-modal-input" id="manual-logo-image-url" type="url" placeholder="https://.../logo.png">
+      <label class="image-modal-label">ロゴ画像ローカルパス</label>
+      <input class="image-modal-input" id="manual-logo-image-path" type="text" placeholder="/Users/.../logo.png">
+      <label class="image-modal-label">公式サイトURL</label>
+      <input class="image-modal-input" id="manual-logo-source-url" type="url" placeholder="https://www.remotion.dev/">
+      <label class="image-modal-label">別名（任意・カンマ区切り）</label>
+      <input class="image-modal-input" id="manual-logo-aliases" type="text" placeholder="remotion, リモーション">
+      <p class="image-modal-help">画像URLかローカルパスのどちらかを入れてください。保存後は辞書に登録され、画像生成時に参照画像として使えます。</p>
+      <div class="image-modal-actions">
+        <button class="cancel-btn" onclick="closeLogoManualModal()">閉じる</button>
+        <button class="save-btn" onclick="saveManualLogo()">保存して登録</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', closeLogoManualModal);
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function openManualLogoModal(draftId, name) {
+  const candidates = logoDetectionByDraftId.get(draftId) || [];
+  const candidate = candidates.find(item => item.name === name) || { name };
+  logoManualTarget = { draftId, name };
+  const modal = ensureLogoManualModal();
+  modal.style.display = 'flex';
+  document.getElementById('manual-logo-name').value = candidate.name || name || '';
+  document.getElementById('manual-logo-image-url').value = candidate.image_url || '';
+  document.getElementById('manual-logo-image-path').value = candidate.image_path || '';
+  document.getElementById('manual-logo-source-url').value = candidate.source_url || '';
+  document.getElementById('manual-logo-aliases').value = (candidate.matched_aliases || []).join(', ');
+}
+
+function closeLogoManualModal() {
+  const modal = document.getElementById('logo-manual-modal');
+  if (modal) modal.style.display = 'none';
 }
 
 function ensureImagePromptModal() {
@@ -782,13 +1047,23 @@ function ensureImagePromptModal() {
         </div>
         <button class="thread-close-btn" onclick="closeImagePromptModal()">✕</button>
       </div>
-      <label class="image-modal-label">画像コピー</label>
-      <input class="image-modal-input" id="image-copy-input" type="text" placeholder="画像内コピー">
-      <label class="image-modal-label">画像プロンプト</label>
-      <textarea class="image-modal-textarea" id="image-prompt-textarea" rows="9"></textarea>
-      <label class="image-modal-label">リライト/追記指示</label>
-      <textarea class="image-modal-instruction" id="image-rewrite-instruction" rows="3"
-        placeholder="例: もっとスマホで読みやすく。文字を減らして、3ステップを強調して"></textarea>
+      <div class="image-modal-field" data-field="copy">
+        <label class="image-modal-label">画像コピー</label>
+        <input class="image-modal-input" id="image-copy-input" type="text" placeholder="画像内コピー">
+      </div>
+      <div class="image-modal-field" data-field="prompt">
+        <label class="image-modal-label">画像プロンプト</label>
+        <textarea class="image-modal-textarea" id="image-prompt-textarea" rows="9"></textarea>
+      </div>
+      <div class="image-modal-field" data-field="instruction">
+        <label class="image-modal-label" id="image-rewrite-label">リライト/追記指示</label>
+        <textarea class="image-modal-instruction" id="image-rewrite-instruction" rows="3"
+          placeholder="例: もっとスマホで読みやすく。文字を減らして、3ステップを強調して"></textarea>
+      </div>
+      <label class="image-modal-checkbox" id="rewrite-preference-row" style="display:none">
+        <input id="remember-rewrite-preference" type="checkbox">
+        <span>今後もこのアカウントでは同じ方針で気をつける</span>
+      </label>
       <div id="image-refine-fields" class="image-refine-fields" style="display:none">
         <div class="image-refine-preview-grid">
           <div>
@@ -807,17 +1082,20 @@ function ensureImagePromptModal() {
         <input class="image-modal-input" id="reference-image-path" type="text"
           placeholder="/Users/.../reference.png">
       </div>
-      <label class="image-modal-label">生成済み画像パス</label>
-      <input class="image-modal-input" id="generated-image-path" type="text"
-        placeholder="/Users/.../.codex/generated_images/.../image.png">
+      <div class="image-modal-field" data-field="image-path">
+        <label class="image-modal-label">生成済み画像パス</label>
+        <input class="image-modal-input" id="generated-image-path" type="text"
+          placeholder="/Users/.../.codex/generated_images/.../image.png">
+      </div>
       <p class="image-modal-help" id="image-modal-help"></p>
+      <div id="image-rewrite-progress-slot"></div>
       <div class="image-modal-actions">
         <button class="cancel-btn" onclick="closeImagePromptModal()">閉じる</button>
-        <button class="image-source-copy-btn" onclick="copyImageGenerationRequest()">生成依頼をコピー</button>
-        <button class="image-source-copy-btn" onclick="rewriteImagePrompt()">Codexでリライト</button>
+        <button class="image-source-copy-btn" data-action="copy-request" onclick="copyImageGenerationRequest()">生成依頼をコピー</button>
+        <button class="image-source-copy-btn" data-action="rewrite" onclick="rewriteImagePrompt()">Codexでリライト</button>
         <button class="image-source-copy-btn" id="image-refine-start-btn" onclick="startImageRefinement()" style="display:none">フィードバックで再生成</button>
-        <button class="image-source-copy-btn" onclick="attachGeneratedImage()">画像を添付</button>
-        <button class="save-btn" onclick="saveImagePrompt()">保存</button>
+        <button class="image-source-copy-btn" data-action="attach" onclick="attachGeneratedImage()">画像を添付</button>
+        <button class="save-btn" data-action="save" onclick="saveImagePrompt()">保存</button>
       </div>
     </div>`;
   overlay.onclick = closeImagePromptModal;
@@ -833,7 +1111,11 @@ function openImagePromptModal(mode = 'generate') {
   document.getElementById('image-copy-input').value = first.copy || '';
   document.getElementById('image-prompt-textarea').value = first.prompt || '';
   document.getElementById('image-rewrite-instruction').value = '';
+  const rememberRewritePreference = document.getElementById('remember-rewrite-preference');
+  if (rememberRewritePreference) rememberRewritePreference.checked = false;
   document.getElementById('generated-image-path').value = '';
+  const rewriteProgressSlot = document.getElementById('image-rewrite-progress-slot');
+  if (rewriteProgressSlot) rewriteProgressSlot.innerHTML = '';
   const refineFields = document.getElementById('image-refine-fields');
   const referenceUrlInput = document.getElementById('reference-image-url');
   const referencePathInput = document.getElementById('reference-image-path');
@@ -852,6 +1134,8 @@ function openImagePromptModal(mode = 'generate') {
     };
   }
 
+  configureImagePromptModalMode(mode);
+
   const title = mode === 'rewrite' ? 'AIリライト' : mode === 'attach' ? '生成画像を添付' : mode === 'refine' ? '画像の修正依頼' : 'Codex画像生成';
   document.getElementById('image-modal-title').textContent = title;
   document.getElementById('image-modal-help').textContent =
@@ -863,6 +1147,34 @@ function openImagePromptModal(mode = 'generate') {
           ? '現在の生成画像に対して、参照画像と修正フィードバックを渡して再生成します。例: Codexロゴは参照画像の形に合わせる。'
           : '生成済み画像のローカルパスを貼ると、1投稿目の画像としてプレビューに表示します。';
   overlay.style.display = 'flex';
+}
+
+function configureImagePromptModalMode(mode) {
+  const overlay = document.getElementById('image-prompt-modal');
+  if (!overlay) return;
+  const isRewrite = mode === 'rewrite';
+  overlay.querySelector('.image-modal')?.classList.toggle('rewrite-only', isRewrite);
+  overlay.querySelectorAll('[data-field]').forEach(el => {
+    const field = el.dataset.field;
+    el.style.display = isRewrite && field !== 'instruction' ? 'none' : '';
+  });
+  overlay.querySelectorAll('[data-action]').forEach(el => {
+    const action = el.dataset.action;
+    el.style.display = isRewrite
+      ? (action === 'rewrite' ? 'inline-flex' : 'none')
+      : '';
+  });
+  const label = document.getElementById('image-rewrite-label');
+  const instruction = document.getElementById('image-rewrite-instruction');
+  const preferenceRow = document.getElementById('rewrite-preference-row');
+  if (preferenceRow) preferenceRow.style.display = isRewrite ? 'flex' : 'none';
+  if (label) label.textContent = isRewrite ? 'どうリライトしたい？' : 'リライト/追記指示';
+  if (instruction) {
+    instruction.rows = isRewrite ? 8 : 3;
+    instruction.placeholder = isRewrite
+      ? '例: もっとスマホで読みやすく。文字数を半分にして、結論を強く。余白を増やして。'
+      : '例: もっとスマホで読みやすく。文字を減らして、3ステップを強調して';
+  }
 }
 
 function closeImagePromptModal() {
@@ -878,6 +1190,7 @@ function getImageModalValues() {
     imagePath: document.getElementById('generated-image-path')?.value?.trim() || '',
     referenceImageUrl: document.getElementById('reference-image-url')?.value?.trim() || '',
     referenceImagePath: document.getElementById('reference-image-path')?.value?.trim() || '',
+    rememberRewritePreference: !!document.getElementById('remember-rewrite-preference')?.checked,
   };
 }
 
@@ -908,7 +1221,155 @@ async function copyActiveImageGenerationRequest() {
   }
 }
 
-async function startImageGeneration() {
+async function detectLogosForCurrentDraft() {
+  if (!currentDraft) return;
+  const first = currentDraft.image_prompts?.[0] || {};
+  const copy = (first.copy || '').trim();
+  const prompt = (first.prompt || '').trim();
+  logoDetectionLoadingDraftId = currentDraft.draft_id;
+  renderPreview(currentDraft);
+  try {
+    const res = await apiFetch(`${API}/logos/detect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentDraft.draft_id, copy, prompt }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    const candidates = data.candidates || [];
+    logoDetectionByDraftId.set(currentDraft.draft_id, candidates);
+    if (!getSelectedLogoNames(currentDraft.draft_id).length) {
+      setSelectedLogoNames(currentDraft.draft_id, candidates.map(candidate => candidate.name).filter(Boolean));
+    }
+    showToast(candidates.length ? `✓ ${candidates.length}件のツール候補を検出しました` : 'ツール候補は見つかりませんでした');
+  } catch (e) {
+    showToast(`ツール検出失敗: ${e.message}`, true);
+  } finally {
+    logoDetectionLoadingDraftId = null;
+    if (currentDraft) renderPreview(currentDraft);
+  }
+}
+
+async function registerSelectedLogos() {
+  if (!currentDraft) return;
+  const draftId = currentDraft.draft_id;
+  const candidates = logoDetectionByDraftId.get(draftId) || [];
+  const selected = new Set(getSelectedLogoNames(draftId));
+  const targets = candidates
+    .filter(candidate => selected.has(candidate.name) && !(candidate.image_path || candidate.image_url))
+    .map(candidate => ({ name: candidate.name, source_url: candidate.source_url || '' }));
+  if (!targets.length) {
+    showToast('取得が必要な未登録ロゴはありません');
+    return;
+  }
+  logoRegisterLoadingDraftId = draftId;
+  renderPreview(currentDraft);
+  try {
+    const res = await apiFetch(`${API}/logos/fetch-candidates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tools: targets }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    const byName = new Map((data.results || []).filter(item => item.ok).map(item => [item.name, item]));
+    const failuresByName = new Map((data.results || []).filter(item => !item.ok).map(item => [item.name, item]));
+    const next = candidates.map(candidate => byName.has(candidate.name)
+      ? { ...candidate, ...byName.get(candidate.name), registered: !!byName.get(candidate.name).registered, fetch_error: '' }
+      : failuresByName.has(candidate.name)
+        ? { ...candidate, fetch_error: failuresByName.get(candidate.name).error || '取得失敗' }
+        : candidate);
+    logoDetectionByDraftId.set(draftId, next);
+    const failed = (data.results || []).filter(item => !item.ok);
+    if (failed.length) {
+      showToast(`一部ロゴ取得に失敗: ${failed.map(item => item.name).join(', ')}`, true);
+    } else {
+      showToast('✓ 選択ロゴを取得しました。OKで辞書登録してください');
+    }
+  } catch (e) {
+    showToast(`ロゴ取得失敗: ${e.message}`, true);
+  } finally {
+    logoRegisterLoadingDraftId = null;
+    if (currentDraft) renderPreview(currentDraft);
+  }
+}
+
+async function confirmLogoCandidate(draftId, name) {
+  const candidates = logoDetectionByDraftId.get(draftId) || [];
+  const candidate = candidates.find(item => item.name === name);
+  if (!candidate) return;
+  try {
+    const res = await apiFetch(`${API}/logos/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: candidate.name,
+        aliases: candidate.matched_aliases || [candidate.name],
+        image_url: candidate.image_url || '',
+        image_path: candidate.image_path || '',
+        source_url: candidate.source_url || '',
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    logoDetectionByDraftId.set(draftId, candidates.map(item => item.name === name ? { ...item, ...data, registered: true, fetch_error: '' } : item));
+    showToast(`✓ ${name} をロゴ辞書に登録しました`);
+  } catch (e) {
+    showToast(`ロゴ登録失敗: ${e.message}`, true);
+  } finally {
+    if (currentDraft?.draft_id === draftId) renderPreview(currentDraft);
+  }
+}
+
+async function saveManualLogo() {
+  if (!logoManualTarget) return;
+  const draftId = logoManualTarget.draftId;
+  const payload = {
+    name: document.getElementById('manual-logo-name')?.value?.trim() || '',
+    image_url: document.getElementById('manual-logo-image-url')?.value?.trim() || '',
+    image_path: document.getElementById('manual-logo-image-path')?.value?.trim() || '',
+    source_url: document.getElementById('manual-logo-source-url')?.value?.trim() || '',
+    aliases: document.getElementById('manual-logo-aliases')?.value?.trim() || '',
+  };
+  if (!payload.name) {
+    showToast('ツール/サービス名を入力してください', true);
+    return;
+  }
+  if (!payload.image_url && !payload.image_path) {
+    showToast('ロゴ画像URLかローカルパスを入力してください', true);
+    return;
+  }
+  try {
+    const res = await apiFetch(`${API}/logos/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    const candidates = logoDetectionByDraftId.get(draftId) || [];
+    const exists = candidates.some(item => item.name === logoManualTarget.name || item.name === payload.name);
+    const next = exists
+      ? candidates.map(item => (item.name === logoManualTarget.name || item.name === payload.name) ? { ...item, ...data, registered: true, fetch_error: '' } : item)
+      : [{ ...data, registered: true }, ...candidates];
+    logoDetectionByDraftId.set(draftId, next);
+    const selected = new Set(getSelectedLogoNames(draftId));
+    selected.add(data.name || payload.name);
+    setSelectedLogoNames(draftId, Array.from(selected));
+    closeLogoManualModal();
+    showToast(`✓ ${data.name || payload.name} をロゴ辞書に登録しました`);
+  } catch (e) {
+    showToast(`手動ロゴ登録失敗: ${e.message}`, true);
+  } finally {
+    if (currentDraft?.draft_id === draftId) renderPreview(currentDraft);
+  }
+}
+
+function selectedLogoNamesForGeneration(draftId) {
+  return hasLogoDetection(draftId) ? getSelectedLogoNames(draftId) : undefined;
+}
+
+async function startImageGeneration(options = {}) {
   if (!currentDraft) return;
   const first = currentDraft.image_prompts?.[0] || {};
   const copy = (first.copy || '').trim();
@@ -928,12 +1389,15 @@ async function startImageGeneration() {
         character_traits: getCharacterTraits(),
         character_negative: getCharacterNegative(),
         character_placement: getCharacterPlacement(),
+        selected_logo_names: selectedLogoNamesForGeneration(currentDraft.draft_id),
       }),
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '不明');
     imageGenerationJob = data;
+    imageGenerationJobId = data.job_id || null;
     imageGenerationDraftId = currentDraft.draft_id;
+    pendingAutoPostAfterImage = null;
     renderImageGenerationProgress(data);
     showToast('Codex App Serverで画像生成を開始しました');
     imageGenerationTimer = setInterval(pollImageGeneration, 2500);
@@ -967,11 +1431,13 @@ async function startImageRefinement() {
         character_traits: getCharacterTraits(),
         character_negative: getCharacterNegative(),
         character_placement: getCharacterPlacement(),
+        selected_logo_names: selectedLogoNamesForGeneration(currentDraft.draft_id),
       }),
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '不明');
     imageGenerationJob = data;
+    imageGenerationJobId = data.job_id || null;
     imageGenerationDraftId = currentDraft.draft_id;
     closeImagePromptModal();
     renderImageGenerationProgress(data);
@@ -993,8 +1459,13 @@ function renderImageGenerationProgress(job) {
         ? '画像生成に失敗しました。'
         : 'Codex App Serverで画像生成中です。'
   );
-  const retryButton = job.status === 'failed' && job.request
+  const retryButton = ['failed', 'cancelled'].includes(job.status) && job.request
     ? `<button class="image-generation-copy-btn" onclick="copyActiveImageGenerationRequest()">生成依頼をコピー</button>`
+    : '';
+  const jobId = job.job_id || imageGenerationJobId;
+  const canCancel = jobId && !['completed', 'failed', 'cancelled'].includes(job.status);
+  const cancelButton = canCancel
+    ? '<button class="image-generation-copy-btn image-generation-cancel-btn" onclick="cancelImageGeneration()">停止して再実行</button>'
     : '';
   const logs = Array.isArray(job.logs) ? job.logs.slice(-12) : [];
   const logBlock = logs.length
@@ -1007,15 +1478,92 @@ function renderImageGenerationProgress(job) {
       </div>`
     : '';
   slot.innerHTML = `
-    <div class="image-generation-progress ${job.status === 'failed' ? 'failed' : ''}">
+    <div class="image-generation-progress ${escAttr(job.status || '')} ${job.status === 'failed' ? 'failed' : ''}">
+      <div class="image-generation-progress-top">
+        <span class="image-generation-status-text">${esc(label)}</span>
+        <span class="image-generation-status-actions">
+          <span>${progress}%</span>
+          ${cancelButton}
+          ${retryButton}
+        </span>
+      </div>
+      <div class="image-generation-bar"><div style="width:${progress}%"></div></div>
+      ${logBlock}
+    </div>`;
+}
+
+function setImageRewriteBusy(isBusy) {
+  const rewriteBtn = document.querySelector('#image-prompt-modal [data-action="rewrite"]');
+  if (!rewriteBtn) return;
+  rewriteBtn.disabled = isBusy;
+  rewriteBtn.classList.toggle('rewrite-loading', isBusy);
+  rewriteBtn.innerHTML = isBusy
+    ? '<span class="inline-spinner" aria-hidden="true"></span><span>リライト中...</span>'
+    : 'Codexでリライト';
+}
+
+function renderImageRewriteProgress(job) {
+  const slot = document.getElementById('image-rewrite-progress-slot');
+  if (!slot || !job) return;
+  const progress = Math.max(0, Math.min(100, Number(job.progress || 0)));
+  const label = job.message || (
+    job.status === 'completed'
+      ? 'AIリライト完了。画面へ反映しました。'
+      : job.status === 'cancelled'
+        ? 'AIリライトを停止しました。'
+      : job.status === 'failed'
+        ? 'AIリライトに失敗しました。'
+        : 'AIリライト中です。'
+  );
+  const canCancel = job.job_id && !['completed', 'failed', 'cancelled'].includes(job.status);
+  const cancelButton = canCancel
+    ? '<button class="image-generation-copy-btn image-rewrite-cancel-btn" onclick="cancelImageRewrite()">停止して書き直す</button>'
+    : '';
+  const logs = Array.isArray(job.logs) ? job.logs.slice(-12) : [];
+  const logBlock = logs.length
+    ? `<div class="image-generation-log">
+        ${logs.map(log => `
+          <div class="image-generation-log-row ${escAttr(log.level || 'info')}">
+            <span class="image-generation-log-time">${esc(log.at || '')}</span>
+            <span class="image-generation-log-message">${esc(log.message || '')}</span>
+          </div>`).join('')}
+      </div>`
+    : '';
+  slot.innerHTML = `
+    <div class="image-generation-progress image-rewrite-progress ${job.status === 'failed' ? 'failed' : ''} ${job.status === 'completed' ? 'completed' : ''} ${job.status === 'cancelled' ? 'cancelled' : ''}">
       <div class="image-generation-progress-top">
         <span>${esc(label)}</span>
         <span>${progress}%</span>
       </div>
       <div class="image-generation-bar"><div style="width:${progress}%"></div></div>
-      ${retryButton}
+      ${cancelButton}
       ${logBlock}
     </div>`;
+}
+
+function applyRewrittenImagePrompt(draftId, rewrittenPrompt, imagePrompt = null) {
+  if (!draftId || !rewrittenPrompt) return;
+  const nextPrompt = imagePrompt || {
+    ...(currentDraft?.image_prompts?.[0] || {}),
+    position: currentDraft?.image_prompts?.[0]?.position || 1,
+    copy: document.getElementById('image-copy-input')?.value?.trim() || currentDraft?.image_prompts?.[0]?.copy || '',
+    prompt: rewrittenPrompt,
+  };
+  const applyToDraft = draft => {
+    if (!draft || draft.draft_id !== draftId) return;
+    const prompts = Array.isArray(draft.image_prompts) ? [...draft.image_prompts] : [];
+    prompts[0] = { ...(prompts[0] || {}), ...nextPrompt, prompt: rewrittenPrompt };
+    draft.image_prompts = prompts;
+  };
+  applyToDraft(currentDraft);
+  const item = allDrafts.find(d => d.draft_id === draftId);
+  applyToDraft(item);
+  if (currentDraft?.draft_id === draftId) {
+    renderDraftList();
+    renderPreview(currentDraft);
+  } else {
+    renderDraftList();
+  }
 }
 
 function buildImageGenerationRequest(copy, prompt, options = {}) {
@@ -1055,13 +1603,15 @@ function buildImageGenerationRequest(copy, prompt, options = {}) {
 
 async function pollImageGeneration() {
   const draftId = imageGenerationDraftId || currentDraft?.draft_id;
-  if (!imageGenerationJob?.job_id || !draftId) return;
+  const jobId = imageGenerationJobId || imageGenerationJob?.job_id;
+  if (!jobId || !draftId) return;
   try {
-    const res = await apiFetch(`${API}/image-generation/status?id=${encodeURIComponent(imageGenerationJob.job_id)}`);
+    const res = await apiFetch(`${API}/image-generation/status?id=${encodeURIComponent(jobId)}`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '不明');
-    imageGenerationJob = data;
-    renderImageGenerationProgress(data);
+    imageGenerationJob = { ...data, job_id: data.job_id || jobId };
+    imageGenerationJobId = imageGenerationJob.job_id;
+    renderImageGenerationProgress(imageGenerationJob);
 
     // サーバー側のジョブ完了イベントが遅れても、下書きに画像が入ったら即時反映する。
     const reflected = await refreshDraftAfterImageGeneration(draftId, data.status === 'completed');
@@ -1069,7 +1619,9 @@ async function pollImageGeneration() {
       clearInterval(imageGenerationTimer);
       imageGenerationTimer = null;
       imageGenerationDraftId = null;
+      imageGenerationJobId = null;
       showToast('✓ 画像をプレビューに反映しました');
+      pendingAutoPostAfterImage = null;
       return;
     }
 
@@ -1077,18 +1629,31 @@ async function pollImageGeneration() {
       clearInterval(imageGenerationTimer);
       imageGenerationTimer = null;
       imageGenerationDraftId = null;
+      imageGenerationJobId = null;
+      pendingAutoPostAfterImage = null;
       showToast(`画像生成失敗: ${data.message || '不明'}`, true);
+      return;
+    }
+    if (data.status === 'cancelled') {
+      clearInterval(imageGenerationTimer);
+      imageGenerationTimer = null;
+      imageGenerationDraftId = null;
+      imageGenerationJobId = null;
+      pendingAutoPostAfterImage = null;
+      showToast('画像生成を停止しました');
       return;
     }
     if (data.status === 'completed') {
       clearInterval(imageGenerationTimer);
       imageGenerationTimer = null;
       imageGenerationDraftId = null;
+      imageGenerationJobId = null;
     }
   } catch (e) {
     clearInterval(imageGenerationTimer);
     imageGenerationTimer = null;
     imageGenerationDraftId = null;
+    imageGenerationJobId = null;
     showToast(`画像生成確認失敗: ${e.message}`, true);
   }
 }
@@ -1116,28 +1681,179 @@ async function refreshDraftAfterImageGeneration(draftId, forceRender = false) {
   return imageAttached;
 }
 
+async function cancelImageGeneration() {
+  const jobId = imageGenerationJobId || imageGenerationJob?.job_id;
+  if (!jobId) {
+    showToast('停止する画像生成がありません');
+    return;
+  }
+  try {
+    const res = await apiFetch(`${API}/image-generation/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    imageGenerationJob = { ...data, job_id: data.job_id || jobId };
+    imageGenerationJobId = null;
+    renderImageGenerationProgress(imageGenerationJob);
+    clearInterval(imageGenerationTimer);
+    imageGenerationTimer = null;
+    imageGenerationDraftId = null;
+    pendingAutoPostAfterImage = null;
+    showToast('画像生成を停止しました');
+  } catch (e) {
+    showToast(`画像生成の停止に失敗: ${e.message}`, true);
+  }
+}
+
+async function pollImageRewrite() {
+  if (!imageRewriteJob?.job_id) return;
+  const jobId = imageRewriteJob.job_id;
+  try {
+    const res = await apiFetch(`${API}/image-prompt/rewrite/status?id=${encodeURIComponent(jobId)}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    imageRewriteJob = { ...data, job_id: data.job_id || jobId };
+    renderImageRewriteProgress(imageRewriteJob);
+    if (data.status === 'completed') {
+      clearInterval(imageRewriteTimer);
+      imageRewriteTimer = null;
+      const draftId = data.draft_id || imageRewriteDraftId;
+      const rewrittenPrompt = (data.prompt || '').trim();
+      if (rewrittenPrompt) {
+        const textarea = document.getElementById('image-prompt-textarea');
+        if (textarea) textarea.value = rewrittenPrompt;
+      }
+      if (draftId && rewrittenPrompt) {
+        applyRewrittenImagePrompt(draftId, rewrittenPrompt, data.image_prompt || null);
+      }
+      if (draftId) await refreshDraftAfterImageGeneration(draftId, true);
+      if (draftId && rewrittenPrompt) {
+        applyRewrittenImagePrompt(draftId, rewrittenPrompt, data.image_prompt || null);
+      }
+      if (rewrittenPrompt) {
+        const textarea = document.getElementById('image-prompt-textarea');
+        if (textarea) textarea.value = rewrittenPrompt;
+      }
+      setImageRewriteBusy(false);
+      const helpEl = document.getElementById('image-modal-help');
+      if (helpEl) helpEl.textContent = data.changed === false
+        ? 'AIリライト完了。ただしリライト結果は元の内容と同じでした。指示を具体化して再実行してください。'
+        : 'AIリライト完了。リライト結果は保存済みで、プレビューにも反映しました。';
+      imageRewriteDraftId = null;
+      showToast(data.account_memory_error
+        ? `✓ AIリライト完了。今後の注意保存は失敗: ${data.account_memory_error}`
+        : data.account_memory_path
+          ? '✓ AIリライト完了。今後の注意もアカウント情報に保存しました'
+          : data.changed === false
+            ? 'AIリライト完了。ただし変更はありませんでした'
+            : '✓ AIリライト完了。保存して画面を更新しました');
+    } else if (data.status === 'cancelled') {
+      clearInterval(imageRewriteTimer);
+      imageRewriteTimer = null;
+      setImageRewriteBusy(false);
+      imageRewriteDraftId = null;
+      const helpEl = document.getElementById('image-modal-help');
+      if (helpEl) helpEl.textContent = 'AIリライトを停止しました。プロンプトや指示を書き直して再実行できます。';
+      showToast('AIリライトを停止しました');
+    } else if (data.status === 'failed') {
+      clearInterval(imageRewriteTimer);
+      imageRewriteTimer = null;
+      setImageRewriteBusy(false);
+      imageRewriteDraftId = null;
+      const helpEl = document.getElementById('image-modal-help');
+      if (helpEl) helpEl.textContent = 'AIリライトに失敗しました。ログを確認してください。';
+      showToast(`リライト失敗: ${data.message || '不明'}`, true);
+    }
+  } catch (e) {
+    clearInterval(imageRewriteTimer);
+    imageRewriteTimer = null;
+    setImageRewriteBusy(false);
+    imageRewriteDraftId = null;
+    showToast(`リライト確認失敗: ${e.message}`, true);
+  }
+}
+
+async function cancelImageRewrite() {
+  if (!imageRewriteJob?.job_id) {
+    showToast('停止するAIリライトがありません');
+    return;
+  }
+  const jobId = imageRewriteJob.job_id;
+  try {
+    const res = await apiFetch(`${API}/image-prompt/rewrite/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    imageRewriteJob = { ...data, job_id: data.job_id || jobId };
+    renderImageRewriteProgress(imageRewriteJob);
+    clearInterval(imageRewriteTimer);
+    imageRewriteTimer = null;
+    setImageRewriteBusy(false);
+    imageRewriteDraftId = null;
+    const helpEl = document.getElementById('image-modal-help');
+    if (helpEl) helpEl.textContent = 'AIリライトを停止しました。プロンプトや指示を書き直して再実行できます。';
+    showToast('AIリライトを停止しました');
+  } catch (e) {
+    showToast(`停止失敗: ${e.message}`, true);
+  }
+}
+
 async function rewriteImagePrompt() {
   if (!currentDraft) return;
-  const { copy, prompt, instruction } = getImageModalValues();
+  if (imageRewriteTimer) {
+    showToast('AIリライト中です。止める場合は進捗欄の「停止して書き直す」を押してください');
+    return;
+  }
+  const { copy, prompt, instruction, rememberRewritePreference } = getImageModalValues();
   if (!prompt) { showToast('画像プロンプトがありません', true); return; }
-  showToast('Codexでリライト中...');
+  const draftId = currentDraft.draft_id;
+  setImageRewriteBusy(true);
+  const helpEl = document.getElementById('image-modal-help');
+  if (helpEl) helpEl.textContent = 'AIリライト中です。進捗とログを下に表示します。完了したら自動保存して画面を更新します。';
+  imageRewriteJob = {
+    status: 'starting',
+    progress: 3,
+    message: 'AIリライトを開始しています',
+    logs: [{ at: new Date().toLocaleTimeString('ja-JP', { hour12: false }), level: 'info', message: 'ブラウザからジョブを送信します' }],
+  };
+  imageRewriteDraftId = draftId;
+  renderImageRewriteProgress(imageRewriteJob);
+  showToast('AIリライトを開始しました');
   try {
-    const res = await apiFetch(`${API}/image-prompt/rewrite`, {
+    const res = await apiFetch(`${API}/image-prompt/rewrite/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        draft_id: currentDraft.draft_id,
+        draft_id: draftId,
         copy,
         prompt,
         instruction,
         character_reference_url: getCharacterReferenceUrl(),
+        remember_rewrite_preference: rememberRewritePreference,
       }),
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '不明');
-    document.getElementById('image-prompt-textarea').value = data.prompt;
-    showToast('✓ リライトしました。保存すると反映されます');
+    imageRewriteJob = data;
+    renderImageRewriteProgress(data);
+    imageRewriteTimer = setInterval(pollImageRewrite, 1500);
+    await pollImageRewrite();
   } catch (e) {
+    setImageRewriteBusy(false);
+    imageRewriteDraftId = null;
+    imageRewriteJob = {
+      status: 'failed',
+      progress: 100,
+      message: e.message,
+      logs: [{ at: new Date().toLocaleTimeString('ja-JP', { hour12: false }), level: 'error', message: e.message }],
+    };
+    renderImageRewriteProgress(imageRewriteJob);
     showToast(`リライト失敗: ${e.message}`, true);
   }
 }
@@ -1237,6 +1953,16 @@ function closeCharacterSettingsModal() {
   if (overlay) overlay.style.display = 'none';
 }
 
+function currentDraftAvatarMarkup() {
+  if (!currentDraft) return '<span class="settings-shortcut-avatar">𝕏</span>';
+  const label = currentDraft.display_name || currentDraft.x_username || 'account';
+  if (currentDraft.profile_image_url) {
+    return `<span class="settings-shortcut-avatar"><img src="${escAttr(currentDraft.profile_image_url)}" alt="${escAttr(label)}" loading="lazy"></span>`;
+  }
+  const initial = String(label).charAt(0).toUpperCase() || 'X';
+  return `<span class="settings-shortcut-avatar">${esc(initial)}</span>`;
+}
+
 async function saveCharacterSettings() {
   if (!currentDraft) return;
   const accountKey = currentDraft.x_username || currentDraft.draft_id;
@@ -1283,6 +2009,13 @@ function ensureEnvSettingsModal() {
         <button class="thread-close-btn" onclick="closeEnvSettingsModal()">✕</button>
       </div>
       <p class="image-modal-help">Googleログイン中はユーザー別DB設定へ保存します。未ログイン時だけローカル .env へ保存します。</p>
+      <div class="settings-shortcuts">
+        <button class="settings-shortcut-btn" onclick="openCharacterSettingsFromEnvModal()" ${currentDraft ? '' : 'disabled'}>
+          <span id="settings-character-avatar-slot">${currentDraftAvatarMarkup()}</span>
+          <strong>キャラ設定</strong>
+          <small>${currentDraft ? `@${esc(currentDraft.x_username || '')}` : '下書きを選択すると使えます'}</small>
+        </button>
+      </div>
       <div id="env-settings-error" class="error-msg" style="display:none"></div>
       <div id="env-settings-list" class="env-settings-list">
         <div class="loading">読み込み中...</div>
@@ -1303,8 +2036,25 @@ function ensureEnvSettingsModal() {
 
 async function openEnvSettingsModal() {
   const overlay = ensureEnvSettingsModal();
+  const shortcut = overlay.querySelector('.settings-shortcut-btn');
+  if (shortcut) {
+    shortcut.disabled = !currentDraft;
+    const small = shortcut.querySelector('small');
+    if (small) small.textContent = currentDraft ? `@${currentDraft.x_username || ''}` : '下書きを選択すると使えます';
+    const avatarSlot = shortcut.querySelector('#settings-character-avatar-slot');
+    if (avatarSlot) avatarSlot.innerHTML = currentDraftAvatarMarkup();
+  }
   overlay.style.display = 'flex';
   await loadEnvSettings();
+}
+
+function openCharacterSettingsFromEnvModal() {
+  if (!currentDraft) {
+    showToast('先に下書きを選択してください', true);
+    return;
+  }
+  closeEnvSettingsModal();
+  openCharacterSettingsModal();
 }
 
 function closeEnvSettingsModal() {
@@ -1579,50 +2329,54 @@ function switchCompareCol(col) {
 // ── 投稿ボタン ───────────────────────────────────────
 
 // スマホ: twitter:// アプリ起動 → 未インストールなら Web fallback
-function openXCompose(text) {
-  const encoded  = encodeURIComponent(text);
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile) {
-    window.location.href = `twitter://post?message=${encoded}`;
-    setTimeout(() => window.open(`https://x.com/intent/post?text=${encoded}`, '_blank'), 1500);
-  } else {
-    window.open(`https://x.com/intent/post?text=${encoded}`, '_blank');
-  }
+function getQuoteTweetUrl(draft = currentDraft) {
+  return draft?.original_tweet?.tweet_url || '';
 }
 
-async function onPostClick() {
-  if (!currentDraft) return;
-  if (currentDraft.parts.length > 1) {
-    openThreadModal();
-  } else {
-    const text = currentDraft.parts[0]?.content || '';
-    openXCompose(text);
-    await notifyDiscord(text);
-  }
+function appendQuoteUrl(text, quoteUrl) {
+  const cleanText = String(text || '').trimEnd();
+  const cleanUrl = String(quoteUrl || '').trim();
+  if (!cleanUrl || cleanText.includes(cleanUrl)) return cleanText;
+  return cleanText ? `${cleanText}\n\n${cleanUrl}` : cleanUrl;
 }
 
-async function startAutoPost() {
-  if (!currentDraft) return;
-  const ok = window.confirm('OpenClaw の専用ブラウザで X を開き、この下書きを自動投稿します。X にログイン済みの状態で実行してください。');
-  if (!ok) return;
-  clearInterval(autoPostTimer);
+async function arrangePostingWindows(targetUrl) {
+  const url = String(targetUrl || '').trim() || 'https://x.com/compose/post';
   try {
-    const res = await apiFetch(`${API}/auto-post/start`, {
+    const res = await apiFetch(`${API}/window/split-posting`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ draft_id: currentDraft.draft_id }),
+      body: JSON.stringify({
+        target_url: url,
+        preview_url: window.location.href,
+      }),
     });
     const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || '不明');
-    autoPostJob = data;
-    autoPostDraftId = currentDraft.draft_id;
-    renderAutoPostProgress(data);
-    setAutoPostButtonState(true);
-    showToast('自動投稿を開始しました');
-    autoPostTimer = setInterval(pollAutoPost, 2500);
+    if (!res.ok || !data.ok) throw new Error(data.error || '配置に失敗しました');
+    return true;
   } catch (e) {
-    showToast(`自動投稿開始失敗: ${e.message}`, true);
+    showToast(`ウィンドウ配置に失敗したため通常表示します: ${e.message}`, true);
+    window.open(url, '_blank');
+    return false;
   }
+}
+
+async function openXCompose(text, quoteUrl = '') {
+  const quote = String(quoteUrl || '').trim();
+  await arrangePostingWindows(quote || 'https://x.com/compose/post');
+}
+
+async function onPostClick(asQuote = false) {
+  if (!currentDraft) return;
+  currentDraft.postAsQuote = !!asQuote;
+  const quoteUrl = getQuoteTweetUrl();
+  await arrangePostingWindows(asQuote && quoteUrl ? quoteUrl : 'https://x.com/compose/post');
+  openThreadModal();
+}
+
+async function startAutoPost(asQuote = false, options = {}) {
+  showToast('自動投稿機能は無効化しました。Xを開いて手動で投稿してください。', true);
+  return;
 }
 
 async function pollAutoPost() {
@@ -1633,6 +2387,13 @@ async function pollAutoPost() {
     if (!res.ok || !data.ok) throw new Error(data.error || '不明');
     autoPostJob = data;
     renderAutoPostProgress(data);
+    maybeShowAgentPromptCopiedPopup(data);
+    if (data.status === 'pending_confirm') {
+      clearInterval(autoPostTimer);
+      autoPostTimer = null;
+      renderAutoPostConfirm(data);
+      return;
+    }
     if (data.status === 'completed') {
       clearInterval(autoPostTimer);
       autoPostTimer = null;
@@ -1653,16 +2414,26 @@ async function pollAutoPost() {
     clearInterval(autoPostTimer);
     autoPostTimer = null;
     setAutoPostButtonState(false);
+    maybeShowAgentPromptCopiedPopup(autoPostJob);
     autoPostDraftId = null;
     showToast(`自動投稿確認失敗: ${e.message}`, true);
   }
 }
 
-function setAutoPostButtonState(isRunning) {
-  const btn = document.getElementById('auto-post-btn');
-  if (!btn) return;
-  btn.disabled = !!isRunning;
-  btn.innerHTML = isRunning ? '<span>…</span> 自動投稿中' : '<span>▶</span> 自動投稿';
+function maybeShowAgentPromptCopiedPopup(job) {
+  if (!job?.agent_prompt_copied || !job.job_id || shownAgentPromptNotices.has(job.job_id)) return;
+  shownAgentPromptNotices.add(job.job_id);
+  showAgentPromptCopiedPopup(job.agent_prompt_notice, job.agent_prompt_text);
+}
+
+function setAutoPostButtonState(isRunning, asQuote = false) {
+  const normalBtn = document.getElementById('auto-post-btn');
+  const quoteBtn = document.getElementById('auto-quote-post-btn');
+  [normalBtn, quoteBtn].forEach(btn => {
+    if (btn) btn.disabled = !!isRunning;
+  });
+  if (normalBtn) normalBtn.innerHTML = isRunning && !asQuote ? '<span>…</span> 自動投稿中' : '<span>▶</span> 自動投稿';
+  if (quoteBtn) quoteBtn.innerHTML = isRunning && asQuote ? '<span>…</span> 引用自動投稿中' : '<span>▶</span> 引用自動投稿';
 }
 
 function renderAutoPostProgress(job) {
@@ -1688,6 +2459,101 @@ function renderAutoPostProgress(job) {
       <div class="image-generation-bar"><div style="width:${progress}%"></div></div>
       ${logBlock}
     </div>`;
+}
+
+async function sendAutoPostAnswer(answer) {
+  const job = autoPostJob;
+  if (!job?.job_id) return;
+  const slot = document.getElementById('auto-post-progress-slot');
+  if (slot) slot.innerHTML = '<div class="auto-post-progress"><span>処理中...</span></div>';
+  try {
+    const res = await apiFetch(`${API}/auto-post/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: job.job_id, answer }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '不明');
+    if (answer === 'confirm') {
+      autoPostTimer = setInterval(pollAutoPost, 2500);
+    } else {
+      setAutoPostButtonState(false);
+      autoPostDraftId = null;
+      showToast('投稿をキャンセルしました');
+    }
+  } catch (e) {
+    setAutoPostButtonState(false);
+    autoPostDraftId = null;
+    showToast(`エラー: ${e.message}`, true);
+  }
+}
+
+function renderAutoPostConfirm(job) {
+  const slot = document.getElementById('auto-post-progress-slot');
+  if (!slot) return;
+  const imgPath = job.confirm_screenshot || '';
+  const imgTag = imgPath
+    ? `<img src="/local-image?path=${encodeURIComponent(imgPath)}" style="width:100%;border-radius:8px;margin:8px 0;" alt="投稿プレビュー">`
+    : '';
+  slot.innerHTML = `
+    <div class="auto-post-progress">
+      <div class="image-generation-progress-top">
+        <span>📋 投稿内容を確認してください</span>
+      </div>
+      ${imgTag}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="cancel-btn" onclick="sendAutoPostAnswer('cancel')">キャンセル</button>
+        <button class="save-btn" style="flex:1" onclick="sendAutoPostAnswer('confirm')">✓ この内容で投稿する</button>
+      </div>
+    </div>`;
+}
+
+function showAgentPromptCopiedPopup(message, promptText = '') {
+  const existing = document.getElementById('agent-prompt-popup');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'agent-prompt-popup';
+  overlay.className = 'modal-overlay agent-prompt-overlay';
+  overlay.innerHTML = `
+    <div class="modal agent-prompt-modal" onclick="event.stopPropagation()">
+      <h3>改善指示をコピーしました</h3>
+      <p class="modal-msg">${esc(message || 'AIエージェントへの改善指示をクリップボードに保存しました。AIエージェントに指示をお願いします。')}</p>
+      <textarea class="agent-prompt-text" readonly>${esc(promptText || '')}</textarea>
+      <div class="modal-actions">
+        <button class="save-btn" onclick="document.getElementById('agent-prompt-popup')?.remove()">OK</button>
+      </div>
+    </div>`;
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+}
+
+function showChoiceModal({ title, message, primary, secondary = '', cancel = 'キャンセル' }) {
+  return new Promise(resolve => {
+    const existing = document.getElementById('choice-modal');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'choice-modal';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal choice-modal" onclick="event.stopPropagation()">
+        <h3>${esc(title || '確認')}</h3>
+        <p class="modal-msg">${esc(message || '')}</p>
+        <div class="modal-actions">
+          <button class="cancel-btn" data-choice="cancel">${esc(cancel)}</button>
+          ${secondary ? `<button class="btn-ghost" data-choice="secondary">${esc(secondary)}</button>` : ''}
+          <button class="save-btn" data-choice="primary">${esc(primary || 'OK')}</button>
+        </div>
+      </div>`;
+    const close = choice => {
+      overlay.remove();
+      resolve(choice);
+    };
+    overlay.onclick = () => close('cancel');
+    overlay.querySelectorAll('[data-choice]').forEach(button => {
+      button.addEventListener('click', () => close(button.dataset.choice || 'cancel'));
+    });
+    document.body.appendChild(overlay);
+  });
 }
 
 async function refreshDraftAfterAutoPost(draftId) {
@@ -1737,9 +2603,17 @@ function renderThreadStep() {
     `パート ${threadStep + 1} / ${parts.length}`;
   document.getElementById('thread-part-content').textContent = part.content;
   document.getElementById('thread-instruction').textContent = isFirst
-    ? '① 内容をコピーして X アプリで投稿してください'
+    ? (currentDraft.postAsQuote
+      ? '① 開いた元投稿で引用リツイートを押してから、この内容をコピーして貼り付けてください'
+      : '① X の投稿画面を開いて、この内容をコピーして貼り付けてください')
     : `② 前のツイートへの返信として投稿してください（パート ${threadStep + 1}）`;
-  document.getElementById('thread-open-btn').style.display = isFirst ? '' : 'none';
+  const copyImageBtn = document.getElementById('thread-copy-image-btn');
+  if (copyImageBtn) copyImageBtn.style.display = part.image_url ? '' : 'none';
+  const openBtn = document.getElementById('thread-open-btn');
+  openBtn.style.display = isFirst ? '' : 'none';
+  openBtn.innerHTML = currentDraft.postAsQuote
+    ? '<span>𝕏</span> 元投稿を開く'
+    : '<span>𝕏</span> X 投稿画面を開く';
   document.getElementById('thread-prev-btn').disabled = isFirst;
   document.getElementById('thread-next-btn').style.display = isLast ? 'none' : '';
   document.getElementById('thread-done-btn').style.display = isLast ? '' : 'none';
@@ -1747,16 +2621,26 @@ function renderThreadStep() {
 
 async function copyThreadPart() {
   const part = currentDraft.parts[threadStep];
+  const text = part.content;
   try {
-    await navigator.clipboard.writeText(part.content);
+    await navigator.clipboard.writeText(text);
     showToast('コピーしました');
   } catch {
     showToast('コピーに失敗しました', true);
   }
 }
 
-function openXForThread() {
-  openXCompose(currentDraft.parts[0].content);
+async function copyThreadImage() {
+  const part = currentDraft?.parts?.[threadStep];
+  if (!part?.image_url) {
+    showToast('このパートには画像がありません', true);
+    return;
+  }
+  await copyGeneratedImageFromUrl(part.image_url);
+}
+
+async function openXForThread() {
+  await openXCompose('', currentDraft.postAsQuote ? getQuoteTweetUrl() : '');
 }
 
 function prevThreadPart() {
@@ -1800,10 +2684,22 @@ async function notifyDiscord(mainContent) {
 
 async function saveToObsidian() {
   if (!currentDraft?.draft_id) return;
+  const draftId = String(currentDraft.draft_id);
+  if (savedObsidianDraftIds.has(draftId)) {
+    showToast('この下書きはこの画面で保存済みです');
+    return;
+  }
   const btn = document.getElementById('obsidian-save-btn');
+  const openBtn = document.getElementById('obsidian-open-btn');
+  const status = document.getElementById('obsidian-save-status');
+  let saved = false;
   if (btn) {
     btn.disabled = true;
     btn.textContent = '保存中…';
+  }
+  if (status) {
+    status.textContent = '保存しています…';
+    status.classList.remove('is-error');
   }
 
   try {
@@ -1814,16 +2710,46 @@ async function saveToObsidian() {
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '保存に失敗しました');
-    showToast(`✓ Obsidianに保存しました: ${data.relative_path || data.path}`);
-    if (data.obsidian_url) window.open(data.obsidian_url, '_blank');
+    saved = true;
+    const saveData = { saved: true, ...data };
+    lastObsidianSave = saveData;
+    savedObsidianDraftIds.add(draftId);
+    obsidianSaveByDraftId.set(draftId, saveData);
+    const listItem = allDrafts.find(item => String(item.draft_id) === draftId);
+    if (listItem) listItem.obsidian_save = saveData;
+    if (currentDraft && String(currentDraft.draft_id) === draftId) currentDraft.obsidian_save = saveData;
+    const savedPath = data.relative_path || data.path || '保存先不明';
+    showToast(`✓ Obsidianに保存しました: ${savedPath}`);
+    if (status) {
+      status.textContent = `保存済み: ${savedPath}`;
+      status.title = data.path || savedPath;
+      status.classList.remove('is-error');
+    }
+    if (openBtn) openBtn.hidden = !data.obsidian_url;
+    renderDraftList();
   } catch (e) {
     showToast(`Obsidian保存エラー: ${e.message}`, true);
+    if (status) {
+      status.textContent = `保存エラー: ${e.message}`;
+      status.classList.add('is-error');
+    }
   } finally {
     if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Obsidianへ保存';
+      btn.disabled = saved;
+      btn.textContent = saved ? '保存完了' : 'Obsidianへ保存';
+      btn.classList.toggle('is-saved', saved);
     }
   }
+}
+
+function openSavedObsidian() {
+  const draftId = currentDraft?.draft_id ? String(currentDraft.draft_id) : '';
+  const saved = (draftId && obsidianSaveByDraftId.get(draftId)) || lastObsidianSave;
+  if (!saved?.obsidian_url) {
+    showToast('先にObsidianへ保存してください', true);
+    return;
+  }
+  window.open(saved.obsidian_url, '_blank');
 }
 
 // ── ステータス変更（投稿済み ⇔ 未投稿） ─────────────
@@ -1932,12 +2858,17 @@ function startEdit(partId) {
   actions.className  = 'edit-actions';
 
   const saveBtn = document.createElement('button');
-  saveBtn.className  = 'save-btn';
+  saveBtn.type      = 'button';
+  saveBtn.className = 'save-btn';
   saveBtn.textContent = '保存';
-  saveBtn.onclick    = () => saveEdit(partId, textarea.value, originalContent);
+  saveBtn.onclick    = () => {
+    // クリックした瞬間の値を取得
+    saveEdit(partId, textarea.value, originalContent);
+  };
 
   const cancelBtn = document.createElement('button');
-  cancelBtn.className  = 'cancel-btn';
+  cancelBtn.type      = 'button';
+  cancelBtn.className = 'cancel-btn';
   cancelBtn.textContent = 'キャンセル';
   cancelBtn.onclick    = () => cancelEdit(partId, originalContent);
 
@@ -1964,14 +2895,20 @@ async function saveEdit(partId, newContent, originalContent) {
     if (!data.ok) throw new Error(data.error || '不明');
 
     // ローカルキャッシュ更新
-    if (currentDraft) {
+    if (currentDraft && currentDraft.parts) {
       const part = currentDraft.parts.find(p => p.part_id === partId);
       if (part) part.content = newContent;
-      // allDrafts のプレビュー文字列も更新
-      const d = allDrafts.find(d => d.draft_id === currentDraft.draft_id);
+
+      // 一覧キャッシュ (allDrafts) も更新して、サイドバーの表示を即座に変える
+      const d = allDrafts.find(item => item.draft_id === currentDraft.draft_id);
       if (d) {
-        const dp = d.parts.find(p => p.part_id === partId);
-        if (dp) dp.content = newContent;
+        // プレビュー文字列を更新
+        d.preview_content = newContent;
+        // もしパーツデータがあればそれも更新
+        if (d.parts) {
+          const dp = d.parts.find(p => p.part_id === partId);
+          if (dp) dp.content = newContent;
+        }
       }
     }
 

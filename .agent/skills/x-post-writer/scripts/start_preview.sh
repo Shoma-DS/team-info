@@ -52,15 +52,15 @@ export LT_PUBLIC_URL="${PUBLIC_URL}"
 python3 "$SCRIPT_DIR/preview_server.py" &
 SERVER_PID=$!
 
-# サーバーが実際に起動するまで最大5秒待機
-for i in $(seq 1 5); do
+# サーバーが実際に起動するまで最大20秒待機
+for i in $(seq 1 20); do
   sleep 1
   if lsof -ti tcp:${PORT} >/dev/null 2>&1; then
     echo "✅ プレビューサーバー起動: http://localhost:${PORT}"
     break
   fi
-  if [ "$i" -eq 5 ]; then
-    echo "❌ サーバーの起動に失敗しました (5秒タイムアウト)"
+  if [ "$i" -eq 20 ]; then
+    echo "❌ サーバーの起動に失敗しました (20秒タイムアウト)"
     kill "$NGROK_PID" 2>/dev/null || true
     exit 1
   fi

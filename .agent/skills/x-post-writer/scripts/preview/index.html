@@ -16,8 +16,13 @@
       <div class="sidebar-header">
         <div class="x-logo">𝕏</div>
         <span class="sidebar-title">DRAFTS</span>
-        <button id="auth-btn" class="refresh-btn account-switch-btn" onclick="handleAuthClick()" title="Googleログイン">G</button>
-        <button class="refresh-btn account-switch-btn" onclick="openAccountModal()" title="アカウント変更">👤</button>
+        <button id="auth-btn" class="refresh-btn account-switch-btn google-auth-btn" onclick="handleAuthClick()" title="Googleログイン">
+          <span class="google-g" aria-hidden="true">G</span>
+        </button>
+        <button id="logout-btn" class="refresh-btn account-switch-btn logout-btn" onclick="handleLogoutClick()" title="ログアウト" style="display:none">↩</button>
+        <button id="header-account-btn" class="refresh-btn account-switch-btn header-account-btn" onclick="openAccountModal()" title="アカウント変更">
+          <span class="avatar-sm" id="header-account-avatar">👤</span>
+        </button>
         <button class="refresh-btn account-switch-btn" onclick="openEnvSettingsModal()" title="設定">⚙</button>
         <button id="refresh-btn" class="refresh-btn" onclick="loadDraftList()" title="一覧を更新">↻</button>
       </div>
@@ -87,6 +92,7 @@
       <div id="thread-part-content" class="thread-part-content"></div>
       <div class="thread-modal-actions">
         <button class="btn-ghost thread-copy-btn" onclick="copyThreadPart()">コピー</button>
+        <button class="btn-ghost thread-copy-image-btn" id="thread-copy-image-btn" onclick="copyThreadImage()">画像をコピー</button>
         <button id="thread-open-btn" class="post-btn thread-open-btn" onclick="openXForThread()">
           <span>𝕏</span> X アプリで開く
         </button>

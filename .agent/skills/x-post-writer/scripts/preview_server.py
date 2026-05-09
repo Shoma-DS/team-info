@@ -17,13 +17,14 @@ import select
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import urllib.request
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs, quote as urlquote, urlencode
+from urllib.parse import urlparse, parse_qs, quote as urlquote, urlencode, unquote, urljoin
 from http.cookies import SimpleCookie
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -43,7 +44,9 @@ BOOKMARKS_FILE = Path(__file__).parent / "bookmarks_latest.json"
 REPO_ROOT = Path(__file__).resolve().parents[4]
 ENV_PATH = REPO_ROOT / ".env"
 ACCOUNTS_CONFIG_PATH = Path(__file__).parent / "accounts_config.json"
+ACCOUNT_INFO_DIR = Path(__file__).parent.parent / "accounts"
 LOGO_PRESETS_PATH = Path(__file__).parent / "logo_presets.json"
+PLAYWRIGHT_AUTO_POST_SCRIPT = Path(__file__).parent / "x_auto_post_playwright.mjs"
 ENV_SETTINGS_ALLOWED_EXACT = {"DISCORD_WEBHOOK_X_DRAFT", "NEON_DATABASE_URL"}
 ENV_SETTINGS_ALLOWED_PREFIXES = ("X_", "NEON_")
 AUTH_SESSION_COOKIE = "x_draft_session"
@@ -98,9 +101,30 @@ OBSIDIAN_VAULT_ENV_KEYS = ("X_POST_OBSIDIAN_VAULT", "OBSIDIAN_VAULT_PATH")
 _oauth2_pending: dict = {}
 _image_generation_jobs: dict[str, dict] = {}
 _image_generation_lock = threading.Lock()
+_image_generation_processes: dict[str, subprocess.Popen] = {}
+_image_rewrite_jobs: dict[str, dict] = {}
+_image_rewrite_lock = threading.Lock()
+_image_rewrite_processes: dict[str, subprocess.Popen] = {}
 _auto_post_jobs: dict[str, dict] = {}
+
+
+def image_generation_output_dir() -> Path:
+    return Path(os.environ.get("TEAM_INFO_ROOT", REPO_ROOT)) / "personal" / "deguchishouma" / "outputs" / "x-post-images"
+
+
+def image_generation_search_roots() -> list[Path]:
+    return [
+        Path.home() / ".codex" / "generated_images",
+        image_generation_output_dir(),
+    ]
+
+
+def logo_cache_dir() -> Path:
+    return image_generation_output_dir() / "logos"
 _auto_post_lock = threading.Lock()
 IMAGEGEN_SKILL_PATH = Path.home() / ".codex" / "skills" / ".system" / "imagegen" / "SKILL.md"
+IMAGE_GENERATION_STALL_SECONDS = 75
+IMAGE_GENERATION_MAX_SECONDS = 300
 DEFAULT_CHARACTER_TRAITS = (
     "半目、眠そうな表情、舌を少し出す、頬杖、黒い短髪、黒いスーツ、"
     "白シャツ、赤ネクタイ、気だるい表情"
@@ -320,9 +344,10 @@ def save_user_settings(user_id: str, updates: dict[str, str]) -> dict:
     return {"updated_keys": sorted(str(k).strip() for k in updates)}
 
 
-def fetch_drafts(account: str = "", *, limit: int = 20, offset: int = 0, query: str = ""):
+def fetch_drafts(account: str = "", *, limit: int = 20, offset: int = 0, query: str = "", image_filter: str = ""):
     limit = max(1, min(int(limit or 20), 100))
     offset = max(0, int(offset or 0))
+    image_filter = (image_filter or "").strip().lower()
     conn = get_db_conn()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -346,6 +371,24 @@ def fetch_drafts(account: str = "", *, limit: int = 20, offset: int = 0, query: 
                     )
                 """)
                 params.extend([like, like, like, like])
+            if image_filter == "yes":
+                where_parts.append("""
+                    EXISTS (
+                        SELECT 1
+                        FROM draft_parts ip
+                        WHERE ip.draft_id = d.draft_id
+                          AND COALESCE(ip.image_url, '') <> ''
+                    )
+                """)
+            elif image_filter == "no":
+                where_parts.append("""
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM draft_parts ip
+                        WHERE ip.draft_id = d.draft_id
+                          AND COALESCE(ip.image_url, '') <> ''
+                    )
+                """)
             where = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
 
             cur.execute(f"""
@@ -385,10 +428,12 @@ def fetch_drafts(account: str = "", *, limit: int = 20, offset: int = 0, query: 
                 LIMIT %s OFFSET %s
             """, tuple([*params, limit, offset]))
             drafts = cur.fetchall()
+            obsidian_saved_index = get_obsidian_saved_draft_index()
             result = []
             for draft in drafts:
+                draft_id = str(draft["draft_id"])
                 result.append({
-                    "draft_id": str(draft["draft_id"]),
+                    "draft_id": draft_id,
                     "x_username": draft["x_username"],
                     "display_name": draft["display_name"] or draft["x_username"],
                     "profile_image_url": draft["profile_image_url"] or "",
@@ -399,6 +444,7 @@ def fetch_drafts(account: str = "", *, limit: int = 20, offset: int = 0, query: 
                     "preview_content": draft["preview_content"] or "",
                     "created_at": draft["created_at"].strftime("%Y-%m-%d %H:%M"),
                     "published_at": draft["published_at"].strftime("%Y-%m-%d %H:%M") if draft["published_at"] else None,
+                    "obsidian_save": obsidian_saved_index.get(draft_id, {"saved": False}),
                 })
             return {
                 "items": result,
@@ -591,6 +637,7 @@ def fetch_draft(draft_id):
                 "character_reference": metadata.get("character_reference") or {},
                 "character_setting": character_setting,
                 "original_tweet": _load_original_tweet(str(draft["draft_id"])),
+                "obsidian_save": get_obsidian_save_state(str(draft["draft_id"])),
             }
     finally:
         conn.close()
@@ -699,15 +746,190 @@ def _git_account_slug() -> str:
 
 
 def get_obsidian_vault_path() -> Path:
+    invalid_env_paths: list[Path] = []
     for key in OBSIDIAN_VAULT_ENV_KEYS:
         value = os.environ.get(key, "").strip()
         if value:
-            return Path(value).expanduser()
-    return REPO_ROOT / "personal" / _git_account_slug() / "obsidian" / "claude-obsidian"
+            candidate = Path(value).expanduser()
+            if candidate.exists() and (candidate / ".obsidian").exists():
+                return candidate
+            invalid_env_paths.append(candidate)
+
+    personal_root = REPO_ROOT / "personal"
+    candidates: list[Path] = [
+        personal_root / _git_account_slug() / "obsidian" / "claude-obsidian",
+        personal_root / "deguchishouma" / "obsidian" / "claude-obsidian",
+    ]
+    if personal_root.exists():
+        candidates.extend(
+            account / "obsidian" / "claude-obsidian"
+            for account in sorted(personal_root.iterdir())
+            if account.is_dir()
+        )
+
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = str(candidate)
+        if key in seen:
+            continue
+        seen.add(key)
+        if candidate.exists() and (candidate / ".obsidian").exists():
+            return candidate
+
+    return invalid_env_paths[0] if invalid_env_paths else candidates[0]
+
+
+def get_obsidian_registered_vault_paths() -> list[Path]:
+    config_path = Path.home() / "Library" / "Application Support" / "obsidian" / "obsidian.json"
+    if not config_path.exists():
+        return []
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    paths: list[Path] = []
+    seen: set[str] = set()
+    for entry in (data.get("vaults") or {}).values():
+        raw_path = entry.get("path") if isinstance(entry, dict) else ""
+        if not raw_path:
+            continue
+        candidate = Path(raw_path).expanduser()
+        try:
+            resolved = candidate.resolve()
+        except Exception:
+            resolved = candidate
+        key = str(resolved)
+        if key in seen or not candidate.exists():
+            continue
+        seen.add(key)
+        paths.append(candidate)
+    return paths
+
+
+def build_obsidian_open_url(note_path: Path, preferred_vault: Path) -> tuple[str, Path, str]:
+    note_resolved = note_path.resolve()
+    registered_matches: list[tuple[int, Path, Path]] = []
+    for vault_path in get_obsidian_registered_vault_paths():
+        try:
+            vault_resolved = vault_path.resolve()
+            relative = note_resolved.relative_to(vault_resolved)
+        except Exception:
+            continue
+        registered_matches.append((len(vault_resolved.parts), vault_path, relative))
+
+    if registered_matches:
+        _, open_vault, relative = sorted(registered_matches, key=lambda item: item[0], reverse=True)[0]
+        obsidian_url = "obsidian://open?" + urlencode(
+            {"vault": open_vault.name, "file": relative.as_posix()}
+        )
+        return obsidian_url, open_vault, relative.as_posix()
+
+    try:
+        fallback_relative = note_path.relative_to(preferred_vault).as_posix()
+    except ValueError:
+        fallback_relative = note_path.name
+    obsidian_url = "obsidian://open?" + urlencode({"path": str(note_path)})
+    return obsidian_url, preferred_vault, fallback_relative
+
+
+def find_obsidian_note_path_by_draft_id(draft_id: str, vault: Path | None = None) -> Path | None:
+    try:
+        target_vault = vault or get_obsidian_vault_path()
+    except Exception:
+        return None
+    note_dir = target_vault / "wiki" / "sources" / "x-posts"
+    if not note_dir.exists():
+        return None
+
+    escaped_id = re.escape(str(draft_id))
+    patterns = [
+        re.compile(rf'(?m)^draft_id:\s*"{escaped_id}"\s*$'),
+        re.compile(rf"(?m)^draft_id:\s*'{escaped_id}'\s*$"),
+        re.compile(rf"(?m)^draft_id:\s*{escaped_id}\s*$"),
+    ]
+    try:
+        note_paths = sorted(note_dir.glob("*.md"), key=lambda path: path.stat().st_mtime, reverse=True)
+    except Exception:
+        note_paths = list(note_dir.glob("*.md"))
+    for note_path in note_paths:
+        try:
+            text = note_path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if any(pattern.search(text) for pattern in patterns):
+            return note_path
+    return None
+
+
+def _obsidian_note_save_state(note_path: Path, vault: Path) -> dict:
+    relative = note_path.relative_to(vault)
+    obsidian_url, open_vault, open_relative = build_obsidian_open_url(note_path, vault)
+    return {
+        "saved": True,
+        "path": str(note_path),
+        "vault": str(vault),
+        "open_vault": str(open_vault),
+        "relative_path": relative.as_posix(),
+        "open_relative_path": open_relative,
+        "obsidian_url": obsidian_url,
+    }
+
+
+def get_obsidian_save_state(draft_id: str) -> dict:
+    try:
+        vault = get_obsidian_vault_path()
+        note_path = find_obsidian_note_path_by_draft_id(draft_id, vault=vault)
+        if not note_path:
+            return {"saved": False}
+        return _obsidian_note_save_state(note_path, vault)
+    except Exception as exc:
+        return {"saved": False, "error": str(exc)}
+
+
+def get_obsidian_saved_draft_index() -> dict[str, dict]:
+    try:
+        vault = get_obsidian_vault_path()
+    except Exception:
+        return {}
+    note_dir = vault / "wiki" / "sources" / "x-posts"
+    if not note_dir.exists():
+        return {}
+
+    draft_id_pattern = re.compile(r'(?m)^draft_id:\s*["\']?([^"\'\n]+)["\']?\s*$')
+    saved: dict[str, dict] = {}
+    try:
+        note_paths = sorted(note_dir.glob("*.md"), key=lambda path: path.stat().st_mtime, reverse=True)
+    except Exception:
+        note_paths = list(note_dir.glob("*.md"))
+    for note_path in note_paths:
+        try:
+            text = note_path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        match = draft_id_pattern.search(text)
+        if not match:
+            continue
+        draft_id = match.group(1).strip()
+        if draft_id and draft_id not in saved:
+            try:
+                saved[draft_id] = _obsidian_note_save_state(note_path, vault)
+            except Exception:
+                continue
+    return saved
 
 
 def _yaml_quote(value: str) -> str:
     return '"' + str(value or "").replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _yaml_key_list(key: str, values: list[str]) -> str:
+    clean_values = [str(value).strip() for value in values if str(value).strip()]
+    if not clean_values:
+        return f"{key}: []"
+    lines = [f"{key}:"]
+    lines.extend(f"  - {_yaml_quote(value)}" for value in clean_values)
+    return "\n".join(lines)
 
 
 def _markdown_list(items: list[str]) -> str:
@@ -715,6 +937,154 @@ def _markdown_list(items: list[str]) -> str:
     if not clean_items:
         return "- なし"
     return "\n".join(f"- {item}" for item in clean_items)
+
+
+KNOWLEDGE_CONCEPT_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("AIエージェント", ("AIエージェント", "AIエージェント")),
+    ("AIリライト", ("AIリライト", "リライト")),
+    ("画像生成AI", ("画像生成AI", "画像生成")),
+    ("自動投稿", ("自動投稿", "投稿自動化")),
+    ("引用投稿", ("引用投稿", "引用リツイート")),
+    ("ナレッジグラフ", ("ナレッジグラフ", "knowledge graph")),
+    ("開発ツール", ("開発ツール", "コーディングツール")),
+    ("買い切りツール", ("買い切り", "買い切りツール")),
+    ("サブスクリプション", ("サブスク", "月額課金", "subscription")),
+    ("コード理解", ("コードの意味", "コードを読む", "構造を読む", "コード理解")),
+    ("ドキュメント", ("README", "ドキュメント", "Code Wiki")),
+    ("フォルダ構造", ("フォルダ構造", "フォルダ名")),
+    ("Obsidian", ("Obsidian", "obsidian")),
+    ("GitHub", ("GitHub", "github")),
+    ("ChatGPT", ("ChatGPT", "chatgpt")),
+    ("Claude", ("Claude", "claude")),
+    ("Codex", ("Codex", "codex")),
+    ("OpenClaw", ("OpenClaw", "openclaw")),
+    ("Playwright", ("Playwright", "playwright")),
+    ("Google Drive", ("Google Drive", "GoogleDrive", "グーグルドライブ")),
+    ("1Password", ("1Password", "1password")),
+    ("Keychain", ("Keychain", "キーチェーン")),
+    ("MCP", ("MCP", "mcp")),
+    ("Unity", ("Unity", "unity")),
+    ("Blender", ("Blender", "blender")),
+    ("BOOTH", ("BOOTH", "booth.pm")),
+    ("Synaptic Code", ("Synaptic Code",)),
+)
+
+KNOWLEDGE_ENGLISH_STOPWORDS = {
+    "Post",
+    "Drafts",
+    "Reply",
+    "Everyone",
+    "URL",
+    "HTTP",
+    "HTTPS",
+    "GUI",
+    "CTA",
+}
+
+
+def _wikilink(target: str) -> str:
+    safe_target = str(target or "").strip().replace("|", "｜")
+    return f"[[{safe_target}]]"
+
+
+def _dedupe_keep_order(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        clean = str(value or "").strip()
+        if not clean or clean in seen:
+            continue
+        seen.add(clean)
+        result.append(clean)
+    return result
+
+
+def _draft_knowledge_text(draft: dict) -> str:
+    values: list[str] = []
+    values.append(str(draft.get("memo") or ""))
+    for part in draft.get("parts") or []:
+        values.append(str(part.get("content") or ""))
+        values.append(str(part.get("image_url") or ""))
+    original = draft.get("original_tweet") or {}
+    values.append(str(original.get("text") or ""))
+    values.append(str(original.get("tweet_url") or ""))
+    for url in original.get("urls") or []:
+        values.append(str(url or ""))
+    for part in original.get("thread_parts") or []:
+        values.append(str(part.get("text") or ""))
+        values.append(str(part.get("tweet_url") or ""))
+    for prompt in draft.get("image_prompts") or []:
+        values.append(str(prompt.get("copy") or ""))
+        values.append(str(prompt.get("prompt") or ""))
+    return "\n".join(values)
+
+
+def _extract_knowledge_graph_nodes(draft: dict) -> dict[str, list[str]]:
+    corpus = _draft_knowledge_text(draft)
+    original = draft.get("original_tweet") or {}
+    account_usernames = {
+        str(draft.get("x_username") or "").lower(),
+        str(original.get("author_username") or "").lower(),
+    }
+    account_usernames.discard("")
+    concepts: list[str] = []
+    for concept, needles in KNOWLEDGE_CONCEPT_PATTERNS:
+        if any(needle.lower() in corpus.lower() for needle in needles):
+            concepts.append(concept)
+
+    for match in re.finditer(r"\b[A-Za-z][A-Za-z0-9+#.-]*(?:\s+[A-Z][A-Za-z0-9+#.-]*){0,2}\b", corpus):
+        term = match.group(0).strip(" .,:;!?()[]{}")
+        if len(term) < 3 or term in KNOWLEDGE_ENGLISH_STOPWORDS:
+            continue
+        if term.lower() in {"https", "http", "com", "www"}:
+            continue
+        if term.lower() in account_usernames:
+            continue
+        if any(ch.isupper() for ch in term) or " " in term or any(ch.isdigit() for ch in term):
+            concepts.append(term)
+
+    hashtags = [
+        f"ハッシュタグ/{match.group(1)}"
+        for match in re.finditer(r"#([0-9A-Za-z_ぁ-んァ-ヶ一-龠ー]+)", corpus)
+    ]
+
+    domains: list[str] = []
+    for raw_url in re.findall(r"https?://[^\s)>\"]+", corpus):
+        try:
+            hostname = urlparse(raw_url).netloc.lower()
+        except Exception:
+            hostname = ""
+        if hostname:
+            domains.append(f"Webドメイン/{hostname.removeprefix('www.')}")
+
+    account_nodes = []
+    if draft.get("x_username"):
+        account_nodes.append(f"X/@{draft['x_username']}")
+    if original.get("author_username"):
+        account_nodes.append(f"X/@{original['author_username']}")
+
+    base_nodes = ["X投稿", "投稿テンプレート"]
+    concepts = _dedupe_keep_order(concepts)
+    concepts = [
+        concept
+        for concept in concepts
+        if not any(
+            concept != other and concept.lower() in other.lower()
+            for other in concepts
+        )
+    ][:16]
+    domains = _dedupe_keep_order(domains)[:8]
+    hashtags = _dedupe_keep_order(hashtags)[:8]
+    accounts = _dedupe_keep_order(account_nodes)
+    node_targets = _dedupe_keep_order(base_nodes + accounts + concepts + domains + hashtags)
+    return {
+        "concepts": concepts,
+        "domains": domains,
+        "hashtags": hashtags,
+        "accounts": accounts,
+        "node_targets": node_targets,
+        "node_links": [_wikilink(target) for target in node_targets],
+    }
 
 
 def _draft_markdown_parts(parts: list[dict]) -> str:
@@ -770,7 +1140,7 @@ def save_draft_to_obsidian(draft_id: str) -> dict:
     filename = f"{created_date}-x-{slugify(title_seed, str(draft_id))[:64]}.md"
     note_dir = vault / "wiki" / "sources" / "x-posts"
     note_dir.mkdir(parents=True, exist_ok=True)
-    note_path = note_dir / filename
+    note_path = find_obsidian_note_path_by_draft_id(str(draft_id), vault=vault) or note_dir / filename
 
     original = draft.get("original_tweet") or {}
     source_url = original.get("tweet_url") or ""
@@ -779,6 +1149,16 @@ def save_draft_to_obsidian(draft_id: str) -> dict:
     source_account = original.get("author_username")
     source_link = f"[[X/@{source_account}]]" if source_account else ""
     image_prompts = draft.get("image_prompts") or []
+    knowledge_graph = _extract_knowledge_graph_nodes(draft)
+    frontmatter_graph = "\n".join(
+        [
+            _yaml_key_list("related_nodes", knowledge_graph["node_links"]),
+            _yaml_key_list("concepts", knowledge_graph["concepts"]),
+            _yaml_key_list("domains", knowledge_graph["domains"]),
+        ]
+    )
+    graph_links_line = " ".join(knowledge_graph["node_links"][:18])
+    graph_node_list = _markdown_list(knowledge_graph["node_links"])
 
     body = f"""---
 type: x-post-knowledge
@@ -788,6 +1168,7 @@ x_username: {_yaml_quote(draft.get("x_username") or "")}
 status: {_yaml_quote(draft.get("status") or "")}
 created_at: {_yaml_quote(draft.get("created_at") or "")}
 source_url: {_yaml_quote(source_url)}
+{frontmatter_graph}
 tags:
   - x-post
   - knowledge-seed
@@ -796,7 +1177,11 @@ tags:
 
 # X投稿ナレッジ: {draft.get("memo") or first_text[:48] or draft_id}
 
-関連: [[X投稿]] [[投稿テンプレート]] {account_link}{(" " + source_link) if source_link else ""}
+関連: {graph_links_line or f"[[X投稿]] [[投稿テンプレート]] {account_link}{(' ' + source_link) if source_link else ''}"}
+
+## 関連ノード
+
+{graph_node_list}
 
 ## なぜ保存したか
 
@@ -843,15 +1228,92 @@ tags:
         note_path.write_text(body, encoding="utf-8")
 
     relative = note_path.relative_to(vault)
-    obsidian_url = (
-        "obsidian://open?"
-        f"vault={urlquote(vault.name, safe='')}&file={urlquote(relative.as_posix(), safe='')}"
-    )
+    obsidian_url, open_vault, open_relative = build_obsidian_open_url(note_path, vault)
     return {
         "path": str(note_path),
         "vault": str(vault),
+        "open_vault": str(open_vault),
         "relative_path": relative.as_posix(),
+        "open_relative_path": open_relative,
         "obsidian_url": obsidian_url,
+    }
+
+
+def arrange_posting_windows(target_url: str, preview_url: str = "") -> dict:
+    clean_target = (target_url or "").strip() or "https://x.com/compose/post"
+    parsed = urlparse(clean_target)
+    allowed_hosts = {"x.com", "twitter.com", "www.x.com", "www.twitter.com"}
+    if parsed.scheme not in {"http", "https"} or parsed.netloc.lower() not in allowed_hosts:
+        raise ValueError("X のURLだけ開けます")
+    if sys.platform != "darwin":
+        raise RuntimeError("ウィンドウ自動配置はmacOSのみ対応です")
+
+    preview_needles = [
+        (preview_url or "").strip(),
+        f"http://localhost:{PORT}",
+        f"http://127.0.0.1:{PORT}",
+        PUBLIC_URL,
+    ]
+    preview_needles = [value for value in preview_needles if value]
+
+    script = r'''
+on run argv
+  set targetUrl to item 1 of argv
+  set previewNeedlesRaw to item 2 of argv
+  set AppleScript's text item delimiters to "|||"
+  set previewNeedles to text items of previewNeedlesRaw
+  set AppleScript's text item delimiters to ""
+
+  tell application "Finder"
+    set desktopBounds to bounds of window of desktop
+  end tell
+  set screenLeft to item 1 of desktopBounds
+  set screenTop to item 2 of desktopBounds
+  set screenRight to item 3 of desktopBounds
+  set screenBottom to item 4 of desktopBounds
+  set midX to screenLeft + ((screenRight - screenLeft) div 2)
+
+  tell application "Google Chrome"
+    activate
+    set previewWindow to missing value
+    repeat with w in windows
+      repeat with t in tabs of w
+        set tabUrl to URL of t as text
+        repeat with needle in previewNeedles
+          set needleText to needle as text
+          if needleText is not "" and tabUrl starts with needleText then
+            set previewWindow to w
+            exit repeat
+          end if
+        end repeat
+        if previewWindow is not missing value then exit repeat
+      end repeat
+      if previewWindow is not missing value then exit repeat
+    end repeat
+
+    set xWindow to make new window
+    set URL of active tab of xWindow to targetUrl
+    delay 0.8
+
+    if previewWindow is not missing value then
+      set bounds of previewWindow to {screenLeft, screenTop, midX, screenBottom}
+    end if
+    set bounds of xWindow to {midX, screenTop, screenRight, screenBottom}
+    return "ok"
+  end tell
+end run
+'''
+
+    subprocess.run(
+        ["osascript", "-e", script, clean_target, "|||".join(preview_needles)],
+        text=True,
+        capture_output=True,
+        timeout=10,
+        check=True,
+    )
+    return {
+        "target_url": clean_target,
+        "preview_needles": preview_needles,
     }
 
 
@@ -1042,6 +1504,9 @@ def rewrite_image_prompt_with_codex(
     instruction: str,
     copy_text: str,
     character_reference_url: str = "",
+    status_callback=None,
+    should_stop=None,
+    process_callback=None,
 ) -> str:
     codex_path = shutil.which("codex")
     if not codex_path:
@@ -1071,7 +1536,61 @@ draft_id: {draft_id}
 """.strip()
 
     repo_root = Path(__file__).resolve().parents[4]
-    return run_codex_app_server_turn(codex_path, repo_root, prompt)
+    return run_codex_app_server_turn(
+        codex_path,
+        repo_root,
+        prompt,
+        status_callback=status_callback,
+        should_stop=should_stop,
+        process_callback=process_callback,
+    )
+
+
+def _normalize_x_handle(value: str) -> str:
+    return re.sub(r"[^a-z0-9_]", "", (value or "").lower().lstrip("@"))
+
+
+def find_account_info_file(x_username: str) -> Path | None:
+    wanted = _normalize_x_handle(x_username)
+    if not wanted or not ACCOUNT_INFO_DIR.exists():
+        return None
+    md_files = sorted(ACCOUNT_INFO_DIR.rglob("*.md"))
+    for path in md_files:
+        if _normalize_x_handle(path.stem) == wanted:
+            return path
+    handle_pattern = re.compile(rf"@{re.escape(wanted)}\b", re.IGNORECASE)
+    for path in md_files:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if handle_pattern.search(text):
+            return path
+    return None
+
+
+def append_rewrite_preference_to_account(draft_id: str, instruction: str) -> Path:
+    draft = fetch_draft(draft_id)
+    if not draft:
+        raise RuntimeError("下書きが見つかりません")
+    account_path = find_account_info_file(draft.get("x_username") or "")
+    if not account_path:
+        raise RuntimeError(f"@{draft.get('x_username') or 'unknown'} のアカウント情報ファイルが見つかりません")
+
+    cleaned_instruction = re.sub(r"\s+", " ", (instruction or "").strip())
+    if not cleaned_instruction:
+        cleaned_instruction = "画像プロンプトは、スマホ表示で読みやすく、文字量を抑え、結論と視認性を優先する。"
+    now = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M")
+    section = "## AIリライト時の継続注意"
+    entry = f"- {now} / draft_id: {draft_id} / 今後も画像プロンプトのAIリライトでは「{cleaned_instruction}」を優先する。"
+
+    text = account_path.read_text(encoding="utf-8") if account_path.exists() else ""
+    if section not in text:
+        text = text.rstrip() + f"\n\n{section}\n\n{entry}\n"
+    else:
+        text = text.rstrip() + f"\n{entry}\n"
+    account_path.write_text(text, encoding="utf-8")
+    return account_path
 
 
 def run_codex_app_server_turn(
@@ -1085,7 +1604,9 @@ def run_codex_app_server_turn(
     input_items: list[dict] | None = None,
     status_callback=None,
     should_stop=None,
+    process_callback=None,
     allow_empty_result: bool = False,
+    wait_for_turn_completed: bool = False,
 ) -> str:
     """Codex App Server の JSONL プロトコルで1ターン実行し、最終テキストを返す。"""
     proc = subprocess.Popen(
@@ -1102,6 +1623,8 @@ def run_codex_app_server_turn(
         text=True,
         bufsize=1,
     )
+    if process_callback:
+        process_callback(proc)
     assert proc.stdin is not None
     assert proc.stdout is not None
 
@@ -1146,11 +1669,17 @@ def run_codex_app_server_turn(
             },
         )
         send("initialized", request=False)
+        sandbox_type = (sandbox_policy or {}).get("type") if isinstance(sandbox_policy, dict) else None
+        thread_sandbox = {
+            "readOnly": "read-only",
+            "workspaceWrite": "workspace-write",
+            "dangerFullAccess": "danger-full-access",
+        }.get(sandbox_type or "readOnly", "read-only")
         thread_id_request = send(
             "thread/start",
             {
                 "cwd": str(cwd),
-                "sandbox": "read-only",
+                "sandbox": thread_sandbox,
                 "approvalPolicy": "never",
                 "developerInstructions": (
                     developer_instructions
@@ -1165,12 +1694,20 @@ def run_codex_app_server_turn(
         turn_started = False
         chunks: list[str] = []
         completed_texts: list[str] = []
+        completed_text_at: float | None = None
 
         while time.monotonic() < deadline:
             if should_stop and should_stop():
                 return ""
             ready, _, _ = select.select([proc.stdout], [], [], 0.2)
             if not ready:
+                if (
+                    not wait_for_turn_completed
+                    and completed_texts
+                    and completed_text_at
+                    and time.monotonic() - completed_text_at >= 1.5
+                ):
+                    break
                 if proc.poll() is not None:
                     break
                 continue
@@ -1217,9 +1754,14 @@ def run_codex_app_server_turn(
                 item = params.get("item") or {}
                 if item.get("type") == "agentMessage" and item.get("text"):
                     completed_texts.append(item["text"])
+                    completed_text_at = time.monotonic()
                 if status_callback:
                     status_callback(method, params)
             elif method == "turn/completed" and turn_started:
+                if status_callback:
+                    status_callback(method, params)
+                break
+            elif method == "thread/status/changed" and completed_texts and not wait_for_turn_completed:
                 if status_callback:
                     status_callback(method, params)
                 break
@@ -1240,6 +1782,8 @@ def run_codex_app_server_turn(
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
+        if process_callback:
+            process_callback(None)
 
     rewritten = ("".join(chunks).strip() or "\n".join(completed_texts).strip())
     if rewritten.startswith("```"):
@@ -1395,18 +1939,27 @@ def _normalize_logo_text(text: str) -> str:
     return re.sub(r"\s+", " ", str(text or "").lower())
 
 
-def detect_logo_references(*texts: str, user_id: str | None = None) -> list[dict]:
+def _normalize_logo_name(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(name or "").lower())
+
+
+def detect_logo_references(*texts: str, user_id: str | None = None, selected_names: list[str] | None = None) -> list[dict]:
     haystack = _normalize_logo_text("\n".join(texts))
     detected: list[dict] = []
     seen: set[str] = set()
+    selected_set = {_normalize_logo_name(name) for name in (selected_names or []) if str(name).strip()}
     for preset in load_logo_presets(user_id):
         name = str(preset.get("name") or "").strip()
+        if selected_names is not None and _normalize_logo_name(name) not in selected_set:
+            continue
         aliases = [name, *preset.get("aliases", [])]
         matched = [
             str(alias).strip()
             for alias in aliases
             if str(alias).strip() and _normalize_logo_text(str(alias)) in haystack
         ]
+        if selected_names is not None and _normalize_logo_name(name) in selected_set and not matched:
+            matched = [name]
         if not name or not matched:
             continue
         key = name.lower()
@@ -1417,14 +1970,349 @@ def detect_logo_references(*texts: str, user_id: str | None = None) -> list[dict
     return detected[:6]
 
 
+LOGO_CANDIDATE_STOPWORDS = {
+    "ai", "api", "url", "x", "sns", "png", "jpg", "jpeg", "webp", "svg", "ui", "ux",
+    "react", "javascript", "typescript", "html", "css", "json", "github", "openai",
+    "chatgpt", "claude", "anthropic", "codex", "youtube", "google", "web", "ec",
+}
+
+
+def extract_logo_candidate_names(*texts: str, user_id: str | None = None) -> list[dict]:
+    text = "\n".join(texts)
+    presets = load_logo_presets(user_id)
+    registered_by_key = {_normalize_logo_name(str(item.get("name") or "")): item for item in presets}
+    candidates: dict[str, dict] = {}
+
+    for logo in detect_logo_references(text, user_id=user_id):
+        key = _normalize_logo_name(str(logo.get("name") or ""))
+        if key:
+            candidates[key] = {
+                "name": logo.get("name") or "",
+                "registered": True,
+                "image_url": logo.get("image_url") or "",
+                "image_path": logo.get("image_path") or "",
+                "source_url": logo.get("source_url") or "",
+                "matched_aliases": logo.get("matched_aliases") or [],
+                "reason": "登録済み辞書に一致",
+            }
+
+    for url in re.findall(r"https?://[^\s)）\]】\"']+", text):
+        parsed = urlparse(url.rstrip(".,、。"))
+        host = parsed.netloc.lower().removeprefix("www.")
+        if not host or any(bad in host for bad in ("x.com", "twitter.com", "youtube.com", "google.com")):
+            continue
+        label = host.split(".")[0]
+        if not label or label in LOGO_CANDIDATE_STOPWORDS:
+            continue
+        name = next((part for part in re.split(r"[-_]", label) if len(part) >= 3), label)
+        display_name = name[:1].upper() + name[1:]
+        key = _normalize_logo_name(display_name)
+        if key and key not in candidates:
+            registered = registered_by_key.get(key)
+            candidates[key] = {
+                "name": registered.get("name") if registered else display_name,
+                "registered": bool(registered),
+                "image_url": (registered or {}).get("image_url") or "",
+                "image_path": (registered or {}).get("image_path") or "",
+                "source_url": f"{parsed.scheme}://{parsed.netloc}",
+                "matched_aliases": [host],
+                "reason": "本文・プロンプト内URLのドメイン",
+            }
+
+    patterns = [
+        r"\b[A-Z][A-Za-z0-9]{2,}(?:[A-Z][A-Za-z0-9]+)+\b",
+        r"\b[A-Z][A-Za-z0-9]{2,}(?:[.\- ][A-Z][A-Za-z0-9]{2,})*\b",
+        r"\b[A-Z][a-z0-9]{2,}(?:[A-Z][a-z0-9]+)+\b",
+    ]
+    for pattern in patterns:
+        for match in re.finditer(pattern, text):
+            raw = match.group(0).strip(" .,:;()[]{}「」『』（）")
+            if not raw or len(raw) > 40:
+                continue
+            key = _normalize_logo_name(raw)
+            if len(key) < 3 or key in LOGO_CANDIDATE_STOPWORDS:
+                continue
+            if key in candidates:
+                candidates[key].setdefault("matched_aliases", []).append(raw)
+                continue
+            registered = registered_by_key.get(key)
+            candidates[key] = {
+                "name": registered.get("name") if registered else raw,
+                "registered": bool(registered),
+                "image_url": (registered or {}).get("image_url") or "",
+                "image_path": (registered or {}).get("image_path") or "",
+                "source_url": (registered or {}).get("source_url") or "",
+                "matched_aliases": [raw],
+                "reason": "本文・画像プロンプト内のサービス名らしい英字表記",
+            }
+    return sorted(candidates.values(), key=lambda item: (not item.get("registered"), str(item.get("name") or "").lower()))[:12]
+
+
+def guess_official_site(name: str) -> str:
+    clean = re.sub(r"[^A-Za-z0-9 ]+", " ", name).strip()
+    if not clean:
+        return ""
+    query = urlencode({"q": f"{clean} official website"})
+    search_url = f"https://duckduckgo.com/html/?{query}"
+    req = urllib.request.Request(search_url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=12) as resp:
+        html_text = resp.read(800_000).decode("utf-8", errors="ignore")
+    bad_hosts = ("duckduckgo.com", "twitter.com", "x.com", "facebook.com", "linkedin.com", "youtube.com", "wikipedia.org")
+    name_key = _normalize_logo_name(clean)
+    links: list[str] = []
+    for raw in re.findall(r'href="([^"]+)"', html_text):
+        url = html.unescape(raw)
+        if "uddg=" in url:
+            parsed = urlparse(url)
+            params = parse_qs(parsed.query)
+            url = unquote(params.get("uddg", [""])[0] or url)
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            continue
+        host = parsed.netloc.lower().removeprefix("www.")
+        if any(bad in host for bad in bad_hosts):
+            continue
+        links.append(url)
+        if name_key and name_key in _normalize_logo_name(host):
+            return f"{parsed.scheme}://{parsed.netloc}"
+    if links:
+        parsed = urlparse(links[0])
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return ""
+
+
+def absolute_url(base_url: str, href: str) -> str:
+    return urljoin(base_url, href)
+
+
+def find_logo_image_url(source_url: str) -> str:
+    parsed_source = urlparse(source_url)
+    if parsed_source.scheme not in {"http", "https"} or not parsed_source.netloc:
+        return ""
+    homepage = f"{parsed_source.scheme}://{parsed_source.netloc}"
+    req = urllib.request.Request(homepage, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=12) as resp:
+        page = resp.read(900_000).decode("utf-8", errors="ignore")
+
+    candidates: list[tuple[int, str]] = []
+    for tag in re.findall(r"<link\b[^>]*>", page, flags=re.IGNORECASE):
+        rel_match = re.search(r'\brel=["\']([^"\']+)["\']', tag, flags=re.IGNORECASE)
+        href_match = re.search(r'\bhref=["\']([^"\']+)["\']', tag, flags=re.IGNORECASE)
+        if not rel_match or not href_match:
+            continue
+        rel = rel_match.group(1).lower()
+        href = html.unescape(href_match.group(1))
+        if "apple-touch-icon" in rel:
+            candidates.append((100, absolute_url(homepage, href)))
+        elif "mask-icon" in rel:
+            candidates.append((80, absolute_url(homepage, href)))
+        elif "icon" in rel:
+            score = 70
+            size_match = re.search(r'\bsizes=["\'](\d+)x(\d+)["\']', tag, flags=re.IGNORECASE)
+            if size_match:
+                score += min(40, int(size_match.group(1)) // 16)
+            candidates.append((score, absolute_url(homepage, href)))
+
+    for pattern, score in [
+        (r'<meta\b[^>]*(?:property|name)=["\']og:image["\'][^>]*content=["\']([^"\']+)["\'][^>]*>', 60),
+        (r'<meta\b[^>]*content=["\']([^"\']+)["\'][^>]*(?:property|name)=["\']og:image["\'][^>]*>', 60),
+    ]:
+        for match in re.finditer(pattern, page, flags=re.IGNORECASE):
+            candidates.append((score, absolute_url(homepage, html.unescape(match.group(1)))))
+
+    candidates.append((30, absolute_url(homepage, "/favicon.ico")))
+    for _, url in sorted(candidates, key=lambda item: item[0], reverse=True):
+        if urlparse(url).scheme in {"http", "https"}:
+            return url
+    return ""
+
+
+def download_logo_image(name: str, image_url: str) -> Path:
+    cache_dir = logo_cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    req = urllib.request.Request(image_url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        body = resp.read(3_000_000)
+        content_type = (resp.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+    if not body:
+        raise RuntimeError("ロゴ画像の取得結果が空でした")
+    ext = mimetypes.guess_extension(content_type) or Path(urlparse(image_url).path).suffix or ".png"
+    if ext == ".jpe":
+        ext = ".jpg"
+    if ext.lower() not in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".svg"}:
+        ext = ".png"
+    safe_name = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "logo"
+    dest = cache_dir / f"{safe_name}{ext.lower()}"
+    dest.write_bytes(body)
+    return dest
+
+
+def normalize_local_image_path_text(path_text: str) -> Path:
+    text = str(path_text or "").strip()
+    if text.startswith("file://"):
+        parsed = urlparse(text)
+        text = unquote(parsed.path or "")
+    return Path(text).expanduser()
+
+
+def copy_logo_image_to_cache(name: str, source_path: Path) -> Path:
+    cache_dir = logo_cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    ext = source_path.suffix.lower() or ".png"
+    if ext == ".jpe":
+        ext = ".jpg"
+    if ext not in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".svg"}:
+        raise RuntimeError("対応していないロゴ画像形式です。png/jpg/webp/gif/ico/svg を指定してください")
+    safe_name = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "logo"
+    dest = cache_dir / f"{safe_name}{ext}"
+    if source_path.resolve() != dest.resolve():
+        shutil.copy2(source_path, dest)
+    return dest
+
+
+def upsert_user_logo_preset(
+    user_id: str | None,
+    name: str,
+    *,
+    aliases: list[str] | None = None,
+    image_url: str = "",
+    image_path: str = "",
+    source_url: str = "",
+    usage_note: str = "",
+) -> dict:
+    if not user_id:
+        raise RuntimeError("ロゴ登録にはログインユーザーが必要です")
+    clean_name = str(name or "").strip()
+    if not clean_name:
+        raise RuntimeError("ロゴ名が空です")
+    alias_list = sorted({a.strip() for a in [clean_name, *(aliases or [])] if str(a).strip()})
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO user_logo_presets (user_id, name, aliases, image_url, image_path, source_url, usage_note)
+                VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s)
+                ON CONFLICT (user_id, name) DO UPDATE
+                   SET aliases = EXCLUDED.aliases,
+                       image_url = EXCLUDED.image_url,
+                       image_path = EXCLUDED.image_path,
+                       source_url = EXCLUDED.source_url,
+                       usage_note = EXCLUDED.usage_note,
+                       updated_at = NOW()
+            """, (
+                user_id,
+                clean_name,
+                json.dumps(alias_list, ensure_ascii=False),
+                image_url,
+                image_path,
+                source_url,
+                usage_note,
+            ))
+        conn.commit()
+    finally:
+        conn.close()
+    return {
+        "name": clean_name,
+        "aliases": alias_list,
+        "image_url": image_url,
+        "image_path": image_path,
+        "source_url": source_url,
+        "usage_note": usage_note,
+        "registered": True,
+    }
+
+
+def fetch_and_register_logo(name: str, user_id: str | None, source_url: str = "") -> dict:
+    existing = next((item for item in load_logo_presets(user_id) if _normalize_logo_name(item.get("name") or "") == _normalize_logo_name(name)), None)
+    if existing and (existing.get("image_path") or existing.get("image_url")):
+        return {**existing, "registered": True, "status": "already_registered"}
+    site_url = source_url or guess_official_site(name)
+    if not site_url:
+        raise RuntimeError(f"{name} の公式サイトを特定できませんでした")
+    logo_url = find_logo_image_url(site_url)
+    if not logo_url:
+        raise RuntimeError(f"{name} のロゴ画像URLを特定できませんでした")
+    logo_path = download_logo_image(name, logo_url)
+    preset = upsert_user_logo_preset(
+        user_id,
+        name,
+        aliases=[name],
+        image_url=logo_url,
+        image_path=str(logo_path),
+        source_url=site_url,
+        usage_note="ツール検出から自動取得。公式サイトのfavicon/apple-touch-icon/og:image候補を保存。",
+    )
+    return {**preset, "status": "registered"}
+
+
+def fetch_logo_candidate(name: str, user_id: str | None, source_url: str = "") -> dict:
+    existing = next((item for item in load_logo_presets(user_id) if _normalize_logo_name(item.get("name") or "") == _normalize_logo_name(name)), None)
+    if existing and (existing.get("image_path") or existing.get("image_url")):
+        return {**existing, "registered": True, "status": "already_registered"}
+    site_url = source_url or guess_official_site(name)
+    if not site_url:
+        raise RuntimeError(f"{name} の公式サイトを特定できませんでした")
+    logo_url = find_logo_image_url(site_url)
+    if not logo_url:
+        raise RuntimeError(f"{name} のロゴ画像URLを特定できませんでした")
+    logo_path = download_logo_image(name, logo_url)
+    return {
+        "name": name,
+        "aliases": [name],
+        "image_url": logo_url,
+        "image_path": str(logo_path),
+        "source_url": site_url,
+        "usage_note": "ツール検出から自動取得。OK後に辞書登録。",
+        "registered": False,
+        "status": "fetched",
+    }
+
+
+def register_logo_from_payload(user_id: str | None, payload: dict) -> dict:
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        raise RuntimeError("ロゴ名が空です")
+    aliases = payload.get("aliases")
+    if isinstance(aliases, str):
+        aliases = [part.strip() for part in re.split(r"[,、\n]", aliases) if part.strip()]
+    elif not isinstance(aliases, list):
+        aliases = [name]
+    image_url = str(payload.get("image_url") or "").strip()
+    image_path = str(payload.get("image_path") or "").strip()
+    source_url = str(payload.get("source_url") or "").strip()
+    usage_note = str(payload.get("usage_note") or "ツール検出UIから登録").strip()
+
+    resolved_path = None
+    if image_path:
+        resolved_path = resolve_any_local_image(image_path)
+        if not resolved_path:
+            raise RuntimeError("指定されたローカル画像パスが見つからないか、画像ではありません")
+        image_path = str(copy_logo_image_to_cache(name, resolved_path))
+    elif image_url:
+        resolved_path = download_logo_image(name, image_url)
+        image_path = str(resolved_path)
+    else:
+        raise RuntimeError("ロゴ画像URLまたはローカル画像パスが必要です")
+
+    return upsert_user_logo_preset(
+        user_id,
+        name,
+        aliases=aliases,
+        image_url=image_url,
+        image_path=image_path,
+        source_url=source_url,
+        usage_note=usage_note,
+    )
+
+
 def build_logo_input_item(logo: dict) -> dict | None:
     image_path = str(logo.get("image_path") or "").strip()
     if image_path:
         path = Path(image_path).expanduser()
         if not path.is_absolute():
             path = (LOGO_PRESETS_PATH.parent / path).resolve()
-        if path.exists() and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
-            return {"type": "local_image", "path": str(path)}
+        if path.exists() and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico"}:
+            return {"type": "localImage", "path": str(path)}
 
     image_url = str(logo.get("image_url") or "").strip()
     if image_url:
@@ -1435,14 +2323,14 @@ def build_logo_input_item(logo: dict) -> dict | None:
 
 
 def resolve_any_local_image(path_text: str) -> Path | None:
-    path = Path(path_text).expanduser()
+    path = normalize_local_image_path_text(path_text)
     if not path.is_absolute():
         return None
     try:
         resolved = path.resolve(strict=True)
     except FileNotFoundError:
         return None
-    if resolved.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+    if resolved.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico"}:
         return None
     return resolved
 
@@ -1455,7 +2343,7 @@ def build_image_input_item(image_text: str, *, allow_any_local: bool = False) ->
     if not local_path and allow_any_local:
         local_path = resolve_any_local_image(image_text)
     if local_path:
-        return {"type": "local_image", "path": str(local_path)}
+        return {"type": "localImage", "path": str(local_path)}
     parsed = urlparse(image_text)
     if parsed.scheme in {"http", "https"}:
         return {"type": "image", "url": image_text}
@@ -1464,6 +2352,7 @@ def build_image_input_item(image_text: str, *, allow_any_local: bool = False) ->
 
 def append_image_generation_log(job: dict, message: str, *, level: str = "info", method: str = "") -> None:
     logs = job.setdefault("logs", [])
+    job["last_event_at"] = time.time()
     logs.append({
         "at": datetime.now().strftime("%H:%M:%S"),
         "level": level,
@@ -1473,9 +2362,214 @@ def append_image_generation_log(job: dict, message: str, *, level: str = "info",
     del logs[:-60]
 
 
+def append_image_rewrite_log(job: dict, message: str, *, level: str = "info", method: str = "") -> None:
+    logs = job.setdefault("logs", [])
+    job["last_event_at"] = time.time()
+    logs.append({
+        "at": datetime.now().strftime("%H:%M:%S"),
+        "level": level,
+        "method": method,
+        "message": message,
+    })
+    del logs[:-60]
+
+
+def start_image_rewrite_job(
+    draft_id: str,
+    current_prompt: str,
+    instruction: str,
+    copy_text: str = "",
+    character_reference_url: str = "",
+    remember_rewrite_preference: bool = False,
+) -> dict:
+    with _image_rewrite_lock:
+        running = [
+            job
+            for job in _image_rewrite_jobs.values()
+            if job.get("status") not in {"completed", "failed", "cancelled"}
+        ]
+        if running:
+            raise RuntimeError("別のAIリライトがまだ実行中です。完了してから再実行してください。")
+
+        job_id = f"{int(time.time() * 1000)}-{draft_id}"
+        _image_rewrite_jobs[job_id] = {
+            "job_id": job_id,
+            "draft_id": draft_id,
+            "started_at": time.time(),
+            "status": "starting",
+            "progress": 5,
+            "message": "AIリライトを準備しています",
+            "original_prompt": current_prompt,
+            "prompt": "",
+            "changed": False,
+            "account_memory_path": "",
+            "account_memory_error": "",
+            "cancel_requested": False,
+            "logs": [],
+        }
+        append_image_rewrite_log(_image_rewrite_jobs[job_id], "ジョブを作成しました")
+
+    thread = threading.Thread(
+        target=run_image_rewrite_job,
+        args=(
+            job_id,
+            draft_id,
+            current_prompt,
+            instruction,
+            copy_text,
+            character_reference_url,
+            remember_rewrite_preference,
+        ),
+        daemon=True,
+    )
+    thread.start()
+    return {"job_id": job_id, **_image_rewrite_jobs[job_id]}
+
+
+def run_image_rewrite_job(
+    job_id: str,
+    draft_id: str,
+    current_prompt: str,
+    instruction: str,
+    copy_text: str = "",
+    character_reference_url: str = "",
+    remember_rewrite_preference: bool = False,
+) -> None:
+    job = _image_rewrite_jobs[job_id]
+
+    def is_cancel_requested() -> bool:
+        return bool(_image_rewrite_jobs.get(job_id, {}).get("cancel_requested"))
+
+    def remember_process(proc) -> None:
+        if proc is None:
+            _image_rewrite_processes.pop(job_id, None)
+        else:
+            _image_rewrite_processes[job_id] = proc
+
+    def on_status(method: str, params: dict) -> None:
+        current = _image_rewrite_jobs.get(job_id)
+        if not current or current.get("status") in {"completed", "failed", "cancelled"} or current.get("cancel_requested"):
+            return
+        if method == "turn/started":
+            current.update({"status": "rewriting", "progress": 20, "message": "Codex App Server の turn を開始しました"})
+            append_image_rewrite_log(current, "turn を開始しました", method=method)
+        elif method == "item/started":
+            item = params.get("item") or {}
+            label = item.get("type") or "処理"
+            current.update({"status": "rewriting", "progress": max(current.get("progress", 20), 35), "message": f"{label} を実行中"})
+            append_image_rewrite_log(current, f"{label} を開始しました", method=method)
+        elif method == "item/agentMessage/delta":
+            current.update({"status": "rewriting", "progress": max(current.get("progress", 35), 55), "message": "リライト本文を受信中"})
+        elif method == "item/completed":
+            item = params.get("item") or {}
+            label = item.get("type") or "処理"
+            current.update({"status": "rewriting", "progress": max(current.get("progress", 55), 78), "message": "リライト結果を確認中"})
+            append_image_rewrite_log(current, f"{label} が完了しました", method=method)
+        elif method == "turn/completed":
+            current.update({"status": "saving", "progress": 86, "message": "リライト結果を保存しています"})
+            append_image_rewrite_log(current, "turn が完了しました", method=method)
+        elif method:
+            append_image_rewrite_log(current, f"event: {method}", method=method)
+
+    try:
+        job.update({"status": "rewriting", "progress": 12, "message": "Codex App Server にAIリライトを依頼しています"})
+        append_image_rewrite_log(job, "Codex App Server にAIリライトを依頼します")
+        rewritten = rewrite_image_prompt_with_codex(
+            draft_id=draft_id,
+            current_prompt=current_prompt,
+            instruction=instruction,
+            copy_text=copy_text,
+            character_reference_url=character_reference_url,
+            status_callback=on_status,
+            should_stop=is_cancel_requested,
+            process_callback=remember_process,
+        ).strip()
+        if is_cancel_requested():
+            job.update({"status": "cancelled", "progress": 100, "message": "AIリライトを停止しました。プロンプトを書き直せます。"})
+            append_image_rewrite_log(job, "ユーザー操作で停止しました", level="warn")
+            return
+        if not rewritten:
+            raise RuntimeError("リライト結果が空です")
+        changed = rewritten.strip() != current_prompt.strip()
+        job.update({"status": "saving", "progress": 90, "message": "リライト結果を下書きへ保存しています"})
+        append_image_rewrite_log(job, "リライト結果を下書きへ保存します")
+        image_prompt = update_image_prompt_metadata(draft_id, rewritten, copy_text)
+
+        account_memory_path = ""
+        account_memory_error = ""
+        if remember_rewrite_preference:
+            try:
+                account_memory_path = str(append_rewrite_preference_to_account(str(draft_id), instruction))
+                append_image_rewrite_log(job, "今後の注意をアカウント情報へ保存しました")
+            except Exception as memory_error:
+                account_memory_error = str(memory_error)
+                append_image_rewrite_log(job, f"今後の注意保存に失敗: {account_memory_error}", level="warn")
+
+        job.update({
+            "status": "completed",
+            "progress": 100,
+            "message": "AIリライト完了。画面へ反映しました" if changed else "AIリライト完了。リライト結果は元の内容と同じです",
+            "prompt": rewritten,
+            "image_prompt": image_prompt,
+            "changed": changed,
+            "account_memory_path": account_memory_path,
+            "account_memory_error": account_memory_error,
+        })
+        append_image_rewrite_log(job, "完了しました")
+    except Exception as exc:
+        if is_cancel_requested():
+            job.update({"status": "cancelled", "progress": 100, "message": "AIリライトを停止しました。プロンプトを書き直せます。"})
+            append_image_rewrite_log(job, "ユーザー操作で停止しました", level="warn")
+        else:
+            job.update({"status": "failed", "progress": 100, "message": str(exc)[:1000]})
+            append_image_rewrite_log(job, str(exc)[:1000], level="error")
+
+
+def get_image_rewrite_job(job_id: str) -> dict:
+    job = _image_rewrite_jobs.get(job_id)
+    if not job:
+        raise ValueError("AIリライトジョブが見つかりません")
+    if job.get("status") in {"completed", "failed", "cancelled"}:
+        return job
+    elapsed = max(0.0, time.time() - float(job["started_at"]))
+    if job.get("status") in {"starting", "rewriting"}:
+        job["progress"] = min(88, max(int(job.get("progress", 12)), 12 + int(elapsed * 2.0)))
+    return job
+
+
+def cancel_image_rewrite_job(job_id: str) -> dict:
+    with _image_rewrite_lock:
+        job = _image_rewrite_jobs.get(job_id)
+        if not job:
+            raise ValueError("AIリライトジョブが見つかりません")
+        if job.get("status") in {"completed", "failed", "cancelled"}:
+            return job
+        job["cancel_requested"] = True
+        job.update({
+            "status": "cancelled",
+            "progress": 100,
+            "message": "AIリライトを停止しました。プロンプトを書き直せます。",
+        })
+        append_image_rewrite_log(job, "停止要求を受け付けました", level="warn")
+
+    proc = _image_rewrite_processes.pop(job_id, None)
+    if proc is not None and proc.poll() is None:
+        try:
+            proc.terminate()
+            proc.wait(timeout=1)
+            append_image_rewrite_log(job, "Codexプロセスを停止しました", level="warn")
+        except Exception:
+            try:
+                proc.kill()
+                append_image_rewrite_log(job, "Codexプロセスを強制終了しました", level="warn")
+            except Exception as exc:
+                append_image_rewrite_log(job, f"Codexプロセス停止に失敗: {exc}", level="error")
+    return job
+
+
 def list_generated_image_paths() -> set[str]:
     paths: set[str] = set()
-    for root in [Path.home() / ".codex" / "generated_images"]:
+    for root in image_generation_search_roots():
         if not root.exists():
             continue
         for path in root.rglob("*"):
@@ -1491,7 +2585,7 @@ def list_generated_image_paths() -> set[str]:
 def find_generated_image_after(started_at: float, known_paths: set[str] | None = None) -> Path | None:
     candidates: list[Path] = []
     known_paths = known_paths or set()
-    for root in [Path.home() / ".codex" / "generated_images"]:
+    for root in image_generation_search_roots():
         if not root.exists():
             continue
         for path in root.rglob("*"):
@@ -1511,7 +2605,7 @@ def find_generated_image_after(started_at: float, known_paths: set[str] | None =
 
 
 def copy_generated_image_to_personal(draft_id: str, source_path: Path) -> Path:
-    output_dir = Path(os.environ.get("TEAM_INFO_ROOT", REPO_ROOT)) / "personal" / "deguchishouma" / "outputs" / "x-post-images"
+    output_dir = image_generation_output_dir()
     output_dir.mkdir(parents=True, exist_ok=True)
     dest = output_dir / f"{draft_id}-p1{source_path.suffix.lower()}"
     if source_path.resolve() != dest.resolve():
@@ -1522,7 +2616,7 @@ def copy_generated_image_to_personal(draft_id: str, source_path: Path) -> Path:
 def complete_image_generation_from_found(job_id: str, found: Path) -> bool:
     with _image_generation_lock:
         job = _image_generation_jobs.get(job_id)
-        if not job or job.get("status") in {"completed", "failed"}:
+        if not job or job.get("status") in {"completed", "failed", "cancelled"}:
             return False
         try:
             append_image_generation_log(job, f"生成画像を検出: {found}")
@@ -1544,13 +2638,58 @@ def complete_image_generation_from_found(job_id: str, found: Path) -> bool:
             return False
 
 
+def find_image_path_in_text(text: str) -> Path | None:
+    if not text:
+        return None
+    patterns = [
+        r"file://(/[^)\]\s\"']+\.(?:png|jpe?g|webp))",
+        r"(/Users/[^)\]\s\"']+\.(?:png|jpe?g|webp))",
+        r"(/tmp/[^)\]\s\"']+\.(?:png|jpe?g|webp))",
+        r"(/var/folders/[^)\]\s\"']+\.(?:png|jpe?g|webp))",
+    ]
+    for pattern in patterns:
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+            raw = unquote(match.group(1))
+            candidate = Path(raw)
+            try:
+                if candidate.exists() and candidate.is_file():
+                    return candidate
+            except OSError:
+                continue
+    return None
+
+
+def fail_image_generation_job(job_id: str, message: str, *, level: str = "error") -> dict | None:
+    with _image_generation_lock:
+        job = _image_generation_jobs.get(job_id)
+        if not job or job.get("status") in {"completed", "failed", "cancelled"}:
+            return job
+        job.update({"status": "failed", "progress": 100, "message": message})
+        append_image_generation_log(job, message, level=level)
+
+    proc = _image_generation_processes.pop(job_id, None)
+    if proc is not None and proc.poll() is None:
+        try:
+            proc.terminate()
+            proc.wait(timeout=1)
+            append_image_generation_log(job, "Codexプロセスを停止しました", level="warn")
+        except Exception:
+            try:
+                proc.kill()
+                append_image_generation_log(job, "Codexプロセスを強制終了しました", level="warn")
+            except Exception as exc:
+                append_image_generation_log(job, f"Codexプロセス停止に失敗: {exc}", level="error")
+    return job
+
+
 def watch_generated_image_job(job_id: str, timeout_seconds: float = 420.0) -> None:
     while True:
         job = _image_generation_jobs.get(job_id)
-        if not job or job.get("status") in {"completed", "failed"}:
+        if not job or job.get("status") in {"completed", "failed", "cancelled"}:
             return
         elapsed = time.time() - float(job["started_at"])
         if elapsed > timeout_seconds:
+            fail_image_generation_job(job_id, "画像生成が長時間完了しなかったため停止しました。再実行してください。")
             return
         known_paths = set(job.get("known_image_paths") or [])
         found = find_generated_image_after(float(job["started_at"]), known_paths)
@@ -1572,24 +2711,30 @@ def start_image_generation_job(
     reference_image_url: str = "",
     reference_image_path: str = "",
     user_id: str | None = None,
+    selected_logo_names: list[str] | None = None,
 ) -> dict:
+    output_dir = image_generation_output_dir()
+    output_dir.mkdir(parents=True, exist_ok=True)
     with _image_generation_lock:
         running = [
             job
             for job in _image_generation_jobs.values()
-            if job.get("status") not in {"completed", "failed"}
+            if job.get("status") not in {"completed", "failed", "cancelled"}
         ]
         if running:
             raise RuntimeError("別の画像生成がまだ実行中です。完了してから次の画像を生成してください。")
         known_image_paths = sorted(list_generated_image_paths())
 
     job_id = f"{int(time.time() * 1000)}-{draft_id}"
-    logo_references = detect_logo_references(copy_text, prompt, user_id=user_id)
+    expected_output_path = output_dir / f"{job_id}-generated.png"
+    logo_references = detect_logo_references(copy_text, prompt, user_id=user_id, selected_names=selected_logo_names)
     _image_generation_jobs[job_id] = {
         "draft_id": draft_id,
         "user_id": user_id or "",
         "started_at": time.time(),
+        "last_event_at": time.time(),
         "known_image_paths": known_image_paths,
+        "expected_output_path": str(expected_output_path),
         "status": "starting",
         "progress": 5,
         "request": build_image_generation_request(
@@ -1606,8 +2751,10 @@ def start_image_generation_job(
             logo_references,
         ),
         "logo_references": logo_references,
+        "selected_logo_names": selected_logo_names,
         "image_url": "",
         "message": "Codex App Server を起動しています",
+        "cancel_requested": False,
         "logs": [],
     }
     append_image_generation_log(_image_generation_jobs[job_id], "ジョブを作成しました")
@@ -1636,6 +2783,16 @@ def run_image_generation_job(
     reference_image_path: str = "",
 ) -> None:
     job = _image_generation_jobs[job_id]
+
+    def is_cancel_requested() -> bool:
+        return bool(_image_generation_jobs.get(job_id, {}).get("cancel_requested"))
+
+    def remember_process(proc) -> None:
+        if proc is None:
+            _image_generation_processes.pop(job_id, None)
+        else:
+            _image_generation_processes[job_id] = proc
+
     codex_path = shutil.which("codex")
     if not codex_path:
         job.update({"status": "failed", "progress": 100, "message": "codex コマンドが見つかりません"})
@@ -1644,6 +2801,7 @@ def run_image_generation_job(
 
     started_at = float(job["started_at"])
     repo_root = Path(__file__).resolve().parents[4]
+    expected_output_path = str(job.get("expected_output_path") or (image_generation_output_dir() / f"{job['draft_id']}-p1-generated.png"))
     image_request = build_image_generation_request(
         copy_text,
         prompt,
@@ -1662,7 +2820,9 @@ def run_image_generation_job(
 imagegen スキルを使って、以下のX投稿用図解画像を1枚生成してください。
 ユーザーはAPI利用を明示していないため、画像生成API・APIキー・OPENAI_API_KEY・SDK・CLI fallbackは使わないでください。
 必ず Codex/ChatGPT サブスク内の組み込み画像生成として実行してください。
-生成後は説明を短く返すだけでよいです。ファイル操作は不要です。
+生成後は最終画像を次のローカルパスへPNGで保存またはコピーしてください。
+保存先: {expected_output_path}
+この保存先ファイルが存在することを確認してから、保存したパスだけを短く返してください。
 参照画像が添付されている場合は、ユーザーのフィードバックで指定された要素を参照画像に近づけてください。
 
 {image_request}
@@ -1670,7 +2830,7 @@ imagegen スキルを使って、以下のX投稿用図解画像を1枚生成し
 
     def on_status(method: str, params: dict) -> None:
         current = _image_generation_jobs.get(job_id)
-        if not current or current.get("status") in {"completed", "failed"}:
+        if not current or current.get("status") in {"completed", "failed", "cancelled"} or current.get("cancel_requested"):
             return
         if method == "turn/started":
             current.update({"status": "generating", "progress": 18, "message": "Codex App Server の turn を開始しました"})
@@ -1721,7 +2881,7 @@ imagegen スキルを使って、以下のX投稿用図解画像を1枚生成し
             input_items.append(reference_item)
             append_image_generation_log(job, f"修正用参照画像を添付: {reference_text}")
         input_items.append({"type": "text", "text": turn_prompt})
-        run_codex_app_server_turn(
+        result_text = run_codex_app_server_turn(
             codex_path,
             repo_root,
             turn_prompt,
@@ -1730,38 +2890,68 @@ imagegen スキルを使って、以下のX投稿用図解画像を1枚生成し
                 f"あなたは画像生成担当です。今回のタスクは{task_label}です。ユーザーがAPI利用を明示していないため、"
                 "画像生成API・APIキー・OPENAI_API_KEY・SDK・CLI fallbackは使わず、"
                 "利用可能な組み込み画像生成/サブスク内画像生成を使ってください。"
+                "生成後は指定されたワークスペース内パスへ画像ファイルを保存してください。"
             ),
-            sandbox_policy={"type": "readOnly", "networkAccess": False},
+            sandbox_policy={"type": "workspaceWrite", "networkAccess": False},
             input_items=input_items,
             status_callback=on_status,
-            should_stop=lambda: _image_generation_jobs.get(job_id, {}).get("status") == "completed",
+            should_stop=lambda: bool(_image_generation_jobs.get(job_id, {}).get("cancel_requested"))
+            or _image_generation_jobs.get(job_id, {}).get("status") == "completed",
+            process_callback=remember_process,
             allow_empty_result=True,
+            wait_for_turn_completed=True,
         )
+        if result_text:
+            append_image_generation_log(job, f"App Server応答: {result_text[:240]}")
+        if is_cancel_requested():
+            job.update({"status": "cancelled", "progress": 100, "message": "画像生成を停止しました。プロンプトを書き直して再実行できます。"})
+            append_image_generation_log(job, "ユーザー操作で停止しました", level="warn")
+            return
         if job.get("status") == "completed":
             return
-        found = find_generated_image_after(started_at, set(job.get("known_image_paths") or []))
-        if found:
-            complete_image_generation_from_found(job_id, found)
+        expected_path = Path(expected_output_path)
+        known_paths = set(job.get("known_image_paths") or [])
+        wait_deadline = time.monotonic() + 30
+        wait_logged_at = 0.0
+        while time.monotonic() < wait_deadline and not is_cancel_requested():
+            if expected_path.exists():
+                complete_image_generation_from_found(job_id, expected_path)
+                return
+            text_path = find_image_path_in_text(result_text or "")
+            if text_path:
+                complete_image_generation_from_found(job_id, text_path)
+                return
+            found = find_generated_image_after(started_at, known_paths)
+            if found:
+                complete_image_generation_from_found(job_id, found)
+                return
+            if time.monotonic() - wait_logged_at >= 8:
+                wait_logged_at = time.monotonic()
+                job.update({"status": "generating", "progress": max(int(job.get("progress", 70)), 88), "message": "生成画像ファイルの保存を確認中"})
+                append_image_generation_log(job, "生成画像ファイルの保存を確認中")
+            time.sleep(1)
+        if is_cancel_requested():
+            job.update({"status": "cancelled", "progress": 100, "message": "画像生成を停止しました。プロンプトを書き直して再実行できます。"})
+            append_image_generation_log(job, "ユーザー操作で停止しました", level="warn")
             return
         if job.get("status") != "completed":
-            job.update({
-                "status": "failed",
-                "progress": 100,
-                "message": "Codex App Server の turn は完了しましたが、生成画像ファイルを検出できませんでした",
-            })
-            append_image_generation_log(job, "生成画像ファイルを検出できませんでした", level="error")
+            message = "Codex App Server の turn は完了しましたが、指定保存先にも生成画像ファイルが見つかりませんでした"
+            job.update({"status": "failed", "progress": 100, "message": message})
+            append_image_generation_log(job, f"{message}: {expected_output_path}", level="error")
     except Exception as exc:
-        job.update({"status": "failed", "progress": 100, "message": str(exc)[:1000]})
-        append_image_generation_log(job, str(exc)[:1000], level="error")
+        if is_cancel_requested():
+            job.update({"status": "cancelled", "progress": 100, "message": "画像生成を停止しました。プロンプトを書き直して再実行できます。"})
+            append_image_generation_log(job, "ユーザー操作で停止しました", level="warn")
+        else:
+            job.update({"status": "failed", "progress": 100, "message": str(exc)[:1000]})
+            append_image_generation_log(job, str(exc)[:1000], level="error")
 
 
 def get_image_generation_job(job_id: str) -> dict:
     job = _image_generation_jobs.get(job_id)
     if not job:
         raise ValueError("画像生成ジョブが見つかりません")
-    if job.get("status") == "completed":
-        return job
-    if job.get("status") == "failed":
+    if job.get("status") in {"completed", "failed", "cancelled"}:
         return job
 
     elapsed = max(0.0, time.time() - float(job["started_at"]))
@@ -1769,8 +2959,46 @@ def get_image_generation_job(job_id: str) -> dict:
     if found:
         complete_image_generation_from_found(job_id, found)
     else:
+        idle = time.time() - float(job.get("last_event_at") or job["started_at"])
+        progress = int(job.get("progress", 12))
+        if elapsed >= IMAGE_GENERATION_MAX_SECONDS:
+            fail_image_generation_job(job_id, "画像生成が長時間完了しなかったため停止しました。再実行してください。")
+            return _image_generation_jobs[job_id]
+        if progress <= 18 and idle >= IMAGE_GENERATION_STALL_SECONDS:
+            fail_image_generation_job(job_id, "Codex App Server の画像生成応答が止まったため停止しました。再実行してください。")
+            return _image_generation_jobs[job_id]
         if job.get("status") == "generating":
             job["progress"] = min(92, max(int(job.get("progress", 12)), 12 + int(elapsed * 1.2)))
+    return job
+
+
+def cancel_image_generation_job(job_id: str) -> dict:
+    with _image_generation_lock:
+        job = _image_generation_jobs.get(job_id)
+        if not job:
+            raise ValueError("画像生成ジョブが見つかりません")
+        if job.get("status") in {"completed", "failed", "cancelled"}:
+            return job
+        job["cancel_requested"] = True
+        job.update({
+            "status": "cancelled",
+            "progress": 100,
+            "message": "画像生成を停止しました。プロンプトを書き直して再実行できます。",
+        })
+        append_image_generation_log(job, "停止要求を受け付けました", level="warn")
+
+    proc = _image_generation_processes.pop(job_id, None)
+    if proc is not None and proc.poll() is None:
+        try:
+            proc.terminate()
+            proc.wait(timeout=1)
+            append_image_generation_log(job, "Codexプロセスを停止しました", level="warn")
+        except Exception:
+            try:
+                proc.kill()
+                append_image_generation_log(job, "Codexプロセスを強制終了しました", level="warn")
+            except Exception as exc:
+                append_image_generation_log(job, f"Codexプロセス停止に失敗: {exc}", level="error")
     return job
 
 
@@ -1784,15 +3012,130 @@ def append_auto_post_log(job: dict, message: str, *, level: str = "info") -> Non
     del logs[:-30]
 
 
+def get_openclaw_gateway_token() -> str:
+    token = os.environ.get("OPENCLAW_GATEWAY_TOKEN", "").strip()
+    if token:
+        return token
+    config_path = Path.home() / ".openclaw" / "openclaw.json"
+    if not config_path.exists():
+        return ""
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return ""
+    return str(config.get("gateway", {}).get("auth", {}).get("token") or "").strip()
+
+
 def run_openclaw_browser(args: list[str], *, timeout: int = 60) -> str:
     openclaw = shutil.which("openclaw")
     if not openclaw:
         raise RuntimeError("openclaw コマンドが見つかりません")
-    proc = subprocess.run([openclaw, "browser", *args], capture_output=True, text=True, timeout=timeout)
+    command = [openclaw, "browser"]
+    token = get_openclaw_gateway_token()
+    if token:
+        command.extend(["--token", token])
+    command.extend(["--timeout", str(max(timeout, 1) * 1000)])
+    command.extend(args)
+    proc = subprocess.run(command, capture_output=True, text=True, timeout=timeout + 10)
     output = "\n".join(part for part in [proc.stdout.strip(), proc.stderr.strip()] if part)
     if proc.returncode != 0:
-        raise RuntimeError(output or f"openclaw browser {' '.join(args)} failed")
+        message = output or f"openclaw browser {' '.join(args)} failed"
+        if is_openclaw_tab_missing_error(message):
+            message = (
+                f"{message}\n"
+                "OpenClaw Browser Relay が操作対象タブに接続されていません。"
+                "ChromeでXのタブを開き、OpenClaw Browser Relay 拡張アイコンをクリックして badge ON にしてから再実行してください。"
+            )
+        raise RuntimeError(message)
     return output
+
+
+def is_openclaw_tab_missing_error(message: str) -> bool:
+    text = str(message or "")
+    return "HTTP 404" in text or "tab not found" in text or "no attached Chrome tabs" in text
+
+
+def open_chrome_url(url: str) -> None:
+    subprocess.run(["open", "-a", "Google Chrome", url], check=False, timeout=10)
+
+
+def capture_openclaw_screenshot(job: dict, label: str) -> str:
+    try:
+        output = run_openclaw_browser(["screenshot"], timeout=60)
+    except Exception as exc:
+        append_auto_post_log(job, f"{label} のスクショ取得に失敗: {exc}", level="warn")
+        return ""
+    path_match = re.search(r"MEDIA:(\S+)", output)
+    screenshot_path = path_match.group(1) if path_match else output.strip()
+    append_auto_post_log(job, f"{label} のスクショ: {screenshot_path}")
+    return screenshot_path
+
+
+def copy_text_to_clipboard(text: str) -> bool:
+    try:
+        subprocess.run(["pbcopy"], input=text, text=True, check=True, timeout=5)
+        return True
+    except Exception:
+        return False
+
+
+def build_auto_post_failure_prompt(job: dict, error: Exception, screenshot_path: str) -> str:
+    logs = job.get("logs") if isinstance(job.get("logs"), list) else []
+    log_lines = "\n".join(
+        f"- {item.get('at', '')} [{item.get('level', 'info')}] {item.get('message', '')}"
+        for item in logs[-20:]
+        if isinstance(item, dict)
+    )
+    return f"""X自動投稿フローの改善案を作成してください。
+
+目的:
+- OpenClaw browser で X の投稿モーダルを操作する自動投稿を安定化する。
+- 画像付き投稿の場合は、メイン投稿文入力後に既存画像をクリップボードへコピーし、投稿欄をクリックしてからペーストする。
+- その後、Postボタン横の+ボタンでツリーを1つずつ追加し、各パーツ欄をクリックして本文を入れる。
+- 各ステップでスクショとDOM検証を挟み、失敗したら投稿せず停止する。
+
+今回の失敗:
+- draft_id: {job.get('draft_id', '')}
+- job_id: {job.get('job_id', '')}
+- as_quote: {job.get('as_quote', False)}
+- error:
+{str(error)[:3000]}
+
+失敗時スクリーンショット:
+{screenshot_path or '(スクショ取得失敗)'}
+
+直近ログ:
+{log_lines or '(ログなし)'}
+
+確認してほしいこと:
+1. Xの現在UIで、メイン投稿欄・画像添付プレビュー・Post横の+ボタン・追加されたパーツ欄・Postボタンを正しく特定できているか。
+2. 誤検出しやすいセレクタや、DOM上でアイコン画像を添付画像と誤判定する箇所がないか。
+3. 20秒前後のOpenClaw/Gateway timeoutを避けるため、操作をさらに短い単位へ分割すべき箇所。
+4. スクショに基づき、次に修正すべき具体的な実装案。
+5. 改善が完了し、原因確認に不要になったら、上記の失敗時スクリーンショットを削除すること。
+
+出力形式:
+- 原因仮説
+- スクショから見るUI状態
+- 修正案
+- 具体的なコード変更方針
+- 再テスト手順
+- スクショ削除結果
+"""
+
+
+def handle_auto_post_failure(job: dict, error: Exception) -> None:
+    screenshot_path = capture_openclaw_screenshot(job, "エラー発生時")
+    prompt = build_auto_post_failure_prompt(job, error, screenshot_path)
+    if copy_text_to_clipboard(prompt):
+        message = "AIエージェントへの改善指示をクリップボードに保存しました。AIエージェントに指示をお願いします。"
+        job["message"] = message
+        job["agent_prompt_copied"] = True
+        job["agent_prompt_notice"] = message
+        job["agent_prompt_text"] = prompt
+        append_auto_post_log(job, message)
+    else:
+        append_auto_post_log(job, "改善案作成用プロンプトのクリップボード保存に失敗しました", level="warn")
 
 
 def resolve_draft_image_path(image_url: str) -> Path | None:
@@ -1805,81 +3148,771 @@ def resolve_draft_image_path(image_url: str) -> Path | None:
     return resolve_local_image(image_url)
 
 
+def copy_image_to_clipboard(image_url: str) -> bool:
+    source = resolve_draft_image_path(image_url)
+    if not source:
+        return False
+    suffix = source.suffix.lower()
+    if suffix in {".jpg", ".jpeg"}:
+        image_class = "JPEG picture"
+    else:
+        image_class = "«class PNGf»"
+    script = f'set the clipboard to (read (POSIX file {json.dumps(str(source))}) as {image_class})'
+    subprocess.run(["osascript", "-e", script], check=True, capture_output=True, text=True, timeout=15)
+    return True
+
+
 def prepare_openclaw_upload_image(draft_id: str, image_url: str) -> Path | None:
     source = resolve_draft_image_path(image_url)
     if not source:
         return None
     upload_dir = Path("/tmp/openclaw/uploads")
     upload_dir.mkdir(parents=True, exist_ok=True)
-    dest = upload_dir / f"x-draft-{draft_id}{source.suffix.lower()}"
-    shutil.copy2(source, dest)
-    return dest
+    suffix = source.suffix.lower() if source.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".gif"} else ".png"
+    target = upload_dir / f"x-draft-{draft_id}{suffix}"
+    shutil.copy2(source, target)
+    return target
 
 
-def build_x_auto_post_script(parts: list[str]) -> str:
-    parts_json = json.dumps(parts, ensure_ascii=False)
-    return f"""async () => {{
-  const parts = {parts_json};
+def upload_image_to_x_file_input(draft_id: str, image_url: str) -> bool:
+    upload_path = prepare_openclaw_upload_image(draft_id, image_url)
+    if not upload_path:
+        return False
+    run_openclaw_browser([
+        "upload",
+        "--element",
+        'input[data-testid="fileInput"], input[type="file"][accept*="image"], input[type="file"]',
+        str(upload_path),
+    ], timeout=60)
+    return True
+
+
+def paste_clipboard_to_chrome() -> None:
+    script = """
+tell application "Google Chrome" to activate
+delay 0.2
+tell application "System Events"
+  keystroke "v" using command down
+end tell
+"""
+    subprocess.run(["osascript", "-e", script], check=True, capture_output=True, text=True, timeout=10)
+
+
+def x_compose_dom_helpers_js() -> str:
+    return """
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  const isVisible = (el) => {{
+  const isVisible = (el) => {
     if (!el) return false;
     const rect = el.getBoundingClientRect();
     const style = window.getComputedStyle(el);
     return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
-  }};
+  };
   const enabled = (el) => el && !el.disabled && el.getAttribute('aria-disabled') !== 'true';
-  const textboxes = () => Array.from(document.querySelectorAll('div[role="textbox"][contenteditable="true"]')).filter(isVisible);
-  const waitFor = async (fn, label, timeout = 45000) => {{
+  const isPostButtonText = (text) => /^(Post|Post all|ポスト|すべてポスト|投稿|すべて投稿)$/.test((text || '').trim());
+  const composeRoot = () => {
+    const modalDialogs = Array.from(document.querySelectorAll('div[aria-modal="true"][role="dialog"]')).filter(isVisible);
+    const dialogs = modalDialogs.length
+      ? modalDialogs
+      : Array.from(document.querySelectorAll('[role="dialog"]')).filter(isVisible);
+    const roots = dialogs.length ? dialogs : [document];
+    const hasTextbox = (root) => root.querySelector('div[data-testid^="tweetTextarea_"][role="textbox"][contenteditable="true"]');
+    const hasPostButton = (root) => Array.from(root.querySelectorAll('[data-testid="tweetButton"], button'))
+      .some(el => isVisible(el) && isPostButtonText(el.innerText || el.textContent || ''));
+    return roots.find(root => hasTextbox(root) && hasPostButton(root))
+      || roots.find(hasTextbox)
+      || roots[0]
+      || document;
+  };
+  const textboxes = () => Array.from(composeRoot().querySelectorAll('div[data-testid^="tweetTextarea_"][role="textbox"][contenteditable="true"]'))
+    .filter(isVisible)
+    .sort((a, b) => {
+      const aid = a.getAttribute('data-testid') || '';
+      const bid = b.getAttribute('data-testid') || '';
+      const ai = Number((aid.match(/tweetTextarea_(\\d+)/) || [])[1] || 999);
+      const bi = Number((bid.match(/tweetTextarea_(\\d+)/) || [])[1] || 999);
+      if (ai !== bi) return ai - bi;
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      return ar.top - br.top || ar.left - br.left;
+    });
+  const textboxForPart = (partIndex) => {
+    const exact = composeRoot().querySelector(`div[data-testid="tweetTextarea_${partIndex - 1}"][role="textbox"][contenteditable="true"]`);
+    return isVisible(exact) ? exact : textboxes()[partIndex - 1];
+  };
+  const waitFor = async (fn, label, timeout = 12000) => {
     const start = Date.now();
-    while (Date.now() - start < timeout) {{
-      const value = fn();
+    while (Date.now() - start < timeout) {
+      const value = await fn();
       if (value) return value;
       await sleep(300);
-    }}
+    }
     throw new Error(label + ' が見つかりません');
-  }};
-  const setText = async (el, text) => {{
+  };
+  const nearestScrollParent = (el) => {
+    let node = el?.parentElement;
+    while (node && node !== document.body) {
+      const style = window.getComputedStyle(node);
+      if (/(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 8) return node;
+      node = node.parentElement;
+    }
+    return document.scrollingElement || document.documentElement;
+  };
+  const scrollPartControlsIntoView = async (el) => {
+    if (!el) return;
+    el.scrollIntoView({ block: 'end', inline: 'nearest' });
+    const scroller = nearestScrollParent(el);
+    if (scroller) scroller.scrollTop += 180;
+    await sleep(600);
+  };
+  const settleTextbox = async (el) => {
+    if (!el) return;
+    el.click();
+    el.focus();
+    el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: '' }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'Process' }));
+    await sleep(500);
+    el.blur();
+    await sleep(900);
+  };
+"""
+
+
+def build_x_set_main_text_script(text: str) -> str:
+    text_json = json.dumps(text, ensure_ascii=False)
+    return f"""async () => {{
+  const text = {text_json};
+{x_compose_dom_helpers_js()}
+  const setText = async (el, value) => {{
     el.scrollIntoView({{ block: 'center' }});
+    el.click();
     el.focus();
     await sleep(100);
-    document.execCommand('selectAll', false, null);
-    document.execCommand('insertText', false, text);
-    el.dispatchEvent(new InputEvent('input', {{ bubbles: true, inputType: 'insertText', data: text }}));
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand('delete', false, null);
+    el.textContent = '';
+    el.dispatchEvent(new InputEvent('input', {{ bubbles: true, inputType: 'deleteContentBackward', data: null }}));
+    await sleep(100);
+    document.execCommand('insertText', false, value);
+    el.dispatchEvent(new InputEvent('input', {{ bubbles: true, inputType: 'insertText', data: value }}));
     el.dispatchEvent(new Event('change', {{ bubbles: true }}));
     await sleep(350);
   }};
-  await waitFor(() => textboxes().length > 0, '本文入力欄');
-  await setText(textboxes()[0], parts[0] || '');
+  const firstBox = await waitFor(() => textboxForPart(1), '本文入力欄');
+  await setText(firstBox, text || '');
+  firstBox.focus();
+  return {{ ok: true }};
+}}"""
 
-  for (let i = 1; i < parts.length; i++) {{
-    const before = textboxes().length;
-    const addButton = await waitFor(() => {{
-      const candidates = Array.from(document.querySelectorAll('[data-testid="addButton"], button[aria-label*="Add"], button[aria-label*="追加"]'));
-      return candidates.find(el => isVisible(el) && enabled(el));
-    }}, 'ツリー追加ボタン');
-    addButton.click();
-    const nextBox = await waitFor(() => {{
+
+def build_x_add_tree_part_script(text: str, part_index: int) -> str:
+    text_json = json.dumps(text, ensure_ascii=False)
+    return f"""async () => {{
+  const text = {text_json};
+  const partIndex = {part_index};
+{x_compose_dom_helpers_js()}
+  const normalize = (value) => (value || '').replace(/\\s+/g, ' ').trim();
+  const containsExpected = (actual, expected) => {{
+    const actualText = normalize(actual);
+    const expectedText = normalize(expected);
+    if (!expectedText) return true;
+    if (actualText === expectedText || actualText.includes(expectedText)) return true;
+    const chunks = expectedText.split(/\\s+/).filter(Boolean);
+    let offset = 0;
+    return chunks.every(chunk => {{
+      const index = actualText.indexOf(chunk, offset);
+      if (index < 0) return false;
+      offset = index + chunk.length;
+      return true;
+    }});
+  }};
+  const boxContainingText = (expected) => textboxes().find(box => containsExpected(box.innerText || box.textContent || '', expected));
+  const findPostButton = () => {{
+    const root = composeRoot();
+    const candidates = Array.from(root.querySelectorAll('[data-testid="tweetButton"], button'));
+    return candidates.find(el => isVisible(el) && isPostButtonText(el.innerText || el.textContent || ''));
+  }};
+  const findAddPostButton = () => {{
+    const dialog = composeRoot();
+    const directCandidates = Array.from(dialog.querySelectorAll(
+      '[data-testid="addButton"], button[aria-label="Add post"], [role="button"][aria-label="Add post"], button[aria-label="投稿を追加"], [role="button"][aria-label="投稿を追加"]'
+    ));
+  const direct = directCandidates.find(el => {{
+      if (!isVisible(el)) return false;
+      return el.getAttribute('data-testid') === 'addButton' || /^(Add post|投稿を追加)$/.test(el.getAttribute('aria-label') || '');
+    }});
+    if (direct) return direct;
+    const postButton = findPostButton();
+    if (!postButton) return null;
+    const postRect = postButton.getBoundingClientRect();
+    const directNearPost = directCandidates.find(el => {{
+      if (!isVisible(el) || el === postButton) return false;
+      const rect = el.getBoundingClientRect();
+      const closeToPost = rect.right <= postRect.left + 24 && Math.abs((rect.top + rect.bottom) / 2 - (postRect.top + postRect.bottom) / 2) < 48;
+      return el.getAttribute('data-testid') === 'addButton' || closeToPost;
+    }});
+    if (directNearPost) return directNearPost;
+    const buttons = Array.from(dialog.querySelectorAll('button, [role="button"], [tabindex="0"]')).filter(el => {{
+      if (!isVisible(el) || !enabled(el) || el === postButton) return false;
+      const aria = el.getAttribute('aria-label') || '';
+      if (/media|gif|emoji|schedule|location|description|people|sensitive|disclosure|draft/i.test(aria)) return false;
+      const rect = el.getBoundingClientRect();
+      const nearPost = rect.right <= postRect.left + 8 && Math.abs((rect.top + rect.bottom) / 2 - (postRect.top + postRect.bottom) / 2) < 32;
+      const smallButton = rect.width >= 24 && rect.width <= 56 && rect.height >= 24 && rect.height <= 56;
+      return nearPost && smallButton;
+    }});
+    return buttons.sort((a, b) => b.getBoundingClientRect().right - a.getBoundingClientRect().right)[0] || null;
+  }};
+  const findAddAnotherPostTarget = () => {{
+    const dialog = composeRoot();
+    const textPattern = /^(Add another post|別のポストを追加|投稿を追加|さらに投稿を追加)$/;
+    const candidates = Array.from(dialog.querySelectorAll('div, span, button, [role="button"], [tabindex="0"]')).filter(el => {{
+      if (!isVisible(el)) return false;
+      const text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+      if (!textPattern.test(text)) return false;
+      const rect = el.getBoundingClientRect();
+      return rect.width >= 80 && rect.height >= 20;
+    }});
+    const label = candidates.sort((a, b) => {{
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      return (br.width * br.height) - (ar.width * ar.height);
+    }})[0];
+    if (!label) return null;
+    return label.closest('button, [role="button"], [tabindex="0"]') || label.closest('div') || label;
+  }};
+  const findAddTreeTarget = async () => {{
+    const addAnother = findAddAnotherPostTarget();
+    if (addAnother) return {{ el: addAnother, kind: 'add-another-post' }};
+    const button = findAddPostButton();
+    if (!button) return null;
+    if (!enabled(button)) {{
+      if (previousBox) await settleTextbox(previousBox);
+      return null;
+    }}
+    return {{ el: button, kind: 'plus-button' }};
+  }};
+  const findPollButton = () => {{
+    const dialog = composeRoot();
+    const candidates = Array.from(dialog.querySelectorAll('[data-testid="createPollButton"], button[aria-label="Add poll"], [role="button"][aria-label="Add poll"], button[aria-label="投票を追加"], [role="button"][aria-label="投票を追加"]'));
+    const exact = candidates.find(el => isVisible(el) && enabled(el));
+    if (exact) return exact;
+    return Array.from(dialog.querySelectorAll('button, [role="button"]')).find(el => {{
+      if (!isVisible(el) || !enabled(el)) return false;
+      const aria = el.getAttribute('aria-label') || '';
+      if (/poll|投票/i.test(aria)) return true;
+      const paths = Array.from(el.querySelectorAll('path')).map(path => path.getAttribute('d') || '').join(' ');
+      return /M6 5c-1\\.1 0-2 \\.895-2 2s\\.9 2 2 2/.test(paths);
+    }}) || null;
+  }};
+  const findRemovePollButton = () => {{
+    const dialog = composeRoot();
+    return Array.from(dialog.querySelectorAll('button, [role="button"], div, span')).find(el => {{
+      if (!isVisible(el)) return false;
+      const text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+      const aria = el.getAttribute('aria-label') || '';
+      return /^(Remove poll|投票を削除)$/.test(text) || /Remove poll|投票を削除/.test(aria);
+    }}) || null;
+  }};
+  const revealAddTargetViaPoll = async () => {{
+    const pollButton = findPollButton();
+    if (!pollButton) return null;
+    await clickCenter(pollButton);
+    await waitFor(() => findRemovePollButton(), 'Remove poll', 4000);
+    await sleep(500);
+    return await waitFor(() => findAddTreeTarget(), '投票表示後のツリー追加操作', 5000).catch(() => null);
+  }};
+  const clickCenter = async (el) => {{
+    el.scrollIntoView({{ block: 'center', inline: 'center' }});
+    await sleep(150);
+    const rect = el.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    if (typeof el.click === 'function') {{
+      el.click();
+      await sleep(600);
+      return;
+    }}
+    const rawTarget = document.elementFromPoint(x, y);
+    const target = rawTarget instanceof Element ? rawTarget : el;
+    for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) {{
+      target.dispatchEvent(new MouseEvent(type, {{
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        view: window,
+      }}));
+    }}
+    await sleep(500);
+  }};
+  const waitForPartBox = async (timeout = 4000) => {{
+    const start = Date.now();
+    while (Date.now() - start < timeout) {{
+      const exact = textboxForPart(partIndex);
+      if (exact) return exact;
       const boxes = textboxes();
-      return boxes.length > before ? boxes[boxes.length - 1] : null;
-    }}, `パート ${{i + 1}} の入力欄`);
-    await setText(nextBox, parts[i] || '');
-  }}
+      if (boxes.length > before) return boxes[boxes.length - 1];
+      await sleep(250);
+    }}
+    return null;
+  }};
+  const clickAddTargetAndWaitForBox = async (target) => {{
+    if (!target) return null;
+    await clickCenter(target.el || target);
+    await sleep(250);
+    return await waitForPartBox(1800);
+  }};
+  const setText = async (el, text) => {{
+    el.scrollIntoView({{ block: 'center' }});
+    el.click();
+    el.focus();
+    await sleep(100);
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand('delete', false, null);
+    el.textContent = '';
+    el.dispatchEvent(new InputEvent('input', {{ bubbles: true, inputType: 'deleteContentBackward', data: null }}));
+    const clearStart = Date.now();
+    while (normalize(el.innerText || el.textContent || '') && Date.now() - clearStart < 1200) {{
+      el.focus();
+      document.execCommand('selectAll', false, null);
+      document.execCommand('delete', false, null);
+      el.textContent = '';
+      el.dispatchEvent(new InputEvent('input', {{ bubbles: true, inputType: 'deleteContentBackward', data: null }}));
+      await sleep(150);
+    }}
+    const residual = normalize(el.innerText || el.textContent || '');
+    if (residual) throw new Error(`パート ${{partIndex}} の入力欄を空にできません: ${{residual.slice(0, 80)}}`);
+    await sleep(250);
+    document.execCommand('insertText', false, text || '');
+    el.dispatchEvent(new InputEvent('input', {{ bubbles: true, inputType: 'insertText', data: text || '' }}));
+    el.dispatchEvent(new Event('change', {{ bubbles: true }}));
+    await settleTextbox(el);
+    await sleep(350);
+  }};
 
+  await waitFor(() => textboxes().length > 0, '本文入力欄');
+  const alreadyFilledBox = boxContainingText(text);
+  if (alreadyFilledBox) {{
+    return {{ ok: true, partIndex, skipped: true, reason: 'already-filled' }};
+  }}
+  const before = textboxes().length;
+  const previousBox = textboxForPart(partIndex - 1) || textboxes()[textboxes().length - 1];
+  const isNewPartBox = (box) => {{
+    if (!box || box === previousBox) return false;
+    const boxes = textboxes();
+    const index = boxes.indexOf(box);
+    if (index < before) return false;
+    const testId = box.getAttribute('data-testid') || '';
+    const exact = testId === `tweetTextarea_${{partIndex - 1}}`;
+    return exact || boxes.length > before;
+  }};
+  if (previousBox) {{
+    await settleTextbox(previousBox);
+    await scrollPartControlsIntoView(previousBox);
+  }}
+  let addTarget = await waitFor(async () => {{
+    const target = await findAddTreeTarget();
+    if (target) return target;
+    if (previousBox) await scrollPartControlsIntoView(previousBox);
+    return null;
+  }}, 'ツリー追加操作', 3000).catch(() => null);
+  if (!addTarget) {{
+    addTarget = await revealAddTargetViaPoll();
+    if (addTarget && previousBox) await scrollPartControlsIntoView(previousBox);
+  }}
+  let nextBox = await clickAddTargetAndWaitForBox(addTarget);
+  if (!nextBox) throw new Error(`パート ${{partIndex}} の入力欄 が見つかりません`);
+  if (!isNewPartBox(nextBox)) {{
+    throw new Error(`パート ${{partIndex}} の新規入力欄ではないため停止しました`);
+  }}
+  if (containsExpected(nextBox.innerText || nextBox.textContent || '', text)) {{
+    return {{ ok: true, partIndex, skipped: true, reason: 'next-box-already-filled' }};
+  }}
+  await setText(nextBox, text || '');
+  return {{ ok: true, partIndex }};
+}}"""
+
+
+def build_x_verify_part_text_script(text: str, part_index: int) -> str:
+    text_json = json.dumps(text, ensure_ascii=False)
+    return f"""async () => {{
+  const expected = {text_json};
+  const partIndex = {part_index};
+{x_compose_dom_helpers_js()}
+  const normalize = (value) => (value || '').replace(/\\s+/g, ' ').trim();
+  const containsExpected = (actual, expected) => {{
+    const actualText = normalize(actual);
+    const expectedText = normalize(expected);
+    if (!expectedText) return true;
+    if (actualText === expectedText || actualText.includes(expectedText)) return true;
+    const chunks = expectedText.split(/\\s+/).filter(Boolean);
+    let offset = 0;
+    return chunks.every(chunk => {{
+      const index = actualText.indexOf(chunk, offset);
+      if (index < 0) return false;
+      offset = index + chunk.length;
+      return true;
+    }});
+  }};
+  const start = Date.now();
+  while (Date.now() - start < 12000) {{
+    const box = textboxForPart(partIndex);
+    const actual = normalize(box?.innerText || box?.textContent || '');
+    if (box && containsExpected(actual, expected)) return {{ ok: true, partIndex, actual }};
+    await sleep(400);
+  }}
+  const box = textboxForPart(partIndex);
+  const actual = normalize(box?.innerText || box?.textContent || '');
+  throw new Error(`パート ${{partIndex}} の入力確認に失敗: ${{actual}}`);
+}}"""
+
+
+def build_x_verify_main_intent_ready_script(text: str) -> str:
+    text_json = json.dumps(text, ensure_ascii=False)
+    return f"""async () => {{
+  const expected = {text_json};
+{x_compose_dom_helpers_js()}
+  const normalize = (value) => (value || '').replace(/\\s+/g, ' ').trim();
+  const expectedHead = normalize(expected).slice(0, 24);
+  const start = Date.now();
+  while (Date.now() - start < 5000) {{
+    const box = textboxForPart(1);
+    const actual = normalize(box?.innerText || box?.textContent || '');
+    const root = composeRoot();
+    const postButton = Array.from(root.querySelectorAll('[data-testid="tweetButton"], button'))
+      .find(el => isVisible(el) && isPostButtonText(el.innerText || el.textContent || ''));
+    if (box && actual.length > 0 && postButton && (!expectedHead || actual.includes(expectedHead))) {{
+      return {{ ok: true, actualLength: actual.length }};
+    }}
+    await sleep(250);
+  }}
+  const box = textboxForPart(1);
+  const actual = normalize(box?.innerText || box?.textContent || '');
+  throw new Error(`メイン投稿欄の短時間確認に失敗: ${{actual.slice(0, 80)}}`);
+}}"""
+
+
+def build_x_scroll_compose_to_bottom_script() -> str:
+    return f"""async () => {{
+{x_compose_dom_helpers_js()}
+  const root = composeRoot();
+  const addUnique = (items, item) => {{
+    if (item && !items.includes(item)) items.push(item);
+  }};
+  const targets = [];
+  addUnique(targets, document.scrollingElement);
+  addUnique(targets, document.documentElement);
+  addUnique(targets, document.body);
+  let ancestor = root;
+  while (ancestor) {{
+    addUnique(targets, ancestor);
+    ancestor = ancestor.parentElement;
+  }}
+  for (const el of Array.from(root.querySelectorAll('*'))) {{
+    if (!isVisible(el)) continue;
+    const style = window.getComputedStyle(el);
+    if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight + 8) addUnique(targets, el);
+  }}
+  for (let i = 0; i < 4; i++) {{
+    for (const target of targets) {{
+      if (!target) continue;
+      target.scrollTop = target.scrollHeight;
+      target.dispatchEvent(new Event('scroll', {{ bubbles: true }}));
+    }}
+    window.scrollTo(0, document.documentElement.scrollHeight || document.body.scrollHeight || 0);
+    await sleep(250);
+  }}
+  const bottomHints = Array.from(root.querySelectorAll('div, span, button, [role="button"]')).filter(el => {{
+    if (!isVisible(el)) return false;
+    const text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+    const aria = el.getAttribute('aria-label') || '';
+    return /Add another post|別のポストを追加|Post all|すべてポスト|Post|投稿/.test(text) || /Add post|投稿を追加/.test(aria);
+  }});
+  const bottomHint = bottomHints.sort((a, b) => b.getBoundingClientRect().bottom - a.getBoundingClientRect().bottom)[0];
+  if (bottomHint) {{
+    bottomHint.scrollIntoView({{ block: 'end', inline: 'nearest' }});
+    await sleep(300);
+    for (const target of targets) {{
+      if (!target) continue;
+      target.scrollTop = target.scrollHeight;
+    }}
+  }}
+  await sleep(500);
+  return {{ ok: true }};
+}}"""
+
+
+def build_x_remove_all_polls_script() -> str:
+    return f"""async () => {{
+{x_compose_dom_helpers_js()}
+  const findRemovePollButtons = () => Array.from(composeRoot().querySelectorAll('button, [role="button"], div, span')).filter(el => {{
+    if (!isVisible(el)) return false;
+    const text = (el.innerText || el.textContent || '').replace(/\\s+/g, ' ').trim();
+    const aria = el.getAttribute('aria-label') || '';
+    return /^(Remove poll|投票を削除)$/.test(text) || /Remove poll|投票を削除/.test(aria);
+  }});
+  const clickCenter = async (el) => {{
+    el.scrollIntoView({{ block: 'center', inline: 'nearest' }});
+    await sleep(200);
+    const rect = el.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    if (typeof el.click === 'function') el.click();
+    const rawTarget = document.elementFromPoint(x, y);
+    const target = rawTarget instanceof Element ? rawTarget : el;
+    for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) {{
+      target.dispatchEvent(new MouseEvent(type, {{
+        bubbles: true,
+        cancelable: true,
+        clientX: x,
+        clientY: y,
+        view: window,
+      }}));
+    }}
+    await sleep(700);
+  }};
+  let removed = 0;
+  for (let i = 0; i < 6; i++) {{
+    const buttons = findRemovePollButtons();
+    if (!buttons.length) break;
+    await clickCenter(buttons[buttons.length - 1]);
+    removed += 1;
+  }}
+  const remaining = findRemovePollButtons().length;
+  if (remaining) throw new Error(`Remove poll が残っています: ${{remaining}}`);
+  return {{ ok: true, removed }};
+}}"""
+
+
+def build_x_wait_for_image_attachment_script() -> str:
+    return f"""async () => {{
+{x_compose_dom_helpers_js()}
+  const hasAttachment = () => {{
+    const root = composeRoot();
+    const attachments = root.querySelector('[data-testid="attachments"]');
+    if (!isVisible(attachments)) return false;
+    const mediaGroup = attachments.querySelector('[role="group"][aria-label="Media"]') || attachments;
+    const hasMediaControl = Array.from(attachments.querySelectorAll('button, [role="button"], a')).some(el => {{
+      const aria = el.getAttribute('aria-label') || '';
+      const testId = el.getAttribute('data-testid') || '';
+      const text = (el.innerText || el.textContent || '').trim();
+      return isVisible(el) && (/Remove media|Edit media|Flag sensitive media/i.test(aria) || /altTextWrapper|tagPeopleLabel/.test(testId) || /Edit|Add description|Tag people/.test(text));
+    }});
+    return Array.from(mediaGroup.querySelectorAll('img')).some(img => {{
+      if (!isVisible(img)) return false;
+      const rect = img.getBoundingClientRect();
+      const src = img.getAttribute('src') || '';
+      const largeEnough = rect.width >= 80 && rect.height >= 80;
+      const isUploadedBlob = src.startsWith('blob:https://x.com/');
+      return largeEnough && isUploadedBlob && hasMediaControl;
+    }});
+  }};
+  const start = Date.now();
+  while (Date.now() - start < 12000) {{
+    if (hasAttachment()) return {{ ok: true }};
+    await sleep(500);
+  }}
+  throw new Error('画像ペースト後の添付プレビューが確認できません');
+}}"""
+
+
+def build_x_focus_main_textbox_script() -> str:
+    return f"""async () => {{
+{x_compose_dom_helpers_js()}
+  const start = Date.now();
+  while (Date.now() - start < 12000) {{
+    const first = textboxForPart(1);
+    if (first) {{
+      first.scrollIntoView({{ block: 'center' }});
+      first.click();
+      first.focus();
+      await sleep(500);
+      return {{ ok: true }};
+    }}
+    await sleep(300);
+  }}
+  throw new Error('画像ペースト前に本文入力欄をクリックできません');
+}}"""
+
+
+def build_x_click_post_script() -> str:
+    return f"""async () => {{
+{x_compose_dom_helpers_js()}
   await sleep(1200);
   const postButton = await waitFor(() => {{
-    const candidates = Array.from(document.querySelectorAll('[data-testid="tweetButton"], [data-testid="tweetButtonInline"]'));
-    return candidates.reverse().find(el => isVisible(el) && enabled(el));
+    const root = composeRoot();
+    const candidates = Array.from(root.querySelectorAll('[data-testid="tweetButton"], button'));
+    return candidates.reverse().find(el => isVisible(el) && enabled(el) && isPostButtonText(el.innerText || el.textContent || ''));
   }}, '投稿ボタン');
   postButton.click();
-  return {{ ok: true, parts: parts.length }};
+  return {{ ok: true }};
 }}"""
+
+
+def append_quote_url_to_text(text: str, quote_url: str) -> str:
+    clean_url = (quote_url or "").strip()
+    clean_text = (text or "").rstrip()
+    if not clean_url:
+        return clean_text
+    status_url_pattern = re.compile(
+        r"https?://(?:x|twitter)\.com/(?:i/web/status|i/status|[^/\s]+/status)/\d+(?:\?\S*)?",
+        re.IGNORECASE,
+    )
+    clean_text = status_url_pattern.sub("", clean_text)
+    clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
+    return f"{clean_text}\n\n{clean_url}" if clean_text else clean_url
+
+
+STATUS_URL_PATTERN = re.compile(
+    r"https?://(?:x|twitter)\.com/(?:i/web/status|i/status|[^/\s]+/status)/\d+(?:\?\S*)?",
+    re.IGNORECASE,
+)
+
+
+def dedupe_status_urls_in_text(text: str) -> str:
+    raw = text or ""
+    urls = STATUS_URL_PATTERN.findall(raw)
+    if len(urls) <= 1:
+        return raw
+    last_url = urls[-1].strip()
+    clean_text = STATUS_URL_PATTERN.sub("", raw)
+    clean_text = re.sub(r"\n{3,}", "\n\n", clean_text).strip()
+    return f"{clean_text}\n\n{last_url}" if clean_text else last_url
+
+
+def build_x_intent_post_url(text: str) -> str:
+    return "https://x.com/intent/post?" + urlencode({"text": text or ""})
+
+
+def should_use_playwright_auto_post() -> bool:
+    return os.environ.get("X_AUTO_POST_DRIVER", "playwright").strip().lower() != "openclaw"
+
+
+def run_playwright_auto_post(job: dict, draft: dict, parts: list[str], image_url: str) -> None:
+    node = shutil.which("node")
+    if not node:
+        raise RuntimeError("node コマンドが見つからないため Playwright 自動投稿を実行できません")
+    if not PLAYWRIGHT_AUTO_POST_SCRIPT.exists():
+        raise RuntimeError(f"Playwright 自動投稿スクリプトが見つかりません: {PLAYWRIGHT_AUTO_POST_SCRIPT}")
+
+    image_path = ""
+    if image_url:
+        resolved = resolve_draft_image_path(image_url)
+        if not resolved:
+            raise RuntimeError("画像URLをローカルファイルに解決できず、Playwrightで画像添付できません")
+        image_path = str(resolved)
+
+    screenshot_dir = Path.home() / ".openclaw" / "media" / "browser"
+    screenshot_dir.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "draft_id": job.get("draft_id", ""),
+        "job_id": job.get("job_id", ""),
+        "parts": parts,
+        "image_path": image_path,
+        "dry_run": os.environ.get("X_AUTO_POST_DRY_RUN", "").strip().lower() in {"1", "true", "yes"},
+        "profile_dir": os.environ.get("X_PLAYWRIGHT_PROFILE_DIR", str(Path.home() / ".team-info-playwright" / "x-profile")),
+        "screenshot_dir": str(screenshot_dir),
+    }
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json", prefix="x-auto-post-", delete=False, encoding="utf-8") as fp:
+        json.dump(payload, fp, ensure_ascii=False)
+        payload_path = fp.name
+
+    timeout = max(180, 60 + len(parts) * 30)
+    stdout_lines: list[str] = []
+    try:
+        proc = subprocess.Popen(
+            [node, str(PLAYWRIGHT_AUTO_POST_SCRIPT), "--payload", payload_path],
+            cwd=str(PLAYWRIGHT_AUTO_POST_SCRIPT.parent),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        with _auto_post_lock:
+            job["_proc"] = proc
+
+        deadline = time.time() + timeout
+        for raw in proc.stdout:
+            if time.time() > deadline:
+                proc.kill()
+                raise RuntimeError("Playwright 自動投稿がタイムアウトしました")
+            line = raw.rstrip()
+            stdout_lines.append(line)
+            if line:
+                append_auto_post_log(job, f"Playwright: {line[:500]}")
+            try:
+                msg = json.loads(line)
+            except (json.JSONDecodeError, ValueError):
+                continue
+
+            if msg.get("status") == "awaiting_confirm":
+                with _auto_post_lock:
+                    job.update({
+                        "status": "pending_confirm",
+                        "progress": 90,
+                        "message": "投稿内容を確認してください",
+                        "confirm_screenshot": msg.get("screenshot", ""),
+                    })
+                # ユーザーの confirm/cancel を待つ（最大5分）
+                confirm_deadline = time.time() + 300
+                answer = None
+                while time.time() < confirm_deadline:
+                    with _auto_post_lock:
+                        answer = job.pop("_confirm_answer", None)
+                    if answer is not None:
+                        break
+                    time.sleep(0.5)
+                if answer != "confirm":
+                    proc.stdin.write("cancel\n")
+                    proc.stdin.flush()
+                    proc.wait(timeout=10)
+                    raise RuntimeError("投稿をキャンセルしました")
+                proc.stdin.write("confirm\n")
+                proc.stdin.flush()
+                with _auto_post_lock:
+                    job.update({"status": "running", "progress": 95, "message": "投稿中です"})
+
+        proc.wait(timeout=30)
+    finally:
+        try:
+            Path(payload_path).unlink()
+        except OSError:
+            pass
+        with _auto_post_lock:
+            job.pop("_proc", None)
+
+    output = "\n".join(stdout_lines)
+    if proc.returncode != 0:
+        raise RuntimeError(output or "Playwright 自動投稿が失敗しました")
+
+    last_json = None
+    for line in reversed(stdout_lines):
+        try:
+            last_json = json.loads(line)
+            break
+        except (json.JSONDecodeError, ValueError):
+            continue
+    if not last_json or not last_json.get("ok"):
+        raise RuntimeError(output or "Playwright 自動投稿の結果を確認できません")
+    if last_json.get("dry_run"):
+        raise RuntimeError("Playwright dry-run が完了しました。投稿は実行していません")
 
 
 def run_auto_post_job(job_id: str) -> None:
     with _auto_post_lock:
         job = _auto_post_jobs[job_id]
-        job.update({"status": "running", "progress": 8, "message": "OpenClaw ブラウザを起動しています"})
-        append_auto_post_log(job, "OpenClaw ブラウザを起動します")
+        job.update({"status": "running", "progress": 8, "message": "ブラウザ自動投稿を開始しています"})
+        append_auto_post_log(job, "ブラウザ自動投稿を開始します")
 
     try:
         draft = fetch_draft(job["draft_id"])
@@ -1888,33 +3921,130 @@ def run_auto_post_job(job_id: str) -> None:
         parts = [str(part.get("content") or "") for part in draft.get("parts", [])]
         if not parts or not parts[0].strip():
             raise RuntimeError("投稿本文が空です")
+        original_tweet = draft.get("original_tweet") or {}
+        quote_url = str(original_tweet.get("tweet_url") or "").strip()
+        if job.get("as_quote") and quote_url:
+            parts[0] = append_quote_url_to_text(parts[0], quote_url)
+        parts[0] = dedupe_status_urls_in_text(parts[0])
+        image_url = next((part.get("image_url") for part in draft.get("parts", []) if part.get("image_url")), "")
+
+        if should_use_playwright_auto_post():
+            with _auto_post_lock:
+                job.update({"progress": 14, "message": "Playwright でX投稿画面を操作しています"})
+                append_auto_post_log(job, "Playwright 自動投稿を使います")
+            run_playwright_auto_post(job, draft, parts, image_url)
+            with _auto_post_lock:
+                job.update({"progress": 88, "message": "投稿済みステータスを反映しています"})
+                append_auto_post_log(job, "Playwright 側の投稿ボタンをクリックしました")
+            update_draft_status(job["draft_id"], "published")
+            send_discord(job["draft_id"], parts[0], draft.get("x_username", ""), job.get("user_id") or None)
+            with _auto_post_lock:
+                job.update({"status": "completed", "progress": 100, "message": "自動投稿が完了しました"})
+                append_auto_post_log(job, "自動投稿が完了しました")
+            return
 
         run_openclaw_browser(["start"], timeout=90)
+        compose_url = build_x_intent_post_url(parts[0])
+        use_intent_text = len(compose_url) <= 8000
+        if not use_intent_text:
+            compose_url = "https://x.com/compose/post"
         with _auto_post_lock:
             job.update({"progress": 18, "message": "X の投稿画面を開いています"})
-            append_auto_post_log(job, "https://x.com/compose/post を開きます")
-        run_openclaw_browser(["open", "https://x.com/compose/post"], timeout=90)
-
-        image_url = next((part.get("image_url") for part in draft.get("parts", []) if part.get("image_url")), "")
-        upload_path = prepare_openclaw_upload_image(job["draft_id"], image_url) if image_url else None
-        if upload_path:
-            with _auto_post_lock:
-                job.update({"progress": 34, "message": "画像を投稿画面に添付しています"})
-                append_auto_post_log(job, f"画像アップロードを準備: {upload_path}")
-            run_openclaw_browser([
-                "upload",
-                "--element",
-                'input[data-testid="fileInput"], input[type="file"]',
-                str(upload_path),
-            ], timeout=120)
-        elif image_url:
-            with _auto_post_lock:
-                append_auto_post_log(job, "画像URLはローカルファイルに解決できないため、本文のみ自動入力します", level="warn")
+            append_auto_post_log(job, f"{compose_url.split('?')[0]} を開きます")
+        try:
+            run_openclaw_browser(["open", compose_url], timeout=90)
+        except RuntimeError as open_error:
+            if is_openclaw_tab_missing_error(str(open_error)):
+                open_chrome_url(compose_url)
+                append_auto_post_log(
+                    job,
+                    "ChromeでX投稿画面を開きました。OpenClaw Browser Relay 拡張アイコンをクリックして badge ON にしてください。",
+                    level="warn",
+                )
+            raise
 
         with _auto_post_lock:
-            job.update({"progress": 58, "message": "本文とツリーを入力しています"})
-            append_auto_post_log(job, f"{len(parts)} パーツを入力します")
-        run_openclaw_browser(["evaluate", "--fn", build_x_auto_post_script(parts)], timeout=180)
+            job.update({"progress": 45, "message": "メイン投稿の文章を確認しています"})
+            append_auto_post_log(job, "メイン投稿の文章を確認します" if use_intent_text else "メイン投稿の文章を入力します")
+        if not use_intent_text:
+            run_openclaw_browser(["evaluate", "--fn", build_x_set_main_text_script(parts[0])], timeout=90)
+            run_openclaw_browser(["evaluate", "--fn", build_x_verify_part_text_script(parts[0], 1)], timeout=60)
+        else:
+            run_openclaw_browser(["evaluate", "--fn", build_x_verify_main_intent_ready_script(parts[0])], timeout=30)
+        capture_openclaw_screenshot(job, "メイン投稿入力後")
+
+        with _auto_post_lock:
+            job.update({"progress": 68, "message": "ツリーを追加しながら各パーツを入力しています"})
+            append_auto_post_log(job, f"ツリーに {max(len(parts) - 1, 0)} パーツを入力します")
+        for index, part_text in enumerate(parts[1:], start=2):
+            with _auto_post_lock:
+                job.update({
+                    "progress": min(84, 68 + (index - 1) * 5),
+                    "message": f"ツリーのパート {index} を入力しています",
+            })
+                append_auto_post_log(job, f"パート {index} を入力します")
+            run_openclaw_browser(["evaluate", "--fn", build_x_add_tree_part_script(part_text, index)], timeout=60)
+            run_openclaw_browser(["evaluate", "--fn", build_x_verify_part_text_script(part_text, index)], timeout=60)
+            run_openclaw_browser(["evaluate", "--fn", build_x_scroll_compose_to_bottom_script()], timeout=60)
+            capture_openclaw_screenshot(job, f"パート {index} 入力後")
+
+        with _auto_post_lock:
+            job.update({"progress": 83, "message": "一時的な投票UIを削除して投稿内容を再確認しています"})
+            append_auto_post_log(job, "残っている Remove poll をすべて削除します")
+        run_openclaw_browser(["evaluate", "--fn", build_x_remove_all_polls_script()], timeout=60)
+        with _auto_post_lock:
+            append_auto_post_log(job, "全パーツの本文を投稿前に再検証します")
+        for verify_index, verify_text in enumerate(parts, start=1):
+            run_openclaw_browser(["evaluate", "--fn", build_x_verify_part_text_script(verify_text, verify_index)], timeout=60)
+
+        if image_url:
+            copied_image = False
+            with _auto_post_lock:
+                job.update({"progress": 84, "message": "最後に画像をメイン投稿へ添付しています"})
+                append_auto_post_log(job, "画像添付前にメイン投稿欄へ戻ってクリックします")
+            run_openclaw_browser(["evaluate", "--fn", build_x_focus_main_textbox_script()], timeout=60)
+            try:
+                copied_image = copy_image_to_clipboard(image_url)
+            except Exception as image_error:
+                append_auto_post_log(job, f"画像をクリップボードへコピーできませんでした: {image_error}", level="warn")
+            if copied_image:
+                with _auto_post_lock:
+                    append_auto_post_log(job, "既存画像を最後にクリップボードへコピーしました")
+                    append_auto_post_log(job, "画像をメイン投稿欄にペーストします")
+                paste_clipboard_to_chrome()
+                with _auto_post_lock:
+                    job.update({"progress": 86, "message": "画像添付を確認しています"})
+                    append_auto_post_log(job, "画像添付プレビューが出たか確認します")
+                try:
+                    run_openclaw_browser(["evaluate", "--fn", build_x_wait_for_image_attachment_script()], timeout=60)
+                except RuntimeError as paste_error:
+                    with _auto_post_lock:
+                        append_auto_post_log(
+                            job,
+                            f"最後のクリップボード貼り付けで画像プレビューを確認できませんでした。file input直指定に切り替えます: {paste_error}",
+                            level="warn",
+                        )
+                        job.update({"progress": 87, "message": "画像をfile inputへ直接添付しています"})
+                    if not upload_image_to_x_file_input(job["draft_id"], image_url):
+                        raise paste_error
+                    run_openclaw_browser(["evaluate", "--fn", build_x_wait_for_image_attachment_script()], timeout=60)
+            else:
+                with _auto_post_lock:
+                    append_auto_post_log(job, "画像クリップボードコピーに失敗したため、file input直指定に切り替えます", level="warn")
+                    job.update({"progress": 87, "message": "画像をfile inputへ直接添付しています"})
+                if not upload_image_to_x_file_input(job["draft_id"], image_url):
+                    raise RuntimeError("画像URLをローカルファイルに解決できず、最後の画像添付に失敗しました")
+                run_openclaw_browser(["evaluate", "--fn", build_x_wait_for_image_attachment_script()], timeout=60)
+            with _auto_post_lock:
+                append_auto_post_log(job, "画像添付プレビューを確認しました")
+            capture_openclaw_screenshot(job, "画像添付確認後")
+            run_openclaw_browser(["evaluate", "--fn", build_x_verify_part_text_script(parts[0], 1)], timeout=60)
+
+        with _auto_post_lock:
+            job.update({"progress": 90, "message": "投稿ボタンを押しています"})
+            append_auto_post_log(job, "投稿ボタンをクリックします")
+        capture_openclaw_screenshot(job, "投稿直前")
+        run_openclaw_browser(["evaluate", "--fn", build_x_click_post_script()], timeout=60)
 
         with _auto_post_lock:
             job.update({"progress": 88, "message": "投稿済みステータスを反映しています"})
@@ -1929,13 +4059,16 @@ def run_auto_post_job(job_id: str) -> None:
         with _auto_post_lock:
             job.update({"status": "failed", "progress": 100, "message": str(exc)[:1000]})
             append_auto_post_log(job, str(exc)[:1000], level="error")
+        handle_auto_post_failure(job, exc)
 
 
-def start_auto_post_job(draft_id: str, user_id: str | None = None) -> dict:
+def start_auto_post_job(draft_id: str, user_id: str | None = None, as_quote: bool = False) -> dict:
     with _auto_post_lock:
         active = [
             job for job in _auto_post_jobs.values()
-            if job.get("draft_id") == draft_id and job.get("status") in {"queued", "running"}
+            if job.get("draft_id") == draft_id
+            and bool(job.get("as_quote")) == bool(as_quote)
+            and job.get("status") in {"queued", "running"}
         ]
         if active:
             return dict(active[-1])
@@ -1944,6 +4077,7 @@ def start_auto_post_job(draft_id: str, user_id: str | None = None) -> dict:
             "job_id": job_id,
             "draft_id": draft_id,
             "user_id": user_id or "",
+            "as_quote": bool(as_quote),
             "status": "queued",
             "progress": 2,
             "message": "自動投稿ジョブを作成しました",
@@ -2029,14 +4163,14 @@ def resolve_local_image(path_text: str) -> Path | None:
     """許可されたローカル画像パスだけをプレビュー配信用に解決する。"""
     if not path_text:
         return None
-    path = Path(path_text).expanduser()
+    path = normalize_local_image_path_text(path_text)
     if not path.is_absolute():
         return None
     try:
         resolved = path.resolve(strict=True)
     except FileNotFoundError:
         return None
-    if resolved.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+    if resolved.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico"}:
         return None
     for root in LOCAL_IMAGE_ROOTS:
         try:
@@ -2281,6 +4415,7 @@ class Handler(BaseHTTPRequestHandler):
                     limit=int(qs.get("limit", ["20"])[0] or 20),
                     offset=int(qs.get("offset", ["0"])[0] or 0),
                     query=qs.get("q", [""])[0].strip(),
+                    image_filter=qs.get("image", [""])[0].strip(),
                 ))
             except Exception as e:
                 self.send_json({"error": str(e)}, 500)
@@ -2312,17 +4447,22 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True, **get_image_generation_job(job_id)})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
-        elif path == "/api/auto-post/status":
-            if not self.require_local():
-                return
+        elif path == "/api/image-prompt/rewrite/status":
             job_id = qs.get("id", [""])[0]
             if not job_id:
                 self.send_json({"error": "id パラメータが必要です"}, 400)
                 return
             try:
-                self.send_json({"ok": True, **get_auto_post_job(job_id)})
+                self.send_json({"ok": True, **get_image_rewrite_job(job_id)})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/auto-post/status":
+            if not self.require_local():
+                return
+            self.send_json(
+                {"ok": False, "error": "自動投稿機能は無効化されています。Xを開いて手動で投稿してください。"},
+                410,
+            )
         elif path == "/api/oembed":
             tweet_url = qs.get("url", [None])[0]
             if not tweet_url:
@@ -2521,12 +4661,53 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True, **result})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/window/split-posting":
+            if not self.require_local():
+                return
+            target_url = (body.get("target_url") or "").strip()
+            preview_url = (body.get("preview_url") or "").strip()
+            try:
+                result = arrange_posting_windows(target_url, preview_url)
+                self.send_json({"ok": True, **result})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/image-prompt/rewrite/start":
+            draft_id = body.get("draft_id")
+            prompt = (body.get("prompt") or "").strip()
+            instruction = (body.get("instruction") or "").strip()
+            copy_text = (body.get("copy") or "").strip()
+            character_reference_url = (body.get("character_reference_url") or "").strip()
+            remember_rewrite_preference = bool(body.get("remember_rewrite_preference"))
+            if not draft_id or not prompt:
+                self.send_json({"error": "draft_id と prompt が必要です"}, 400)
+                return
+            try:
+                self.send_json({"ok": True, **start_image_rewrite_job(
+                    draft_id=str(draft_id),
+                    current_prompt=prompt,
+                    instruction=instruction,
+                    copy_text=copy_text,
+                    character_reference_url=character_reference_url,
+                    remember_rewrite_preference=remember_rewrite_preference,
+                )})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/image-prompt/rewrite/cancel":
+            job_id = (body.get("job_id") or "").strip()
+            if not job_id:
+                self.send_json({"error": "job_id が必要です"}, 400)
+                return
+            try:
+                self.send_json({"ok": True, **cancel_image_rewrite_job(job_id)})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/image-prompt/rewrite":
             draft_id = body.get("draft_id")
             prompt = (body.get("prompt") or "").strip()
             instruction = (body.get("instruction") or "").strip()
             copy_text = (body.get("copy") or "").strip()
             character_reference_url = (body.get("character_reference_url") or "").strip()
+            remember_rewrite_preference = bool(body.get("remember_rewrite_preference"))
             if not draft_id or not prompt:
                 self.send_json({"error": "draft_id と prompt が必要です"}, 400)
                 return
@@ -2538,7 +4719,19 @@ class Handler(BaseHTTPRequestHandler):
                     copy_text=copy_text,
                     character_reference_url=character_reference_url,
                 )
-                self.send_json({"ok": True, "prompt": rewritten})
+                account_memory_path = ""
+                account_memory_error = ""
+                if remember_rewrite_preference:
+                    try:
+                        account_memory_path = str(append_rewrite_preference_to_account(str(draft_id), instruction))
+                    except Exception as memory_error:
+                        account_memory_error = str(memory_error)
+                self.send_json({
+                    "ok": True,
+                    "prompt": rewritten,
+                    "account_memory_path": account_memory_path,
+                    "account_memory_error": account_memory_error,
+                })
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/draft/image":
@@ -2550,6 +4743,71 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 image_url = attach_generated_image(draft_id, image_path)
                 self.send_json({"ok": True, "image_url": image_url})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/logos/detect":
+            copy_text = (body.get("copy") or "").strip()
+            prompt = (body.get("prompt") or "").strip()
+            if not copy_text and not prompt:
+                draft_id = body.get("draft_id")
+                draft = fetch_draft(str(draft_id)) if draft_id else None
+                if draft:
+                    first_prompt = (draft.get("image_prompts") or [{}])[0] if isinstance(draft.get("image_prompts"), list) else {}
+                    copy_text = (first_prompt.get("copy") or "").strip()
+                    prompt = (first_prompt.get("prompt") or "").strip()
+            try:
+                candidates = extract_logo_candidate_names(copy_text, prompt, user_id=self.current_user_id())
+                self.send_json({"ok": True, "candidates": candidates})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/logos/fetch-register":
+            tools = body.get("tools") or []
+            if not isinstance(tools, list) or not tools:
+                self.send_json({"error": "tools 配列が必要です"}, 400)
+                return
+            results = []
+            for item in tools[:8]:
+                if isinstance(item, str):
+                    name = item.strip()
+                    source_url = ""
+                elif isinstance(item, dict):
+                    name = str(item.get("name") or "").strip()
+                    source_url = str(item.get("source_url") or "").strip()
+                else:
+                    continue
+                if not name:
+                    continue
+                try:
+                    results.append({"ok": True, **fetch_and_register_logo(name, self.current_user_id(), source_url)})
+                except Exception as exc:
+                    results.append({"ok": False, "name": name, "error": str(exc)})
+            self.send_json({"ok": True, "results": results})
+        elif path == "/api/logos/fetch-candidates":
+            tools = body.get("tools") or []
+            if not isinstance(tools, list) or not tools:
+                self.send_json({"error": "tools 配列が必要です"}, 400)
+                return
+            results = []
+            for item in tools[:8]:
+                if isinstance(item, str):
+                    name = item.strip()
+                    source_url = ""
+                elif isinstance(item, dict):
+                    name = str(item.get("name") or "").strip()
+                    source_url = str(item.get("source_url") or "").strip()
+                else:
+                    continue
+                if not name:
+                    continue
+                try:
+                    results.append({"ok": True, **fetch_logo_candidate(name, self.current_user_id(), source_url)})
+                except Exception as exc:
+                    results.append({"ok": False, "name": name, "source_url": source_url, "error": str(exc)})
+            self.send_json({"ok": True, "results": results})
+        elif path == "/api/logos/register":
+            try:
+                preset = register_logo_from_payload(self.current_user_id(), body)
+                self.send_json({"ok": True, **preset})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/image-generation/start":
@@ -2564,6 +4822,10 @@ class Handler(BaseHTTPRequestHandler):
             current_image_url = (body.get("current_image_url") or "").strip()
             reference_image_url = (body.get("reference_image_url") or "").strip()
             reference_image_path = (body.get("reference_image_path") or "").strip()
+            selected_logo_names = body.get("selected_logo_names")
+            if selected_logo_names is not None and not isinstance(selected_logo_names, list):
+                self.send_json({"error": "selected_logo_names は配列で指定してください"}, 400)
+                return
             if not draft_id or not prompt:
                 self.send_json({"error": "draft_id と prompt が必要です"}, 400)
                 return
@@ -2581,22 +4843,34 @@ class Handler(BaseHTTPRequestHandler):
                     reference_image_url,
                     reference_image_path,
                     self.current_user_id(),
+                    selected_logo_names,
                 )
                 self.send_json({"ok": True, **job})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/image-generation/cancel":
+            job_id = (body.get("job_id") or "").strip()
+            if not job_id:
+                self.send_json({"error": "job_id が必要です"}, 400)
+                return
+            try:
+                self.send_json({"ok": True, **cancel_image_generation_job(job_id)})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/auto-post/start":
             if not self.require_local():
                 return
-            draft_id = body.get("draft_id")
-            if not draft_id:
-                self.send_json({"error": "draft_id が必要です"}, 400)
+            self.send_json(
+                {"ok": False, "error": "自動投稿機能は無効化されています。Xを開いて手動で投稿してください。"},
+                410,
+            )
+        elif path == "/api/auto-post/confirm":
+            if not self.require_local():
                 return
-            try:
-                job = start_auto_post_job(str(draft_id), self.current_user_id())
-                self.send_json({"ok": True, **job})
-            except Exception as e:
-                self.send_json({"ok": False, "error": str(e)}, 500)
+            self.send_json(
+                {"ok": False, "error": "自動投稿機能は無効化されています。Xを開いて手動で投稿してください。"},
+                410,
+            )
         else:
             self.send_response(404)
             self.end_headers()
