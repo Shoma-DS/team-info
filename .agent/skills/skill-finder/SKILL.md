@@ -191,7 +191,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スキル名 | 概要 | パス |
 |---------|------|------|
 | sales-coaching | ジモティー営業（1S・面接）の文字起こしを Loom から取得し、候補者名検索→video_id特定→transcript保存→担当者抽出→Neon(Postgres) 登録まで行える。その後の分析・改善トーク生成・比較レポートまで対応 | `.agent/skills/sales/sales-coaching/SKILL.md` |
-| interview-product-sales | 採用面接の文字起こしから候補者プロファイルを抽出し、商品テンプレート（価格・ベネフィット・ピッチ構造）と組み合わせて、既存保存済み台本と同じフォーマットで面接クロージング時の販売戦略と台本を生成する。二次面接では、引き継ぎ済みの文脈と一次担当者からの前向きな推薦コメントを冒頭へ自然に入れられ、未指定時は代表の出口が話す前提で生成される | `.agent/skills/sales/interview-product-sales/SKILL.md` |
+| interview-product-sales | 採用面接の文字起こしから候補者プロファイルを抽出し、商品テンプレート（価格・ベネフィット・ピッチ構造）と組み合わせて、既存保存済み台本と同じフォーマットで面接クロージング時の販売戦略と台本を生成する。二次面接では、引き継ぎ済みの文脈と一次担当者からの前向きな推薦コメントを冒頭へ自然に入れられ、未指定時は代表の出口が話す前提で生成される。販売台本には Loom ID ではなく Loom URL を記載する | `.agent/skills/sales/interview-product-sales/SKILL.md` |
 | calendar-interview-closing | Google Calendar の当日予定から「面接」「2回目」または 90 分以上の候補を抽出し、Loom transcript 特定からクロージング台本保存まで一気通貫で進める起点スキル | `.agent/skills/personal/deguchishouma/calendar-interview-closing/SKILL.md` |
 
 ---
