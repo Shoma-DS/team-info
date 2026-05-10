@@ -28,7 +28,7 @@
 - Agent Reach / OpenClaw 連携
 - Obsidian / Claudian
 - clone-website 用の Node 24 workspace 依存
-- Canva 補助や Dify 開発依存
+- Canva 補助などの追加開発依存
 - shared-agent-assets の同期処理
 
 ## まずはこれを実行

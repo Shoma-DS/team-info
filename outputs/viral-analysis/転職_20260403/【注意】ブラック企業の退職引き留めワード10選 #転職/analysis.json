@@ -1,0 +1,1857 @@
+{
+  "duration": 33.667,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/【注意】ブラック企業の退職引き留めワード10選 #転職.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 33.667,
+        "start_frame": 0,
+        "end_frame": 1010,
+        "motion_type": "shake",
+        "motion_intensity": 1.4,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.607
+      },
+      {
+        "frame": 105,
+        "time": 3.5,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.606
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.606
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.606
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.606
+      },
+      {
+        "frame": 165,
+        "time": 5.5,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.606
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.489,
+        "y": 0.445,
+        "size": 0.03,
+        "confidence": 0.606
+      },
+      {
+        "frame": 195,
+        "time": 6.5,
+        "x": 0.505,
+        "y": 0.438,
+        "size": 0.053,
+        "confidence": 0.557
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.505,
+        "y": 0.437,
+        "size": 0.053,
+        "confidence": 0.557
+      },
+      {
+        "frame": 225,
+        "time": 7.5,
+        "x": 0.505,
+        "y": 0.437,
+        "size": 0.053,
+        "confidence": 0.557
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.505,
+        "y": 0.437,
+        "size": 0.053,
+        "confidence": 0.557
+      },
+      {
+        "frame": 255,
+        "time": 8.5,
+        "x": 0.505,
+        "y": 0.438,
+        "size": 0.053,
+        "confidence": 0.558
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.505,
+        "y": 0.438,
+        "size": 0.053,
+        "confidence": 0.558
+      },
+      {
+        "frame": 285,
+        "time": 9.5,
+        "x": 0.505,
+        "y": 0.438,
+        "size": 0.053,
+        "confidence": 0.558
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.505,
+        "y": 0.438,
+        "size": 0.053,
+        "confidence": 0.558
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.471,
+        "y": 0.501,
+        "size": 0.057,
+        "confidence": 0.66
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.442,
+        "y": 0.501,
+        "size": 0.053,
+        "confidence": 0.646
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.442,
+        "y": 0.501,
+        "size": 0.053,
+        "confidence": 0.646
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.442,
+        "y": 0.501,
+        "size": 0.053,
+        "confidence": 0.646
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.442,
+        "y": 0.502,
+        "size": 0.053,
+        "confidence": 0.645
+      },
+      {
+        "frame": 480,
+        "time": 16.0,
+        "x": 0.442,
+        "y": 0.502,
+        "size": 0.053,
+        "confidence": 0.645
+      },
+      {
+        "frame": 495,
+        "time": 16.5,
+        "x": 0.447,
+        "y": 0.448,
+        "size": 0.033,
+        "confidence": 0.635
+      },
+      {
+        "frame": 510,
+        "time": 17.0,
+        "x": 0.447,
+        "y": 0.448,
+        "size": 0.033,
+        "confidence": 0.636
+      },
+      {
+        "frame": 525,
+        "time": 17.5,
+        "x": 0.447,
+        "y": 0.448,
+        "size": 0.033,
+        "confidence": 0.636
+      },
+      {
+        "frame": 540,
+        "time": 18.0,
+        "x": 0.447,
+        "y": 0.448,
+        "size": 0.033,
+        "confidence": 0.636
+      },
+      {
+        "frame": 555,
+        "time": 18.5,
+        "x": 0.447,
+        "y": 0.448,
+        "size": 0.033,
+        "confidence": 0.636
+      },
+      {
+        "frame": 570,
+        "time": 19.0,
+        "x": 0.447,
+        "y": 0.448,
+        "size": 0.033,
+        "confidence": 0.636
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.509,
+        "y": 0.47,
+        "size": 0.042,
+        "confidence": 0.59
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.509,
+        "y": 0.47,
+        "size": 0.042,
+        "confidence": 0.59
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.509,
+        "y": 0.47,
+        "size": 0.042,
+        "confidence": 0.592
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.512,
+        "y": 0.466,
+        "size": 0.038,
+        "confidence": 0.597
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.51,
+        "y": 0.427,
+        "size": 0.032,
+        "confidence": 0.661
+      },
+      {
+        "frame": 660,
+        "time": 22.0,
+        "x": 0.51,
+        "y": 0.428,
+        "size": 0.032,
+        "confidence": 0.663
+      },
+      {
+        "frame": 675,
+        "time": 22.5,
+        "x": 0.51,
+        "y": 0.427,
+        "size": 0.032,
+        "confidence": 0.658
+      },
+      {
+        "frame": 690,
+        "time": 23.0,
+        "x": 0.51,
+        "y": 0.427,
+        "size": 0.032,
+        "confidence": 0.658
+      },
+      {
+        "frame": 705,
+        "time": 23.5,
+        "x": 0.51,
+        "y": 0.427,
+        "size": 0.032,
+        "confidence": 0.658
+      },
+      {
+        "frame": 720,
+        "time": 24.0,
+        "x": 0.51,
+        "y": 0.427,
+        "size": 0.032,
+        "confidence": 0.658
+      },
+      {
+        "frame": 735,
+        "time": 24.5,
+        "x": 0.51,
+        "y": 0.427,
+        "size": 0.032,
+        "confidence": 0.656
+      },
+      {
+        "frame": 840,
+        "time": 28.0,
+        "x": 0.509,
+        "y": 0.538,
+        "size": 0.058,
+        "confidence": 0.818
+      },
+      {
+        "frame": 855,
+        "time": 28.5,
+        "x": 0.509,
+        "y": 0.538,
+        "size": 0.058,
+        "confidence": 0.818
+      },
+      {
+        "frame": 870,
+        "time": 29.0,
+        "x": 0.509,
+        "y": 0.538,
+        "size": 0.058,
+        "confidence": 0.819
+      },
+      {
+        "frame": 885,
+        "time": 29.5,
+        "x": 0.509,
+        "y": 0.538,
+        "size": 0.058,
+        "confidence": 0.816
+      },
+      {
+        "frame": 900,
+        "time": 30.0,
+        "x": 0.509,
+        "y": 0.538,
+        "size": 0.058,
+        "confidence": 0.816
+      },
+      {
+        "frame": 915,
+        "time": 30.5,
+        "x": 0.509,
+        "y": 0.538,
+        "size": 0.058,
+        "confidence": 0.816
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "zoom",
+        "start": 3.0,
+        "end": 3.0
+      },
+      {
+        "type": "shake",
+        "start": 6.5,
+        "end": 6.5
+      },
+      {
+        "type": "shake",
+        "start": 10.167,
+        "end": 10.167
+      },
+      {
+        "type": "shake",
+        "start": 13.333,
+        "end": 13.333
+      },
+      {
+        "type": "tilt_up",
+        "start": 16.167,
+        "end": 16.167
+      },
+      {
+        "type": "shake",
+        "start": 19.167,
+        "end": 19.167
+      },
+      {
+        "type": "tilt_up",
+        "start": 21.5,
+        "end": 21.5
+      },
+      {
+        "type": "shake",
+        "start": 24.833,
+        "end": 24.833
+      },
+      {
+        "type": "shake",
+        "start": 27.667,
+        "end": 27.667
+      },
+      {
+        "type": "shake",
+        "start": 30.833,
+        "end": 30.833
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 2.78,
+        "text": "ブラック企業の退職引き止めワード10戦",
+        "words": [
+          {
+            "word": "ブ",
+            "start": 0.0,
+            "end": 0.34
+          },
+          {
+            "word": "ラ",
+            "start": 0.34,
+            "end": 0.44
+          },
+          {
+            "word": "ック",
+            "start": 0.44,
+            "end": 0.62
+          },
+          {
+            "word": "企",
+            "start": 0.62,
+            "end": 0.78
+          },
+          {
+            "word": "業",
+            "start": 0.78,
+            "end": 0.96
+          },
+          {
+            "word": "の",
+            "start": 0.96,
+            "end": 1.12
+          },
+          {
+            "word": "退",
+            "start": 1.12,
+            "end": 1.3
+          },
+          {
+            "word": "職",
+            "start": 1.3,
+            "end": 1.54
+          },
+          {
+            "word": "引",
+            "start": 1.54,
+            "end": 1.7
+          },
+          {
+            "word": "き",
+            "start": 1.7,
+            "end": 1.82
+          },
+          {
+            "word": "止",
+            "start": 1.82,
+            "end": 1.88
+          },
+          {
+            "word": "め",
+            "start": 1.88,
+            "end": 2.0
+          },
+          {
+            "word": "ワ",
+            "start": 2.0,
+            "end": 2.18
+          },
+          {
+            "word": "ード",
+            "start": 2.18,
+            "end": 2.34
+          },
+          {
+            "word": "10",
+            "start": 2.34,
+            "end": 2.54
+          },
+          {
+            "word": "戦",
+            "start": 2.54,
+            "end": 2.78
+          }
+        ]
+      },
+      {
+        "start": 2.78,
+        "end": 5.84,
+        "text": "他の会社に行っても通用しないからやめとけ",
+        "words": [
+          {
+            "word": "他",
+            "start": 2.78,
+            "end": 3.3
+          },
+          {
+            "word": "の",
+            "start": 3.3,
+            "end": 3.48
+          },
+          {
+            "word": "会",
+            "start": 3.48,
+            "end": 3.66
+          },
+          {
+            "word": "社",
+            "start": 3.66,
+            "end": 3.82
+          },
+          {
+            "word": "に",
+            "start": 3.82,
+            "end": 3.98
+          },
+          {
+            "word": "行",
+            "start": 3.98,
+            "end": 4.1
+          },
+          {
+            "word": "って",
+            "start": 4.1,
+            "end": 4.22
+          },
+          {
+            "word": "も",
+            "start": 4.22,
+            "end": 4.36
+          },
+          {
+            "word": "通",
+            "start": 4.36,
+            "end": 4.56
+          },
+          {
+            "word": "用",
+            "start": 4.56,
+            "end": 4.74
+          },
+          {
+            "word": "し",
+            "start": 4.74,
+            "end": 4.9
+          },
+          {
+            "word": "ない",
+            "start": 4.9,
+            "end": 5.06
+          },
+          {
+            "word": "から",
+            "start": 5.06,
+            "end": 5.28
+          },
+          {
+            "word": "や",
+            "start": 5.28,
+            "end": 5.44
+          },
+          {
+            "word": "め",
+            "start": 5.44,
+            "end": 5.56
+          },
+          {
+            "word": "と",
+            "start": 5.56,
+            "end": 5.66
+          },
+          {
+            "word": "け",
+            "start": 5.66,
+            "end": 5.84
+          }
+        ]
+      },
+      {
+        "start": 6.5,
+        "end": 9.6,
+        "text": "実はお前を証拠させようと思ってたんだよ",
+        "words": [
+          {
+            "word": "実",
+            "start": 6.5,
+            "end": 6.86
+          },
+          {
+            "word": "は",
+            "start": 6.86,
+            "end": 7.14
+          },
+          {
+            "word": "お",
+            "start": 7.14,
+            "end": 7.3
+          },
+          {
+            "word": "前",
+            "start": 7.3,
+            "end": 7.44
+          },
+          {
+            "word": "を",
+            "start": 7.44,
+            "end": 7.6
+          },
+          {
+            "word": "証",
+            "start": 7.6,
+            "end": 7.8
+          },
+          {
+            "word": "拠",
+            "start": 7.8,
+            "end": 7.96
+          },
+          {
+            "word": "さ",
+            "start": 7.96,
+            "end": 8.22
+          },
+          {
+            "word": "せ",
+            "start": 8.22,
+            "end": 8.34
+          },
+          {
+            "word": "よう",
+            "start": 8.34,
+            "end": 8.52
+          },
+          {
+            "word": "と思",
+            "start": 8.52,
+            "end": 8.74
+          },
+          {
+            "word": "って",
+            "start": 8.74,
+            "end": 9.04
+          },
+          {
+            "word": "た",
+            "start": 9.04,
+            "end": 9.2
+          },
+          {
+            "word": "んだ",
+            "start": 9.2,
+            "end": 9.38
+          },
+          {
+            "word": "よ",
+            "start": 9.38,
+            "end": 9.6
+          }
+        ]
+      },
+      {
+        "start": 10.22,
+        "end": 12.68,
+        "text": "今やめると周りに迷惑がかかるぞ",
+        "words": [
+          {
+            "word": "今",
+            "start": 10.22,
+            "end": 10.58
+          },
+          {
+            "word": "や",
+            "start": 10.58,
+            "end": 10.74
+          },
+          {
+            "word": "め",
+            "start": 10.74,
+            "end": 10.88
+          },
+          {
+            "word": "る",
+            "start": 10.88,
+            "end": 10.96
+          },
+          {
+            "word": "と",
+            "start": 10.96,
+            "end": 11.08
+          },
+          {
+            "word": "周",
+            "start": 11.08,
+            "end": 11.24
+          },
+          {
+            "word": "り",
+            "start": 11.24,
+            "end": 11.42
+          },
+          {
+            "word": "に",
+            "start": 11.42,
+            "end": 11.56
+          },
+          {
+            "word": "迷",
+            "start": 11.56,
+            "end": 11.68
+          },
+          {
+            "word": "惑",
+            "start": 11.68,
+            "end": 11.9
+          },
+          {
+            "word": "が",
+            "start": 11.9,
+            "end": 12.12
+          },
+          {
+            "word": "か",
+            "start": 12.12,
+            "end": 12.26
+          },
+          {
+            "word": "か",
+            "start": 12.26,
+            "end": 12.38
+          },
+          {
+            "word": "る",
+            "start": 12.38,
+            "end": 12.46
+          },
+          {
+            "word": "ぞ",
+            "start": 12.46,
+            "end": 12.68
+          }
+        ]
+      },
+      {
+        "start": 13.3,
+        "end": 15.82,
+        "text": "公認が採用できるまで待ってて",
+        "words": [
+          {
+            "word": "公",
+            "start": 13.3,
+            "end": 13.66
+          },
+          {
+            "word": "認",
+            "start": 13.66,
+            "end": 13.84
+          },
+          {
+            "word": "が",
+            "start": 13.84,
+            "end": 14.04
+          },
+          {
+            "word": "採",
+            "start": 14.04,
+            "end": 14.24
+          },
+          {
+            "word": "用",
+            "start": 14.24,
+            "end": 14.42
+          },
+          {
+            "word": "でき",
+            "start": 14.42,
+            "end": 14.58
+          },
+          {
+            "word": "る",
+            "start": 14.58,
+            "end": 14.78
+          },
+          {
+            "word": "まで",
+            "start": 14.78,
+            "end": 14.94
+          },
+          {
+            "word": "待って",
+            "start": 14.94,
+            "end": 15.22
+          },
+          {
+            "word": "て",
+            "start": 15.22,
+            "end": 15.82
+          }
+        ]
+      },
+      {
+        "start": 15.82,
+        "end": 18.3,
+        "text": "今は時期が悪いからまた後にして",
+        "words": [
+          {
+            "word": "今",
+            "start": 15.82,
+            "end": 16.54
+          },
+          {
+            "word": "は",
+            "start": 16.54,
+            "end": 16.74
+          },
+          {
+            "word": "時",
+            "start": 16.74,
+            "end": 16.88
+          },
+          {
+            "word": "期",
+            "start": 16.88,
+            "end": 16.96
+          },
+          {
+            "word": "が",
+            "start": 16.96,
+            "end": 17.1
+          },
+          {
+            "word": "悪",
+            "start": 17.1,
+            "end": 17.24
+          },
+          {
+            "word": "い",
+            "start": 17.24,
+            "end": 17.38
+          },
+          {
+            "word": "から",
+            "start": 17.38,
+            "end": 17.56
+          },
+          {
+            "word": "また",
+            "start": 17.56,
+            "end": 17.76
+          },
+          {
+            "word": "後",
+            "start": 17.76,
+            "end": 18.0
+          },
+          {
+            "word": "に",
+            "start": 18.0,
+            "end": 18.12
+          },
+          {
+            "word": "して",
+            "start": 18.12,
+            "end": 18.3
+          }
+        ]
+      },
+      {
+        "start": 19.04,
+        "end": 20.82,
+        "text": "ここでやめるともったいないぞ",
+        "words": [
+          {
+            "word": "ここ",
+            "start": 19.04,
+            "end": 19.4
+          },
+          {
+            "word": "で",
+            "start": 19.4,
+            "end": 19.58
+          },
+          {
+            "word": "や",
+            "start": 19.58,
+            "end": 19.72
+          },
+          {
+            "word": "め",
+            "start": 19.72,
+            "end": 19.78
+          },
+          {
+            "word": "る",
+            "start": 19.78,
+            "end": 19.92
+          },
+          {
+            "word": "と",
+            "start": 19.92,
+            "end": 20.04
+          },
+          {
+            "word": "も",
+            "start": 20.04,
+            "end": 20.14
+          },
+          {
+            "word": "った",
+            "start": 20.14,
+            "end": 20.34
+          },
+          {
+            "word": "い",
+            "start": 20.34,
+            "end": 20.42
+          },
+          {
+            "word": "ない",
+            "start": 20.42,
+            "end": 20.56
+          },
+          {
+            "word": "ぞ",
+            "start": 20.56,
+            "end": 20.82
+          }
+        ]
+      },
+      {
+        "start": 21.5,
+        "end": 24.16,
+        "text": "この話は一旦俺で預かっておくから",
+        "words": [
+          {
+            "word": "この",
+            "start": 21.5,
+            "end": 21.86
+          },
+          {
+            "word": "話",
+            "start": 21.86,
+            "end": 22.16
+          },
+          {
+            "word": "は",
+            "start": 22.16,
+            "end": 22.4
+          },
+          {
+            "word": "一",
+            "start": 22.4,
+            "end": 22.6
+          },
+          {
+            "word": "旦",
+            "start": 22.6,
+            "end": 22.76
+          },
+          {
+            "word": "俺",
+            "start": 22.76,
+            "end": 22.96
+          },
+          {
+            "word": "で",
+            "start": 22.96,
+            "end": 23.16
+          },
+          {
+            "word": "預",
+            "start": 23.16,
+            "end": 23.34
+          },
+          {
+            "word": "か",
+            "start": 23.34,
+            "end": 23.5
+          },
+          {
+            "word": "って",
+            "start": 23.5,
+            "end": 23.68
+          },
+          {
+            "word": "お",
+            "start": 23.68,
+            "end": 23.82
+          },
+          {
+            "word": "く",
+            "start": 23.82,
+            "end": 23.96
+          },
+          {
+            "word": "から",
+            "start": 23.96,
+            "end": 24.16
+          }
+        ]
+      },
+      {
+        "start": 24.8,
+        "end": 27.0,
+        "text": "もっと成果だしたらやめていいよ",
+        "words": [
+          {
+            "word": "も",
+            "start": 24.8,
+            "end": 25.16
+          },
+          {
+            "word": "っと",
+            "start": 25.16,
+            "end": 25.42
+          },
+          {
+            "word": "成",
+            "start": 25.42,
+            "end": 25.64
+          },
+          {
+            "word": "果",
+            "start": 25.64,
+            "end": 25.78
+          },
+          {
+            "word": "だ",
+            "start": 25.78,
+            "end": 25.88
+          },
+          {
+            "word": "した",
+            "start": 25.88,
+            "end": 26.02
+          },
+          {
+            "word": "ら",
+            "start": 26.02,
+            "end": 26.22
+          },
+          {
+            "word": "や",
+            "start": 26.22,
+            "end": 26.34
+          },
+          {
+            "word": "めて",
+            "start": 26.34,
+            "end": 26.52
+          },
+          {
+            "word": "いい",
+            "start": 26.52,
+            "end": 26.76
+          },
+          {
+            "word": "よ",
+            "start": 26.76,
+            "end": 27.0
+          }
+        ]
+      },
+      {
+        "start": 27.58,
+        "end": 30.18,
+        "text": "途中で投げ出したら責任を持ってもらうよ",
+        "words": [
+          {
+            "word": "途",
+            "start": 27.58,
+            "end": 27.9
+          },
+          {
+            "word": "中",
+            "start": 27.9,
+            "end": 28.08
+          },
+          {
+            "word": "で",
+            "start": 28.08,
+            "end": 28.24
+          },
+          {
+            "word": "投",
+            "start": 28.24,
+            "end": 28.38
+          },
+          {
+            "word": "げ",
+            "start": 28.38,
+            "end": 28.46
+          },
+          {
+            "word": "出",
+            "start": 28.46,
+            "end": 28.56
+          },
+          {
+            "word": "した",
+            "start": 28.56,
+            "end": 28.74
+          },
+          {
+            "word": "ら",
+            "start": 28.74,
+            "end": 28.9
+          },
+          {
+            "word": "責",
+            "start": 28.9,
+            "end": 29.04
+          },
+          {
+            "word": "任",
+            "start": 29.04,
+            "end": 29.32
+          },
+          {
+            "word": "を",
+            "start": 29.32,
+            "end": 29.44
+          },
+          {
+            "word": "持",
+            "start": 29.44,
+            "end": 29.54
+          },
+          {
+            "word": "って",
+            "start": 29.54,
+            "end": 29.66
+          },
+          {
+            "word": "も",
+            "start": 29.66,
+            "end": 29.78
+          },
+          {
+            "word": "ら",
+            "start": 29.78,
+            "end": 29.9
+          },
+          {
+            "word": "う",
+            "start": 29.9,
+            "end": 30.02
+          },
+          {
+            "word": "よ",
+            "start": 30.02,
+            "end": 30.18
+          }
+        ]
+      },
+      {
+        "start": 30.84,
+        "end": 33.08,
+        "text": "お前のためを思って言ってるんだよ",
+        "words": [
+          {
+            "word": "お",
+            "start": 30.84,
+            "end": 31.16
+          },
+          {
+            "word": "前",
+            "start": 31.16,
+            "end": 31.34
+          },
+          {
+            "word": "の",
+            "start": 31.34,
+            "end": 31.5
+          },
+          {
+            "word": "ため",
+            "start": 31.5,
+            "end": 31.72
+          },
+          {
+            "word": "を",
+            "start": 31.72,
+            "end": 31.92
+          },
+          {
+            "word": "思",
+            "start": 31.92,
+            "end": 32.08
+          },
+          {
+            "word": "って",
+            "start": 32.08,
+            "end": 32.3
+          },
+          {
+            "word": "言",
+            "start": 32.3,
+            "end": 32.4
+          },
+          {
+            "word": "ってる",
+            "start": 32.4,
+            "end": 32.62
+          },
+          {
+            "word": "んだ",
+            "start": 32.62,
+            "end": 32.88
+          },
+          {
+            "word": "よ",
+            "start": 32.88,
+            "end": 33.08
+          }
+        ]
+      }
+    ],
+    "full_text": "ブラック企業の退職引き止めワード10戦 他の会社に行っても通用しないからやめとけ 実はお前を証拠させようと思ってたんだよ 今やめると周りに迷惑がかかるぞ 公認が採用できるまで待ってて 今は時期が悪いからまた後にして ここでやめるともったいないぞ この話は一旦俺で預かっておくから もっと成果だしたらやめていいよ 途中で投げ出したら責任を持ってもらうよ お前のためを思って言ってるんだよ",
+    "words_per_minute": 391.7,
+    "keywords": [
+      "ブラック企業の退職引き止めワ",
+      "他の会社に行っても通用しないからやめとけ",
+      "実はお前を証拠させようと思ってたんだよ",
+      "今やめると周りに迷惑がかかるぞ",
+      "公認が採用できるまで待ってて",
+      "今は時期が悪いからまた後にして",
+      "ここでやめるともったいないぞ",
+      "この話は一旦俺で預かっておくから",
+      "もっと成果だしたらやめていいよ",
+      "途中で投げ出したら責任を持ってもらうよ"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 5.84,
+        "end": 6.5,
+        "duration": 0.66
+      },
+      {
+        "start": 9.6,
+        "end": 10.22,
+        "duration": 0.62
+      },
+      {
+        "start": 12.68,
+        "end": 13.3,
+        "duration": 0.62
+      },
+      {
+        "start": 18.3,
+        "end": 19.04,
+        "duration": 0.74
+      },
+      {
+        "start": 20.82,
+        "end": 21.5,
+        "duration": 0.68
+      },
+      {
+        "start": 24.16,
+        "end": 24.8,
+        "duration": 0.64
+      },
+      {
+        "start": 27.0,
+        "end": 27.58,
+        "duration": 0.58
+      },
+      {
+        "start": 30.18,
+        "end": 30.84,
+        "duration": 0.66
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 1.86,
+        "end": 2.37,
+        "energy": "medium"
+      },
+      {
+        "start": 4.9,
+        "end": 5.71,
+        "energy": "medium"
+      },
+      {
+        "start": 6.62,
+        "end": 8.24,
+        "energy": "medium"
+      },
+      {
+        "start": 9.13,
+        "end": 9.73,
+        "energy": "low"
+      },
+      {
+        "start": 10.43,
+        "end": 12.12,
+        "energy": "medium"
+      },
+      {
+        "start": 13.56,
+        "end": 14.61,
+        "energy": "medium"
+      },
+      {
+        "start": 14.63,
+        "end": 15.49,
+        "energy": "low"
+      },
+      {
+        "start": 16.35,
+        "end": 21.59,
+        "energy": "low"
+      },
+      {
+        "start": 22.24,
+        "end": 23.82,
+        "energy": "low"
+      },
+      {
+        "start": 24.01,
+        "end": 25.98,
+        "energy": "medium"
+      },
+      {
+        "start": 26.03,
+        "end": 33.76,
+        "energy": "medium"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.859,
+        "type": "transition",
+        "energy": 0.765
+      },
+      {
+        "time": 1.254,
+        "type": "whoosh",
+        "energy": 0.586
+      },
+      {
+        "time": 1.858,
+        "type": "whoosh",
+        "energy": 0.626
+      },
+      {
+        "time": 3.947,
+        "type": "whoosh",
+        "energy": 0.538
+      },
+      {
+        "time": 4.992,
+        "type": "whoosh",
+        "energy": 0.578
+      },
+      {
+        "time": 6.641,
+        "type": "impact",
+        "energy": 0.35
+      },
+      {
+        "time": 9.776,
+        "type": "impact",
+        "energy": 0.359
+      },
+      {
+        "time": 10.472,
+        "type": "transition",
+        "energy": 0.781
+      },
+      {
+        "time": 12.33,
+        "type": "whoosh",
+        "energy": 0.254
+      },
+      {
+        "time": 12.91,
+        "type": "impact",
+        "energy": 0.378
+      },
+      {
+        "time": 21.78,
+        "type": "whoosh",
+        "energy": 0.511
+      },
+      {
+        "time": 23.475,
+        "type": "whoosh",
+        "energy": 0.564
+      },
+      {
+        "time": 25.101,
+        "type": "whoosh",
+        "energy": 0.69
+      },
+      {
+        "time": 25.588,
+        "type": "transition",
+        "energy": 0.725
+      },
+      {
+        "time": 32.531,
+        "type": "whoosh",
+        "energy": 0.669
+      }
+    ],
+    "beat_times": [
+      0.302,
+      0.627,
+      1.022,
+      1.416,
+      1.788,
+      2.136,
+      2.461,
+      2.81,
+      3.181,
+      3.529,
+      3.878,
+      4.203,
+      4.551,
+      4.876,
+      5.201,
+      5.55,
+      5.921,
+      6.293,
+      6.641,
+      6.989,
+      7.361,
+      7.663,
+      7.964,
+      8.313,
+      8.638,
+      9.033,
+      9.404,
+      9.799,
+      10.147,
+      10.472,
+      10.867,
+      11.192,
+      11.54,
+      11.865,
+      12.214,
+      12.562,
+      12.934,
+      13.282,
+      13.63,
+      14.002,
+      14.35,
+      14.675,
+      15.0,
+      15.372,
+      15.743,
+      16.091,
+      16.417,
+      16.788,
+      17.136,
+      17.485,
+      17.81,
+      18.158,
+      18.506,
+      18.855,
+      19.226,
+      19.574,
+      19.992,
+      20.317,
+      20.666,
+      21.014,
+      21.362,
+      21.711,
+      22.036,
+      22.361,
+      22.663,
+      23.011,
+      23.359,
+      23.684,
+      24.033,
+      24.404,
+      24.776,
+      25.124,
+      25.472,
+      25.821,
+      26.192,
+      26.54,
+      26.865,
+      27.214,
+      27.585,
+      27.91,
+      28.235,
+      28.561,
+      28.909,
+      29.28,
+      29.652,
+      30.023,
+      30.372,
+      30.72,
+      31.092,
+      31.44,
+      31.765,
+      32.09,
+      32.461,
+      32.81
+    ],
+    "dominant_tempo": 172.3,
+    "music_coverage": 0.701,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.154
+      },
+      {
+        "time": 1.0,
+        "energy": 0.375
+      },
+      {
+        "time": 1.5,
+        "energy": 0.277
+      },
+      {
+        "time": 2.0,
+        "energy": 0.524
+      },
+      {
+        "time": 2.5,
+        "energy": 0.389
+      },
+      {
+        "time": 3.0,
+        "energy": 0.183
+      },
+      {
+        "time": 3.5,
+        "energy": 0.479
+      },
+      {
+        "time": 4.0,
+        "energy": 0.315
+      },
+      {
+        "time": 4.5,
+        "energy": 0.502
+      },
+      {
+        "time": 5.0,
+        "energy": 0.545
+      },
+      {
+        "time": 5.5,
+        "energy": 0.396
+      },
+      {
+        "time": 6.0,
+        "energy": 0.047
+      },
+      {
+        "time": 6.5,
+        "energy": 0.034
+      },
+      {
+        "time": 7.0,
+        "energy": 0.725
+      },
+      {
+        "time": 7.5,
+        "energy": 0.633
+      },
+      {
+        "time": 8.0,
+        "energy": 0.316
+      },
+      {
+        "time": 8.5,
+        "energy": 0.444
+      },
+      {
+        "time": 9.0,
+        "energy": 0.336
+      },
+      {
+        "time": 9.5,
+        "energy": 0.252
+      },
+      {
+        "time": 10.0,
+        "energy": 0.088
+      },
+      {
+        "time": 10.5,
+        "energy": 0.763
+      },
+      {
+        "time": 11.0,
+        "energy": 0.235
+      },
+      {
+        "time": 11.5,
+        "energy": 0.606
+      },
+      {
+        "time": 12.0,
+        "energy": 0.348
+      },
+      {
+        "time": 12.5,
+        "energy": 0.163
+      },
+      {
+        "time": 13.0,
+        "energy": 0.356
+      },
+      {
+        "time": 13.5,
+        "energy": 0.264
+      },
+      {
+        "time": 14.0,
+        "energy": 0.624
+      },
+      {
+        "time": 14.5,
+        "energy": 0.481
+      },
+      {
+        "time": 15.0,
+        "energy": 0.504
+      },
+      {
+        "time": 15.5,
+        "energy": 0.198
+      },
+      {
+        "time": 16.0,
+        "energy": 0.211
+      },
+      {
+        "time": 16.5,
+        "energy": 0.871
+      },
+      {
+        "time": 17.0,
+        "energy": 0.669
+      },
+      {
+        "time": 17.5,
+        "energy": 0.489
+      },
+      {
+        "time": 18.0,
+        "energy": 0.38
+      },
+      {
+        "time": 18.5,
+        "energy": 0.191
+      },
+      {
+        "time": 19.0,
+        "energy": 0.313
+      },
+      {
+        "time": 19.5,
+        "energy": 0.628
+      },
+      {
+        "time": 20.0,
+        "energy": 0.502
+      },
+      {
+        "time": 20.5,
+        "energy": 0.596
+      },
+      {
+        "time": 21.0,
+        "energy": 0.287
+      },
+      {
+        "time": 21.5,
+        "energy": 0.201
+      },
+      {
+        "time": 22.0,
+        "energy": 0.6
+      },
+      {
+        "time": 22.5,
+        "energy": 0.212
+      },
+      {
+        "time": 23.0,
+        "energy": 0.64
+      },
+      {
+        "time": 23.5,
+        "energy": 0.421
+      },
+      {
+        "time": 24.0,
+        "energy": 0.277
+      },
+      {
+        "time": 24.5,
+        "energy": 0.25
+      },
+      {
+        "time": 25.0,
+        "energy": 0.28
+      },
+      {
+        "time": 25.5,
+        "energy": 0.475
+      },
+      {
+        "time": 26.0,
+        "energy": 0.187
+      },
+      {
+        "time": 26.5,
+        "energy": 0.537
+      },
+      {
+        "time": 27.0,
+        "energy": 0.357
+      },
+      {
+        "time": 27.5,
+        "energy": 0.322
+      },
+      {
+        "time": 28.0,
+        "energy": 0.512
+      },
+      {
+        "time": 28.5,
+        "energy": 0.59
+      },
+      {
+        "time": 29.0,
+        "energy": 0.393
+      },
+      {
+        "time": 29.5,
+        "energy": 0.451
+      },
+      {
+        "time": 30.0,
+        "energy": 0.408
+      },
+      {
+        "time": 30.5,
+        "energy": 0.483
+      },
+      {
+        "time": 31.0,
+        "energy": 0.398
+      },
+      {
+        "time": 31.5,
+        "energy": 0.662
+      },
+      {
+        "time": 32.0,
+        "energy": 0.615
+      },
+      {
+        "time": 32.5,
+        "energy": 0.641
+      },
+      {
+        "time": 33.0,
+        "energy": 0.395
+      },
+      {
+        "time": 33.5,
+        "energy": 0.301
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 30.3,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/【注意】ブラック企業の退職引き留めワード10選 #転職/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

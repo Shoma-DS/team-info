@@ -5,11 +5,11 @@
 - テーマ分類ごとのプロンプトテンプレートを Markdown で作成し、再利用できる状態にする
 
 ## 入力
-- `inputs/viral-analysis/output/[batch]/viral_patterns.md`（必須）
+- `outputs/viral-analysis/[batch]/viral_patterns.md`（必須）
 - テンプレート対象のジャンル/チャンネル（例: 転職、副業、投資）
 
 ## 出力
-- `inputs/viral-analysis/output/[batch]/prompt_templates/[テーマ名].md`（テーマ数分）
+- `outputs/viral-analysis/[batch]/prompt_templates/[テーマ名].md`（テーマ数分）
 
 ---
 
@@ -77,7 +77,7 @@
 ### Step 5: 保存
 
 ```
-inputs/viral-analysis/output/[batch]/prompt_templates/
+outputs/viral-analysis/[batch]/prompt_templates/
 ├── 警告系.md
 ├── あるある系.md
 ├── 理由系.md

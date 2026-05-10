@@ -1,0 +1,1386 @@
+{
+  "duration": 30.0,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/【注意】ゆるブラック企業の特徴10選  #転職.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 30.0,
+        "start_frame": 0,
+        "end_frame": 900,
+        "motion_type": "shake",
+        "motion_intensity": 1.2,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 735,
+        "time": 24.5,
+        "x": 0.564,
+        "y": 0.503,
+        "size": 0.022,
+        "confidence": 0.63
+      },
+      {
+        "frame": 750,
+        "time": 25.0,
+        "x": 0.564,
+        "y": 0.503,
+        "size": 0.022,
+        "confidence": 0.63
+      },
+      {
+        "frame": 765,
+        "time": 25.5,
+        "x": 0.564,
+        "y": 0.503,
+        "size": 0.022,
+        "confidence": 0.63
+      },
+      {
+        "frame": 780,
+        "time": 26.0,
+        "x": 0.564,
+        "y": 0.503,
+        "size": 0.022,
+        "confidence": 0.63
+      },
+      {
+        "frame": 795,
+        "time": 26.5,
+        "x": 0.564,
+        "y": 0.503,
+        "size": 0.022,
+        "confidence": 0.63
+      },
+      {
+        "frame": 810,
+        "time": 27.0,
+        "x": 0.564,
+        "y": 0.503,
+        "size": 0.022,
+        "confidence": 0.63
+      },
+      {
+        "frame": 825,
+        "time": 27.5,
+        "x": 0.507,
+        "y": 0.486,
+        "size": 0.037,
+        "confidence": 0.686
+      },
+      {
+        "frame": 840,
+        "time": 28.0,
+        "x": 0.507,
+        "y": 0.486,
+        "size": 0.036,
+        "confidence": 0.687
+      },
+      {
+        "frame": 855,
+        "time": 28.5,
+        "x": 0.507,
+        "y": 0.486,
+        "size": 0.036,
+        "confidence": 0.687
+      },
+      {
+        "frame": 870,
+        "time": 29.0,
+        "x": 0.507,
+        "y": 0.486,
+        "size": 0.036,
+        "confidence": 0.686
+      },
+      {
+        "frame": 885,
+        "time": 29.5,
+        "x": 0.507,
+        "y": 0.486,
+        "size": 0.036,
+        "confidence": 0.686
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 2.333,
+        "end": 2.333
+      },
+      {
+        "type": "tilt_up",
+        "start": 5.5,
+        "end": 5.5
+      },
+      {
+        "type": "shake",
+        "start": 7.5,
+        "end": 7.5
+      },
+      {
+        "type": "tilt_up",
+        "start": 9.667,
+        "end": 9.667
+      },
+      {
+        "type": "shake",
+        "start": 12.833,
+        "end": 12.833
+      },
+      {
+        "type": "tilt_up",
+        "start": 15.667,
+        "end": 15.667
+      },
+      {
+        "type": "pan_left",
+        "start": 18.333,
+        "end": 18.333
+      },
+      {
+        "type": "shake",
+        "start": 21.0,
+        "end": 21.0
+      },
+      {
+        "type": "shake",
+        "start": 24.5,
+        "end": 24.5
+      },
+      {
+        "type": "shake",
+        "start": 27.333,
+        "end": 27.333
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 5.56,
+        "text": "ゆるブラック企業の特徴実践 職場環境がよく利職率が低い",
+        "words": [
+          {
+            "word": "ゆ",
+            "start": 0.0,
+            "end": 0.36
+          },
+          {
+            "word": "る",
+            "start": 0.36,
+            "end": 0.44
+          },
+          {
+            "word": "ブ",
+            "start": 0.44,
+            "end": 0.6
+          },
+          {
+            "word": "ラ",
+            "start": 0.6,
+            "end": 0.66
+          },
+          {
+            "word": "ック",
+            "start": 0.66,
+            "end": 0.84
+          },
+          {
+            "word": "企",
+            "start": 0.84,
+            "end": 1.02
+          },
+          {
+            "word": "業",
+            "start": 1.02,
+            "end": 1.2
+          },
+          {
+            "word": "の",
+            "start": 1.2,
+            "end": 1.32
+          },
+          {
+            "word": "特",
+            "start": 1.32,
+            "end": 1.52
+          },
+          {
+            "word": "徴",
+            "start": 1.52,
+            "end": 1.72
+          },
+          {
+            "word": "実",
+            "start": 1.72,
+            "end": 1.98
+          },
+          {
+            "word": "践",
+            "start": 1.98,
+            "end": 2.2
+          },
+          {
+            "word": " 職",
+            "start": 2.58,
+            "end": 2.8
+          },
+          {
+            "word": "場",
+            "start": 2.8,
+            "end": 2.94
+          },
+          {
+            "word": "環",
+            "start": 2.94,
+            "end": 3.14
+          },
+          {
+            "word": "境",
+            "start": 3.14,
+            "end": 3.34
+          },
+          {
+            "word": "が",
+            "start": 3.34,
+            "end": 3.52
+          },
+          {
+            "word": "よ",
+            "start": 3.52,
+            "end": 3.64
+          },
+          {
+            "word": "く",
+            "start": 3.64,
+            "end": 3.76
+          },
+          {
+            "word": "利",
+            "start": 3.76,
+            "end": 3.86
+          },
+          {
+            "word": "職",
+            "start": 3.86,
+            "end": 4.06
+          },
+          {
+            "word": "率",
+            "start": 4.06,
+            "end": 4.3
+          },
+          {
+            "word": "が",
+            "start": 4.3,
+            "end": 4.48
+          },
+          {
+            "word": "低",
+            "start": 4.48,
+            "end": 4.68
+          },
+          {
+            "word": "い",
+            "start": 4.68,
+            "end": 5.56
+          }
+        ]
+      },
+      {
+        "start": 5.56,
+        "end": 8.92,
+        "text": "角のノルマがない 休みがしっかりとれる",
+        "words": [
+          {
+            "word": "角",
+            "start": 5.56,
+            "end": 5.84
+          },
+          {
+            "word": "の",
+            "start": 5.84,
+            "end": 6.04
+          },
+          {
+            "word": "ノ",
+            "start": 6.04,
+            "end": 6.18
+          },
+          {
+            "word": "ル",
+            "start": 6.18,
+            "end": 6.26
+          },
+          {
+            "word": "マ",
+            "start": 6.26,
+            "end": 6.38
+          },
+          {
+            "word": "が",
+            "start": 6.38,
+            "end": 6.5
+          },
+          {
+            "word": "ない",
+            "start": 6.5,
+            "end": 6.72
+          },
+          {
+            "word": " 休",
+            "start": 7.26,
+            "end": 7.82
+          },
+          {
+            "word": "み",
+            "start": 7.82,
+            "end": 8.0
+          },
+          {
+            "word": "が",
+            "start": 8.0,
+            "end": 8.14
+          },
+          {
+            "word": "し",
+            "start": 8.14,
+            "end": 8.28
+          },
+          {
+            "word": "っ",
+            "start": 8.28,
+            "end": 8.46
+          },
+          {
+            "word": "か",
+            "start": 8.46,
+            "end": 8.52
+          },
+          {
+            "word": "り",
+            "start": 8.52,
+            "end": 8.6
+          },
+          {
+            "word": "と",
+            "start": 8.6,
+            "end": 8.72
+          },
+          {
+            "word": "れる",
+            "start": 8.72,
+            "end": 8.92
+          }
+        ]
+      },
+      {
+        "start": 9.62,
+        "end": 15.0,
+        "text": "仕事量ほどほどで残業も余りない 指導してくれる先輩が少ない",
+        "words": [
+          {
+            "word": "仕",
+            "start": 9.62,
+            "end": 9.98
+          },
+          {
+            "word": "事",
+            "start": 9.98,
+            "end": 10.12
+          },
+          {
+            "word": "量",
+            "start": 10.12,
+            "end": 10.38
+          },
+          {
+            "word": "ほど",
+            "start": 10.38,
+            "end": 10.58
+          },
+          {
+            "word": "ほど",
+            "start": 10.58,
+            "end": 10.86
+          },
+          {
+            "word": "で",
+            "start": 10.86,
+            "end": 11.04
+          },
+          {
+            "word": "残",
+            "start": 11.04,
+            "end": 11.22
+          },
+          {
+            "word": "業",
+            "start": 11.22,
+            "end": 11.4
+          },
+          {
+            "word": "も",
+            "start": 11.4,
+            "end": 11.6
+          },
+          {
+            "word": "余",
+            "start": 11.6,
+            "end": 11.74
+          },
+          {
+            "word": "り",
+            "start": 11.74,
+            "end": 11.88
+          },
+          {
+            "word": "ない",
+            "start": 11.88,
+            "end": 12.08
+          },
+          {
+            "word": " 指",
+            "start": 12.8,
+            "end": 13.18
+          },
+          {
+            "word": "導",
+            "start": 13.18,
+            "end": 13.32
+          },
+          {
+            "word": "して",
+            "start": 13.32,
+            "end": 13.56
+          },
+          {
+            "word": "く",
+            "start": 13.56,
+            "end": 13.76
+          },
+          {
+            "word": "れる",
+            "start": 13.76,
+            "end": 13.9
+          },
+          {
+            "word": "先",
+            "start": 13.9,
+            "end": 14.12
+          },
+          {
+            "word": "輩",
+            "start": 14.12,
+            "end": 14.32
+          },
+          {
+            "word": "が",
+            "start": 14.32,
+            "end": 14.5
+          },
+          {
+            "word": "少",
+            "start": 14.5,
+            "end": 14.64
+          },
+          {
+            "word": "ない",
+            "start": 14.64,
+            "end": 15.0
+          }
+        ]
+      },
+      {
+        "start": 15.58,
+        "end": 20.38,
+        "text": "スキルやキャリアアップが難しい 焦急や傷心がしづらい",
+        "words": [
+          {
+            "word": "ス",
+            "start": 15.58,
+            "end": 15.94
+          },
+          {
+            "word": "キ",
+            "start": 15.94,
+            "end": 16.06
+          },
+          {
+            "word": "ル",
+            "start": 16.06,
+            "end": 16.12
+          },
+          {
+            "word": "や",
+            "start": 16.12,
+            "end": 16.3
+          },
+          {
+            "word": "キ",
+            "start": 16.3,
+            "end": 16.46
+          },
+          {
+            "word": "ャ",
+            "start": 16.46,
+            "end": 16.46
+          },
+          {
+            "word": "リ",
+            "start": 16.46,
+            "end": 16.5
+          },
+          {
+            "word": "ア",
+            "start": 16.5,
+            "end": 16.66
+          },
+          {
+            "word": "ア",
+            "start": 16.66,
+            "end": 16.76
+          },
+          {
+            "word": "ップ",
+            "start": 16.76,
+            "end": 16.9
+          },
+          {
+            "word": "が",
+            "start": 16.9,
+            "end": 17.06
+          },
+          {
+            "word": "難",
+            "start": 17.06,
+            "end": 17.26
+          },
+          {
+            "word": "しい",
+            "start": 17.26,
+            "end": 17.72
+          },
+          {
+            "word": " 焦",
+            "start": 18.62,
+            "end": 18.78
+          },
+          {
+            "word": "急",
+            "start": 18.78,
+            "end": 18.96
+          },
+          {
+            "word": "や",
+            "start": 18.96,
+            "end": 19.18
+          },
+          {
+            "word": "傷",
+            "start": 19.18,
+            "end": 19.4
+          },
+          {
+            "word": "心",
+            "start": 19.4,
+            "end": 19.62
+          },
+          {
+            "word": "が",
+            "start": 19.62,
+            "end": 19.78
+          },
+          {
+            "word": "し",
+            "start": 19.78,
+            "end": 19.94
+          },
+          {
+            "word": "づ",
+            "start": 19.94,
+            "end": 20.04
+          },
+          {
+            "word": "らい",
+            "start": 20.04,
+            "end": 20.38
+          }
+        ]
+      },
+      {
+        "start": 20.9,
+        "end": 27.36,
+        "text": "何年働いても給料アップが見込めない 会社の将来性が心配になる",
+        "words": [
+          {
+            "word": "何",
+            "start": 20.9,
+            "end": 21.26
+          },
+          {
+            "word": "年",
+            "start": 21.26,
+            "end": 21.5
+          },
+          {
+            "word": "働",
+            "start": 21.5,
+            "end": 21.74
+          },
+          {
+            "word": "いて",
+            "start": 21.74,
+            "end": 22.02
+          },
+          {
+            "word": "も",
+            "start": 22.02,
+            "end": 22.2
+          },
+          {
+            "word": "給",
+            "start": 22.2,
+            "end": 22.42
+          },
+          {
+            "word": "料",
+            "start": 22.42,
+            "end": 22.6
+          },
+          {
+            "word": "ア",
+            "start": 22.6,
+            "end": 22.82
+          },
+          {
+            "word": "ップ",
+            "start": 22.82,
+            "end": 22.98
+          },
+          {
+            "word": "が",
+            "start": 22.98,
+            "end": 23.12
+          },
+          {
+            "word": "見",
+            "start": 23.12,
+            "end": 23.26
+          },
+          {
+            "word": "込",
+            "start": 23.26,
+            "end": 23.38
+          },
+          {
+            "word": "め",
+            "start": 23.38,
+            "end": 23.5
+          },
+          {
+            "word": "ない",
+            "start": 23.5,
+            "end": 23.7
+          },
+          {
+            "word": " 会",
+            "start": 24.52,
+            "end": 24.72
+          },
+          {
+            "word": "社",
+            "start": 24.72,
+            "end": 24.92
+          },
+          {
+            "word": "の",
+            "start": 24.92,
+            "end": 25.04
+          },
+          {
+            "word": "将",
+            "start": 25.04,
+            "end": 25.26
+          },
+          {
+            "word": "来",
+            "start": 25.26,
+            "end": 25.42
+          },
+          {
+            "word": "性",
+            "start": 25.42,
+            "end": 25.66
+          },
+          {
+            "word": "が",
+            "start": 25.66,
+            "end": 25.84
+          },
+          {
+            "word": "心",
+            "start": 25.84,
+            "end": 26.12
+          },
+          {
+            "word": "配",
+            "start": 26.12,
+            "end": 26.28
+          },
+          {
+            "word": "にな",
+            "start": 26.28,
+            "end": 26.5
+          },
+          {
+            "word": "る",
+            "start": 26.5,
+            "end": 27.36
+          }
+        ]
+      },
+      {
+        "start": 27.36,
+        "end": 29.32,
+        "text": "ゆるい環境に慣れて抜け出せない",
+        "words": [
+          {
+            "word": "ゆ",
+            "start": 27.36,
+            "end": 27.62
+          },
+          {
+            "word": "る",
+            "start": 27.62,
+            "end": 27.72
+          },
+          {
+            "word": "い",
+            "start": 27.72,
+            "end": 27.84
+          },
+          {
+            "word": "環",
+            "start": 27.84,
+            "end": 28.02
+          },
+          {
+            "word": "境",
+            "start": 28.02,
+            "end": 28.24
+          },
+          {
+            "word": "に",
+            "start": 28.24,
+            "end": 28.38
+          },
+          {
+            "word": "慣",
+            "start": 28.38,
+            "end": 28.52
+          },
+          {
+            "word": "れて",
+            "start": 28.52,
+            "end": 28.68
+          },
+          {
+            "word": "抜",
+            "start": 28.68,
+            "end": 28.82
+          },
+          {
+            "word": "け",
+            "start": 28.82,
+            "end": 28.94
+          },
+          {
+            "word": "出",
+            "start": 28.94,
+            "end": 29.02
+          },
+          {
+            "word": "せ",
+            "start": 29.02,
+            "end": 29.16
+          },
+          {
+            "word": "ない",
+            "start": 29.16,
+            "end": 29.32
+          }
+        ]
+      }
+    ],
+    "full_text": "ゆるブラック企業の特徴実践 職場環境がよく利職率が低い 角のノルマがない 休みがしっかりとれる 仕事量ほどほどで残業も余りない 指導してくれる先輩が少ない スキルやキャリアアップが難しい 焦急や傷心がしづらい 何年働いても給料アップが見込めない 会社の将来性が心配になる ゆるい環境に慣れて抜け出せない",
+    "words_per_minute": 318.3,
+    "keywords": [
+      "ゆるブラック企業の特徴実践",
+      "職場環境がよく利職率が低い",
+      "角のノルマがない",
+      "休みがしっかりとれる",
+      "仕事量ほどほどで残業も余りない",
+      "指導してくれる先輩が少ない",
+      "スキルやキャリアアップが難しい",
+      "焦急や傷心がしづらい",
+      "何年働いても給料アップが見込めない",
+      "会社の将来性が心配になる"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 8.92,
+        "end": 9.62,
+        "duration": 0.7
+      },
+      {
+        "start": 15.0,
+        "end": 15.58,
+        "duration": 0.58
+      },
+      {
+        "start": 20.38,
+        "end": 20.9,
+        "duration": 0.52
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 3.0,
+        "end": 3.69,
+        "energy": "medium"
+      },
+      {
+        "start": 5.85,
+        "end": 6.66,
+        "energy": "low"
+      },
+      {
+        "start": 10.17,
+        "end": 12.17,
+        "energy": "medium"
+      },
+      {
+        "start": 18.9,
+        "end": 19.46,
+        "energy": "medium"
+      },
+      {
+        "start": 19.48,
+        "end": 20.32,
+        "energy": "medium"
+      },
+      {
+        "start": 21.15,
+        "end": 24.54,
+        "energy": "low"
+      },
+      {
+        "start": 24.59,
+        "end": 26.96,
+        "energy": "low"
+      },
+      {
+        "start": 27.31,
+        "end": 29.86,
+        "energy": "low"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.65,
+        "type": "whoosh",
+        "energy": 0.636
+      },
+      {
+        "time": 1.091,
+        "type": "transition",
+        "energy": 0.744
+      },
+      {
+        "time": 1.649,
+        "type": "whoosh",
+        "energy": 0.545
+      },
+      {
+        "time": 2.136,
+        "type": "whoosh",
+        "energy": 0.342
+      },
+      {
+        "time": 2.902,
+        "type": "transition",
+        "energy": 0.861
+      },
+      {
+        "time": 4.203,
+        "type": "whoosh",
+        "energy": 0.53
+      },
+      {
+        "time": 5.921,
+        "type": "transition",
+        "energy": 0.914
+      },
+      {
+        "time": 7.245,
+        "type": "impact",
+        "energy": 0.274
+      },
+      {
+        "time": 7.686,
+        "type": "whoosh",
+        "energy": 0.534
+      },
+      {
+        "time": 8.475,
+        "type": "whoosh",
+        "energy": 0.413
+      },
+      {
+        "time": 10.077,
+        "type": "whoosh",
+        "energy": 0.641
+      },
+      {
+        "time": 12.353,
+        "type": "whoosh",
+        "energy": 0.353
+      },
+      {
+        "time": 13.259,
+        "type": "transition",
+        "energy": 0.893
+      },
+      {
+        "time": 13.793,
+        "type": "whoosh",
+        "energy": 0.681
+      },
+      {
+        "time": 14.768,
+        "type": "impact",
+        "energy": 0.399
+      },
+      {
+        "time": 15.766,
+        "type": "whoosh",
+        "energy": 0.282
+      },
+      {
+        "time": 18.158,
+        "type": "impact",
+        "energy": 0.258
+      },
+      {
+        "time": 18.715,
+        "type": "transition",
+        "energy": 0.717
+      },
+      {
+        "time": 21.2,
+        "type": "transition",
+        "energy": 0.7
+      },
+      {
+        "time": 24.683,
+        "type": "transition",
+        "energy": 0.764
+      },
+      {
+        "time": 27.725,
+        "type": "transition",
+        "energy": 1.0
+      }
+    ],
+    "beat_times": [
+      0.116,
+      0.441,
+      0.789,
+      1.115,
+      1.416,
+      1.765,
+      2.113,
+      2.461,
+      2.81,
+      3.158,
+      3.506,
+      3.855,
+      4.203,
+      4.551,
+      4.899,
+      5.224,
+      5.55,
+      5.921,
+      6.246,
+      6.594,
+      6.92,
+      7.268,
+      7.593,
+      7.918,
+      8.266,
+      8.615,
+      8.963,
+      9.311,
+      9.636,
+      9.961,
+      10.31,
+      10.658,
+      10.983,
+      11.331,
+      11.656,
+      12.005,
+      12.376,
+      12.725,
+      13.05,
+      13.375,
+      13.7,
+      14.071,
+      14.42,
+      14.768,
+      15.093,
+      15.441,
+      15.79,
+      16.138,
+      16.463,
+      16.811,
+      17.16,
+      17.485,
+      17.833,
+      18.181,
+      18.506,
+      18.855,
+      19.203,
+      19.528,
+      19.876,
+      20.201,
+      20.55,
+      20.898,
+      21.2,
+      21.525,
+      21.873,
+      22.221,
+      22.57,
+      22.918,
+      23.243,
+      23.591,
+      23.963,
+      24.311,
+      24.636,
+      25.008,
+      25.333,
+      25.681,
+      26.006,
+      26.355,
+      26.703,
+      27.051,
+      27.376,
+      27.725,
+      28.05,
+      28.375,
+      28.677
+    ],
+    "dominant_tempo": 172.3,
+    "music_coverage": 0.439,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.336
+      },
+      {
+        "time": 1.0,
+        "energy": 0.383
+      },
+      {
+        "time": 1.5,
+        "energy": 0.177
+      },
+      {
+        "time": 2.0,
+        "energy": 0.167
+      },
+      {
+        "time": 2.5,
+        "energy": 0.149
+      },
+      {
+        "time": 3.0,
+        "energy": 0.353
+      },
+      {
+        "time": 3.5,
+        "energy": 0.416
+      },
+      {
+        "time": 4.0,
+        "energy": 0.335
+      },
+      {
+        "time": 4.5,
+        "energy": 0.249
+      },
+      {
+        "time": 5.0,
+        "energy": 0.145
+      },
+      {
+        "time": 5.5,
+        "energy": 0.129
+      },
+      {
+        "time": 6.0,
+        "energy": 0.442
+      },
+      {
+        "time": 6.5,
+        "energy": 0.25
+      },
+      {
+        "time": 7.0,
+        "energy": 0.097
+      },
+      {
+        "time": 7.5,
+        "energy": 0.03
+      },
+      {
+        "time": 8.0,
+        "energy": 0.719
+      },
+      {
+        "time": 8.5,
+        "energy": 0.446
+      },
+      {
+        "time": 9.0,
+        "energy": 0.177
+      },
+      {
+        "time": 9.5,
+        "energy": 0.034
+      },
+      {
+        "time": 10.0,
+        "energy": 0.602
+      },
+      {
+        "time": 10.5,
+        "energy": 0.36
+      },
+      {
+        "time": 11.0,
+        "energy": 0.459
+      },
+      {
+        "time": 11.5,
+        "energy": 0.527
+      },
+      {
+        "time": 12.0,
+        "energy": 0.413
+      },
+      {
+        "time": 12.5,
+        "energy": 0.155
+      },
+      {
+        "time": 13.0,
+        "energy": 0.174
+      },
+      {
+        "time": 13.5,
+        "energy": 0.354
+      },
+      {
+        "time": 14.0,
+        "energy": 0.309
+      },
+      {
+        "time": 14.5,
+        "energy": 0.268
+      },
+      {
+        "time": 15.0,
+        "energy": 0.028
+      },
+      {
+        "time": 15.5,
+        "energy": 0.144
+      },
+      {
+        "time": 16.0,
+        "energy": 0.581
+      },
+      {
+        "time": 16.5,
+        "energy": 0.51
+      },
+      {
+        "time": 17.0,
+        "energy": 0.308
+      },
+      {
+        "time": 17.5,
+        "energy": 0.26
+      },
+      {
+        "time": 18.0,
+        "energy": 0.035
+      },
+      {
+        "time": 18.5,
+        "energy": 0.181
+      },
+      {
+        "time": 19.0,
+        "energy": 0.544
+      },
+      {
+        "time": 19.5,
+        "energy": 0.354
+      },
+      {
+        "time": 20.0,
+        "energy": 0.296
+      },
+      {
+        "time": 20.5,
+        "energy": 0.138
+      },
+      {
+        "time": 21.0,
+        "energy": 0.157
+      },
+      {
+        "time": 21.5,
+        "energy": 0.629
+      },
+      {
+        "time": 22.0,
+        "energy": 0.438
+      },
+      {
+        "time": 22.5,
+        "energy": 0.592
+      },
+      {
+        "time": 23.0,
+        "energy": 0.345
+      },
+      {
+        "time": 23.5,
+        "energy": 0.423
+      },
+      {
+        "time": 24.0,
+        "energy": 0.318
+      },
+      {
+        "time": 24.5,
+        "energy": 0.156
+      },
+      {
+        "time": 25.0,
+        "energy": 0.662
+      },
+      {
+        "time": 25.5,
+        "energy": 0.315
+      },
+      {
+        "time": 26.0,
+        "energy": 0.534
+      },
+      {
+        "time": 26.5,
+        "energy": 0.402
+      },
+      {
+        "time": 27.0,
+        "energy": 0.151
+      },
+      {
+        "time": 27.5,
+        "energy": 0.269
+      },
+      {
+        "time": 28.0,
+        "energy": 0.689
+      },
+      {
+        "time": 28.5,
+        "energy": 0.543
+      },
+      {
+        "time": 29.0,
+        "energy": 0.471
+      },
+      {
+        "time": 29.5,
+        "energy": 0.23
+      },
+      {
+        "time": 30.0,
+        "energy": 0.111
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 27.0,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/【注意】ゆるブラック企業の特徴10選  #転職/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

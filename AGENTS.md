@@ -65,7 +65,6 @@
 | `/reach` | `.agent/skills/common/agent-reach/SKILL.md` | マーケット調査・横断リサーチ |
 | `/ceo` | `.agent/skills/common/agent-org-ceo/SKILL.md` | オーナー配下の CEO と役割別メンバーで仕事を振り分ける |
 | `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |
-| `/jmty` | `.agent/skills/jmty/jmty-posts/SKILL.md` | ジモティー投稿作成（工場/在宅） |
 | `/jmty-weekly` | `personal/deguchishouma/scripts/jmty-banner-codex/prompts/weekly_jmty_banner_prompt.md` | ジモティー週次一括更新（地域ローテーション→投稿文→画像→Drive→シート反映） |
 | `/web` | `.agent/skills/web-design/frontend-design/SKILL.md` | サイト制作・複製・イラスト取得 |
 | `/viral` | `.agent/skills/viral-template-generator/SKILL.md` | バズ動画解析・テンプレ自動生成 |
@@ -188,14 +187,14 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
   - Git: `git -C "$TEAM_INFO_ROOT" ...`
   - npm: `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" ...`
   - リポジトリ内Python: `python "$TEAM_INFO_ROOT/..."`
-  - Docker 起動: `bash "$TEAM_INFO_ROOT/run.sh" --project [n8n|dify] ...`
-  - Docker 停止/状態確認: `bash "$TEAM_INFO_ROOT/run.sh" --project [n8n|dify] --action [stop|down|start|restart|ps] ...`
-  - Windows の Docker 起動: `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project [n8n|dify] ...`
-  - Windows の Docker 停止/状態確認: `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project [n8n|dify] -Action [Stop|Down|Start|Restart|Ps] ...`
+  - Docker 起動: compose ファイルがある場所で `bash "$TEAM_INFO_ROOT/run.sh" --project current ...`
+  - Docker 停止/状態確認: compose ファイルがある場所で `bash "$TEAM_INFO_ROOT/run.sh" --project current --action [stop|down|start|restart|ps] ...`
+  - Windows の Docker 起動: compose ファイルがある場所で `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project current ...`
+  - Windows の Docker 停止/状態確認: compose ファイルがある場所で `& "$env:TEAM_INFO_ROOT\\run.ps1" -Project current -Action [Stop|Down|Start|Restart|Ps] ...`
 - ユーザー指定の入力/出力パスが入る場合も、`"$TEAM_INFO_ROOT/..."` や `"[出力先の絶対パス]"` のように絶対パス前提で案内する。
 
 ## Docker Lifecycle Rule
-- `dify` や `n8n` などの compose プロジェクトは、必要時に `up` / `start` し、使い終わったら `stop` または `down` する。
+- Docker Compose プロジェクトは、必要時に `up` / `start` し、使い終わったら `stop` または `down` する。
 - 単発の解析・検証用 Docker コンテナは、処理完了後または不要と判断した時点で停止する。
 - `VOICEVOX` は必要時のみ起動し、使い終わったら `team_info_runtime.py stop-voicevox-engine` で停止する。
 - `image` や `volume` は再利用前提で保持してよく、通常運用では `docker image prune` や `docker system prune` を前提にしない。

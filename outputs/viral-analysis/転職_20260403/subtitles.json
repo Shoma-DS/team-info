@@ -1,0 +1,334 @@
+{
+  "fps": 30,
+  "total_duration_seconds": 38.133,
+  "total_frames": 1144,
+  "segments": [
+    {
+      "id": 1,
+      "section": "hook",
+      "from_time": 0.1,
+      "to_time": 2.933,
+      "from_frame": 3,
+      "to_frame": 88,
+      "text": "内定が\n取れない人には\nある共通点が\nあります。"
+    },
+    {
+      "id": 2,
+      "section": "opening",
+      "from_time": 3.2,
+      "to_time": 4.8,
+      "from_frame": 96,
+      "to_frame": 144,
+      "text": "今日は転職で\n失敗しやすい"
+    },
+    {
+      "id": 3,
+      "section": "opening",
+      "from_time": 4.8,
+      "to_time": 5.867,
+      "from_frame": 144,
+      "to_frame": 176,
+      "text": "人の\n特徴10選を"
+    },
+    {
+      "id": 4,
+      "section": "opening",
+      "from_time": 5.867,
+      "to_time": 7.233,
+      "from_frame": 176,
+      "to_frame": 217,
+      "text": "一気に\n見ていきます。"
+    },
+    {
+      "id": 5,
+      "section": "s1",
+      "from_time": 7.5,
+      "to_time": 8.167,
+      "from_frame": 225,
+      "to_frame": 245,
+      "text": "1つ目。"
+    },
+    {
+      "id": 6,
+      "section": "s1",
+      "from_time": 8.167,
+      "to_time": 9.8,
+      "from_frame": 245,
+      "to_frame": 294,
+      "text": "応募先を\n絞りすぎる。"
+    },
+    {
+      "id": 7,
+      "section": "s1",
+      "from_time": 9.8,
+      "to_time": 10.567,
+      "from_frame": 294,
+      "to_frame": 317,
+      "text": "2つ目。"
+    },
+    {
+      "id": 8,
+      "section": "s1",
+      "from_time": 10.567,
+      "to_time": 12.1,
+      "from_frame": 317,
+      "to_frame": 363,
+      "text": "企業研究が\n浅い。"
+    },
+    {
+      "id": 9,
+      "section": "s1",
+      "from_time": 12.1,
+      "to_time": 12.667,
+      "from_frame": 363,
+      "to_frame": 380,
+      "text": "3つ目。"
+    },
+    {
+      "id": 10,
+      "section": "s1",
+      "from_time": 12.667,
+      "to_time": 14.4,
+      "from_frame": 380,
+      "to_frame": 432,
+      "text": "志望動機が\nどこでも同じ。"
+    },
+    {
+      "id": 11,
+      "section": "s2",
+      "from_time": 14.6,
+      "to_time": 15.5,
+      "from_frame": 438,
+      "to_frame": 465,
+      "text": "4つ目。"
+    },
+    {
+      "id": 12,
+      "section": "s2",
+      "from_time": 15.5,
+      "to_time": 16.867,
+      "from_frame": 465,
+      "to_frame": 506,
+      "text": "返信が遅い。"
+    },
+    {
+      "id": 13,
+      "section": "s2",
+      "from_time": 16.867,
+      "to_time": 17.6,
+      "from_frame": 506,
+      "to_frame": 528,
+      "text": "5つ目。"
+    },
+    {
+      "id": 14,
+      "section": "s2",
+      "from_time": 17.6,
+      "to_time": 19.133,
+      "from_frame": 528,
+      "to_frame": 574,
+      "text": "面接で話が\n長い。"
+    },
+    {
+      "id": 15,
+      "section": "s2",
+      "from_time": 19.133,
+      "to_time": 19.833,
+      "from_frame": 574,
+      "to_frame": 595,
+      "text": "6つ目。"
+    },
+    {
+      "id": 16,
+      "section": "s2",
+      "from_time": 19.833,
+      "to_time": 21.8,
+      "from_frame": 595,
+      "to_frame": 654,
+      "text": "退職理由が\n前職の悪口で"
+    },
+    {
+      "id": 17,
+      "section": "s2",
+      "from_time": 21.8,
+      "to_time": 22.533,
+      "from_frame": 654,
+      "to_frame": 676,
+      "text": "終わる。"
+    },
+    {
+      "id": 18,
+      "section": "s2",
+      "from_time": 22.533,
+      "to_time": 23.167,
+      "from_frame": 676,
+      "to_frame": 695,
+      "text": "7つ目。"
+    },
+    {
+      "id": 19,
+      "section": "s2",
+      "from_time": 23.167,
+      "to_time": 24.3,
+      "from_frame": 695,
+      "to_frame": 729,
+      "text": "逆質問が浅い。"
+    },
+    {
+      "id": 20,
+      "section": "s3",
+      "from_time": 24.533,
+      "to_time": 25.2,
+      "from_frame": 736,
+      "to_frame": 756,
+      "text": "8つ目。"
+    },
+    {
+      "id": 21,
+      "section": "s3",
+      "from_time": 25.2,
+      "to_time": 26.5,
+      "from_frame": 756,
+      "to_frame": 795,
+      "text": "条件だけで\n選ぶ。"
+    },
+    {
+      "id": 22,
+      "section": "s3",
+      "from_time": 26.5,
+      "to_time": 27.167,
+      "from_frame": 795,
+      "to_frame": 815,
+      "text": "9つ目。"
+    },
+    {
+      "id": 23,
+      "section": "s3",
+      "from_time": 27.167,
+      "to_time": 29.433,
+      "from_frame": 815,
+      "to_frame": 883,
+      "text": "落ちた理由を\n振り返らない。"
+    },
+    {
+      "id": 24,
+      "section": "s3",
+      "from_time": 29.433,
+      "to_time": 30.067,
+      "from_frame": 883,
+      "to_frame": 902,
+      "text": "10個目。"
+    },
+    {
+      "id": 25,
+      "section": "s3",
+      "from_time": 30.067,
+      "to_time": 31.3,
+      "from_frame": 902,
+      "to_frame": 939,
+      "text": "周りの意見で\nブレる。"
+    },
+    {
+      "id": 26,
+      "section": "cta",
+      "from_time": 31.6,
+      "to_time": 35.367,
+      "from_frame": 948,
+      "to_frame": 1061,
+      "text": "当てはまる項目が多いなら、\n応募のやり方をまず1つだけ変えてください。"
+    },
+    {
+      "id": 27,
+      "section": "cta",
+      "from_time": 35.367,
+      "to_time": 38.133,
+      "from_frame": 1061,
+      "to_frame": 1144,
+      "text": "転職は、\n準備した人から決まります。"
+    }
+  ],
+  "audio_sync": {
+    "synced_at": "2026-04-03 16:32:13",
+    "narration_duration_seconds": 38.251,
+    "sections": [
+      {
+        "section": "hook",
+        "audio_file": "00_hook.wav",
+        "clip_start": 0.0,
+        "clip_end": 3.072,
+        "speech_start": 0.09,
+        "speech_end": 2.94,
+        "duration": 3.072,
+        "leading_silence": 0.09,
+        "trailing_silence": 0.13200000000000012,
+        "peak_rms": 6053.463467993619,
+        "threshold_rms": 484.2770774394895
+      },
+      {
+        "section": "opening",
+        "audio_file": "01_opening.wav",
+        "clip_start": 3.072,
+        "clip_end": 7.349333333333333,
+        "speech_start": 3.202,
+        "speech_end": 7.222,
+        "duration": 4.277333333333333,
+        "leading_silence": 0.13,
+        "trailing_silence": 0.12733333333333263,
+        "peak_rms": 4994.365336306506,
+        "threshold_rms": 399.5492269045205
+      },
+      {
+        "section": "s1",
+        "audio_file": "02_s1.wav",
+        "clip_start": 7.349333333333333,
+        "clip_end": 14.485333333333333,
+        "speech_start": 7.499333333333333,
+        "speech_end": 14.399333333333333,
+        "duration": 7.136,
+        "leading_silence": 0.15,
+        "trailing_silence": 0.0860000000000003,
+        "peak_rms": 6114.552402874637,
+        "threshold_rms": 489.1641922299709
+      },
+      {
+        "section": "s2",
+        "audio_file": "03_s2.wav",
+        "clip_start": 14.485333333333333,
+        "clip_end": 24.416,
+        "speech_start": 14.585333333333333,
+        "speech_end": 24.305333333333333,
+        "duration": 9.930666666666667,
+        "leading_silence": 0.1,
+        "trailing_silence": 0.11066666666666691,
+        "peak_rms": 5130.5145059568185,
+        "threshold_rms": 410.4411604765455
+      },
+      {
+        "section": "s3",
+        "audio_file": "04_s3.wav",
+        "clip_start": 24.416,
+        "clip_end": 31.52,
+        "speech_start": 24.536,
+        "speech_end": 31.306,
+        "duration": 7.104,
+        "leading_silence": 0.12,
+        "trailing_silence": 0.2140000000000004,
+        "peak_rms": 10654.55575407378,
+        "threshold_rms": 852.3644603259023
+      },
+      {
+        "section": "cta",
+        "audio_file": "05_cta.wav",
+        "clip_start": 31.52,
+        "clip_end": 38.25066666666667,
+        "speech_start": 31.61,
+        "speech_end": 38.13,
+        "duration": 6.730666666666667,
+        "leading_silence": 0.09,
+        "trailing_silence": 0.1206666666666667,
+        "peak_rms": 6582.2019963560315,
+        "threshold_rms": 526.5761597084826
+      }
+    ]
+  }
+}

@@ -50,10 +50,9 @@ team-info/
 │   ├── scripts/           Remotion 補助スクリプト（Python）
 │   └── script_resources/  台本・歌詞サンプル
 ├── projects/              継続開発する共有・検証用のソース置き場
-│   └── test-website/      独立した Web サイト開発用プロジェクト
 ├── scripts/               共有の補助スクリプト
 ├── GAS/                   共有の Google Apps Script
-├── docker/                Docker 構成（Dify 等）
+├── docker/                Docker 構成（Python runtime 等）
 ├── mcp-servers/           MCP サーバー定義
 └── マニュアル/            人向けマニュアル
 ```
@@ -118,7 +117,7 @@ team-info/
 - 共有 Apps Script は `GAS/`、個人用 Apps Script は `personal/<account>/gas/` に分ける
 - 個人用スクリプトは `scripts/personal/<account>/` を増やさず、`personal/<account>/scripts/` に集約する
 - 個人用の成果物は `outputs/personal/` を増やさず、`personal/<account>/outputs/` へ寄せる
-- `test-website/` のような独立プロジェクトは root 直下に増やさず、`projects/` 配下へ寄せる
+- 独立プロジェクトは root 直下に増やさず、`projects/` 配下へ寄せる
 
 ---
 

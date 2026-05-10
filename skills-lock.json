@@ -1,11 +1,11 @@
 {
   "version": 1,
   "skills": {
-    "neon-postgres": {
-      "source": "neondatabase/agent-skills",
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",
-      "skillPath": "skills/neon-postgres/SKILL.md",
-      "computedHash": "391693eee67001639ab65474df185da3ea5cf9ee4b99badecfd64561113edbb4"
+      "skillPath": ".agents/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "0a413bf988d06481f69bb81df2070741c3ba12dd9f1be2706d57f259c905992d"
     }
   }
 }

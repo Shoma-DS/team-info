@@ -1,0 +1,1755 @@
+{
+  "duration": 31.867,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/【逃げたい】職場の勘違いリーダーの特徴10選  #転職.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 31.867,
+        "start_frame": 0,
+        "end_frame": 956,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.639,
+        "y": 0.456,
+        "size": 0.039,
+        "confidence": 0.712
+      },
+      {
+        "frame": 15,
+        "time": 0.5,
+        "x": 0.64,
+        "y": 0.456,
+        "size": 0.039,
+        "confidence": 0.712
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.639,
+        "y": 0.457,
+        "size": 0.039,
+        "confidence": 0.713
+      },
+      {
+        "frame": 45,
+        "time": 1.5,
+        "x": 0.639,
+        "y": 0.457,
+        "size": 0.039,
+        "confidence": 0.719
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.639,
+        "y": 0.457,
+        "size": 0.039,
+        "confidence": 0.719
+      },
+      {
+        "frame": 75,
+        "time": 2.5,
+        "x": 0.639,
+        "y": 0.457,
+        "size": 0.039,
+        "confidence": 0.719
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.563,
+        "y": 0.464,
+        "size": 0.032,
+        "confidence": 0.55
+      },
+      {
+        "frame": 105,
+        "time": 3.5,
+        "x": 0.563,
+        "y": 0.464,
+        "size": 0.032,
+        "confidence": 0.55
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.563,
+        "y": 0.464,
+        "size": 0.032,
+        "confidence": 0.55
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.563,
+        "y": 0.464,
+        "size": 0.032,
+        "confidence": 0.55
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.565,
+        "y": 0.48,
+        "size": 0.025,
+        "confidence": 0.59
+      },
+      {
+        "frame": 165,
+        "time": 5.5,
+        "x": 0.565,
+        "y": 0.48,
+        "size": 0.025,
+        "confidence": 0.592
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.565,
+        "y": 0.48,
+        "size": 0.025,
+        "confidence": 0.591
+      },
+      {
+        "frame": 195,
+        "time": 6.5,
+        "x": 0.565,
+        "y": 0.48,
+        "size": 0.025,
+        "confidence": 0.591
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.565,
+        "y": 0.48,
+        "size": 0.026,
+        "confidence": 0.613
+      },
+      {
+        "frame": 225,
+        "time": 7.5,
+        "x": 0.565,
+        "y": 0.48,
+        "size": 0.026,
+        "confidence": 0.613
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.397,
+        "y": 0.431,
+        "size": 0.057,
+        "confidence": 0.514
+      },
+      {
+        "frame": 255,
+        "time": 8.5,
+        "x": 0.397,
+        "y": 0.433,
+        "size": 0.058,
+        "confidence": 0.514
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.397,
+        "y": 0.433,
+        "size": 0.058,
+        "confidence": 0.513
+      },
+      {
+        "frame": 285,
+        "time": 9.5,
+        "x": 0.397,
+        "y": 0.433,
+        "size": 0.058,
+        "confidence": 0.512
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.397,
+        "y": 0.433,
+        "size": 0.058,
+        "confidence": 0.512
+      },
+      {
+        "frame": 315,
+        "time": 10.5,
+        "x": 0.397,
+        "y": 0.433,
+        "size": 0.058,
+        "confidence": 0.512
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.526,
+        "y": 0.514,
+        "size": 0.06,
+        "confidence": 0.904
+      },
+      {
+        "frame": 345,
+        "time": 11.5,
+        "x": 0.526,
+        "y": 0.514,
+        "size": 0.06,
+        "confidence": 0.904
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.526,
+        "y": 0.514,
+        "size": 0.06,
+        "confidence": 0.904
+      },
+      {
+        "frame": 375,
+        "time": 12.5,
+        "x": 0.526,
+        "y": 0.514,
+        "size": 0.06,
+        "confidence": 0.904
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.526,
+        "y": 0.514,
+        "size": 0.06,
+        "confidence": 0.904
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.397,
+        "y": 0.504,
+        "size": 0.04,
+        "confidence": 0.665
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.62,
+        "y": 0.467,
+        "size": 0.03,
+        "confidence": 0.611
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.403,
+        "y": 0.505,
+        "size": 0.041,
+        "confidence": 0.655
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.62,
+        "y": 0.468,
+        "size": 0.031,
+        "confidence": 0.604
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.403,
+        "y": 0.505,
+        "size": 0.041,
+        "confidence": 0.655
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.62,
+        "y": 0.468,
+        "size": 0.031,
+        "confidence": 0.604
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.403,
+        "y": 0.505,
+        "size": 0.041,
+        "confidence": 0.655
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.62,
+        "y": 0.468,
+        "size": 0.031,
+        "confidence": 0.604
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.403,
+        "y": 0.505,
+        "size": 0.041,
+        "confidence": 0.654
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.619,
+        "y": 0.468,
+        "size": 0.031,
+        "confidence": 0.605
+      },
+      {
+        "frame": 480,
+        "time": 16.0,
+        "x": 0.403,
+        "y": 0.505,
+        "size": 0.041,
+        "confidence": 0.654
+      },
+      {
+        "frame": 480,
+        "time": 16.0,
+        "x": 0.619,
+        "y": 0.468,
+        "size": 0.031,
+        "confidence": 0.605
+      },
+      {
+        "frame": 495,
+        "time": 16.5,
+        "x": 0.403,
+        "y": 0.505,
+        "size": 0.041,
+        "confidence": 0.654
+      },
+      {
+        "frame": 495,
+        "time": 16.5,
+        "x": 0.619,
+        "y": 0.468,
+        "size": 0.031,
+        "confidence": 0.605
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.744,
+        "y": 0.483,
+        "size": 0.03,
+        "confidence": 0.817
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.255,
+        "y": 0.49,
+        "size": 0.035,
+        "confidence": 0.742
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.744,
+        "y": 0.483,
+        "size": 0.03,
+        "confidence": 0.817
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.255,
+        "y": 0.49,
+        "size": 0.035,
+        "confidence": 0.742
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.744,
+        "y": 0.483,
+        "size": 0.03,
+        "confidence": 0.819
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.255,
+        "y": 0.492,
+        "size": 0.035,
+        "confidence": 0.719
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.744,
+        "y": 0.483,
+        "size": 0.03,
+        "confidence": 0.819
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.255,
+        "y": 0.492,
+        "size": 0.035,
+        "confidence": 0.719
+      },
+      {
+        "frame": 660,
+        "time": 22.0,
+        "x": 0.744,
+        "y": 0.483,
+        "size": 0.03,
+        "confidence": 0.819
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 3.0,
+        "end": 3.0
+      },
+      {
+        "type": "tilt_up",
+        "start": 5.0,
+        "end": 5.0
+      },
+      {
+        "type": "pan_right",
+        "start": 7.833,
+        "end": 7.833
+      },
+      {
+        "type": "pan_left",
+        "start": 10.833,
+        "end": 10.833
+      },
+      {
+        "type": "shake",
+        "start": 13.5,
+        "end": 13.5
+      },
+      {
+        "type": "shake",
+        "start": 17.0,
+        "end": 17.0
+      },
+      {
+        "type": "shake",
+        "start": 20.0,
+        "end": 20.0
+      },
+      {
+        "type": "shake",
+        "start": 23.5,
+        "end": 23.5
+      },
+      {
+        "type": "pan_left",
+        "start": 26.667,
+        "end": 26.667
+      },
+      {
+        "type": "tilt_down",
+        "start": 29.167,
+        "end": 29.167
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 4.3,
+        "text": "職場の勘違いリーダーの特徴実践 権限を振りかざす",
+        "words": [
+          {
+            "word": "職",
+            "start": 0.0,
+            "end": 0.5
+          },
+          {
+            "word": "場",
+            "start": 0.5,
+            "end": 0.64
+          },
+          {
+            "word": "の",
+            "start": 0.64,
+            "end": 0.76
+          },
+          {
+            "word": "勘",
+            "start": 0.76,
+            "end": 0.98
+          },
+          {
+            "word": "違",
+            "start": 0.98,
+            "end": 1.14
+          },
+          {
+            "word": "い",
+            "start": 1.14,
+            "end": 1.34
+          },
+          {
+            "word": "リ",
+            "start": 1.34,
+            "end": 1.48
+          },
+          {
+            "word": "ーダ",
+            "start": 1.48,
+            "end": 1.64
+          },
+          {
+            "word": "ー",
+            "start": 1.64,
+            "end": 1.74
+          },
+          {
+            "word": "の",
+            "start": 1.74,
+            "end": 1.86
+          },
+          {
+            "word": "特",
+            "start": 1.86,
+            "end": 2.08
+          },
+          {
+            "word": "徴",
+            "start": 2.08,
+            "end": 2.24
+          },
+          {
+            "word": "実",
+            "start": 2.24,
+            "end": 2.52
+          },
+          {
+            "word": "践",
+            "start": 2.52,
+            "end": 2.72
+          },
+          {
+            "word": " 権",
+            "start": 3.02,
+            "end": 3.22
+          },
+          {
+            "word": "限",
+            "start": 3.22,
+            "end": 3.42
+          },
+          {
+            "word": "を",
+            "start": 3.42,
+            "end": 3.6
+          },
+          {
+            "word": "振",
+            "start": 3.6,
+            "end": 3.74
+          },
+          {
+            "word": "り",
+            "start": 3.74,
+            "end": 3.84
+          },
+          {
+            "word": "か",
+            "start": 3.84,
+            "end": 3.96
+          },
+          {
+            "word": "ざ",
+            "start": 3.96,
+            "end": 4.04
+          },
+          {
+            "word": "す",
+            "start": 4.04,
+            "end": 4.3
+          }
+        ]
+      },
+      {
+        "start": 4.92,
+        "end": 10.04,
+        "text": "自分の成功体験を押し付ける 上司や役員にだけいい顔をする",
+        "words": [
+          {
+            "word": "自",
+            "start": 4.92,
+            "end": 5.24
+          },
+          {
+            "word": "分",
+            "start": 5.24,
+            "end": 5.44
+          },
+          {
+            "word": "の",
+            "start": 5.44,
+            "end": 5.6
+          },
+          {
+            "word": "成",
+            "start": 5.6,
+            "end": 5.82
+          },
+          {
+            "word": "功",
+            "start": 5.82,
+            "end": 6.02
+          },
+          {
+            "word": "体",
+            "start": 6.02,
+            "end": 6.24
+          },
+          {
+            "word": "験",
+            "start": 6.24,
+            "end": 6.48
+          },
+          {
+            "word": "を",
+            "start": 6.48,
+            "end": 6.64
+          },
+          {
+            "word": "押",
+            "start": 6.64,
+            "end": 6.74
+          },
+          {
+            "word": "し",
+            "start": 6.74,
+            "end": 6.84
+          },
+          {
+            "word": "付",
+            "start": 6.84,
+            "end": 6.94
+          },
+          {
+            "word": "ける",
+            "start": 6.94,
+            "end": 7.5
+          },
+          {
+            "word": " 上",
+            "start": 7.5,
+            "end": 8.22
+          },
+          {
+            "word": "司",
+            "start": 8.22,
+            "end": 8.36
+          },
+          {
+            "word": "や",
+            "start": 8.36,
+            "end": 8.5
+          },
+          {
+            "word": "役",
+            "start": 8.5,
+            "end": 8.7
+          },
+          {
+            "word": "員",
+            "start": 8.7,
+            "end": 8.9
+          },
+          {
+            "word": "に",
+            "start": 8.9,
+            "end": 9.04
+          },
+          {
+            "word": "だけ",
+            "start": 9.04,
+            "end": 9.22
+          },
+          {
+            "word": "いい",
+            "start": 9.22,
+            "end": 9.5
+          },
+          {
+            "word": "顔",
+            "start": 9.5,
+            "end": 9.68
+          },
+          {
+            "word": "を",
+            "start": 9.68,
+            "end": 9.82
+          },
+          {
+            "word": "する",
+            "start": 9.82,
+            "end": 10.04
+          }
+        ]
+      },
+      {
+        "start": 10.72,
+        "end": 16.42,
+        "text": "部下を成長させる意識がない 責任は部下に押し付けてからは自分のもの",
+        "words": [
+          {
+            "word": "部",
+            "start": 10.72,
+            "end": 11.04
+          },
+          {
+            "word": "下",
+            "start": 11.04,
+            "end": 11.16
+          },
+          {
+            "word": "を",
+            "start": 11.16,
+            "end": 11.28
+          },
+          {
+            "word": "成",
+            "start": 11.28,
+            "end": 11.48
+          },
+          {
+            "word": "長",
+            "start": 11.48,
+            "end": 11.68
+          },
+          {
+            "word": "さ",
+            "start": 11.68,
+            "end": 11.92
+          },
+          {
+            "word": "せ",
+            "start": 11.92,
+            "end": 12.04
+          },
+          {
+            "word": "る",
+            "start": 12.04,
+            "end": 12.16
+          },
+          {
+            "word": "意",
+            "start": 12.16,
+            "end": 12.28
+          },
+          {
+            "word": "識",
+            "start": 12.28,
+            "end": 12.4
+          },
+          {
+            "word": "が",
+            "start": 12.4,
+            "end": 12.56
+          },
+          {
+            "word": "ない",
+            "start": 12.56,
+            "end": 12.82
+          },
+          {
+            "word": " 責",
+            "start": 13.38,
+            "end": 13.86
+          },
+          {
+            "word": "任",
+            "start": 13.86,
+            "end": 14.1
+          },
+          {
+            "word": "は",
+            "start": 14.1,
+            "end": 14.28
+          },
+          {
+            "word": "部",
+            "start": 14.28,
+            "end": 14.46
+          },
+          {
+            "word": "下",
+            "start": 14.46,
+            "end": 14.56
+          },
+          {
+            "word": "に",
+            "start": 14.56,
+            "end": 14.66
+          },
+          {
+            "word": "押",
+            "start": 14.66,
+            "end": 14.8
+          },
+          {
+            "word": "し",
+            "start": 14.8,
+            "end": 14.92
+          },
+          {
+            "word": "付",
+            "start": 14.92,
+            "end": 15.02
+          },
+          {
+            "word": "けて",
+            "start": 15.02,
+            "end": 15.18
+          },
+          {
+            "word": "から",
+            "start": 15.18,
+            "end": 15.4
+          },
+          {
+            "word": "は",
+            "start": 15.4,
+            "end": 15.58
+          },
+          {
+            "word": "自",
+            "start": 15.58,
+            "end": 15.74
+          },
+          {
+            "word": "分",
+            "start": 15.74,
+            "end": 15.92
+          },
+          {
+            "word": "の",
+            "start": 15.92,
+            "end": 16.04
+          },
+          {
+            "word": "もの",
+            "start": 16.04,
+            "end": 16.42
+          }
+        ]
+      },
+      {
+        "start": 17.0,
+        "end": 22.66,
+        "text": "細かい指示や監視を徹底してくる 周りの意見を無視自分の意見を優先",
+        "words": [
+          {
+            "word": "細",
+            "start": 17.0,
+            "end": 17.32
+          },
+          {
+            "word": "か",
+            "start": 17.32,
+            "end": 17.54
+          },
+          {
+            "word": "い",
+            "start": 17.54,
+            "end": 17.6
+          },
+          {
+            "word": "指",
+            "start": 17.6,
+            "end": 17.76
+          },
+          {
+            "word": "示",
+            "start": 17.76,
+            "end": 17.86
+          },
+          {
+            "word": "や",
+            "start": 17.86,
+            "end": 18.02
+          },
+          {
+            "word": "監",
+            "start": 18.02,
+            "end": 18.12
+          },
+          {
+            "word": "視",
+            "start": 18.12,
+            "end": 18.32
+          },
+          {
+            "word": "を",
+            "start": 18.32,
+            "end": 18.48
+          },
+          {
+            "word": "徹",
+            "start": 18.48,
+            "end": 18.58
+          },
+          {
+            "word": "底",
+            "start": 18.58,
+            "end": 18.78
+          },
+          {
+            "word": "して",
+            "start": 18.78,
+            "end": 18.96
+          },
+          {
+            "word": "く",
+            "start": 18.96,
+            "end": 19.18
+          },
+          {
+            "word": "る",
+            "start": 19.18,
+            "end": 20.0
+          },
+          {
+            "word": " 周",
+            "start": 20.0,
+            "end": 20.32
+          },
+          {
+            "word": "り",
+            "start": 20.32,
+            "end": 20.5
+          },
+          {
+            "word": "の",
+            "start": 20.5,
+            "end": 20.62
+          },
+          {
+            "word": "意",
+            "start": 20.62,
+            "end": 20.74
+          },
+          {
+            "word": "見",
+            "start": 20.74,
+            "end": 20.84
+          },
+          {
+            "word": "を",
+            "start": 20.84,
+            "end": 21.02
+          },
+          {
+            "word": "無",
+            "start": 21.02,
+            "end": 21.16
+          },
+          {
+            "word": "視",
+            "start": 21.16,
+            "end": 21.26
+          },
+          {
+            "word": "自",
+            "start": 21.26,
+            "end": 21.52
+          },
+          {
+            "word": "分",
+            "start": 21.52,
+            "end": 21.7
+          },
+          {
+            "word": "の",
+            "start": 21.7,
+            "end": 21.84
+          },
+          {
+            "word": "意",
+            "start": 21.84,
+            "end": 21.96
+          },
+          {
+            "word": "見",
+            "start": 21.96,
+            "end": 22.08
+          },
+          {
+            "word": "を",
+            "start": 22.08,
+            "end": 22.26
+          },
+          {
+            "word": "優",
+            "start": 22.26,
+            "end": 22.44
+          },
+          {
+            "word": "先",
+            "start": 22.44,
+            "end": 22.66
+          }
+        ]
+      },
+      {
+        "start": 23.4,
+        "end": 28.46,
+        "text": "部下への感謝や褒め言葉が一切ない やたらと事故アピールが多い",
+        "words": [
+          {
+            "word": "部",
+            "start": 23.4,
+            "end": 23.72
+          },
+          {
+            "word": "下",
+            "start": 23.72,
+            "end": 23.86
+          },
+          {
+            "word": "へ",
+            "start": 23.86,
+            "end": 23.94
+          },
+          {
+            "word": "の",
+            "start": 23.94,
+            "end": 24.06
+          },
+          {
+            "word": "感謝",
+            "start": 24.06,
+            "end": 24.28
+          },
+          {
+            "word": "や",
+            "start": 24.28,
+            "end": 24.52
+          },
+          {
+            "word": "褒",
+            "start": 24.52,
+            "end": 24.66
+          },
+          {
+            "word": "め",
+            "start": 24.66,
+            "end": 24.78
+          },
+          {
+            "word": "言",
+            "start": 24.78,
+            "end": 24.88
+          },
+          {
+            "word": "葉",
+            "start": 24.88,
+            "end": 25.1
+          },
+          {
+            "word": "が",
+            "start": 25.1,
+            "end": 25.24
+          },
+          {
+            "word": "一",
+            "start": 25.24,
+            "end": 25.42
+          },
+          {
+            "word": "切",
+            "start": 25.42,
+            "end": 25.56
+          },
+          {
+            "word": "ない",
+            "start": 25.56,
+            "end": 25.86
+          },
+          {
+            "word": " や",
+            "start": 25.86,
+            "end": 26.92
+          },
+          {
+            "word": "た",
+            "start": 26.92,
+            "end": 27.04
+          },
+          {
+            "word": "ら",
+            "start": 27.04,
+            "end": 27.14
+          },
+          {
+            "word": "と",
+            "start": 27.14,
+            "end": 27.26
+          },
+          {
+            "word": "事",
+            "start": 27.26,
+            "end": 27.4
+          },
+          {
+            "word": "故",
+            "start": 27.4,
+            "end": 27.52
+          },
+          {
+            "word": "ア",
+            "start": 27.52,
+            "end": 27.62
+          },
+          {
+            "word": "ピ",
+            "start": 27.62,
+            "end": 27.78
+          },
+          {
+            "word": "ール",
+            "start": 27.78,
+            "end": 27.9
+          },
+          {
+            "word": "が",
+            "start": 27.9,
+            "end": 28.1
+          },
+          {
+            "word": "多",
+            "start": 28.1,
+            "end": 28.3
+          },
+          {
+            "word": "い",
+            "start": 28.3,
+            "end": 28.46
+          }
+        ]
+      },
+      {
+        "start": 29.14,
+        "end": 31.2,
+        "text": "メンバー官のトラブルを放置する",
+        "words": [
+          {
+            "word": "メ",
+            "start": 29.14,
+            "end": 29.42
+          },
+          {
+            "word": "ンバ",
+            "start": 29.42,
+            "end": 29.66
+          },
+          {
+            "word": "ー",
+            "start": 29.66,
+            "end": 29.78
+          },
+          {
+            "word": "官",
+            "start": 29.78,
+            "end": 29.92
+          },
+          {
+            "word": "の",
+            "start": 29.92,
+            "end": 30.08
+          },
+          {
+            "word": "ト",
+            "start": 30.08,
+            "end": 30.22
+          },
+          {
+            "word": "ラ",
+            "start": 30.22,
+            "end": 30.3
+          },
+          {
+            "word": "ブ",
+            "start": 30.3,
+            "end": 30.4
+          },
+          {
+            "word": "ル",
+            "start": 30.4,
+            "end": 30.5
+          },
+          {
+            "word": "を",
+            "start": 30.5,
+            "end": 30.62
+          },
+          {
+            "word": "放",
+            "start": 30.62,
+            "end": 30.84
+          },
+          {
+            "word": "置",
+            "start": 30.84,
+            "end": 31.0
+          },
+          {
+            "word": "する",
+            "start": 31.0,
+            "end": 31.2
+          }
+        ]
+      }
+    ],
+    "full_text": "職場の勘違いリーダーの特徴実践 権限を振りかざす 自分の成功体験を押し付ける 上司や役員にだけいい顔をする 部下を成長させる意識がない 責任は部下に押し付けてからは自分のもの 細かい指示や監視を徹底してくる 周りの意見を無視自分の意見を優先 部下への感謝や褒め言葉が一切ない やたらと事故アピールが多い メンバー官のトラブルを放置する",
+    "words_per_minute": 348.4,
+    "keywords": [
+      "職場の勘違いリ",
+      "の特徴実践",
+      "権限を振りかざす",
+      "自分の成功体験を押し付ける",
+      "上司や役員にだけいい顔をする",
+      "部下を成長させる意識がない",
+      "責任は部下に押し付けてからは自分のもの",
+      "細かい指示や監視を徹底してくる",
+      "周りの意見を無視自分の意見を優先",
+      "部下への感謝や褒め言葉が一切ない"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 4.3,
+        "end": 4.92,
+        "duration": 0.62
+      },
+      {
+        "start": 10.04,
+        "end": 10.72,
+        "duration": 0.68
+      },
+      {
+        "start": 16.42,
+        "end": 17.0,
+        "duration": 0.58
+      },
+      {
+        "start": 22.66,
+        "end": 23.4,
+        "duration": 0.74
+      },
+      {
+        "start": 28.46,
+        "end": 29.14,
+        "duration": 0.68
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 8.57,
+        "end": 9.17,
+        "energy": "low"
+      },
+      {
+        "start": 15.05,
+        "end": 15.56,
+        "energy": "medium"
+      },
+      {
+        "start": 20.2,
+        "end": 20.71,
+        "energy": "medium"
+      },
+      {
+        "start": 21.2,
+        "end": 22.52,
+        "energy": "medium"
+      },
+      {
+        "start": 23.57,
+        "end": 24.54,
+        "energy": "low"
+      },
+      {
+        "start": 24.59,
+        "end": 25.77,
+        "energy": "low"
+      },
+      {
+        "start": 25.98,
+        "end": 26.61,
+        "energy": "low"
+      },
+      {
+        "start": 27.33,
+        "end": 28.42,
+        "energy": "low"
+      },
+      {
+        "start": 29.3,
+        "end": 30.07,
+        "energy": "medium"
+      },
+      {
+        "start": 31.42,
+        "end": 31.93,
+        "energy": "low"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.604,
+        "type": "whoosh",
+        "energy": 0.679
+      },
+      {
+        "time": 2.183,
+        "type": "whoosh",
+        "energy": 0.41
+      },
+      {
+        "time": 5.341,
+        "type": "transition",
+        "energy": 0.731
+      },
+      {
+        "time": 5.759,
+        "type": "whoosh",
+        "energy": 0.501
+      },
+      {
+        "time": 6.223,
+        "type": "whoosh",
+        "energy": 0.494
+      },
+      {
+        "time": 7.012,
+        "type": "whoosh",
+        "energy": 0.256
+      },
+      {
+        "time": 8.104,
+        "type": "transition",
+        "energy": 0.822
+      },
+      {
+        "time": 10.983,
+        "type": "whoosh",
+        "energy": 0.593
+      },
+      {
+        "time": 11.447,
+        "type": "whoosh",
+        "energy": 0.439
+      },
+      {
+        "time": 15.093,
+        "type": "whoosh",
+        "energy": 0.432
+      },
+      {
+        "time": 17.345,
+        "type": "transition",
+        "energy": 0.703
+      },
+      {
+        "time": 23.661,
+        "type": "whoosh",
+        "energy": 0.577
+      },
+      {
+        "time": 24.66,
+        "type": "impact",
+        "energy": 0.462
+      },
+      {
+        "time": 29.071,
+        "type": "impact",
+        "energy": 0.274
+      },
+      {
+        "time": 30.766,
+        "type": "impact",
+        "energy": 0.46
+      }
+    ],
+    "beat_times": [
+      0.116,
+      0.743,
+      1.44,
+      2.09,
+      2.717,
+      3.39,
+      4.133,
+      4.876,
+      5.55,
+      6.223,
+      6.92,
+      7.593,
+      8.266,
+      8.94,
+      9.567,
+      10.333,
+      11.006,
+      11.633,
+      12.33,
+      13.05,
+      13.746,
+      14.42,
+      15.093,
+      15.72,
+      16.463,
+      17.16,
+      17.833,
+      18.53,
+      19.156,
+      19.876,
+      20.526,
+      21.153,
+      21.827,
+      22.454,
+      23.081,
+      23.684,
+      24.335,
+      24.985,
+      25.658,
+      26.331,
+      27.005,
+      27.725,
+      28.352,
+      29.002,
+      29.629
+    ],
+    "dominant_tempo": 89.1,
+    "music_coverage": 0.253,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.334
+      },
+      {
+        "time": 1.0,
+        "energy": 0.218
+      },
+      {
+        "time": 1.5,
+        "energy": 0.398
+      },
+      {
+        "time": 2.0,
+        "energy": 0.116
+      },
+      {
+        "time": 2.5,
+        "energy": 0.205
+      },
+      {
+        "time": 3.0,
+        "energy": 0.012
+      },
+      {
+        "time": 3.5,
+        "energy": 0.363
+      },
+      {
+        "time": 4.0,
+        "energy": 0.276
+      },
+      {
+        "time": 4.5,
+        "energy": 0.188
+      },
+      {
+        "time": 5.0,
+        "energy": 0.12
+      },
+      {
+        "time": 5.5,
+        "energy": 0.531
+      },
+      {
+        "time": 6.0,
+        "energy": 0.528
+      },
+      {
+        "time": 6.5,
+        "energy": 0.246
+      },
+      {
+        "time": 7.0,
+        "energy": 0.256
+      },
+      {
+        "time": 7.5,
+        "energy": 0.025
+      },
+      {
+        "time": 8.0,
+        "energy": 0.111
+      },
+      {
+        "time": 8.5,
+        "energy": 0.196
+      },
+      {
+        "time": 9.0,
+        "energy": 0.329
+      },
+      {
+        "time": 9.5,
+        "energy": 0.093
+      },
+      {
+        "time": 10.0,
+        "energy": 0.183
+      },
+      {
+        "time": 10.5,
+        "energy": 0.045
+      },
+      {
+        "time": 11.0,
+        "energy": 0.606
+      },
+      {
+        "time": 11.5,
+        "energy": 0.33
+      },
+      {
+        "time": 12.0,
+        "energy": 0.394
+      },
+      {
+        "time": 12.5,
+        "energy": 0.254
+      },
+      {
+        "time": 13.0,
+        "energy": 0.132
+      },
+      {
+        "time": 13.5,
+        "energy": 0.094
+      },
+      {
+        "time": 14.0,
+        "energy": 0.652
+      },
+      {
+        "time": 14.5,
+        "energy": 0.499
+      },
+      {
+        "time": 15.0,
+        "energy": 0.226
+      },
+      {
+        "time": 15.5,
+        "energy": 0.315
+      },
+      {
+        "time": 16.0,
+        "energy": 0.455
+      },
+      {
+        "time": 16.5,
+        "energy": 0.229
+      },
+      {
+        "time": 17.0,
+        "energy": 0.02
+      },
+      {
+        "time": 17.5,
+        "energy": 0.504
+      },
+      {
+        "time": 18.0,
+        "energy": 0.116
+      },
+      {
+        "time": 18.5,
+        "energy": 0.284
+      },
+      {
+        "time": 19.0,
+        "energy": 0.232
+      },
+      {
+        "time": 19.5,
+        "energy": 0.198
+      },
+      {
+        "time": 20.0,
+        "energy": 0.095
+      },
+      {
+        "time": 20.5,
+        "energy": 0.524
+      },
+      {
+        "time": 21.0,
+        "energy": 0.318
+      },
+      {
+        "time": 21.5,
+        "energy": 0.296
+      },
+      {
+        "time": 22.0,
+        "energy": 0.37
+      },
+      {
+        "time": 22.5,
+        "energy": 0.195
+      },
+      {
+        "time": 23.0,
+        "energy": 0.148
+      },
+      {
+        "time": 23.5,
+        "energy": 0.131
+      },
+      {
+        "time": 24.0,
+        "energy": 0.342
+      },
+      {
+        "time": 24.5,
+        "energy": 0.221
+      },
+      {
+        "time": 25.0,
+        "energy": 0.472
+      },
+      {
+        "time": 25.5,
+        "energy": 0.305
+      },
+      {
+        "time": 26.0,
+        "energy": 0.216
+      },
+      {
+        "time": 26.5,
+        "energy": 0.183
+      },
+      {
+        "time": 27.0,
+        "energy": 0.487
+      },
+      {
+        "time": 27.5,
+        "energy": 0.558
+      },
+      {
+        "time": 28.0,
+        "energy": 0.252
+      },
+      {
+        "time": 28.5,
+        "energy": 0.124
+      },
+      {
+        "time": 29.0,
+        "energy": 0.118
+      },
+      {
+        "time": 29.5,
+        "energy": 0.471
+      },
+      {
+        "time": 30.0,
+        "energy": 0.334
+      },
+      {
+        "time": 30.5,
+        "energy": 0.411
+      },
+      {
+        "time": 31.0,
+        "energy": 0.279
+      },
+      {
+        "time": 31.5,
+        "energy": 0.227
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 28.68,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/【逃げたい】職場の勘違いリーダーの特徴10選  #転職/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

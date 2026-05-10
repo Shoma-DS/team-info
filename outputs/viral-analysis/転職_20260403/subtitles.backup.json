@@ -1,0 +1,133 @@
+{
+  "fps": 30,
+  "total_duration_seconds": 40.5,
+  "total_frames": 1215,
+  "segments": [
+    {
+      "id": 1,
+      "section": "hook",
+      "from_time": 0.0,
+      "to_time": 3.0,
+      "from_frame": 0,
+      "to_frame": 90,
+      "text": "内定が取れない人には\nある共通点があります。"
+    },
+    {
+      "id": 2,
+      "section": "opening",
+      "from_time": 3.0,
+      "to_time": 6.0,
+      "from_frame": 90,
+      "to_frame": 180,
+      "text": "今日は\n転職で失敗しやすい人の\n特徴10選を\n一気に見ていきます。"
+    },
+    {
+      "id": 3,
+      "section": "s1",
+      "from_time": 6.0,
+      "to_time": 9.0,
+      "from_frame": 180,
+      "to_frame": 270,
+      "text": "1つ目。\n応募先を絞りすぎる。"
+    },
+    {
+      "id": 4,
+      "section": "s1",
+      "from_time": 9.0,
+      "to_time": 12.0,
+      "from_frame": 270,
+      "to_frame": 360,
+      "text": "2つ目。\n企業研究が浅い。"
+    },
+    {
+      "id": 5,
+      "section": "s1",
+      "from_time": 12.0,
+      "to_time": 15.0,
+      "from_frame": 360,
+      "to_frame": 450,
+      "text": "3つ目。\n志望動機がどこでも同じ。"
+    },
+    {
+      "id": 6,
+      "section": "s2",
+      "from_time": 15.0,
+      "to_time": 17.8,
+      "from_frame": 450,
+      "to_frame": 534,
+      "text": "4つ目。\n返信が遅い。"
+    },
+    {
+      "id": 7,
+      "section": "s2",
+      "from_time": 17.8,
+      "to_time": 20.6,
+      "from_frame": 534,
+      "to_frame": 618,
+      "text": "5つ目。\n面接で話が長い。"
+    },
+    {
+      "id": 8,
+      "section": "s2",
+      "from_time": 20.6,
+      "to_time": 24.8,
+      "from_frame": 618,
+      "to_frame": 744,
+      "text": "6つ目。\n退職理由が前職の悪口で終わる。"
+    },
+    {
+      "id": 9,
+      "section": "s2",
+      "from_time": 24.8,
+      "to_time": 27.0,
+      "from_frame": 744,
+      "to_frame": 810,
+      "text": "7つ目。\n逆質問が浅い。"
+    },
+    {
+      "id": 10,
+      "section": "s3",
+      "from_time": 27.0,
+      "to_time": 29.6,
+      "from_frame": 810,
+      "to_frame": 888,
+      "text": "8つ目。\n条件だけで選ぶ。"
+    },
+    {
+      "id": 11,
+      "section": "s3",
+      "from_time": 29.6,
+      "to_time": 33.5,
+      "from_frame": 888,
+      "to_frame": 1005,
+      "text": "9つ目。\n落ちた理由を振り返らない。"
+    },
+    {
+      "id": 12,
+      "section": "s3",
+      "from_time": 33.5,
+      "to_time": 36.0,
+      "from_frame": 1005,
+      "to_frame": 1080,
+      "text": "10個目。\n周りの意見でブレる。"
+    },
+    {
+      "id": 13,
+      "section": "cta",
+      "from_time": 36.0,
+      "to_time": 38.6,
+      "from_frame": 1080,
+      "to_frame": 1158,
+      "text": "当てはまる項目が多いなら、\n応募のやり方をまず1つだけ変えてください。"
+    },
+    {
+      "id": 14,
+      "section": "cta",
+      "from_time": 38.6,
+      "to_time": 40.5,
+      "from_frame": 1158,
+      "to_frame": 1215,
+      "text": "転職は、\n準備した人から決まります。"
+    }
+  ]
+}

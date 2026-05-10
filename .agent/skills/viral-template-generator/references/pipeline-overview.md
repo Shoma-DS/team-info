@@ -17,7 +17,7 @@
 ## 共通パス
 - `inputs/viral-analysis/未分析/`
 - `inputs/viral-analysis/分析済み/`
-- `inputs/viral-analysis/output/`
+- `outputs/viral-analysis/`
 - `Remotion/my-video/public/viral/`
 - `Remotion/my-video/src/viral/`
 

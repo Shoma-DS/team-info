@@ -332,7 +332,7 @@ if (Test-Command uv) {
     if ($UvExe) {
         Write-Ok "uv インストール完了"
     } else {
-        Write-Warn "uv の導入に失敗しました。Dify API はあとで確認してください。"
+        Write-Warn "uv の導入に失敗しました。Python 補助ツールはあとで確認してください。"
     }
 }
 
@@ -461,7 +461,7 @@ try {
 Write-Step "11. 遅延セットアップの案内"
 Write-Warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
 Write-Warn "  - Remotion / VOICEVOX / Docker runtime"
-Write-Warn "  - Canva 補助や Dify 開発依存"
+Write-Warn "  - Canva 補助などの追加開発依存"
 Write-Warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
 Write-Warn "  - shared-agent-assets の同期処理"
 Write-Warn "  - clone-website 用の Node 24 workspace 依存"

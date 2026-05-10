@@ -1,0 +1,1847 @@
+{
+  "duration": 32.033,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/【あるある】職場でイラッとされやすい人の特徴10選 #仕事.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 32.033,
+        "start_frame": 0,
+        "end_frame": 961,
+        "motion_type": "shake",
+        "motion_intensity": 1.5,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.533,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.743
+      },
+      {
+        "frame": 15,
+        "time": 0.5,
+        "x": 0.533,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.742
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.533,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.742
+      },
+      {
+        "frame": 45,
+        "time": 1.5,
+        "x": 0.532,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.741
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.532,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.741
+      },
+      {
+        "frame": 75,
+        "time": 2.5,
+        "x": 0.532,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.741
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.532,
+        "y": 0.507,
+        "size": 0.044,
+        "confidence": 0.74
+      },
+      {
+        "frame": 105,
+        "time": 3.5,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 165,
+        "time": 5.5,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 195,
+        "time": 6.5,
+        "x": 0.496,
+        "y": 0.454,
+        "size": 0.032,
+        "confidence": 0.817
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.499,
+        "y": 0.453,
+        "size": 0.032,
+        "confidence": 0.812
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.519,
+        "y": 0.546,
+        "size": 0.033,
+        "confidence": 0.604
+      },
+      {
+        "frame": 315,
+        "time": 10.5,
+        "x": 0.519,
+        "y": 0.546,
+        "size": 0.033,
+        "confidence": 0.606
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.519,
+        "y": 0.546,
+        "size": 0.033,
+        "confidence": 0.606
+      },
+      {
+        "frame": 345,
+        "time": 11.5,
+        "x": 0.519,
+        "y": 0.546,
+        "size": 0.033,
+        "confidence": 0.606
+      },
+      {
+        "frame": 360,
+        "time": 12.0,
+        "x": 0.519,
+        "y": 0.546,
+        "size": 0.033,
+        "confidence": 0.606
+      },
+      {
+        "frame": 375,
+        "time": 12.5,
+        "x": 0.52,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.873
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.52,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.873
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.52,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.873
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.519,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.874
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.519,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.874
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.519,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.874
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.519,
+        "y": 0.48,
+        "size": 0.041,
+        "confidence": 0.874
+      },
+      {
+        "frame": 555,
+        "time": 18.5,
+        "x": 0.471,
+        "y": 0.402,
+        "size": 0.033,
+        "confidence": 0.583
+      },
+      {
+        "frame": 570,
+        "time": 19.0,
+        "x": 0.471,
+        "y": 0.402,
+        "size": 0.033,
+        "confidence": 0.583
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.471,
+        "y": 0.402,
+        "size": 0.033,
+        "confidence": 0.583
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.471,
+        "y": 0.402,
+        "size": 0.033,
+        "confidence": 0.583
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.471,
+        "y": 0.402,
+        "size": 0.033,
+        "confidence": 0.583
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.469,
+        "y": 0.402,
+        "size": 0.033,
+        "confidence": 0.558
+      },
+      {
+        "frame": 870,
+        "time": 29.0,
+        "x": 0.523,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.8
+      },
+      {
+        "frame": 885,
+        "time": 29.5,
+        "x": 0.524,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.8
+      },
+      {
+        "frame": 900,
+        "time": 30.0,
+        "x": 0.524,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.8
+      },
+      {
+        "frame": 915,
+        "time": 30.5,
+        "x": 0.524,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.8
+      },
+      {
+        "frame": 930,
+        "time": 31.0,
+        "x": 0.524,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.801
+      },
+      {
+        "frame": 945,
+        "time": 31.5,
+        "x": 0.524,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.801
+      },
+      {
+        "frame": 960,
+        "time": 32.0,
+        "x": 0.524,
+        "y": 0.471,
+        "size": 0.029,
+        "confidence": 0.801
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 3.167,
+        "end": 3.167
+      },
+      {
+        "type": "shake",
+        "start": 7.167,
+        "end": 7.167
+      },
+      {
+        "type": "shake",
+        "start": 9.833,
+        "end": 9.833
+      },
+      {
+        "type": "shake",
+        "start": 12.333,
+        "end": 12.333
+      },
+      {
+        "type": "shake",
+        "start": 15.667,
+        "end": 15.667
+      },
+      {
+        "type": "tilt_down",
+        "start": 18.5,
+        "end": 18.5
+      },
+      {
+        "type": "shake",
+        "start": 21.167,
+        "end": 21.167
+      },
+      {
+        "type": "zoom",
+        "start": 24.0,
+        "end": 24.0
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 6.5,
+        "text": "職場でイラッとされやすい人の特徴を出せ、自分の話ばかりして他人の話を聞かない。",
+        "words": [
+          {
+            "word": "職",
+            "start": 0.0,
+            "end": 0.52
+          },
+          {
+            "word": "場",
+            "start": 0.52,
+            "end": 0.64
+          },
+          {
+            "word": "で",
+            "start": 0.64,
+            "end": 0.78
+          },
+          {
+            "word": "イ",
+            "start": 0.78,
+            "end": 0.88
+          },
+          {
+            "word": "ラ",
+            "start": 0.88,
+            "end": 0.92
+          },
+          {
+            "word": "ッ",
+            "start": 0.92,
+            "end": 1.06
+          },
+          {
+            "word": "と",
+            "start": 1.06,
+            "end": 1.14
+          },
+          {
+            "word": "さ",
+            "start": 1.14,
+            "end": 1.28
+          },
+          {
+            "word": "れ",
+            "start": 1.28,
+            "end": 1.4
+          },
+          {
+            "word": "や",
+            "start": 1.4,
+            "end": 1.5
+          },
+          {
+            "word": "す",
+            "start": 1.5,
+            "end": 1.66
+          },
+          {
+            "word": "い",
+            "start": 1.66,
+            "end": 1.76
+          },
+          {
+            "word": "人",
+            "start": 1.76,
+            "end": 1.88
+          },
+          {
+            "word": "の",
+            "start": 1.88,
+            "end": 2.06
+          },
+          {
+            "word": "特",
+            "start": 2.06,
+            "end": 2.22
+          },
+          {
+            "word": "徴",
+            "start": 2.22,
+            "end": 2.46
+          },
+          {
+            "word": "を",
+            "start": 2.46,
+            "end": 2.6
+          },
+          {
+            "word": "出",
+            "start": 2.6,
+            "end": 2.68
+          },
+          {
+            "word": "せ、",
+            "start": 2.68,
+            "end": 2.9
+          },
+          {
+            "word": "自",
+            "start": 3.16,
+            "end": 3.38
+          },
+          {
+            "word": "分",
+            "start": 3.38,
+            "end": 3.58
+          },
+          {
+            "word": "の",
+            "start": 3.58,
+            "end": 3.7
+          },
+          {
+            "word": "話",
+            "start": 3.7,
+            "end": 3.92
+          },
+          {
+            "word": "ば",
+            "start": 3.92,
+            "end": 4.2
+          },
+          {
+            "word": "か",
+            "start": 4.2,
+            "end": 4.3
+          },
+          {
+            "word": "り",
+            "start": 4.3,
+            "end": 4.4
+          },
+          {
+            "word": "して",
+            "start": 4.4,
+            "end": 4.62
+          },
+          {
+            "word": "他",
+            "start": 4.62,
+            "end": 5.22
+          },
+          {
+            "word": "人",
+            "start": 5.22,
+            "end": 5.34
+          },
+          {
+            "word": "の",
+            "start": 5.34,
+            "end": 5.52
+          },
+          {
+            "word": "話",
+            "start": 5.52,
+            "end": 5.74
+          },
+          {
+            "word": "を",
+            "start": 5.74,
+            "end": 6.02
+          },
+          {
+            "word": "聞",
+            "start": 6.02,
+            "end": 6.16
+          },
+          {
+            "word": "か",
+            "start": 6.16,
+            "end": 6.3
+          },
+          {
+            "word": "ない。",
+            "start": 6.3,
+            "end": 6.5
+          }
+        ]
+      },
+      {
+        "start": 7.26,
+        "end": 11.6,
+        "text": "仕事が遅いのにマイペース。ネガティブな発言が多い。",
+        "words": [
+          {
+            "word": "仕",
+            "start": 7.26,
+            "end": 7.58
+          },
+          {
+            "word": "事",
+            "start": 7.58,
+            "end": 7.74
+          },
+          {
+            "word": "が",
+            "start": 7.74,
+            "end": 7.96
+          },
+          {
+            "word": "遅",
+            "start": 7.96,
+            "end": 8.2
+          },
+          {
+            "word": "い",
+            "start": 8.2,
+            "end": 8.32
+          },
+          {
+            "word": "の",
+            "start": 8.32,
+            "end": 8.4
+          },
+          {
+            "word": "に",
+            "start": 8.4,
+            "end": 8.52
+          },
+          {
+            "word": "マ",
+            "start": 8.52,
+            "end": 8.66
+          },
+          {
+            "word": "イ",
+            "start": 8.66,
+            "end": 8.72
+          },
+          {
+            "word": "ペ",
+            "start": 8.72,
+            "end": 8.9
+          },
+          {
+            "word": "ー",
+            "start": 8.9,
+            "end": 8.98
+          },
+          {
+            "word": "ス。",
+            "start": 8.98,
+            "end": 9.18
+          },
+          {
+            "word": "ネ",
+            "start": 10.0,
+            "end": 10.16
+          },
+          {
+            "word": "ガ",
+            "start": 10.16,
+            "end": 10.28
+          },
+          {
+            "word": "テ",
+            "start": 10.28,
+            "end": 10.4
+          },
+          {
+            "word": "ィ",
+            "start": 10.4,
+            "end": 10.4
+          },
+          {
+            "word": "ブ",
+            "start": 10.4,
+            "end": 10.48
+          },
+          {
+            "word": "な",
+            "start": 10.48,
+            "end": 10.62
+          },
+          {
+            "word": "発",
+            "start": 10.62,
+            "end": 10.84
+          },
+          {
+            "word": "言",
+            "start": 10.84,
+            "end": 11.0
+          },
+          {
+            "word": "が",
+            "start": 11.0,
+            "end": 11.2
+          },
+          {
+            "word": "多",
+            "start": 11.2,
+            "end": 11.42
+          },
+          {
+            "word": "い。",
+            "start": 11.42,
+            "end": 11.6
+          }
+        ]
+      },
+      {
+        "start": 12.36,
+        "end": 14.86,
+        "text": "頼んだことに対していちいち言わけをする。",
+        "words": [
+          {
+            "word": "頼",
+            "start": 12.36,
+            "end": 12.62
+          },
+          {
+            "word": "んだ",
+            "start": 12.62,
+            "end": 12.84
+          },
+          {
+            "word": "こと",
+            "start": 12.84,
+            "end": 12.98
+          },
+          {
+            "word": "に",
+            "start": 12.98,
+            "end": 13.18
+          },
+          {
+            "word": "対",
+            "start": 13.18,
+            "end": 13.32
+          },
+          {
+            "word": "して",
+            "start": 13.32,
+            "end": 13.62
+          },
+          {
+            "word": "い",
+            "start": 13.62,
+            "end": 13.74
+          },
+          {
+            "word": "ち",
+            "start": 13.74,
+            "end": 13.86
+          },
+          {
+            "word": "い",
+            "start": 13.86,
+            "end": 14.0
+          },
+          {
+            "word": "ち",
+            "start": 14.0,
+            "end": 14.08
+          },
+          {
+            "word": "言",
+            "start": 14.08,
+            "end": 14.24
+          },
+          {
+            "word": "わ",
+            "start": 14.24,
+            "end": 14.38
+          },
+          {
+            "word": "け",
+            "start": 14.38,
+            "end": 14.54
+          },
+          {
+            "word": "を",
+            "start": 14.54,
+            "end": 14.66
+          },
+          {
+            "word": "する。",
+            "start": 14.66,
+            "end": 14.86
+          }
+        ]
+      },
+      {
+        "start": 15.72,
+        "end": 17.82,
+        "text": "会議や打ち合わせで話が長い。",
+        "words": [
+          {
+            "word": "会",
+            "start": 15.72,
+            "end": 15.9
+          },
+          {
+            "word": "議",
+            "start": 15.9,
+            "end": 16.08
+          },
+          {
+            "word": "や",
+            "start": 16.08,
+            "end": 16.24
+          },
+          {
+            "word": "打",
+            "start": 16.24,
+            "end": 16.38
+          },
+          {
+            "word": "ち",
+            "start": 16.38,
+            "end": 16.52
+          },
+          {
+            "word": "合",
+            "start": 16.52,
+            "end": 16.62
+          },
+          {
+            "word": "わ",
+            "start": 16.62,
+            "end": 16.74
+          },
+          {
+            "word": "せ",
+            "start": 16.74,
+            "end": 16.82
+          },
+          {
+            "word": "で",
+            "start": 16.82,
+            "end": 16.96
+          },
+          {
+            "word": "話",
+            "start": 16.96,
+            "end": 17.14
+          },
+          {
+            "word": "が",
+            "start": 17.14,
+            "end": 17.44
+          },
+          {
+            "word": "長",
+            "start": 17.44,
+            "end": 17.56
+          },
+          {
+            "word": "い。",
+            "start": 17.56,
+            "end": 17.82
+          }
+        ]
+      },
+      {
+        "start": 18.66,
+        "end": 20.44,
+        "text": "頻繁に大きなため息をつく。",
+        "words": [
+          {
+            "word": "頻",
+            "start": 18.66,
+            "end": 18.86
+          },
+          {
+            "word": "繁",
+            "start": 18.86,
+            "end": 19.02
+          },
+          {
+            "word": "に",
+            "start": 19.02,
+            "end": 19.2
+          },
+          {
+            "word": "大",
+            "start": 19.2,
+            "end": 19.36
+          },
+          {
+            "word": "き",
+            "start": 19.36,
+            "end": 19.52
+          },
+          {
+            "word": "な",
+            "start": 19.52,
+            "end": 19.64
+          },
+          {
+            "word": "ため",
+            "start": 19.64,
+            "end": 19.78
+          },
+          {
+            "word": "息",
+            "start": 19.78,
+            "end": 20.0
+          },
+          {
+            "word": "を",
+            "start": 20.0,
+            "end": 20.16
+          },
+          {
+            "word": "つ",
+            "start": 20.16,
+            "end": 20.3
+          },
+          {
+            "word": "く。",
+            "start": 20.3,
+            "end": 20.44
+          }
+        ]
+      },
+      {
+        "start": 21.14,
+        "end": 23.46,
+        "text": "無意識に出すくまわりで音を立てる。",
+        "words": [
+          {
+            "word": "無",
+            "start": 21.14,
+            "end": 21.46
+          },
+          {
+            "word": "意",
+            "start": 21.46,
+            "end": 21.56
+          },
+          {
+            "word": "識",
+            "start": 21.56,
+            "end": 21.7
+          },
+          {
+            "word": "に",
+            "start": 21.7,
+            "end": 21.84
+          },
+          {
+            "word": "出",
+            "start": 21.84,
+            "end": 21.94
+          },
+          {
+            "word": "す",
+            "start": 21.94,
+            "end": 22.1
+          },
+          {
+            "word": "く",
+            "start": 22.1,
+            "end": 22.16
+          },
+          {
+            "word": "ま",
+            "start": 22.16,
+            "end": 22.34
+          },
+          {
+            "word": "わ",
+            "start": 22.34,
+            "end": 22.42
+          },
+          {
+            "word": "り",
+            "start": 22.42,
+            "end": 22.52
+          },
+          {
+            "word": "で",
+            "start": 22.52,
+            "end": 22.64
+          },
+          {
+            "word": "音",
+            "start": 22.64,
+            "end": 22.82
+          },
+          {
+            "word": "を",
+            "start": 22.82,
+            "end": 23.0
+          },
+          {
+            "word": "立",
+            "start": 23.0,
+            "end": 23.04
+          },
+          {
+            "word": "て",
+            "start": 23.04,
+            "end": 23.2
+          },
+          {
+            "word": "る。",
+            "start": 23.2,
+            "end": 23.46
+          }
+        ]
+      },
+      {
+        "start": 24.14,
+        "end": 27.82,
+        "text": "人の仕事に口出しするが、自分の仕事ができていない。",
+        "words": [
+          {
+            "word": "人",
+            "start": 24.14,
+            "end": 24.32
+          },
+          {
+            "word": "の",
+            "start": 24.32,
+            "end": 24.52
+          },
+          {
+            "word": "仕",
+            "start": 24.52,
+            "end": 24.66
+          },
+          {
+            "word": "事",
+            "start": 24.66,
+            "end": 24.82
+          },
+          {
+            "word": "に",
+            "start": 24.82,
+            "end": 25.0
+          },
+          {
+            "word": "口",
+            "start": 25.0,
+            "end": 25.16
+          },
+          {
+            "word": "出",
+            "start": 25.16,
+            "end": 25.32
+          },
+          {
+            "word": "し",
+            "start": 25.32,
+            "end": 25.42
+          },
+          {
+            "word": "する",
+            "start": 25.42,
+            "end": 25.62
+          },
+          {
+            "word": "が、",
+            "start": 25.62,
+            "end": 25.82
+          },
+          {
+            "word": "自",
+            "start": 26.22,
+            "end": 26.38
+          },
+          {
+            "word": "分",
+            "start": 26.38,
+            "end": 26.58
+          },
+          {
+            "word": "の",
+            "start": 26.58,
+            "end": 26.72
+          },
+          {
+            "word": "仕",
+            "start": 26.72,
+            "end": 26.86
+          },
+          {
+            "word": "事",
+            "start": 26.86,
+            "end": 27.04
+          },
+          {
+            "word": "が",
+            "start": 27.04,
+            "end": 27.22
+          },
+          {
+            "word": "でき",
+            "start": 27.22,
+            "end": 27.36
+          },
+          {
+            "word": "て",
+            "start": 27.36,
+            "end": 27.58
+          },
+          {
+            "word": "い",
+            "start": 27.58,
+            "end": 27.66
+          },
+          {
+            "word": "ない。",
+            "start": 27.66,
+            "end": 27.82
+          }
+        ]
+      },
+      {
+        "start": 28.5,
+        "end": 31.4,
+        "text": "場の空気を読まずに無神経な発言もする。",
+        "words": [
+          {
+            "word": "場",
+            "start": 28.5,
+            "end": 28.86
+          },
+          {
+            "word": "の",
+            "start": 28.86,
+            "end": 29.02
+          },
+          {
+            "word": "空",
+            "start": 29.02,
+            "end": 29.2
+          },
+          {
+            "word": "気",
+            "start": 29.2,
+            "end": 29.38
+          },
+          {
+            "word": "を",
+            "start": 29.38,
+            "end": 29.5
+          },
+          {
+            "word": "読",
+            "start": 29.5,
+            "end": 29.64
+          },
+          {
+            "word": "まず",
+            "start": 29.64,
+            "end": 29.8
+          },
+          {
+            "word": "に",
+            "start": 29.8,
+            "end": 29.94
+          },
+          {
+            "word": "無",
+            "start": 29.94,
+            "end": 30.06
+          },
+          {
+            "word": "神",
+            "start": 30.06,
+            "end": 30.26
+          },
+          {
+            "word": "経",
+            "start": 30.26,
+            "end": 30.46
+          },
+          {
+            "word": "な",
+            "start": 30.46,
+            "end": 30.62
+          },
+          {
+            "word": "発",
+            "start": 30.62,
+            "end": 30.8
+          },
+          {
+            "word": "言",
+            "start": 30.8,
+            "end": 31.02
+          },
+          {
+            "word": "も",
+            "start": 31.02,
+            "end": 31.2
+          },
+          {
+            "word": "する。",
+            "start": 31.2,
+            "end": 31.4
+          }
+        ]
+      }
+    ],
+    "full_text": "職場でイラッとされやすい人の特徴を出せ、自分の話ばかりして他人の話を聞かない。 仕事が遅いのにマイペース。ネガティブな発言が多い。 頼んだことに対していちいち言わけをする。 会議や打ち合わせで話が長い。 頻繁に大きなため息をつく。 無意識に出すくまわりで音を立てる。 人の仕事に口出しするが、自分の仕事ができていない。 場の空気を読まずに無神経な発言もする。",
+    "words_per_minute": 395.1,
+    "keywords": [
+      "職場でイラッとされやすい人の特徴を出せ",
+      "自分の話ばかりして他人の話を聞かない",
+      "仕事が遅いのにマイペ",
+      "ネガティブな発言が多い",
+      "頼んだことに対していちいち言わけをする",
+      "会議や打ち合わせで話が長い",
+      "頻繁に大きなため息をつく",
+      "無意識に出すくまわりで音を立てる",
+      "人の仕事に口出しするが",
+      "自分の仕事ができていない"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 6.5,
+        "end": 7.26,
+        "duration": 0.76
+      },
+      {
+        "start": 11.6,
+        "end": 12.36,
+        "duration": 0.76
+      },
+      {
+        "start": 14.86,
+        "end": 15.72,
+        "duration": 0.86
+      },
+      {
+        "start": 17.82,
+        "end": 18.66,
+        "duration": 0.84
+      },
+      {
+        "start": 20.44,
+        "end": 21.14,
+        "duration": 0.7
+      },
+      {
+        "start": 23.46,
+        "end": 24.14,
+        "duration": 0.68
+      },
+      {
+        "start": 27.82,
+        "end": 28.5,
+        "duration": 0.68
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 0.42,
+        "end": 0.98,
+        "energy": "medium"
+      },
+      {
+        "start": 5.15,
+        "end": 5.8,
+        "energy": "medium"
+      },
+      {
+        "start": 8.15,
+        "end": 8.75,
+        "energy": "medium"
+      },
+      {
+        "start": 10.05,
+        "end": 10.63,
+        "energy": "medium"
+      },
+      {
+        "start": 12.33,
+        "end": 12.89,
+        "energy": "medium"
+      },
+      {
+        "start": 12.93,
+        "end": 13.49,
+        "energy": "medium"
+      },
+      {
+        "start": 14.07,
+        "end": 14.63,
+        "energy": "low"
+      },
+      {
+        "start": 15.74,
+        "end": 16.35,
+        "energy": "medium"
+      },
+      {
+        "start": 18.74,
+        "end": 19.41,
+        "energy": "medium"
+      },
+      {
+        "start": 19.48,
+        "end": 20.02,
+        "energy": "medium"
+      },
+      {
+        "start": 21.2,
+        "end": 24.57,
+        "energy": "medium"
+      },
+      {
+        "start": 24.59,
+        "end": 28.28,
+        "energy": "low"
+      },
+      {
+        "start": 28.75,
+        "end": 30.09,
+        "energy": "medium"
+      },
+      {
+        "start": 30.37,
+        "end": 32.09,
+        "energy": "low"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.395,
+        "type": "whoosh",
+        "energy": 0.46
+      },
+      {
+        "time": 0.906,
+        "type": "whoosh",
+        "energy": 0.563
+      },
+      {
+        "time": 1.672,
+        "type": "whoosh",
+        "energy": 0.529
+      },
+      {
+        "time": 2.392,
+        "type": "whoosh",
+        "energy": 0.498
+      },
+      {
+        "time": 2.902,
+        "type": "whoosh",
+        "energy": 0.278
+      },
+      {
+        "time": 3.483,
+        "type": "transition",
+        "energy": 0.901
+      },
+      {
+        "time": 4.156,
+        "type": "whoosh",
+        "energy": 0.527
+      },
+      {
+        "time": 4.598,
+        "type": "whoosh",
+        "energy": 0.38
+      },
+      {
+        "time": 6.246,
+        "type": "whoosh",
+        "energy": 0.397
+      },
+      {
+        "time": 7.245,
+        "type": "impact",
+        "energy": 0.281
+      },
+      {
+        "time": 7.663,
+        "type": "whoosh",
+        "energy": 0.667
+      },
+      {
+        "time": 8.266,
+        "type": "transition",
+        "energy": 0.819
+      },
+      {
+        "time": 11.68,
+        "type": "impact",
+        "energy": 0.357
+      },
+      {
+        "time": 12.028,
+        "type": "impact",
+        "energy": 0.339
+      },
+      {
+        "time": 12.353,
+        "type": "whoosh",
+        "energy": 0.364
+      },
+      {
+        "time": 13.05,
+        "type": "whoosh",
+        "energy": 0.614
+      },
+      {
+        "time": 14.559,
+        "type": "whoosh",
+        "energy": 0.385
+      },
+      {
+        "time": 17.16,
+        "type": "whoosh",
+        "energy": 0.505
+      },
+      {
+        "time": 18.158,
+        "type": "impact",
+        "energy": 0.264
+      },
+      {
+        "time": 19.83,
+        "type": "whoosh",
+        "energy": 0.563
+      },
+      {
+        "time": 21.432,
+        "type": "transition",
+        "energy": 0.776
+      },
+      {
+        "time": 23.615,
+        "type": "impact",
+        "energy": 0.351
+      },
+      {
+        "time": 24.358,
+        "type": "transition",
+        "energy": 0.832
+      },
+      {
+        "time": 24.938,
+        "type": "whoosh",
+        "energy": 0.699
+      },
+      {
+        "time": 26.494,
+        "type": "transition",
+        "energy": 1.0
+      },
+      {
+        "time": 30.441,
+        "type": "whoosh",
+        "energy": 0.655
+      }
+    ],
+    "beat_times": [
+      0.116,
+      0.441,
+      0.766,
+      1.115,
+      1.463,
+      1.811,
+      2.136,
+      2.485,
+      2.833,
+      3.181,
+      3.506,
+      3.855,
+      4.156,
+      4.481,
+      4.807,
+      5.132,
+      5.503,
+      5.875,
+      6.246,
+      6.594,
+      6.92,
+      7.268,
+      7.593,
+      7.941,
+      8.266,
+      8.615,
+      8.963,
+      9.311,
+      9.636,
+      9.985,
+      10.286,
+      10.612,
+      10.983,
+      11.355,
+      11.703,
+      12.028,
+      12.376,
+      12.701,
+      13.05,
+      13.398,
+      13.746,
+      14.071,
+      14.42,
+      14.768,
+      15.093,
+      15.441,
+      15.79,
+      16.115,
+      16.463,
+      16.811,
+      17.16,
+      17.531,
+      17.833,
+      18.181,
+      18.506,
+      18.855,
+      19.203,
+      19.551,
+      19.876,
+      20.225,
+      20.573,
+      20.898,
+      21.246,
+      21.595,
+      21.943,
+      22.291,
+      22.616,
+      22.941,
+      23.29,
+      23.638,
+      23.986,
+      24.381,
+      24.752,
+      25.124,
+      25.472,
+      25.797,
+      26.146,
+      26.494,
+      26.865,
+      27.214,
+      27.562,
+      27.934,
+      28.305,
+      28.653,
+      29.002,
+      29.35,
+      29.698,
+      30.047,
+      30.395
+    ],
+    "dominant_tempo": 172.3,
+    "music_coverage": 0.498,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.438
+      },
+      {
+        "time": 1.0,
+        "energy": 0.053
+      },
+      {
+        "time": 1.5,
+        "energy": 0.398
+      },
+      {
+        "time": 2.0,
+        "energy": 0.359
+      },
+      {
+        "time": 2.5,
+        "energy": 0.345
+      },
+      {
+        "time": 3.0,
+        "energy": 0.076
+      },
+      {
+        "time": 3.5,
+        "energy": 0.855
+      },
+      {
+        "time": 4.0,
+        "energy": 0.256
+      },
+      {
+        "time": 4.5,
+        "energy": 0.279
+      },
+      {
+        "time": 5.0,
+        "energy": 0.149
+      },
+      {
+        "time": 5.5,
+        "energy": 0.581
+      },
+      {
+        "time": 6.0,
+        "energy": 0.368
+      },
+      {
+        "time": 6.5,
+        "energy": 0.082
+      },
+      {
+        "time": 7.0,
+        "energy": 0.099
+      },
+      {
+        "time": 7.5,
+        "energy": 0.265
+      },
+      {
+        "time": 8.0,
+        "energy": 0.385
+      },
+      {
+        "time": 8.5,
+        "energy": 0.41
+      },
+      {
+        "time": 9.0,
+        "energy": 0.227
+      },
+      {
+        "time": 9.5,
+        "energy": 0.035
+      },
+      {
+        "time": 10.0,
+        "energy": 0.211
+      },
+      {
+        "time": 10.5,
+        "energy": 0.362
+      },
+      {
+        "time": 11.0,
+        "energy": 0.42
+      },
+      {
+        "time": 11.5,
+        "energy": 0.143
+      },
+      {
+        "time": 12.0,
+        "energy": 0.291
+      },
+      {
+        "time": 12.5,
+        "energy": 0.551
+      },
+      {
+        "time": 13.0,
+        "energy": 0.43
+      },
+      {
+        "time": 13.5,
+        "energy": 0.226
+      },
+      {
+        "time": 14.0,
+        "energy": 0.202
+      },
+      {
+        "time": 14.5,
+        "energy": 0.358
+      },
+      {
+        "time": 15.0,
+        "energy": 0.029
+      },
+      {
+        "time": 15.5,
+        "energy": 0.147
+      },
+      {
+        "time": 16.0,
+        "energy": 0.316
+      },
+      {
+        "time": 16.5,
+        "energy": 0.631
+      },
+      {
+        "time": 17.0,
+        "energy": 0.285
+      },
+      {
+        "time": 17.5,
+        "energy": 0.341
+      },
+      {
+        "time": 18.0,
+        "energy": 0.036
+      },
+      {
+        "time": 18.5,
+        "energy": 0.186
+      },
+      {
+        "time": 19.0,
+        "energy": 0.706
+      },
+      {
+        "time": 19.5,
+        "energy": 0.408
+      },
+      {
+        "time": 20.0,
+        "energy": 0.211
+      },
+      {
+        "time": 20.5,
+        "energy": 0.171
+      },
+      {
+        "time": 21.0,
+        "energy": 0.161
+      },
+      {
+        "time": 21.5,
+        "energy": 0.694
+      },
+      {
+        "time": 22.0,
+        "energy": 0.263
+      },
+      {
+        "time": 22.5,
+        "energy": 0.349
+      },
+      {
+        "time": 23.0,
+        "energy": 0.249
+      },
+      {
+        "time": 23.5,
+        "energy": 0.162
+      },
+      {
+        "time": 24.0,
+        "energy": 0.326
+      },
+      {
+        "time": 24.5,
+        "energy": 0.515
+      },
+      {
+        "time": 25.0,
+        "energy": 0.533
+      },
+      {
+        "time": 25.5,
+        "energy": 0.421
+      },
+      {
+        "time": 26.0,
+        "energy": 0.267
+      },
+      {
+        "time": 26.5,
+        "energy": 0.96
+      },
+      {
+        "time": 27.0,
+        "energy": 0.313
+      },
+      {
+        "time": 27.5,
+        "energy": 0.38
+      },
+      {
+        "time": 28.0,
+        "energy": 0.182
+      },
+      {
+        "time": 28.5,
+        "energy": 0.154
+      },
+      {
+        "time": 29.0,
+        "energy": 0.712
+      },
+      {
+        "time": 29.5,
+        "energy": 0.474
+      },
+      {
+        "time": 30.0,
+        "energy": 0.5
+      },
+      {
+        "time": 30.5,
+        "energy": 0.436
+      },
+      {
+        "time": 31.0,
+        "energy": 0.416
+      },
+      {
+        "time": 31.5,
+        "energy": 0.281
+      },
+      {
+        "time": 32.0,
+        "energy": 0.174
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 28.83,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/【あるある】職場でイラッとされやすい人の特徴10選 #仕事/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

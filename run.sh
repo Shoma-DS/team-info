@@ -29,13 +29,12 @@ notify() {
 usage() {
   cat <<'EOF'
 Usage:
-  ./run.sh [--project auto|current|n8n|dify] [--action up|down|stop|start|restart|ps] [docker compose args...]
+  ./run.sh [--project auto|current] [--action up|down|stop|start|restart|ps] [docker compose args...]
 
 Examples:
   ./run.sh
-  ./run.sh --project dify -d
-  ./run.sh --project n8n
-  ./run.sh --project dify --action down
+  ./run.sh --project current
+  ./run.sh --project current --action down
 EOF
 }
 
@@ -164,14 +163,6 @@ project_dir_from_name() {
       printf '%s\n' "$PWD"
       return 0
       ;;
-    n8n)
-      printf '%s\n' "$SCRIPT_DIR/docker/n8n"
-      return 0
-      ;;
-    dify)
-      printf '%s\n' "$SCRIPT_DIR/docker/dify/docker"
-      return 0
-      ;;
     *)
       error "不明な project です: $1"
       ;;
@@ -200,18 +191,8 @@ select_compose_project() {
     return 0
   fi
 
-  for repo_candidate in \
-    "$SCRIPT_DIR/docker/n8n" \
-    "$SCRIPT_DIR/docker/dify/docker"
-  do
-    if compose_file_in_dir "$repo_candidate" >/dev/null; then
-      candidates+=("$repo_candidate")
-      labels+=("${repo_candidate#$SCRIPT_DIR/}")
-    fi
-  done
-
   if (( ${#candidates[@]} == 0 )); then
-    error "docker compose の対象が見つかりません。compose ファイルがあるディレクトリで実行するか、既知の compose プロジェクトを用意してください。"
+    error "docker compose の対象が見つかりません。compose ファイルがあるディレクトリで実行するか、--project current を指定してください。"
   fi
 
   if (( ${#candidates[@]} == 1 )); then

@@ -1,0 +1,1374 @@
+{
+  "duration": 29.267,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/【危険】ブラック企業にありがちな求人票の特徴10選　#転職.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 29.267,
+        "start_frame": 0,
+        "end_frame": 878,
+        "motion_type": "shake",
+        "motion_intensity": 1.4,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 195,
+        "time": 6.5,
+        "x": 0.539,
+        "y": 0.471,
+        "size": 0.041,
+        "confidence": 0.739
+      },
+      {
+        "frame": 210,
+        "time": 7.0,
+        "x": 0.541,
+        "y": 0.473,
+        "size": 0.041,
+        "confidence": 0.731
+      },
+      {
+        "frame": 225,
+        "time": 7.5,
+        "x": 0.541,
+        "y": 0.473,
+        "size": 0.041,
+        "confidence": 0.731
+      },
+      {
+        "frame": 240,
+        "time": 8.0,
+        "x": 0.541,
+        "y": 0.473,
+        "size": 0.041,
+        "confidence": 0.731
+      },
+      {
+        "frame": 255,
+        "time": 8.5,
+        "x": 0.541,
+        "y": 0.473,
+        "size": 0.041,
+        "confidence": 0.731
+      },
+      {
+        "frame": 270,
+        "time": 9.0,
+        "x": 0.496,
+        "y": 0.425,
+        "size": 0.038,
+        "confidence": 0.589
+      },
+      {
+        "frame": 285,
+        "time": 9.5,
+        "x": 0.496,
+        "y": 0.425,
+        "size": 0.038,
+        "confidence": 0.589
+      },
+      {
+        "frame": 300,
+        "time": 10.0,
+        "x": 0.496,
+        "y": 0.425,
+        "size": 0.038,
+        "confidence": 0.589
+      },
+      {
+        "frame": 315,
+        "time": 10.5,
+        "x": 0.496,
+        "y": 0.425,
+        "size": 0.038,
+        "confidence": 0.589
+      },
+      {
+        "frame": 330,
+        "time": 11.0,
+        "x": 0.496,
+        "y": 0.425,
+        "size": 0.038,
+        "confidence": 0.589
+      },
+      {
+        "frame": 735,
+        "time": 24.5,
+        "x": 0.484,
+        "y": 0.531,
+        "size": 0.028,
+        "confidence": 0.514
+      },
+      {
+        "frame": 750,
+        "time": 25.0,
+        "x": 0.484,
+        "y": 0.531,
+        "size": 0.028,
+        "confidence": 0.514
+      },
+      {
+        "frame": 765,
+        "time": 25.5,
+        "x": 0.484,
+        "y": 0.531,
+        "size": 0.028,
+        "confidence": 0.514
+      },
+      {
+        "frame": 780,
+        "time": 26.0,
+        "x": 0.484,
+        "y": 0.531,
+        "size": 0.028,
+        "confidence": 0.514
+      },
+      {
+        "frame": 795,
+        "time": 26.5,
+        "x": 0.484,
+        "y": 0.531,
+        "size": 0.028,
+        "confidence": 0.514
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 3.833,
+        "end": 3.833
+      },
+      {
+        "type": "shake",
+        "start": 6.5,
+        "end": 6.5
+      },
+      {
+        "type": "shake",
+        "start": 8.833,
+        "end": 8.833
+      },
+      {
+        "type": "zoom",
+        "start": 11.333,
+        "end": 11.333
+      },
+      {
+        "type": "shake",
+        "start": 13.833,
+        "end": 13.833
+      },
+      {
+        "type": "shake",
+        "start": 16.667,
+        "end": 16.667
+      },
+      {
+        "type": "shake",
+        "start": 19.333,
+        "end": 19.333
+      },
+      {
+        "type": "shake",
+        "start": 21.333,
+        "end": 21.333
+      },
+      {
+        "type": "pan_left",
+        "start": 24.167,
+        "end": 24.167
+      },
+      {
+        "type": "zoom",
+        "start": 27.0,
+        "end": 27.0
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 5.86,
+        "text": "ブラック企業にありがちな旧人票の特徴実践 やたら社員の中が良いアピール",
+        "words": [
+          {
+            "word": "ブ",
+            "start": 0.0,
+            "end": 0.34
+          },
+          {
+            "word": "ラ",
+            "start": 0.34,
+            "end": 0.44
+          },
+          {
+            "word": "ック",
+            "start": 0.44,
+            "end": 0.62
+          },
+          {
+            "word": "企",
+            "start": 0.62,
+            "end": 0.78
+          },
+          {
+            "word": "業",
+            "start": 0.78,
+            "end": 0.96
+          },
+          {
+            "word": "に",
+            "start": 0.96,
+            "end": 1.1
+          },
+          {
+            "word": "あり",
+            "start": 1.1,
+            "end": 1.3
+          },
+          {
+            "word": "が",
+            "start": 1.3,
+            "end": 1.44
+          },
+          {
+            "word": "ち",
+            "start": 1.44,
+            "end": 1.56
+          },
+          {
+            "word": "な",
+            "start": 1.56,
+            "end": 1.68
+          },
+          {
+            "word": "旧",
+            "start": 1.68,
+            "end": 1.92
+          },
+          {
+            "word": "人",
+            "start": 1.92,
+            "end": 2.14
+          },
+          {
+            "word": "票",
+            "start": 2.14,
+            "end": 2.34
+          },
+          {
+            "word": "の",
+            "start": 2.34,
+            "end": 2.5
+          },
+          {
+            "word": "特",
+            "start": 2.5,
+            "end": 2.7
+          },
+          {
+            "word": "徴",
+            "start": 2.7,
+            "end": 2.9
+          },
+          {
+            "word": "実",
+            "start": 2.9,
+            "end": 3.16
+          },
+          {
+            "word": "践",
+            "start": 3.16,
+            "end": 3.4
+          },
+          {
+            "word": " や",
+            "start": 3.4,
+            "end": 4.16
+          },
+          {
+            "word": "た",
+            "start": 4.16,
+            "end": 4.28
+          },
+          {
+            "word": "ら",
+            "start": 4.28,
+            "end": 4.44
+          },
+          {
+            "word": "社",
+            "start": 4.44,
+            "end": 4.6
+          },
+          {
+            "word": "員",
+            "start": 4.6,
+            "end": 4.7
+          },
+          {
+            "word": "の",
+            "start": 4.7,
+            "end": 4.84
+          },
+          {
+            "word": "中",
+            "start": 4.84,
+            "end": 5.02
+          },
+          {
+            "word": "が",
+            "start": 5.02,
+            "end": 5.2
+          },
+          {
+            "word": "良",
+            "start": 5.2,
+            "end": 5.34
+          },
+          {
+            "word": "い",
+            "start": 5.34,
+            "end": 5.46
+          },
+          {
+            "word": "ア",
+            "start": 5.46,
+            "end": 5.58
+          },
+          {
+            "word": "ピ",
+            "start": 5.58,
+            "end": 5.68
+          },
+          {
+            "word": "ール",
+            "start": 5.68,
+            "end": 5.86
+          }
+        ]
+      },
+      {
+        "start": 6.58,
+        "end": 10.72,
+        "text": "仕事内容がありまい 素直な人を歓迎している",
+        "words": [
+          {
+            "word": "仕",
+            "start": 6.58,
+            "end": 6.94
+          },
+          {
+            "word": "事",
+            "start": 6.94,
+            "end": 7.08
+          },
+          {
+            "word": "内",
+            "start": 7.08,
+            "end": 7.34
+          },
+          {
+            "word": "容",
+            "start": 7.34,
+            "end": 7.56
+          },
+          {
+            "word": "が",
+            "start": 7.56,
+            "end": 7.74
+          },
+          {
+            "word": "あり",
+            "start": 7.74,
+            "end": 7.88
+          },
+          {
+            "word": "ま",
+            "start": 7.88,
+            "end": 8.06
+          },
+          {
+            "word": "い",
+            "start": 8.06,
+            "end": 8.38
+          },
+          {
+            "word": " 素",
+            "start": 8.66,
+            "end": 9.2
+          },
+          {
+            "word": "直",
+            "start": 9.2,
+            "end": 9.34
+          },
+          {
+            "word": "な",
+            "start": 9.34,
+            "end": 9.52
+          },
+          {
+            "word": "人",
+            "start": 9.52,
+            "end": 9.68
+          },
+          {
+            "word": "を",
+            "start": 9.68,
+            "end": 9.86
+          },
+          {
+            "word": "歓",
+            "start": 9.86,
+            "end": 10.0
+          },
+          {
+            "word": "迎",
+            "start": 10.0,
+            "end": 10.2
+          },
+          {
+            "word": "して",
+            "start": 10.2,
+            "end": 10.44
+          },
+          {
+            "word": "いる",
+            "start": 10.44,
+            "end": 10.72
+          }
+        ]
+      },
+      {
+        "start": 11.34,
+        "end": 15.82,
+        "text": "給料の幅が広すぎる 見なし残業40時間以上",
+        "words": [
+          {
+            "word": "給",
+            "start": 11.34,
+            "end": 11.7
+          },
+          {
+            "word": "料",
+            "start": 11.7,
+            "end": 11.92
+          },
+          {
+            "word": "の",
+            "start": 11.92,
+            "end": 12.1
+          },
+          {
+            "word": "幅",
+            "start": 12.1,
+            "end": 12.32
+          },
+          {
+            "word": "が",
+            "start": 12.32,
+            "end": 12.48
+          },
+          {
+            "word": "広",
+            "start": 12.48,
+            "end": 12.66
+          },
+          {
+            "word": "す",
+            "start": 12.66,
+            "end": 12.86
+          },
+          {
+            "word": "ぎ",
+            "start": 12.86,
+            "end": 12.98
+          },
+          {
+            "word": "る",
+            "start": 12.98,
+            "end": 13.82
+          },
+          {
+            "word": " 見",
+            "start": 13.82,
+            "end": 14.06
+          },
+          {
+            "word": "な",
+            "start": 14.06,
+            "end": 14.16
+          },
+          {
+            "word": "し",
+            "start": 14.16,
+            "end": 14.3
+          },
+          {
+            "word": "残",
+            "start": 14.3,
+            "end": 14.52
+          },
+          {
+            "word": "業",
+            "start": 14.52,
+            "end": 14.68
+          },
+          {
+            "word": "40",
+            "start": 14.68,
+            "end": 15.0
+          },
+          {
+            "word": "時間",
+            "start": 15.0,
+            "end": 15.44
+          },
+          {
+            "word": "以上",
+            "start": 15.44,
+            "end": 15.82
+          }
+        ]
+      },
+      {
+        "start": 16.62,
+        "end": 20.54,
+        "text": "使用期間が6ヶ月以上 ノルマなしを強調",
+        "words": [
+          {
+            "word": "使",
+            "start": 16.62,
+            "end": 16.98
+          },
+          {
+            "word": "用",
+            "start": 16.98,
+            "end": 17.16
+          },
+          {
+            "word": "期",
+            "start": 17.16,
+            "end": 17.32
+          },
+          {
+            "word": "間",
+            "start": 17.32,
+            "end": 17.46
+          },
+          {
+            "word": "が",
+            "start": 17.46,
+            "end": 17.62
+          },
+          {
+            "word": "6",
+            "start": 17.62,
+            "end": 17.76
+          },
+          {
+            "word": "ヶ",
+            "start": 17.76,
+            "end": 17.92
+          },
+          {
+            "word": "月",
+            "start": 17.92,
+            "end": 18.08
+          },
+          {
+            "word": "以上",
+            "start": 18.08,
+            "end": 18.48
+          },
+          {
+            "word": " ノ",
+            "start": 18.48,
+            "end": 19.52
+          },
+          {
+            "word": "ル",
+            "start": 19.52,
+            "end": 19.6
+          },
+          {
+            "word": "マ",
+            "start": 19.6,
+            "end": 19.74
+          },
+          {
+            "word": "な",
+            "start": 19.74,
+            "end": 19.84
+          },
+          {
+            "word": "し",
+            "start": 19.84,
+            "end": 20.0
+          },
+          {
+            "word": "を",
+            "start": 20.0,
+            "end": 20.14
+          },
+          {
+            "word": "強",
+            "start": 20.14,
+            "end": 20.34
+          },
+          {
+            "word": "調",
+            "start": 20.34,
+            "end": 20.54
+          }
+        ]
+      },
+      {
+        "start": 21.34,
+        "end": 26.48,
+        "text": "基本級が低くて手当てが多い どの旧人サイトでも募集している",
+        "words": [
+          {
+            "word": "基本",
+            "start": 21.34,
+            "end": 21.7
+          },
+          {
+            "word": "級",
+            "start": 21.7,
+            "end": 22.0
+          },
+          {
+            "word": "が",
+            "start": 22.0,
+            "end": 22.2
+          },
+          {
+            "word": "低",
+            "start": 22.2,
+            "end": 22.36
+          },
+          {
+            "word": "く",
+            "start": 22.36,
+            "end": 22.54
+          },
+          {
+            "word": "て",
+            "start": 22.54,
+            "end": 22.62
+          },
+          {
+            "word": "手",
+            "start": 22.62,
+            "end": 22.76
+          },
+          {
+            "word": "当",
+            "start": 22.76,
+            "end": 22.84
+          },
+          {
+            "word": "て",
+            "start": 22.84,
+            "end": 22.94
+          },
+          {
+            "word": "が",
+            "start": 22.94,
+            "end": 23.1
+          },
+          {
+            "word": "多",
+            "start": 23.1,
+            "end": 23.3
+          },
+          {
+            "word": "い",
+            "start": 23.3,
+            "end": 23.98
+          },
+          {
+            "word": " ど",
+            "start": 23.98,
+            "end": 24.38
+          },
+          {
+            "word": "の",
+            "start": 24.38,
+            "end": 24.54
+          },
+          {
+            "word": "旧",
+            "start": 24.54,
+            "end": 24.76
+          },
+          {
+            "word": "人",
+            "start": 24.76,
+            "end": 25.0
+          },
+          {
+            "word": "サ",
+            "start": 25.0,
+            "end": 25.2
+          },
+          {
+            "word": "イ",
+            "start": 25.2,
+            "end": 25.26
+          },
+          {
+            "word": "ト",
+            "start": 25.26,
+            "end": 25.36
+          },
+          {
+            "word": "でも",
+            "start": 25.36,
+            "end": 25.52
+          },
+          {
+            "word": "募",
+            "start": 25.52,
+            "end": 25.76
+          },
+          {
+            "word": "集",
+            "start": 25.76,
+            "end": 25.9
+          },
+          {
+            "word": "して",
+            "start": 25.9,
+            "end": 26.14
+          },
+          {
+            "word": "いる",
+            "start": 26.14,
+            "end": 26.48
+          }
+        ]
+      },
+      {
+        "start": 27.02,
+        "end": 28.58,
+        "text": "やたら横文字が多い",
+        "words": [
+          {
+            "word": "や",
+            "start": 27.02,
+            "end": 27.38
+          },
+          {
+            "word": "た",
+            "start": 27.38,
+            "end": 27.52
+          },
+          {
+            "word": "ら",
+            "start": 27.52,
+            "end": 27.64
+          },
+          {
+            "word": "横",
+            "start": 27.64,
+            "end": 27.88
+          },
+          {
+            "word": "文",
+            "start": 27.88,
+            "end": 28.0
+          },
+          {
+            "word": "字",
+            "start": 28.0,
+            "end": 28.12
+          },
+          {
+            "word": "が",
+            "start": 28.12,
+            "end": 28.24
+          },
+          {
+            "word": "多",
+            "start": 28.24,
+            "end": 28.48
+          },
+          {
+            "word": "い",
+            "start": 28.48,
+            "end": 28.58
+          }
+        ]
+      }
+    ],
+    "full_text": "ブラック企業にありがちな旧人票の特徴実践 やたら社員の中が良いアピール 仕事内容がありまい 素直な人を歓迎している 給料の幅が広すぎる 見なし残業40時間以上 使用期間が6ヶ月以上 ノルマなしを強調 基本級が低くて手当てが多い どの旧人サイトでも募集している やたら横文字が多い",
+    "words_per_minute": 320.3,
+    "keywords": [
+      "ブラック企業にありがちな旧人票の特徴実践",
+      "やたら社員の中が良いアピ",
+      "仕事内容がありまい",
+      "素直な人を歓迎している",
+      "給料の幅が広すぎる",
+      "見なし残業",
+      "時間以上",
+      "使用期間が",
+      "月以上",
+      "ノルマなしを強調"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 5.86,
+        "end": 6.58,
+        "duration": 0.72
+      },
+      {
+        "start": 10.72,
+        "end": 11.34,
+        "duration": 0.62
+      },
+      {
+        "start": 15.82,
+        "end": 16.62,
+        "duration": 0.8
+      },
+      {
+        "start": 20.54,
+        "end": 21.34,
+        "duration": 0.8
+      },
+      {
+        "start": 26.48,
+        "end": 27.02,
+        "duration": 0.54
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 0.72,
+        "end": 1.72,
+        "energy": "medium"
+      },
+      {
+        "start": 4.48,
+        "end": 4.99,
+        "energy": "medium"
+      },
+      {
+        "start": 5.02,
+        "end": 5.78,
+        "energy": "low"
+      },
+      {
+        "start": 6.62,
+        "end": 8.17,
+        "energy": "medium"
+      },
+      {
+        "start": 9.13,
+        "end": 10.31,
+        "energy": "medium"
+      },
+      {
+        "start": 14.35,
+        "end": 15.67,
+        "energy": "medium"
+      },
+      {
+        "start": 15.74,
+        "end": 16.28,
+        "energy": "medium"
+      },
+      {
+        "start": 16.76,
+        "end": 18.44,
+        "energy": "medium"
+      },
+      {
+        "start": 18.51,
+        "end": 20.43,
+        "energy": "medium"
+      },
+      {
+        "start": 20.57,
+        "end": 21.59,
+        "energy": "low"
+      },
+      {
+        "start": 22.31,
+        "end": 23.68,
+        "energy": "medium"
+      },
+      {
+        "start": 24.03,
+        "end": 25.75,
+        "energy": "medium"
+      },
+      {
+        "start": 26.12,
+        "end": 29.33,
+        "energy": "low"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.859,
+        "type": "whoosh",
+        "energy": 0.689
+      },
+      {
+        "time": 2.833,
+        "type": "whoosh",
+        "energy": 0.437
+      },
+      {
+        "time": 4.087,
+        "type": "whoosh",
+        "energy": 0.381
+      },
+      {
+        "time": 6.641,
+        "type": "impact",
+        "energy": 0.329
+      },
+      {
+        "time": 8.382,
+        "type": "impact",
+        "energy": 0.305
+      },
+      {
+        "time": 8.731,
+        "type": "whoosh",
+        "energy": 0.352
+      },
+      {
+        "time": 9.706,
+        "type": "impact",
+        "energy": 0.671
+      },
+      {
+        "time": 10.472,
+        "type": "whoosh",
+        "energy": 0.496
+      },
+      {
+        "time": 11.889,
+        "type": "transition",
+        "energy": 0.96
+      },
+      {
+        "time": 12.353,
+        "type": "whoosh",
+        "energy": 0.655
+      },
+      {
+        "time": 12.934,
+        "type": "whoosh",
+        "energy": 0.516
+      },
+      {
+        "time": 17.392,
+        "type": "whoosh",
+        "energy": 0.633
+      },
+      {
+        "time": 21.734,
+        "type": "transition",
+        "energy": 0.957
+      },
+      {
+        "time": 22.407,
+        "type": "whoosh",
+        "energy": 0.5
+      },
+      {
+        "time": 26.169,
+        "type": "whoosh",
+        "energy": 0.544
+      }
+    ],
+    "beat_times": [
+      0.302,
+      0.627,
+      1.022,
+      1.416,
+      1.788,
+      2.136,
+      2.485,
+      2.833,
+      3.181,
+      3.529,
+      3.901,
+      4.272,
+      4.598,
+      4.923,
+      5.294,
+      5.619,
+      5.968,
+      6.293,
+      6.641,
+      7.036,
+      7.361,
+      7.686,
+      8.034,
+      8.406,
+      8.754,
+      9.102,
+      9.451,
+      9.799,
+      10.147,
+      10.495,
+      10.844,
+      11.215,
+      11.564,
+      11.889,
+      12.26,
+      12.608,
+      12.957,
+      13.305,
+      13.653,
+      14.002,
+      14.327,
+      14.652,
+      15.023,
+      15.395,
+      15.743,
+      16.091,
+      16.417,
+      16.742,
+      17.067,
+      17.392,
+      17.763,
+      18.135,
+      18.506,
+      18.855,
+      19.18,
+      19.505,
+      19.853,
+      20.225,
+      20.573,
+      20.921,
+      21.269,
+      21.595,
+      21.966,
+      22.338,
+      22.709,
+      23.057,
+      23.406,
+      23.754,
+      24.079,
+      24.381,
+      24.752,
+      25.124,
+      25.472,
+      25.821,
+      26.169,
+      26.517,
+      26.865,
+      27.214,
+      27.585,
+      27.934,
+      28.282,
+      28.63,
+      28.979,
+      29.327
+    ],
+    "dominant_tempo": 172.3,
+    "music_coverage": 0.606,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.145
+      },
+      {
+        "time": 1.0,
+        "energy": 0.373
+      },
+      {
+        "time": 1.5,
+        "energy": 0.266
+      },
+      {
+        "time": 2.0,
+        "energy": 0.348
+      },
+      {
+        "time": 2.5,
+        "energy": 0.362
+      },
+      {
+        "time": 3.0,
+        "energy": 0.238
+      },
+      {
+        "time": 3.5,
+        "energy": 0.334
+      },
+      {
+        "time": 4.0,
+        "energy": 0.095
+      },
+      {
+        "time": 4.5,
+        "energy": 0.472
+      },
+      {
+        "time": 5.0,
+        "energy": 0.217
+      },
+      {
+        "time": 5.5,
+        "energy": 0.281
+      },
+      {
+        "time": 6.0,
+        "energy": 0.045
+      },
+      {
+        "time": 6.5,
+        "energy": 0.032
+      },
+      {
+        "time": 7.0,
+        "energy": 0.662
+      },
+      {
+        "time": 7.5,
+        "energy": 0.481
+      },
+      {
+        "time": 8.0,
+        "energy": 0.315
+      },
+      {
+        "time": 8.5,
+        "energy": 0.129
+      },
+      {
+        "time": 9.0,
+        "energy": 0.101
+      },
+      {
+        "time": 9.5,
+        "energy": 0.388
+      },
+      {
+        "time": 10.0,
+        "energy": 0.526
+      },
+      {
+        "time": 10.5,
+        "energy": 0.543
+      },
+      {
+        "time": 11.0,
+        "energy": 0.1
+      },
+      {
+        "time": 11.5,
+        "energy": 0.16
+      },
+      {
+        "time": 12.0,
+        "energy": 0.401
+      },
+      {
+        "time": 12.5,
+        "energy": 0.114
+      },
+      {
+        "time": 13.0,
+        "energy": 0.392
+      },
+      {
+        "time": 13.5,
+        "energy": 0.203
+      },
+      {
+        "time": 14.0,
+        "energy": 0.574
+      },
+      {
+        "time": 14.5,
+        "energy": 0.43
+      },
+      {
+        "time": 15.0,
+        "energy": 0.319
+      },
+      {
+        "time": 15.5,
+        "energy": 0.488
+      },
+      {
+        "time": 16.0,
+        "energy": 0.2
+      },
+      {
+        "time": 16.5,
+        "energy": 0.109
+      },
+      {
+        "time": 17.0,
+        "energy": 0.651
+      },
+      {
+        "time": 17.5,
+        "energy": 0.449
+      },
+      {
+        "time": 18.0,
+        "energy": 0.412
+      },
+      {
+        "time": 18.5,
+        "energy": 0.19
+      },
+      {
+        "time": 19.0,
+        "energy": 0.296
+      },
+      {
+        "time": 19.5,
+        "energy": 0.541
+      },
+      {
+        "time": 20.0,
+        "energy": 0.438
+      },
+      {
+        "time": 20.5,
+        "energy": 0.251
+      },
+      {
+        "time": 21.0,
+        "energy": 0.272
+      },
+      {
+        "time": 21.5,
+        "energy": 0.197
+      },
+      {
+        "time": 22.0,
+        "energy": 0.474
+      },
+      {
+        "time": 22.5,
+        "energy": 0.27
+      },
+      {
+        "time": 23.0,
+        "energy": 0.383
+      },
+      {
+        "time": 23.5,
+        "energy": 0.241
+      },
+      {
+        "time": 24.0,
+        "energy": 0.138
+      },
+      {
+        "time": 24.5,
+        "energy": 0.885
+      },
+      {
+        "time": 25.0,
+        "energy": 0.709
+      },
+      {
+        "time": 25.5,
+        "energy": 0.44
+      },
+      {
+        "time": 26.0,
+        "energy": 0.28
+      },
+      {
+        "time": 26.5,
+        "energy": 0.396
+      },
+      {
+        "time": 27.0,
+        "energy": 0.338
+      },
+      {
+        "time": 27.5,
+        "energy": 0.644
+      },
+      {
+        "time": 28.0,
+        "energy": 0.347
+      },
+      {
+        "time": 28.5,
+        "energy": 0.246
+      },
+      {
+        "time": 29.0,
+        "energy": 0.203
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 26.34,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/【危険】ブラック企業にありがちな求人票の特徴10選　#転職/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

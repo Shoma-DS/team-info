@@ -112,6 +112,18 @@ def image_generation_output_dir() -> Path:
     return Path(os.environ.get("TEAM_INFO_ROOT", REPO_ROOT)) / "personal" / "deguchishouma" / "outputs" / "x-post-images"
 
 
+def current_dev_mode_label() -> str:
+    try:
+        mode = (REPO_ROOT / ".dev-mode").read_text(encoding="utf-8").strip()
+    except OSError:
+        mode = ""
+    if mode == "team":
+        return "チーム開発モード"
+    if mode == "personal":
+        return "個人開発モード"
+    return mode or "未設定"
+
+
 def image_generation_search_roots() -> list[Path]:
     return [
         Path.home() / ".codex" / "generated_images",
@@ -121,6 +133,10 @@ def image_generation_search_roots() -> list[Path]:
 
 def logo_cache_dir() -> Path:
     return image_generation_output_dir() / "logos"
+
+
+def reference_image_upload_dir() -> Path:
+    return image_generation_output_dir() / "references"
 _auto_post_lock = threading.Lock()
 IMAGEGEN_SKILL_PATH = Path.home() / ".codex" / "skills" / ".system" / "imagegen" / "SKILL.md"
 IMAGE_GENERATION_STALL_SECONDS = 75
@@ -687,6 +703,44 @@ def update_part_content(part_id, content):
             cur.execute(
                 "UPDATE draft_parts SET content = %s WHERE part_id = %s",
                 (content, part_id),
+            )
+            conn.commit()
+            return cur.rowcount > 0
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def update_part_contents(part_updates: list[dict]) -> bool:
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            for item in part_updates:
+                cur.execute(
+                    "UPDATE draft_parts SET content = %s WHERE part_id = %s",
+                    (item.get("content") or "", str(item.get("part_id") or "")),
+                )
+                if cur.rowcount != 1:
+                    conn.rollback()
+                    return False
+            conn.commit()
+            return True
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def update_draft_image(draft_id, position, image_url):
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE draft_parts SET image_url = %s WHERE draft_id = %s AND position = %s",
+                (image_url, draft_id, position),
             )
             conn.commit()
             return cur.rowcount > 0
@@ -1497,6 +1551,36 @@ def save_env_settings(updates: dict[str, str]) -> dict:
     return {"path": str(ENV_PATH), "updated_keys": sorted(cleaned.keys())}
 
 
+def image_prompt_draft_text(draft: dict | None) -> str:
+    if not draft:
+        return ""
+    lines: list[str] = []
+    for part in draft.get("parts") or []:
+        content = str(part.get("content") or "").strip()
+        if not content:
+            continue
+        position = part.get("position") or len(lines) + 1
+        lines.append(f"[Part {position}]\n{content}")
+    return "\n\n".join(lines)
+
+
+def image_prompt_logo_reference_block(logo_references: list[dict]) -> str:
+    if not logo_references:
+        return "(なし)"
+    lines = [
+        "以下のロゴは参照画像として登録済みです。画像プロンプト内で該当ロゴを使う場合は、記憶や推測ではなく参照画像の形・比率・色を優先する指示を入れてください。"
+    ]
+    for logo in logo_references:
+        aliases = ", ".join(logo.get("matched_aliases") or [])
+        image_url = logo.get("image_url") or ""
+        image_path = logo.get("image_path") or ""
+        source_url = logo.get("source_url") or ""
+        lines.append(
+            f"- {logo.get('name')}: aliases={aliases or '(なし)'}, image_url={image_url or '(なし)'}, image_path={image_path or '(なし)'}, source={source_url or '(なし)'}"
+        )
+    return "\n".join(lines)
+
+
 def rewrite_image_prompt_with_codex(
     *,
     draft_id: str,
@@ -1504,35 +1588,66 @@ def rewrite_image_prompt_with_codex(
     instruction: str,
     copy_text: str,
     character_reference_url: str = "",
+    mode: str = "rewrite",
+    user_id: str | None = None,
+    selected_logo_names: list[str] | None = None,
     status_callback=None,
     should_stop=None,
     process_callback=None,
 ) -> str:
+    if mode != "regenerate":
+        raise RuntimeError("画像プロンプトのAIリライトは無効です。修正依頼または画像プロンプト再生成を使ってください。")
     codex_path = shutil.which("codex")
     if not codex_path:
         raise RuntimeError("codex コマンドが見つかりません")
 
+    mode = "regenerate"
+    draft = fetch_draft(str(draft_id)) or {}
+    draft_text = image_prompt_draft_text(draft)
+    logo_references = detect_logo_references(
+        draft_text,
+        copy_text,
+        current_prompt,
+        user_id=user_id,
+        selected_names=selected_logo_names,
+    )
+    task = (
+        "投稿本文・画像コピー・参照キャラクター・登録済みロゴをもとに、画像プロンプトをゼロから再生成してください。"
+    )
+    default_instruction = (
+        "既存案に引っ張られず、投稿本文の要点がスマホで読みやすい1枚の縦型図解になるよう再構成する"
+    )
+
     prompt = f"""
 あなたはX投稿用の縦型インフォグラフィック画像プロンプト編集者です。
 APIや画像生成APIの話は一切しないでください。
-現在の画像プロンプトを、ユーザー指示に従ってリライトしてください。
+{task}
 出力は最終的な画像プロンプト本文のみ。説明、Markdown、コードブロックは禁止。
 
 draft_id: {draft_id}
+アカウント: {draft.get("display_name") or ""} @{draft.get("x_username") or ""}
 画像コピー: {copy_text}
 キャラクター参照画像URL: {character_reference_url or "なし"}
 
 必須:
+- 3:4縦型のX向け図解として、スマホで読める余白・文字量・階層にする。
+- 画像内テキストは日本語で、見出しと3〜5個の短い要点に絞る。
 - キャラクター参照画像URLがある場合は、画像プロンプト内に「このプロフィール画像をキャラクター参照として使う」と明記する。
 - 参照キャラクターの髪型・表情・服装・雰囲気を保つ。
 - キャラクターは図解の右下などに20〜25%以内で入れ、主役は図解にする。
 - 画像生成APIやAPIキーの説明は絶対に入れない。
 
-[現在の画像プロンプト]
-{current_prompt}
+[投稿本文]
+{draft_text or "(なし)"}
 
-[ユーザーのリライト指示]
-{instruction or "より見やすく、Xのスマホ表示で読みやすい図解に改善する"}
+[現在の画像プロンプト]
+{current_prompt or "(なし)"}
+
+[登録済みロゴ参照]
+{image_prompt_logo_reference_block(logo_references)}
+
+[ユーザーの追加指示]
+{instruction or default_instruction}
 """.strip()
 
     repo_root = Path(__file__).resolve().parents[4]
@@ -1581,8 +1696,8 @@ def append_rewrite_preference_to_account(draft_id: str, instruction: str) -> Pat
     if not cleaned_instruction:
         cleaned_instruction = "画像プロンプトは、スマホ表示で読みやすく、文字量を抑え、結論と視認性を優先する。"
     now = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M")
-    section = "## AIリライト時の継続注意"
-    entry = f"- {now} / draft_id: {draft_id} / 今後も画像プロンプトのAIリライトでは「{cleaned_instruction}」を優先する。"
+    section = "## 画像プロンプト再生成時の継続注意"
+    entry = f"- {now} / draft_id: {draft_id} / 今後も画像プロンプト再生成では「{cleaned_instruction}」を優先する。"
 
     text = account_path.read_text(encoding="utf-8") if account_path.exists() else ""
     if section not in text:
@@ -1591,6 +1706,248 @@ def append_rewrite_preference_to_account(draft_id: str, instruction: str) -> Pat
         text = text.rstrip() + f"\n{entry}\n"
     account_path.write_text(text, encoding="utf-8")
     return account_path
+
+
+def append_text_rewrite_rule_to_account(draft_id: str, instruction: str, scope: str = "part") -> Path:
+    draft = fetch_draft(draft_id)
+    if not draft:
+        raise RuntimeError("下書きが見つかりません")
+    account_path = find_account_info_file(draft.get("x_username") or "")
+    if not account_path:
+        raise RuntimeError(f"@{draft.get('x_username') or 'unknown'} のアカウント情報ファイルが見つかりません")
+
+    cleaned_instruction = re.sub(r"\s+", " ", (instruction or "").strip())
+    if not cleaned_instruction:
+        cleaned_instruction = "投稿本文は、読みやすさと自然な口調を優先して整える。"
+    now = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M")
+    section = "## 投稿本文AI修正時の継続ルール"
+    scope_label = "下書き全文" if scope == "draft" else "個別投稿"
+    entry = (
+        f"- {now} / draft_id: {draft_id} / 今後の投稿本文AI修正（{scope_label}）では"
+        f"「{cleaned_instruction}」を優先する。画像プロンプトは変更しない。"
+    )
+
+    text = account_path.read_text(encoding="utf-8") if account_path.exists() else ""
+    if section not in text:
+        text = text.rstrip() + f"\n\n{section}\n\n{entry}\n"
+    else:
+        text = text.rstrip() + f"\n{entry}\n"
+    account_path.write_text(text, encoding="utf-8")
+    return account_path
+
+
+def account_rules_for_draft(draft: dict) -> str:
+    account_path = find_account_info_file(draft.get("x_username") or "")
+    if not account_path or not account_path.exists():
+        return ""
+    try:
+        return account_path.read_text(encoding="utf-8")[:16000]
+    except OSError:
+        return ""
+
+
+def _clean_text_rewrite_output(value: str) -> str:
+    text = (value or "").strip()
+    text = re.sub(r"^修正後本文\s*[:：]\s*", "", text)
+    text = re.sub(r"^本文\s*[:：]\s*", "", text)
+    text = text.strip().strip("\"'")
+    return text.strip()
+
+
+def _parse_text_rewrite_json(value: str) -> dict:
+    text = (value or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            raise RuntimeError("全文AI修正の結果をJSONとして読めませんでした")
+        try:
+            parsed = json.loads(text[start:end + 1])
+        except json.JSONDecodeError as exc:
+            raise RuntimeError("全文AI修正の結果をJSONとして読めませんでした") from exc
+    if not isinstance(parsed, dict):
+        raise RuntimeError("全文AI修正の結果形式が不正です")
+    return parsed
+
+
+def rewrite_draft_text_with_codex(draft_id: str, part_id: str, instruction: str) -> str:
+    codex_path = shutil.which("codex")
+    if not codex_path:
+        raise RuntimeError("codex コマンドが見つかりません")
+
+    draft = fetch_draft(str(draft_id))
+    if not draft:
+        raise RuntimeError("下書きが見つかりません")
+
+    target_part = None
+    for part in draft.get("parts") or []:
+        if str(part.get("part_id")) == str(part_id):
+            target_part = part
+            break
+    if not target_part:
+        raise RuntimeError("対象の本文パーツが見つかりません")
+
+    current_text = str(target_part.get("content") or "")
+    if not current_text.strip():
+        raise RuntimeError("対象の本文が空です")
+
+    account_rules = account_rules_for_draft(draft)
+
+    prompt = f"""
+あなたはX投稿本文の編集者です。
+対象パートの本文だけを、ユーザーの修正指示とアカウントルールに沿って改善してください。
+画像プロンプト、画像生成指示、画像URL、メタデータ、他パート本文は絶対に変更しません。
+出力は修正後の対象パート本文のみ。説明、見出し、Markdown、コードブロックは禁止。
+
+アカウント: {draft.get("display_name") or ""} @{draft.get("x_username") or ""}
+draft_id: {draft_id}
+part_id: {part_id}
+position: {target_part.get("position") or ""}
+
+[アカウントルール]
+{account_rules or "(アカウント情報なし)"}
+
+[下書き全体]
+{_draft_markdown_parts(draft.get("parts") or [])}
+
+[修正対象の現在本文]
+{current_text}
+
+[ユーザーの修正指示]
+{instruction.strip()}
+
+必須条件:
+- 修正対象の本文だけを返す。
+- 投稿の意味、事実、固有名詞、URL、メンション、ハッシュタグは必要なく変更しない。
+- 絵文字や過度な装飾は、元の本文にない限り追加しない。
+- 画像プロンプトや画像の説明は出力しない。
+""".strip()
+
+    repo_root = Path(__file__).resolve().parents[4]
+    rewritten = run_codex_app_server_turn(
+        codex_path,
+        repo_root,
+        prompt,
+        timeout=240,
+        developer_instructions=(
+            "あなたはX投稿本文の編集だけを行う。ファイル編集、外部送信、"
+            "コマンド実行、画像プロンプト変更、画像生成APIの提案は禁止。"
+        ),
+        sandbox_policy={"type": "readOnly"},
+    )
+    cleaned = _clean_text_rewrite_output(rewritten)
+    if not cleaned:
+        raise RuntimeError("本文AI修正の結果が空です")
+    return cleaned
+
+
+def rewrite_draft_all_text_with_codex(draft_id: str, instruction: str) -> list[dict]:
+    codex_path = shutil.which("codex")
+    if not codex_path:
+        raise RuntimeError("codex コマンドが見つかりません")
+
+    draft = fetch_draft(str(draft_id))
+    if not draft:
+        raise RuntimeError("下書きが見つかりません")
+
+    parts = draft.get("parts") or []
+    if not parts:
+        raise RuntimeError("修正できる本文がありません")
+
+    account_rules = account_rules_for_draft(draft)
+    parts_payload = json.dumps(
+        [
+            {
+                "part_id": str(part.get("part_id") or ""),
+                "position": part.get("position") or index + 1,
+                "content": str(part.get("content") or ""),
+            }
+            for index, part in enumerate(parts)
+        ],
+        ensure_ascii=False,
+        indent=2,
+    )
+
+    prompt = f"""
+あなたはX投稿本文の編集者です。
+下書き全体の流れを見ながら、全投稿パートの本文だけをユーザーの修正指示とアカウントルールに沿って改善してください。
+画像プロンプト、画像生成指示、画像URL、メタデータは絶対に変更しません。
+出力はJSONのみ。説明、Markdown、コードブロックは禁止。
+
+JSON形式:
+{{"parts":[{{"part_id":"元のpart_id","position":元のposition,"content":"修正後本文"}}]}}
+
+アカウント: {draft.get("display_name") or ""} @{draft.get("x_username") or ""}
+draft_id: {draft_id}
+
+[アカウントルール]
+{account_rules or "(アカウント情報なし)"}
+
+[修正対象パーツ]
+{parts_payload}
+
+[ユーザーの修正指示]
+{instruction.strip()}
+
+必須条件:
+- parts の件数、part_id、position、順番は元と同じにする。
+- content だけを修正する。
+- 全体の論理の流れ、重複、口調、読みやすさを見て整える。
+- 事実、固有名詞、URL、メンション、ハッシュタグは必要なく変更しない。
+- 絵文字や過度な装飾は、元の本文にない限り追加しない。
+- 画像プロンプトや画像の説明は出力しない。
+""".strip()
+
+    repo_root = Path(__file__).resolve().parents[4]
+    result_text = run_codex_app_server_turn(
+        codex_path,
+        repo_root,
+        prompt,
+        timeout=300,
+        developer_instructions=(
+            "あなたはX投稿本文の編集だけを行い、必ず指定JSONだけを返す。"
+            "ファイル編集、外部送信、コマンド実行、画像プロンプト変更、画像生成APIの提案は禁止。"
+        ),
+        sandbox_policy={"type": "readOnly"},
+    )
+    payload = _parse_text_rewrite_json(result_text)
+    rewritten_parts = payload.get("parts")
+    if not isinstance(rewritten_parts, list):
+        raise RuntimeError("全文AI修正の結果に parts がありません")
+
+    original_ids = [str(part.get("part_id") or "") for part in parts]
+    rewritten_by_id: dict[str, dict] = {}
+    for item in rewritten_parts:
+        if not isinstance(item, dict):
+            raise RuntimeError("全文AI修正の parts 形式が不正です")
+        part_id = str(item.get("part_id") or "")
+        content = item.get("content")
+        if part_id not in original_ids or content is None:
+            raise RuntimeError("全文AI修正の part_id または content が不正です")
+        rewritten_by_id[part_id] = {
+            "part_id": part_id,
+            "position": item.get("position"),
+            "content": str(content).strip(),
+        }
+
+    if set(rewritten_by_id.keys()) != set(original_ids):
+        raise RuntimeError("全文AI修正の結果パーツ数が元の下書きと一致しません")
+
+    ordered_parts: list[dict] = []
+    for part in parts:
+        part_id = str(part.get("part_id") or "")
+        rewritten = rewritten_by_id[part_id]
+        ordered_parts.append({
+            "part_id": part_id,
+            "position": part.get("position") or rewritten.get("position"),
+            "content": rewritten["content"],
+        })
+    return ordered_parts
 
 
 def run_codex_app_server_turn(
@@ -1802,7 +2159,8 @@ def attach_generated_image(draft_id: str, image_path_text: str) -> str:
     if not image_path:
         raise ValueError("画像が見つからないか、許可されていないパスです")
     image_url = f"/local-image?path={str(image_path)}"
-    update_draft_image(draft_id, 1, image_url)
+    if not update_draft_image(draft_id, 1, image_url):
+        raise ValueError("画像を添付する投稿パーツが見つかりません")
     return image_url
 
 
@@ -2149,10 +2507,68 @@ def download_logo_image(name: str, image_url: str) -> Path:
 
 def normalize_local_image_path_text(path_text: str) -> Path:
     text = str(path_text or "").strip()
+    parsed = urlparse(text)
     if text.startswith("file://"):
-        parsed = urlparse(text)
         text = unquote(parsed.path or "")
+    elif parsed.path == "/local-image" or text.startswith("/local-image"):
+        qs = parse_qs(parsed.query)
+        local_path = qs.get("path", [""])[0]
+        if local_path:
+            text = unquote(local_path)
     return Path(text).expanduser()
+
+
+def save_uploaded_reference_image(filename: str, content_type: str, body: bytes) -> dict:
+    if not body:
+        raise ValueError("画像ファイルが空です")
+    if len(body) > 12 * 1024 * 1024:
+        raise ValueError("参照画像は12MB以下にしてください")
+
+    clean_name = Path(filename or "reference.png").name
+    ext = Path(clean_name).suffix.lower()
+    guessed_ext = mimetypes.guess_extension((content_type or "").split(";")[0].strip().lower()) or ""
+    allowed_exts = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico"}
+    if ext not in allowed_exts:
+        ext = guessed_ext if guessed_ext in allowed_exts else ".png"
+    if content_type and not content_type.lower().startswith("image/"):
+        raise ValueError("画像ファイルだけアップロードできます")
+
+    dest_dir = reference_image_upload_dir()
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    dest = dest_dir / f"{timestamp}-{secrets.token_hex(6)}{ext}"
+    dest.write_bytes(body)
+    return {
+        "local_path": str(dest),
+        "url": f"/local-image?path={str(dest)}",
+    }
+
+
+def parse_reference_image_upload(content_type: str, raw_body: bytes) -> dict:
+    match = re.search(r'boundary=(?:"([^"]+)"|([^;]+))', content_type or "")
+    if not match:
+        raise ValueError("multipart boundary が見つかりません")
+    boundary = (match.group(1) or match.group(2) or "").encode("utf-8")
+    marker = b"--" + boundary
+    for part in raw_body.split(marker):
+        part = part.strip(b"\r\n")
+        if not part or part == b"--":
+            continue
+        if part.endswith(b"--"):
+            part = part[:-2].rstrip(b"\r\n")
+        if b"\r\n\r\n" not in part:
+            continue
+        header_blob, body = part.split(b"\r\n\r\n", 1)
+        headers = header_blob.decode("latin1", errors="ignore")
+        disposition = next((line for line in headers.split("\r\n") if line.lower().startswith("content-disposition:")), "")
+        if 'name="image"' not in disposition:
+            continue
+        filename_match = re.search(r'filename="([^"]*)"', disposition)
+        filename = filename_match.group(1) if filename_match else "reference.png"
+        type_match = re.search(r"(?im)^content-type:\s*([^\r\n]+)", headers)
+        part_content_type = type_match.group(1).strip() if type_match else ""
+        return save_uploaded_reference_image(filename, part_content_type, body.rstrip(b"\r\n"))
+    raise ValueError("アップロード画像が見つかりません")
 
 
 def copy_logo_image_to_cache(name: str, source_path: Path) -> Path:
@@ -2381,7 +2797,15 @@ def start_image_rewrite_job(
     copy_text: str = "",
     character_reference_url: str = "",
     remember_rewrite_preference: bool = False,
+    mode: str = "rewrite",
+    user_id: str | None = None,
+    selected_logo_names: list[str] | None = None,
 ) -> dict:
+    if mode != "regenerate":
+        raise RuntimeError("画像プロンプトのAIリライトは無効です。修正依頼または画像プロンプト再生成を使ってください。")
+    mode = "regenerate"
+    action_label = "画像プロンプト再生成"
+    remember_rewrite_preference = False
     with _image_rewrite_lock:
         running = [
             job
@@ -2389,7 +2813,7 @@ def start_image_rewrite_job(
             if job.get("status") not in {"completed", "failed", "cancelled"}
         ]
         if running:
-            raise RuntimeError("別のAIリライトがまだ実行中です。完了してから再実行してください。")
+            raise RuntimeError("別の画像プロンプト再生成がまだ実行中です。完了してから再実行してください。")
 
         job_id = f"{int(time.time() * 1000)}-{draft_id}"
         _image_rewrite_jobs[job_id] = {
@@ -2398,13 +2822,16 @@ def start_image_rewrite_job(
             "started_at": time.time(),
             "status": "starting",
             "progress": 5,
-            "message": "AIリライトを準備しています",
+            "message": f"{action_label}を準備しています",
+            "mode": mode,
+            "user_id": user_id or "",
             "original_prompt": current_prompt,
             "prompt": "",
             "changed": False,
             "account_memory_path": "",
             "account_memory_error": "",
             "cancel_requested": False,
+            "selected_logo_names": selected_logo_names or [],
             "logs": [],
         }
         append_image_rewrite_log(_image_rewrite_jobs[job_id], "ジョブを作成しました")
@@ -2419,6 +2846,9 @@ def start_image_rewrite_job(
             copy_text,
             character_reference_url,
             remember_rewrite_preference,
+            mode,
+            user_id,
+            selected_logo_names,
         ),
         daemon=True,
     )
@@ -2434,8 +2864,13 @@ def run_image_rewrite_job(
     copy_text: str = "",
     character_reference_url: str = "",
     remember_rewrite_preference: bool = False,
+    mode: str = "rewrite",
+    user_id: str | None = None,
+    selected_logo_names: list[str] | None = None,
 ) -> None:
     job = _image_rewrite_jobs[job_id]
+    mode = "regenerate"
+    action_label = "画像プロンプト再生成"
 
     def is_cancel_requested() -> bool:
         return bool(_image_rewrite_jobs.get(job_id, {}).get("cancel_requested"))
@@ -2459,40 +2894,43 @@ def run_image_rewrite_job(
             current.update({"status": "rewriting", "progress": max(current.get("progress", 20), 35), "message": f"{label} を実行中"})
             append_image_rewrite_log(current, f"{label} を開始しました", method=method)
         elif method == "item/agentMessage/delta":
-            current.update({"status": "rewriting", "progress": max(current.get("progress", 35), 55), "message": "リライト本文を受信中"})
+            current.update({"status": "rewriting", "progress": max(current.get("progress", 35), 55), "message": f"{action_label}結果を受信中"})
         elif method == "item/completed":
             item = params.get("item") or {}
             label = item.get("type") or "処理"
-            current.update({"status": "rewriting", "progress": max(current.get("progress", 55), 78), "message": "リライト結果を確認中"})
+            current.update({"status": "rewriting", "progress": max(current.get("progress", 55), 78), "message": f"{action_label}結果を確認中"})
             append_image_rewrite_log(current, f"{label} が完了しました", method=method)
         elif method == "turn/completed":
-            current.update({"status": "saving", "progress": 86, "message": "リライト結果を保存しています"})
+            current.update({"status": "saving", "progress": 86, "message": f"{action_label}結果を保存しています"})
             append_image_rewrite_log(current, "turn が完了しました", method=method)
         elif method:
             append_image_rewrite_log(current, f"event: {method}", method=method)
 
     try:
-        job.update({"status": "rewriting", "progress": 12, "message": "Codex App Server にAIリライトを依頼しています"})
-        append_image_rewrite_log(job, "Codex App Server にAIリライトを依頼します")
+        job.update({"status": "rewriting", "progress": 12, "message": f"Codex App Server に{action_label}を依頼しています"})
+        append_image_rewrite_log(job, f"Codex App Server に{action_label}を依頼します")
         rewritten = rewrite_image_prompt_with_codex(
             draft_id=draft_id,
             current_prompt=current_prompt,
             instruction=instruction,
             copy_text=copy_text,
             character_reference_url=character_reference_url,
+            mode=mode,
+            user_id=user_id,
+            selected_logo_names=selected_logo_names,
             status_callback=on_status,
             should_stop=is_cancel_requested,
             process_callback=remember_process,
         ).strip()
         if is_cancel_requested():
-            job.update({"status": "cancelled", "progress": 100, "message": "AIリライトを停止しました。プロンプトを書き直せます。"})
+            job.update({"status": "cancelled", "progress": 100, "message": f"{action_label}を停止しました。指示を書き直せます。"})
             append_image_rewrite_log(job, "ユーザー操作で停止しました", level="warn")
             return
         if not rewritten:
             raise RuntimeError("リライト結果が空です")
         changed = rewritten.strip() != current_prompt.strip()
-        job.update({"status": "saving", "progress": 90, "message": "リライト結果を下書きへ保存しています"})
-        append_image_rewrite_log(job, "リライト結果を下書きへ保存します")
+        job.update({"status": "saving", "progress": 90, "message": f"{action_label}結果を下書きへ保存しています"})
+        append_image_rewrite_log(job, f"{action_label}結果を下書きへ保存します")
         image_prompt = update_image_prompt_metadata(draft_id, rewritten, copy_text)
 
         account_memory_path = ""
@@ -2508,7 +2946,7 @@ def run_image_rewrite_job(
         job.update({
             "status": "completed",
             "progress": 100,
-            "message": "AIリライト完了。画面へ反映しました" if changed else "AIリライト完了。リライト結果は元の内容と同じです",
+            "message": f"{action_label}完了。画面へ反映しました" if changed else f"{action_label}完了。結果は元の内容と同じです",
             "prompt": rewritten,
             "image_prompt": image_prompt,
             "changed": changed,
@@ -2518,7 +2956,7 @@ def run_image_rewrite_job(
         append_image_rewrite_log(job, "完了しました")
     except Exception as exc:
         if is_cancel_requested():
-            job.update({"status": "cancelled", "progress": 100, "message": "AIリライトを停止しました。プロンプトを書き直せます。"})
+            job.update({"status": "cancelled", "progress": 100, "message": f"{action_label}を停止しました。指示を書き直せます。"})
             append_image_rewrite_log(job, "ユーザー操作で停止しました", level="warn")
         else:
             job.update({"status": "failed", "progress": 100, "message": str(exc)[:1000]})
@@ -2528,7 +2966,7 @@ def run_image_rewrite_job(
 def get_image_rewrite_job(job_id: str) -> dict:
     job = _image_rewrite_jobs.get(job_id)
     if not job:
-        raise ValueError("AIリライトジョブが見つかりません")
+        raise ValueError("画像プロンプト再生成ジョブが見つかりません")
     if job.get("status") in {"completed", "failed", "cancelled"}:
         return job
     elapsed = max(0.0, time.time() - float(job["started_at"]))
@@ -2541,14 +2979,15 @@ def cancel_image_rewrite_job(job_id: str) -> dict:
     with _image_rewrite_lock:
         job = _image_rewrite_jobs.get(job_id)
         if not job:
-            raise ValueError("AIリライトジョブが見つかりません")
+            raise ValueError("画像プロンプト再生成ジョブが見つかりません")
         if job.get("status") in {"completed", "failed", "cancelled"}:
             return job
+        action_label = "画像プロンプト再生成"
         job["cancel_requested"] = True
         job.update({
             "status": "cancelled",
             "progress": 100,
-            "message": "AIリライトを停止しました。プロンプトを書き直せます。",
+            "message": f"{action_label}を停止しました。指示を書き直せます。",
         })
         append_image_rewrite_log(job, "停止要求を受け付けました", level="warn")
 
@@ -2816,8 +3255,14 @@ def run_image_generation_job(
         job.get("logo_references") or [],
     )
     task_label = "修正フィードバック付きで再生成" if feedback or current_image_url or reference_image_url or reference_image_path else "生成"
+    dev_mode_label = current_dev_mode_label()
     turn_prompt = f"""
 imagegen スキルを使って、以下のX投稿用図解画像を1枚生成してください。
+これはX下書きアプリの「画像生成」ボタン押下で開始されたバックグラウンドジョブです。
+ユーザーはこの操作で、指定保存先へ画像ファイルを1つ作成することを承認済みです。
+リポジトリの現在のモード: {dev_mode_label}
+確認質問・承認待ち・「このまま続けてよいですか？」で終了しないでください。
+この画面には質問を返せないため、実行できない場合は ERROR: から始まる短い理由だけを返してください。
 ユーザーはAPI利用を明示していないため、画像生成API・APIキー・OPENAI_API_KEY・SDK・CLI fallbackは使わないでください。
 必ず Codex/ChatGPT サブスク内の組み込み画像生成として実行してください。
 生成後は最終画像を次のローカルパスへPNGで保存またはコピーしてください。
@@ -2890,7 +3335,13 @@ imagegen スキルを使って、以下のX投稿用図解画像を1枚生成し
                 f"あなたは画像生成担当です。今回のタスクは{task_label}です。ユーザーがAPI利用を明示していないため、"
                 "画像生成API・APIキー・OPENAI_API_KEY・SDK・CLI fallbackは使わず、"
                 "利用可能な組み込み画像生成/サブスク内画像生成を使ってください。"
+                f"これはX下書きアプリの画像生成ボタンから起動されたバックグラウンドジョブで、"
+                f"現在のリポジトリモードは「{dev_mode_label}」です。"
+                "ユーザーは指定保存先へ画像を1ファイル作成することをこの操作で承認済みです。"
+                "AGENTS.mdの新規ファイル作成確認を理由に質問で停止しないでください。"
+                "ユーザーへの確認質問、進捗説明のみの返答、承認待ち文は禁止です。"
                 "生成後は指定されたワークスペース内パスへ画像ファイルを保存してください。"
+                "実行できない場合は ERROR: から始まる短い理由だけを返してください。"
             ),
             sandbox_policy={"type": "workspaceWrite", "networkAccess": False},
             input_items=input_items,
@@ -2903,6 +3354,12 @@ imagegen スキルを使って、以下のX投稿用図解画像を1枚生成し
         )
         if result_text:
             append_image_generation_log(job, f"App Server応答: {result_text[:240]}")
+            if "このまま続けてよいですか" in result_text or "現在のモード:" in result_text:
+                raise RuntimeError(
+                    "画像生成エージェントが確認待ちで終了しました。ページを再読み込みして、もう一度画像生成を実行してください。"
+                )
+            if result_text.strip().startswith("ERROR:"):
+                raise RuntimeError(result_text.strip()[:1000])
         if is_cancel_requested():
             job.update({"status": "cancelled", "progress": 100, "message": "画像生成を停止しました。プロンプトを書き直して再実行できます。"})
             append_image_generation_log(job, "ユーザー操作で停止しました", level="warn")
@@ -4565,7 +5022,15 @@ class Handler(BaseHTTPRequestHandler):
                 return
             try:
                 ok = update_draft_status(draft_id, status)
-                self.send_json({"ok": ok})
+                if not ok:
+                    self.send_json({"ok": False, "error": "対象の下書きが見つかりません"}, 404)
+                    return
+                updated = fetch_draft(str(draft_id)) or {}
+                self.send_json({
+                    "ok": True,
+                    "status": updated.get("status") or status,
+                    "published_at": updated.get("published_at"),
+                })
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/image-prompt":
@@ -4627,6 +5092,27 @@ class Handler(BaseHTTPRequestHandler):
         if path.startswith("/api/") and not self.require_auth():
             return
 
+        if path == "/api/reference-image/upload":
+            if not self.require_local():
+                return
+            try:
+                length = int(self.headers.get("Content-Length", "0") or 0)
+            except ValueError:
+                length = 0
+            if length <= 0:
+                self.send_json({"ok": False, "error": "画像ファイルが必要です"}, 400)
+                return
+            if length > 13 * 1024 * 1024:
+                self.send_json({"ok": False, "error": "参照画像は12MB以下にしてください"}, 413)
+                return
+            try:
+                raw_body = self.rfile.read(length)
+                result = parse_reference_image_upload(self.headers.get("Content-Type", ""), raw_body)
+                self.send_json({"ok": True, **result})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 400)
+            return
+
         body = self.read_body()
 
         if path == "/api/notify":
@@ -4638,6 +5124,69 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True})
             else:
                 self.send_json({"ok": False, "error": err}, 500)
+        elif path == "/api/draft/text-rewrite":
+            draft_id = body.get("draft_id")
+            part_id = body.get("part_id")
+            instruction = (body.get("instruction") or "").strip()
+            remember_rule = bool(body.get("remember_rule"))
+            if not draft_id or not part_id or not instruction:
+                self.send_json({"error": "draft_id、part_id、instruction が必要です"}, 400)
+                return
+            try:
+                rewritten = rewrite_draft_text_with_codex(
+                    str(draft_id),
+                    str(part_id),
+                    instruction,
+                )
+                if not update_part_content(str(part_id), rewritten):
+                    self.send_json({"ok": False, "error": "対象の本文パーツが見つかりません"}, 404)
+                    return
+                account_rule_path = ""
+                account_rule_error = ""
+                if remember_rule:
+                    try:
+                        account_rule_path = str(append_text_rewrite_rule_to_account(str(draft_id), instruction))
+                    except Exception as memory_error:
+                        account_rule_error = str(memory_error)
+                self.send_json({
+                    "ok": True,
+                    "part_id": str(part_id),
+                    "content": rewritten,
+                    "account_rule_path": account_rule_path,
+                    "account_rule_error": account_rule_error,
+                })
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/draft/text-rewrite-all":
+            draft_id = body.get("draft_id")
+            instruction = (body.get("instruction") or "").strip()
+            remember_rule = bool(body.get("remember_rule"))
+            if not draft_id or not instruction:
+                self.send_json({"error": "draft_id、instruction が必要です"}, 400)
+                return
+            try:
+                rewritten_parts = rewrite_draft_all_text_with_codex(
+                    str(draft_id),
+                    instruction,
+                )
+                if not update_part_contents(rewritten_parts):
+                    self.send_json({"ok": False, "error": "対象の本文パーツが見つかりません"}, 404)
+                    return
+                account_rule_path = ""
+                account_rule_error = ""
+                if remember_rule:
+                    try:
+                        account_rule_path = str(append_text_rewrite_rule_to_account(str(draft_id), instruction, scope="draft"))
+                    except Exception as memory_error:
+                        account_rule_error = str(memory_error)
+                self.send_json({
+                    "ok": True,
+                    "parts": rewritten_parts,
+                    "account_rule_path": account_rule_path,
+                    "account_rule_error": account_rule_error,
+                })
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/draft/part":
             draft_id = body.get("draft_id")
             content  = (body.get("content") or "").strip()
@@ -4678,8 +5227,16 @@ class Handler(BaseHTTPRequestHandler):
             copy_text = (body.get("copy") or "").strip()
             character_reference_url = (body.get("character_reference_url") or "").strip()
             remember_rewrite_preference = bool(body.get("remember_rewrite_preference"))
-            if not draft_id or not prompt:
-                self.send_json({"error": "draft_id と prompt が必要です"}, 400)
+            mode = "regenerate" if (body.get("mode") or "rewrite") == "regenerate" else "rewrite"
+            selected_logo_names = body.get("selected_logo_names")
+            if mode != "regenerate":
+                self.send_json({"ok": False, "error": "画像プロンプトのAIリライトは無効です。修正依頼または画像プロンプト再生成を使ってください。"}, 410)
+                return
+            if selected_logo_names is not None and not isinstance(selected_logo_names, list):
+                self.send_json({"error": "selected_logo_names は配列で指定してください"}, 400)
+                return
+            if not draft_id:
+                self.send_json({"error": "draft_id が必要です"}, 400)
                 return
             try:
                 self.send_json({"ok": True, **start_image_rewrite_job(
@@ -4689,6 +5246,9 @@ class Handler(BaseHTTPRequestHandler):
                     copy_text=copy_text,
                     character_reference_url=character_reference_url,
                     remember_rewrite_preference=remember_rewrite_preference,
+                    mode=mode,
+                    user_id=self.current_user_id(),
+                    selected_logo_names=[str(name) for name in selected_logo_names] if selected_logo_names is not None else None,
                 )})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
@@ -4708,8 +5268,16 @@ class Handler(BaseHTTPRequestHandler):
             copy_text = (body.get("copy") or "").strip()
             character_reference_url = (body.get("character_reference_url") or "").strip()
             remember_rewrite_preference = bool(body.get("remember_rewrite_preference"))
-            if not draft_id or not prompt:
-                self.send_json({"error": "draft_id と prompt が必要です"}, 400)
+            mode = "regenerate" if (body.get("mode") or "rewrite") == "regenerate" else "rewrite"
+            selected_logo_names = body.get("selected_logo_names")
+            if mode != "regenerate":
+                self.send_json({"ok": False, "error": "画像プロンプトのAIリライトは無効です。修正依頼または画像プロンプト再生成を使ってください。"}, 410)
+                return
+            if selected_logo_names is not None and not isinstance(selected_logo_names, list):
+                self.send_json({"error": "selected_logo_names は配列で指定してください"}, 400)
+                return
+            if not draft_id:
+                self.send_json({"error": "draft_id が必要です"}, 400)
                 return
             try:
                 rewritten = rewrite_image_prompt_with_codex(
@@ -4718,14 +5286,12 @@ class Handler(BaseHTTPRequestHandler):
                     instruction=instruction,
                     copy_text=copy_text,
                     character_reference_url=character_reference_url,
+                    mode=mode,
+                    user_id=self.current_user_id(),
+                    selected_logo_names=[str(name) for name in selected_logo_names] if selected_logo_names is not None else None,
                 )
                 account_memory_path = ""
                 account_memory_error = ""
-                if remember_rewrite_preference:
-                    try:
-                        account_memory_path = str(append_rewrite_preference_to_account(str(draft_id), instruction))
-                    except Exception as memory_error:
-                        account_memory_error = str(memory_error)
                 self.send_json({
                     "ok": True,
                     "prompt": rewritten,
@@ -4743,6 +5309,23 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 image_url = attach_generated_image(draft_id, image_path)
                 self.send_json({"ok": True, "image_url": image_url})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/draft/image/delete":
+            draft_id = body.get("draft_id")
+            try:
+                position = int(body.get("position") or 1)
+            except (TypeError, ValueError):
+                position = 1
+            if not draft_id:
+                self.send_json({"error": "draft_id が必要です"}, 400)
+                return
+            try:
+                ok = update_draft_image(draft_id, position, "")
+                if not ok:
+                    self.send_json({"ok": False, "error": "対象の画像付き投稿パーツが見つかりません"}, 404)
+                    return
+                self.send_json({"ok": True})
             except Exception as e:
                 self.send_json({"ok": False, "error": str(e)}, 500)
         elif path == "/api/logos/detect":
@@ -4872,8 +5455,11 @@ class Handler(BaseHTTPRequestHandler):
                 410,
             )
         else:
-            self.send_response(404)
-            self.end_headers()
+            if path.startswith("/api/"):
+                self.send_json({"ok": False, "error": f"APIが見つかりません: {path}"}, 404)
+            else:
+                self.send_response(404)
+                self.end_headers()
 
 
 if __name__ == "__main__":

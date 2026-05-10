@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("auto", "current", "n8n", "dify")]
+    [ValidateSet("auto", "current")]
     [string]$Project = "auto",
 
     [ValidateSet("up", "down", "stop", "start", "restart", "ps")]
@@ -289,8 +289,6 @@ function Resolve-ProjectDirectory {
 
     switch ($ProjectName) {
         "current" { return (Get-Location).Path }
-        "n8n" { return (Join-Path $ScriptDir "docker\n8n") }
-        "dify" { return (Join-Path $ScriptDir "docker\dify\docker") }
         default { return $null }
     }
 }
@@ -314,10 +312,7 @@ function Select-ComposeProject {
         return (Get-Location).Path
     }
 
-    $projectCandidates = @(
-        (Join-Path $ScriptDir "docker\n8n"),
-        (Join-Path $ScriptDir "docker\dify\docker")
-    )
+    $projectCandidates = @()
 
     $validCandidates = @()
     foreach ($candidate in $projectCandidates) {
@@ -327,7 +322,7 @@ function Select-ComposeProject {
     }
 
     if ($validCandidates.Count -eq 0) {
-        Write-ErrLog "No docker compose target found. Run from a compose directory or add a known compose project."
+        Write-ErrLog "No docker compose target found. Run from a compose directory or use -Project current."
     }
 
     if ($validCandidates.Count -eq 1) {

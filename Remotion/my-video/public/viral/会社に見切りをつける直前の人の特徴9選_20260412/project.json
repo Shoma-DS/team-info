@@ -17,7 +17,7 @@
   ],
   "script": {
     "source": "/Users/deguchishouma/team-info/Remotion/scripts/voice_scripts/転職横動画_会社に見切りをつける直前の人の特徴9選_20260412.md",
-    "outlineSource": "/Users/deguchishouma/team-info/inputs/viral-analysis/output/転職横動画_20260412/script.md"
+    "outlineSource": "/Users/deguchishouma/team-info/outputs/viral-analysis/転職横動画_20260412/script.md"
   },
   "sceneMapping": {
     "hook": "materials/00_hook.jpg",

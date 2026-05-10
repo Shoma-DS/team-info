@@ -321,7 +321,7 @@ fi
 step "12. 遅延セットアップの案内"
 warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
 warn "  - Remotion / VOICEVOX / Docker runtime"
-warn "  - Canva 補助や Dify 開発依存"
+warn "  - Canva 補助などの追加開発依存"
 warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
 warn "  - shared-agent-assets の同期処理"
 warn "  - clone-website 用の Node 24 workspace 依存"

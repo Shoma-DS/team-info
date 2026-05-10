@@ -1,0 +1,1669 @@
+{
+  "duration": 31.1,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/【注意】ブラック企業を面接で見抜く方法10選 #転職.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 31.1,
+        "start_frame": 0,
+        "end_frame": 933,
+        "motion_type": "shake",
+        "motion_intensity": 1.0,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 0,
+        "time": 0.0,
+        "x": 0.515,
+        "y": 0.478,
+        "size": 0.053,
+        "confidence": 0.765
+      },
+      {
+        "frame": 15,
+        "time": 0.5,
+        "x": 0.515,
+        "y": 0.478,
+        "size": 0.053,
+        "confidence": 0.766
+      },
+      {
+        "frame": 30,
+        "time": 1.0,
+        "x": 0.515,
+        "y": 0.478,
+        "size": 0.053,
+        "confidence": 0.766
+      },
+      {
+        "frame": 45,
+        "time": 1.5,
+        "x": 0.515,
+        "y": 0.478,
+        "size": 0.053,
+        "confidence": 0.767
+      },
+      {
+        "frame": 60,
+        "time": 2.0,
+        "x": 0.515,
+        "y": 0.478,
+        "size": 0.053,
+        "confidence": 0.767
+      },
+      {
+        "frame": 75,
+        "time": 2.5,
+        "x": 0.515,
+        "y": 0.478,
+        "size": 0.053,
+        "confidence": 0.767
+      },
+      {
+        "frame": 90,
+        "time": 3.0,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.789
+      },
+      {
+        "frame": 105,
+        "time": 3.5,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.793
+      },
+      {
+        "frame": 120,
+        "time": 4.0,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.794
+      },
+      {
+        "frame": 135,
+        "time": 4.5,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.794
+      },
+      {
+        "frame": 150,
+        "time": 5.0,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.794
+      },
+      {
+        "frame": 165,
+        "time": 5.5,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.794
+      },
+      {
+        "frame": 180,
+        "time": 6.0,
+        "x": 0.492,
+        "y": 0.495,
+        "size": 0.047,
+        "confidence": 0.794
+      },
+      {
+        "frame": 390,
+        "time": 13.0,
+        "x": 0.469,
+        "y": 0.487,
+        "size": 0.065,
+        "confidence": 0.837
+      },
+      {
+        "frame": 405,
+        "time": 13.5,
+        "x": 0.469,
+        "y": 0.487,
+        "size": 0.065,
+        "confidence": 0.836
+      },
+      {
+        "frame": 420,
+        "time": 14.0,
+        "x": 0.47,
+        "y": 0.488,
+        "size": 0.063,
+        "confidence": 0.84
+      },
+      {
+        "frame": 435,
+        "time": 14.5,
+        "x": 0.47,
+        "y": 0.487,
+        "size": 0.063,
+        "confidence": 0.84
+      },
+      {
+        "frame": 450,
+        "time": 15.0,
+        "x": 0.47,
+        "y": 0.487,
+        "size": 0.063,
+        "confidence": 0.84
+      },
+      {
+        "frame": 465,
+        "time": 15.5,
+        "x": 0.505,
+        "y": 0.508,
+        "size": 0.05,
+        "confidence": 0.818
+      },
+      {
+        "frame": 480,
+        "time": 16.0,
+        "x": 0.504,
+        "y": 0.508,
+        "size": 0.05,
+        "confidence": 0.819
+      },
+      {
+        "frame": 495,
+        "time": 16.5,
+        "x": 0.504,
+        "y": 0.508,
+        "size": 0.05,
+        "confidence": 0.819
+      },
+      {
+        "frame": 510,
+        "time": 17.0,
+        "x": 0.504,
+        "y": 0.508,
+        "size": 0.05,
+        "confidence": 0.819
+      },
+      {
+        "frame": 525,
+        "time": 17.5,
+        "x": 0.505,
+        "y": 0.509,
+        "size": 0.05,
+        "confidence": 0.82
+      },
+      {
+        "frame": 540,
+        "time": 18.0,
+        "x": 0.505,
+        "y": 0.509,
+        "size": 0.05,
+        "confidence": 0.82
+      },
+      {
+        "frame": 555,
+        "time": 18.5,
+        "x": 0.53,
+        "y": 0.469,
+        "size": 0.041,
+        "confidence": 0.633
+      },
+      {
+        "frame": 570,
+        "time": 19.0,
+        "x": 0.53,
+        "y": 0.469,
+        "size": 0.041,
+        "confidence": 0.635
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.53,
+        "y": 0.469,
+        "size": 0.041,
+        "confidence": 0.635
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.53,
+        "y": 0.469,
+        "size": 0.041,
+        "confidence": 0.636
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.53,
+        "y": 0.469,
+        "size": 0.041,
+        "confidence": 0.635
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.529,
+        "y": 0.47,
+        "size": 0.04,
+        "confidence": 0.611
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.529,
+        "y": 0.47,
+        "size": 0.04,
+        "confidence": 0.61
+      },
+      {
+        "frame": 660,
+        "time": 22.0,
+        "x": 0.53,
+        "y": 0.47,
+        "size": 0.04,
+        "confidence": 0.61
+      },
+      {
+        "frame": 780,
+        "time": 26.0,
+        "x": 0.559,
+        "y": 0.451,
+        "size": 0.03,
+        "confidence": 0.687
+      },
+      {
+        "frame": 795,
+        "time": 26.5,
+        "x": 0.559,
+        "y": 0.451,
+        "size": 0.03,
+        "confidence": 0.686
+      },
+      {
+        "frame": 810,
+        "time": 27.0,
+        "x": 0.558,
+        "y": 0.451,
+        "size": 0.03,
+        "confidence": 0.686
+      },
+      {
+        "frame": 825,
+        "time": 27.5,
+        "x": 0.558,
+        "y": 0.451,
+        "size": 0.03,
+        "confidence": 0.686
+      },
+      {
+        "frame": 840,
+        "time": 28.0,
+        "x": 0.556,
+        "y": 0.452,
+        "size": 0.032,
+        "confidence": 0.735
+      },
+      {
+        "frame": 855,
+        "time": 28.5,
+        "x": 0.54,
+        "y": 0.508,
+        "size": 0.042,
+        "confidence": 0.764
+      },
+      {
+        "frame": 870,
+        "time": 29.0,
+        "x": 0.54,
+        "y": 0.508,
+        "size": 0.043,
+        "confidence": 0.763
+      },
+      {
+        "frame": 885,
+        "time": 29.5,
+        "x": 0.533,
+        "y": 0.507,
+        "size": 0.042,
+        "confidence": 0.757
+      },
+      {
+        "frame": 900,
+        "time": 30.0,
+        "x": 0.533,
+        "y": 0.507,
+        "size": 0.042,
+        "confidence": 0.757
+      },
+      {
+        "frame": 915,
+        "time": 30.5,
+        "x": 0.533,
+        "y": 0.506,
+        "size": 0.042,
+        "confidence": 0.755
+      },
+      {
+        "frame": 930,
+        "time": 31.0,
+        "x": 0.533,
+        "y": 0.506,
+        "size": 0.042,
+        "confidence": 0.756
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 3.0,
+        "end": 3.0
+      },
+      {
+        "type": "tilt_down",
+        "start": 6.333,
+        "end": 6.333
+      },
+      {
+        "type": "pan_right",
+        "start": 8.5,
+        "end": 8.5
+      },
+      {
+        "type": "shake",
+        "start": 10.167,
+        "end": 10.167
+      },
+      {
+        "type": "tilt_up",
+        "start": 13.0,
+        "end": 13.0
+      },
+      {
+        "type": "shake",
+        "start": 15.5,
+        "end": 15.5
+      },
+      {
+        "type": "shake",
+        "start": 18.5,
+        "end": 18.5
+      },
+      {
+        "type": "tilt_down",
+        "start": 22.5,
+        "end": 22.5
+      },
+      {
+        "type": "pan_left",
+        "start": 25.667,
+        "end": 25.667
+      },
+      {
+        "type": "shake",
+        "start": 28.333,
+        "end": 28.333
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 5.58,
+        "text": "ブラック企業を面接で見抜く方法出生 面接感が遅刻してお泡びなし",
+        "words": [
+          {
+            "word": "ブ",
+            "start": 0.0,
+            "end": 0.34
+          },
+          {
+            "word": "ラ",
+            "start": 0.34,
+            "end": 0.44
+          },
+          {
+            "word": "ック",
+            "start": 0.44,
+            "end": 0.62
+          },
+          {
+            "word": "企",
+            "start": 0.62,
+            "end": 0.8
+          },
+          {
+            "word": "業",
+            "start": 0.8,
+            "end": 1.0
+          },
+          {
+            "word": "を",
+            "start": 1.0,
+            "end": 1.14
+          },
+          {
+            "word": "面",
+            "start": 1.14,
+            "end": 1.28
+          },
+          {
+            "word": "接",
+            "start": 1.28,
+            "end": 1.46
+          },
+          {
+            "word": "で",
+            "start": 1.46,
+            "end": 1.66
+          },
+          {
+            "word": "見",
+            "start": 1.66,
+            "end": 1.8
+          },
+          {
+            "word": "抜",
+            "start": 1.8,
+            "end": 1.86
+          },
+          {
+            "word": "く",
+            "start": 1.86,
+            "end": 1.98
+          },
+          {
+            "word": "方",
+            "start": 1.98,
+            "end": 2.16
+          },
+          {
+            "word": "法",
+            "start": 2.16,
+            "end": 2.42
+          },
+          {
+            "word": "出",
+            "start": 2.42,
+            "end": 2.6
+          },
+          {
+            "word": "生",
+            "start": 2.6,
+            "end": 2.84
+          },
+          {
+            "word": " 面",
+            "start": 3.18,
+            "end": 3.4
+          },
+          {
+            "word": "接",
+            "start": 3.4,
+            "end": 3.58
+          },
+          {
+            "word": "感",
+            "start": 3.58,
+            "end": 3.84
+          },
+          {
+            "word": "が",
+            "start": 3.84,
+            "end": 4.02
+          },
+          {
+            "word": "遅",
+            "start": 4.02,
+            "end": 4.14
+          },
+          {
+            "word": "刻",
+            "start": 4.14,
+            "end": 4.3
+          },
+          {
+            "word": "して",
+            "start": 4.3,
+            "end": 4.6
+          },
+          {
+            "word": "お",
+            "start": 4.6,
+            "end": 5.02
+          },
+          {
+            "word": "泡",
+            "start": 5.02,
+            "end": 5.14
+          },
+          {
+            "word": "び",
+            "start": 5.14,
+            "end": 5.28
+          },
+          {
+            "word": "な",
+            "start": 5.28,
+            "end": 5.38
+          },
+          {
+            "word": "し",
+            "start": 5.38,
+            "end": 5.58
+          }
+        ]
+      },
+      {
+        "start": 6.26,
+        "end": 10.18,
+        "text": "服装や靴が汚い 部屋が汚い",
+        "words": [
+          {
+            "word": "服",
+            "start": 6.26,
+            "end": 6.62
+          },
+          {
+            "word": "装",
+            "start": 6.62,
+            "end": 6.88
+          },
+          {
+            "word": "や",
+            "start": 6.88,
+            "end": 7.04
+          },
+          {
+            "word": "靴",
+            "start": 7.04,
+            "end": 7.22
+          },
+          {
+            "word": "が",
+            "start": 7.22,
+            "end": 7.38
+          },
+          {
+            "word": "汚",
+            "start": 7.38,
+            "end": 7.46
+          },
+          {
+            "word": "い",
+            "start": 7.46,
+            "end": 8.54
+          },
+          {
+            "word": " 部",
+            "start": 8.56,
+            "end": 8.84
+          },
+          {
+            "word": "屋",
+            "start": 8.84,
+            "end": 8.94
+          },
+          {
+            "word": "が",
+            "start": 8.94,
+            "end": 9.08
+          },
+          {
+            "word": "汚",
+            "start": 9.08,
+            "end": 9.26
+          },
+          {
+            "word": "い",
+            "start": 9.26,
+            "end": 10.18
+          }
+        ]
+      },
+      {
+        "start": 10.18,
+        "end": 15.58,
+        "text": "プライベートの質問を繰り返す 会社の悪口を言ってくる",
+        "words": [
+          {
+            "word": "プ",
+            "start": 10.18,
+            "end": 10.5
+          },
+          {
+            "word": "ライ",
+            "start": 10.5,
+            "end": 10.64
+          },
+          {
+            "word": "ベ",
+            "start": 10.64,
+            "end": 10.84
+          },
+          {
+            "word": "ート",
+            "start": 10.84,
+            "end": 10.98
+          },
+          {
+            "word": "の",
+            "start": 10.98,
+            "end": 11.14
+          },
+          {
+            "word": "質",
+            "start": 11.14,
+            "end": 11.3
+          },
+          {
+            "word": "問",
+            "start": 11.3,
+            "end": 11.5
+          },
+          {
+            "word": "を",
+            "start": 11.5,
+            "end": 11.7
+          },
+          {
+            "word": "繰",
+            "start": 11.7,
+            "end": 11.8
+          },
+          {
+            "word": "り",
+            "start": 11.8,
+            "end": 11.94
+          },
+          {
+            "word": "返",
+            "start": 11.94,
+            "end": 12.08
+          },
+          {
+            "word": "す",
+            "start": 12.08,
+            "end": 12.42
+          },
+          {
+            "word": " 会",
+            "start": 12.94,
+            "end": 13.38
+          },
+          {
+            "word": "社",
+            "start": 13.38,
+            "end": 13.58
+          },
+          {
+            "word": "の",
+            "start": 13.58,
+            "end": 13.72
+          },
+          {
+            "word": "悪",
+            "start": 13.72,
+            "end": 13.86
+          },
+          {
+            "word": "口",
+            "start": 13.86,
+            "end": 14.1
+          },
+          {
+            "word": "を",
+            "start": 14.1,
+            "end": 14.32
+          },
+          {
+            "word": "言",
+            "start": 14.32,
+            "end": 14.42
+          },
+          {
+            "word": "って",
+            "start": 14.42,
+            "end": 14.56
+          },
+          {
+            "word": "く",
+            "start": 14.56,
+            "end": 14.7
+          },
+          {
+            "word": "る",
+            "start": 14.7,
+            "end": 15.58
+          }
+        ]
+      },
+      {
+        "start": 15.58,
+        "end": 21.76,
+        "text": "残業をどのぐらいしてきたか気にする 給与の質問しても頑張り次第って言われる",
+        "words": [
+          {
+            "word": "残",
+            "start": 15.58,
+            "end": 15.92
+          },
+          {
+            "word": "業",
+            "start": 15.92,
+            "end": 16.1
+          },
+          {
+            "word": "を",
+            "start": 16.1,
+            "end": 16.26
+          },
+          {
+            "word": "ど",
+            "start": 16.26,
+            "end": 16.36
+          },
+          {
+            "word": "の",
+            "start": 16.36,
+            "end": 16.48
+          },
+          {
+            "word": "ぐ",
+            "start": 16.48,
+            "end": 16.6
+          },
+          {
+            "word": "らい",
+            "start": 16.6,
+            "end": 16.74
+          },
+          {
+            "word": "して",
+            "start": 16.74,
+            "end": 16.88
+          },
+          {
+            "word": "きた",
+            "start": 16.88,
+            "end": 17.18
+          },
+          {
+            "word": "か",
+            "start": 17.18,
+            "end": 17.32
+          },
+          {
+            "word": "気",
+            "start": 17.32,
+            "end": 17.46
+          },
+          {
+            "word": "に",
+            "start": 17.46,
+            "end": 17.56
+          },
+          {
+            "word": "する",
+            "start": 17.56,
+            "end": 17.78
+          },
+          {
+            "word": " 給",
+            "start": 18.66,
+            "end": 18.86
+          },
+          {
+            "word": "与",
+            "start": 18.86,
+            "end": 19.02
+          },
+          {
+            "word": "の",
+            "start": 19.02,
+            "end": 19.16
+          },
+          {
+            "word": "質",
+            "start": 19.16,
+            "end": 19.32
+          },
+          {
+            "word": "問",
+            "start": 19.32,
+            "end": 19.52
+          },
+          {
+            "word": "して",
+            "start": 19.52,
+            "end": 19.74
+          },
+          {
+            "word": "も",
+            "start": 19.74,
+            "end": 19.94
+          },
+          {
+            "word": "頑",
+            "start": 19.94,
+            "end": 20.12
+          },
+          {
+            "word": "張",
+            "start": 20.12,
+            "end": 20.26
+          },
+          {
+            "word": "り",
+            "start": 20.26,
+            "end": 20.38
+          },
+          {
+            "word": "次",
+            "start": 20.38,
+            "end": 20.54
+          },
+          {
+            "word": "第",
+            "start": 20.54,
+            "end": 20.64
+          },
+          {
+            "word": "って",
+            "start": 20.64,
+            "end": 20.96
+          },
+          {
+            "word": "言",
+            "start": 20.96,
+            "end": 21.36
+          },
+          {
+            "word": "わ",
+            "start": 21.36,
+            "end": 21.52
+          },
+          {
+            "word": "れる",
+            "start": 21.52,
+            "end": 21.76
+          }
+        ]
+      },
+      {
+        "start": 22.4,
+        "end": 27.56,
+        "text": "給人票との条件が明らかに違う すれ違う社員の顔がくらい",
+        "words": [
+          {
+            "word": "給",
+            "start": 22.4,
+            "end": 22.76
+          },
+          {
+            "word": "人",
+            "start": 22.76,
+            "end": 23.02
+          },
+          {
+            "word": "票",
+            "start": 23.02,
+            "end": 23.24
+          },
+          {
+            "word": "と",
+            "start": 23.24,
+            "end": 23.38
+          },
+          {
+            "word": "の",
+            "start": 23.38,
+            "end": 23.54
+          },
+          {
+            "word": "条",
+            "start": 23.54,
+            "end": 23.7
+          },
+          {
+            "word": "件",
+            "start": 23.7,
+            "end": 23.9
+          },
+          {
+            "word": "が",
+            "start": 23.9,
+            "end": 24.08
+          },
+          {
+            "word": "明",
+            "start": 24.08,
+            "end": 24.22
+          },
+          {
+            "word": "ら",
+            "start": 24.22,
+            "end": 24.4
+          },
+          {
+            "word": "か",
+            "start": 24.4,
+            "end": 24.5
+          },
+          {
+            "word": "に",
+            "start": 24.5,
+            "end": 24.62
+          },
+          {
+            "word": "違う",
+            "start": 24.62,
+            "end": 24.9
+          },
+          {
+            "word": " す",
+            "start": 24.9,
+            "end": 26.0
+          },
+          {
+            "word": "れ",
+            "start": 26.0,
+            "end": 26.14
+          },
+          {
+            "word": "違う",
+            "start": 26.14,
+            "end": 26.38
+          },
+          {
+            "word": "社",
+            "start": 26.38,
+            "end": 26.64
+          },
+          {
+            "word": "員",
+            "start": 26.64,
+            "end": 26.78
+          },
+          {
+            "word": "の",
+            "start": 26.78,
+            "end": 26.92
+          },
+          {
+            "word": "顔",
+            "start": 26.92,
+            "end": 27.16
+          },
+          {
+            "word": "が",
+            "start": 27.16,
+            "end": 27.32
+          },
+          {
+            "word": "く",
+            "start": 27.32,
+            "end": 27.4
+          },
+          {
+            "word": "らい",
+            "start": 27.4,
+            "end": 27.56
+          }
+        ]
+      },
+      {
+        "start": 28.28,
+        "end": 30.46,
+        "text": "内定の返事を用にせかされる",
+        "words": [
+          {
+            "word": "内",
+            "start": 28.28,
+            "end": 28.62
+          },
+          {
+            "word": "定",
+            "start": 28.62,
+            "end": 28.84
+          },
+          {
+            "word": "の",
+            "start": 28.84,
+            "end": 29.02
+          },
+          {
+            "word": "返",
+            "start": 29.02,
+            "end": 29.24
+          },
+          {
+            "word": "事",
+            "start": 29.24,
+            "end": 29.42
+          },
+          {
+            "word": "を",
+            "start": 29.42,
+            "end": 29.56
+          },
+          {
+            "word": "用",
+            "start": 29.56,
+            "end": 29.72
+          },
+          {
+            "word": "に",
+            "start": 29.72,
+            "end": 29.9
+          },
+          {
+            "word": "せ",
+            "start": 29.9,
+            "end": 30.06
+          },
+          {
+            "word": "か",
+            "start": 30.06,
+            "end": 30.16
+          },
+          {
+            "word": "さ",
+            "start": 30.16,
+            "end": 30.3
+          },
+          {
+            "word": "れる",
+            "start": 30.3,
+            "end": 30.46
+          }
+        ]
+      }
+    ],
+    "full_text": "ブラック企業を面接で見抜く方法出生 面接感が遅刻してお泡びなし 服装や靴が汚い 部屋が汚い プライベートの質問を繰り返す 会社の悪口を言ってくる 残業をどのぐらいしてきたか気にする 給与の質問しても頑張り次第って言われる 給人票との条件が明らかに違う すれ違う社員の顔がくらい 内定の返事を用にせかされる",
+    "words_per_minute": 310.3,
+    "keywords": [
+      "ブラック企業を面接で見抜く方法出生",
+      "面接感が遅刻してお泡びなし",
+      "服装や靴が汚い",
+      "部屋が汚い",
+      "プライベ",
+      "トの質問を繰り返す",
+      "会社の悪口を言ってくる",
+      "残業をどのぐらいしてきたか気にする",
+      "給与の質問しても頑張り次第って言われる",
+      "給人票との条件が明らかに違う"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 5.58,
+        "end": 6.26,
+        "duration": 0.68
+      },
+      {
+        "start": 21.76,
+        "end": 22.4,
+        "duration": 0.64
+      },
+      {
+        "start": 27.56,
+        "end": 28.28,
+        "duration": 0.72
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 0.74,
+        "end": 1.93,
+        "energy": "medium"
+      },
+      {
+        "start": 6.62,
+        "end": 8.17,
+        "energy": "low"
+      },
+      {
+        "start": 10.45,
+        "end": 10.96,
+        "energy": "medium"
+      },
+      {
+        "start": 13.33,
+        "end": 14.12,
+        "energy": "medium"
+      },
+      {
+        "start": 15.74,
+        "end": 18.44,
+        "energy": "medium"
+      },
+      {
+        "start": 18.48,
+        "end": 19.67,
+        "energy": "medium"
+      },
+      {
+        "start": 19.74,
+        "end": 20.46,
+        "energy": "medium"
+      },
+      {
+        "start": 20.53,
+        "end": 21.73,
+        "energy": "medium"
+      },
+      {
+        "start": 22.31,
+        "end": 25.68,
+        "energy": "medium"
+      },
+      {
+        "start": 25.96,
+        "end": 31.18,
+        "energy": "medium"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.882,
+        "type": "transition",
+        "energy": 0.764
+      },
+      {
+        "time": 1.858,
+        "type": "whoosh",
+        "energy": 0.581
+      },
+      {
+        "time": 2.345,
+        "type": "whoosh",
+        "energy": 0.647
+      },
+      {
+        "time": 2.786,
+        "type": "whoosh",
+        "energy": 0.259
+      },
+      {
+        "time": 3.762,
+        "type": "whoosh",
+        "energy": 0.536
+      },
+      {
+        "time": 4.226,
+        "type": "impact",
+        "energy": 0.326
+      },
+      {
+        "time": 4.551,
+        "type": "whoosh",
+        "energy": 0.437
+      },
+      {
+        "time": 6.641,
+        "type": "whoosh",
+        "energy": 0.562
+      },
+      {
+        "time": 8.382,
+        "type": "impact",
+        "energy": 0.308
+      },
+      {
+        "time": 9.776,
+        "type": "impact",
+        "energy": 0.341
+      },
+      {
+        "time": 10.588,
+        "type": "transition",
+        "energy": 0.908
+      },
+      {
+        "time": 11.378,
+        "type": "impact",
+        "energy": 0.688
+      },
+      {
+        "time": 12.91,
+        "type": "impact",
+        "energy": 0.36
+      },
+      {
+        "time": 13.328,
+        "type": "whoosh",
+        "energy": 0.648
+      },
+      {
+        "time": 15.023,
+        "type": "impact",
+        "energy": 0.303
+      },
+      {
+        "time": 15.79,
+        "type": "transition",
+        "energy": 0.768
+      },
+      {
+        "time": 17.16,
+        "type": "whoosh",
+        "energy": 0.555
+      },
+      {
+        "time": 17.461,
+        "type": "impact",
+        "energy": 0.493
+      },
+      {
+        "time": 20.596,
+        "type": "whoosh",
+        "energy": 0.443
+      },
+      {
+        "time": 26.03,
+        "type": "whoosh",
+        "energy": 0.587
+      }
+    ],
+    "beat_times": [
+      0.302,
+      0.604,
+      0.906,
+      1.231,
+      1.602,
+      1.974,
+      2.299,
+      2.647,
+      2.995,
+      3.297,
+      3.646,
+      3.994,
+      4.342,
+      4.667,
+      4.992,
+      5.341,
+      5.666,
+      5.991,
+      6.316,
+      6.664,
+      7.012,
+      7.338,
+      7.686,
+      8.057,
+      8.406,
+      8.731,
+      9.056,
+      9.404,
+      9.799,
+      10.124,
+      10.449,
+      10.82,
+      11.169,
+      11.517,
+      11.889,
+      12.237,
+      12.585,
+      12.934,
+      13.282,
+      13.653,
+      14.002,
+      14.327,
+      14.675,
+      15.023,
+      15.395,
+      15.743,
+      16.091,
+      16.463,
+      16.834,
+      17.16,
+      17.485,
+      17.833,
+      18.181,
+      18.53,
+      18.878,
+      19.226,
+      19.574,
+      19.923,
+      20.248,
+      20.596,
+      20.944,
+      21.293,
+      21.641,
+      21.989,
+      22.338,
+      22.663,
+      23.011,
+      23.382,
+      23.731,
+      24.079,
+      24.451,
+      24.799,
+      25.147,
+      25.496,
+      25.844,
+      26.192,
+      26.517,
+      26.889,
+      27.237,
+      27.585,
+      27.934,
+      28.282,
+      28.63,
+      28.979
+    ],
+    "dominant_tempo": 172.3,
+    "music_coverage": 0.591,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.144
+      },
+      {
+        "time": 1.0,
+        "energy": 0.52
+      },
+      {
+        "time": 1.5,
+        "energy": 0.234
+      },
+      {
+        "time": 2.0,
+        "energy": 0.127
+      },
+      {
+        "time": 2.5,
+        "energy": 0.419
+      },
+      {
+        "time": 3.0,
+        "energy": 0.174
+      },
+      {
+        "time": 3.5,
+        "energy": 0.589
+      },
+      {
+        "time": 4.0,
+        "energy": 0.176
+      },
+      {
+        "time": 4.5,
+        "energy": 0.307
+      },
+      {
+        "time": 5.0,
+        "energy": 0.467
+      },
+      {
+        "time": 5.5,
+        "energy": 0.234
+      },
+      {
+        "time": 6.0,
+        "energy": 0.045
+      },
+      {
+        "time": 6.5,
+        "energy": 0.057
+      },
+      {
+        "time": 7.0,
+        "energy": 0.498
+      },
+      {
+        "time": 7.5,
+        "energy": 0.392
+      },
+      {
+        "time": 8.0,
+        "energy": 0.198
+      },
+      {
+        "time": 8.5,
+        "energy": 0.129
+      },
+      {
+        "time": 9.0,
+        "energy": 0.397
+      },
+      {
+        "time": 9.5,
+        "energy": 0.231
+      },
+      {
+        "time": 10.0,
+        "energy": 0.083
+      },
+      {
+        "time": 10.5,
+        "energy": 0.685
+      },
+      {
+        "time": 11.0,
+        "energy": 0.334
+      },
+      {
+        "time": 11.5,
+        "energy": 0.592
+      },
+      {
+        "time": 12.0,
+        "energy": 0.369
+      },
+      {
+        "time": 12.5,
+        "energy": 0.043
+      },
+      {
+        "time": 13.0,
+        "energy": 0.34
+      },
+      {
+        "time": 13.5,
+        "energy": 0.338
+      },
+      {
+        "time": 14.0,
+        "energy": 0.562
+      },
+      {
+        "time": 14.5,
+        "energy": 0.23
+      },
+      {
+        "time": 15.0,
+        "energy": 0.25
+      },
+      {
+        "time": 15.5,
+        "energy": 0.183
+      },
+      {
+        "time": 16.0,
+        "energy": 0.661
+      },
+      {
+        "time": 16.5,
+        "energy": 0.51
+      },
+      {
+        "time": 17.0,
+        "energy": 0.207
+      },
+      {
+        "time": 17.5,
+        "energy": 0.445
+      },
+      {
+        "time": 18.0,
+        "energy": 0.201
+      },
+      {
+        "time": 18.5,
+        "energy": 0.181
+      },
+      {
+        "time": 19.0,
+        "energy": 0.753
+      },
+      {
+        "time": 19.5,
+        "energy": 0.681
+      },
+      {
+        "time": 20.0,
+        "energy": 0.549
+      },
+      {
+        "time": 20.5,
+        "energy": 0.192
+      },
+      {
+        "time": 21.0,
+        "energy": 0.294
+      },
+      {
+        "time": 21.5,
+        "energy": 0.428
+      },
+      {
+        "time": 22.0,
+        "energy": 0.142
+      },
+      {
+        "time": 22.5,
+        "energy": 0.202
+      },
+      {
+        "time": 23.0,
+        "energy": 0.725
+      },
+      {
+        "time": 23.5,
+        "energy": 0.308
+      },
+      {
+        "time": 24.0,
+        "energy": 0.371
+      },
+      {
+        "time": 24.5,
+        "energy": 0.389
+      },
+      {
+        "time": 25.0,
+        "energy": 0.261
+      },
+      {
+        "time": 25.5,
+        "energy": 0.311
+      },
+      {
+        "time": 26.0,
+        "energy": 0.454
+      },
+      {
+        "time": 26.5,
+        "energy": 0.465
+      },
+      {
+        "time": 27.0,
+        "energy": 0.398
+      },
+      {
+        "time": 27.5,
+        "energy": 0.379
+      },
+      {
+        "time": 28.0,
+        "energy": 0.219
+      },
+      {
+        "time": 28.5,
+        "energy": 0.546
+      },
+      {
+        "time": 29.0,
+        "energy": 0.405
+      },
+      {
+        "time": 29.5,
+        "energy": 0.604
+      },
+      {
+        "time": 30.0,
+        "energy": 0.393
+      },
+      {
+        "time": 30.5,
+        "energy": 0.464
+      },
+      {
+        "time": 31.0,
+        "energy": 0.338
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 27.99,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/【注意】ブラック企業を面接で見抜く方法10選 #転職/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

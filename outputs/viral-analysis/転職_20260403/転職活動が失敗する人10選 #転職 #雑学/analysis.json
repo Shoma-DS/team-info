@@ -1,0 +1,1331 @@
+{
+  "duration": 28.8,
+  "fps": 30.0,
+  "platform": "shorts",
+  "source_file": "/workspace/team-info/inputs/viral-analysis/未分析/転職/転職活動が失敗する人10選 #転職 #雑学.mp4",
+  "analyzed_date": "20260403",
+  "analysis_batch_name": "転職_20260403",
+  "pattern_name": "転職",
+  "resolution": {
+    "width": 720,
+    "height": 1280
+  },
+  "video_structure": {
+    "cuts": [
+      {
+        "start": 0.0,
+        "end": 28.8,
+        "start_frame": 0,
+        "end_frame": 864,
+        "motion_type": "shake",
+        "motion_intensity": 1.78,
+        "origin_x": 0.5,
+        "origin_y": 0.5
+      }
+    ],
+    "faces": [
+      {
+        "frame": 570,
+        "time": 19.0,
+        "x": 0.509,
+        "y": 0.463,
+        "size": 0.022,
+        "confidence": 0.542
+      },
+      {
+        "frame": 585,
+        "time": 19.5,
+        "x": 0.509,
+        "y": 0.463,
+        "size": 0.022,
+        "confidence": 0.543
+      },
+      {
+        "frame": 600,
+        "time": 20.0,
+        "x": 0.509,
+        "y": 0.463,
+        "size": 0.022,
+        "confidence": 0.543
+      },
+      {
+        "frame": 615,
+        "time": 20.5,
+        "x": 0.509,
+        "y": 0.463,
+        "size": 0.022,
+        "confidence": 0.543
+      },
+      {
+        "frame": 630,
+        "time": 21.0,
+        "x": 0.511,
+        "y": 0.463,
+        "size": 0.022,
+        "confidence": 0.54
+      },
+      {
+        "frame": 645,
+        "time": 21.5,
+        "x": 0.522,
+        "y": 0.499,
+        "size": 0.075,
+        "confidence": 0.809
+      },
+      {
+        "frame": 660,
+        "time": 22.0,
+        "x": 0.523,
+        "y": 0.499,
+        "size": 0.075,
+        "confidence": 0.812
+      },
+      {
+        "frame": 675,
+        "time": 22.5,
+        "x": 0.524,
+        "y": 0.499,
+        "size": 0.074,
+        "confidence": 0.811
+      },
+      {
+        "frame": 690,
+        "time": 23.0,
+        "x": 0.524,
+        "y": 0.499,
+        "size": 0.073,
+        "confidence": 0.811
+      },
+      {
+        "frame": 705,
+        "time": 23.5,
+        "x": 0.524,
+        "y": 0.499,
+        "size": 0.073,
+        "confidence": 0.811
+      },
+      {
+        "frame": 780,
+        "time": 26.0,
+        "x": 0.369,
+        "y": 0.492,
+        "size": 0.049,
+        "confidence": 0.701
+      },
+      {
+        "frame": 795,
+        "time": 26.5,
+        "x": 0.369,
+        "y": 0.491,
+        "size": 0.049,
+        "confidence": 0.703
+      },
+      {
+        "frame": 810,
+        "time": 27.0,
+        "x": 0.368,
+        "y": 0.492,
+        "size": 0.05,
+        "confidence": 0.705
+      },
+      {
+        "frame": 825,
+        "time": 27.5,
+        "x": 0.367,
+        "y": 0.492,
+        "size": 0.05,
+        "confidence": 0.708
+      },
+      {
+        "frame": 840,
+        "time": 28.0,
+        "x": 0.367,
+        "y": 0.492,
+        "size": 0.05,
+        "confidence": 0.71
+      },
+      {
+        "frame": 855,
+        "time": 28.5,
+        "x": 0.367,
+        "y": 0.492,
+        "size": 0.05,
+        "confidence": 0.71
+      }
+    ],
+    "text_regions": [],
+    "camera_motion": [
+      {
+        "type": "shake",
+        "start": 2.667,
+        "end": 2.667
+      },
+      {
+        "type": "shake",
+        "start": 5.667,
+        "end": 5.667
+      },
+      {
+        "type": "shake",
+        "start": 8.167,
+        "end": 8.167
+      },
+      {
+        "type": "shake",
+        "start": 10.333,
+        "end": 10.333
+      },
+      {
+        "type": "shake",
+        "start": 13.167,
+        "end": 13.167
+      },
+      {
+        "type": "shake",
+        "start": 15.833,
+        "end": 15.833
+      },
+      {
+        "type": "zoom",
+        "start": 18.667,
+        "end": 18.667
+      },
+      {
+        "type": "shake",
+        "start": 23.667,
+        "end": 23.667
+      },
+      {
+        "type": "shake",
+        "start": 25.833,
+        "end": 25.833
+      }
+    ],
+    "important_frames": [
+      0
+    ]
+  },
+  "speech_structure": {
+    "transcript": [
+      {
+        "start": 0.0,
+        "end": 5.02,
+        "text": "転職活動が失敗する人実践 旧人大手など厳選しすぎている",
+        "words": [
+          {
+            "word": "転",
+            "start": 0.0,
+            "end": 0.4
+          },
+          {
+            "word": "職",
+            "start": 0.4,
+            "end": 0.66
+          },
+          {
+            "word": "活",
+            "start": 0.66,
+            "end": 0.82
+          },
+          {
+            "word": "動",
+            "start": 0.82,
+            "end": 1.02
+          },
+          {
+            "word": "が",
+            "start": 1.02,
+            "end": 1.2
+          },
+          {
+            "word": "失",
+            "start": 1.2,
+            "end": 1.38
+          },
+          {
+            "word": "敗",
+            "start": 1.38,
+            "end": 1.58
+          },
+          {
+            "word": "する",
+            "start": 1.58,
+            "end": 1.84
+          },
+          {
+            "word": "人",
+            "start": 1.84,
+            "end": 2.0
+          },
+          {
+            "word": "実",
+            "start": 2.0,
+            "end": 2.24
+          },
+          {
+            "word": "践",
+            "start": 2.24,
+            "end": 2.48
+          },
+          {
+            "word": " 旧",
+            "start": 2.84,
+            "end": 3.0
+          },
+          {
+            "word": "人",
+            "start": 3.0,
+            "end": 3.26
+          },
+          {
+            "word": "大",
+            "start": 3.26,
+            "end": 3.52
+          },
+          {
+            "word": "手",
+            "start": 3.52,
+            "end": 3.68
+          },
+          {
+            "word": "な",
+            "start": 3.68,
+            "end": 3.8
+          },
+          {
+            "word": "ど",
+            "start": 3.8,
+            "end": 3.92
+          },
+          {
+            "word": "厳",
+            "start": 3.92,
+            "end": 4.08
+          },
+          {
+            "word": "選",
+            "start": 4.08,
+            "end": 4.3
+          },
+          {
+            "word": "し",
+            "start": 4.3,
+            "end": 4.46
+          },
+          {
+            "word": "す",
+            "start": 4.46,
+            "end": 4.6
+          },
+          {
+            "word": "ぎ",
+            "start": 4.6,
+            "end": 4.7
+          },
+          {
+            "word": "て",
+            "start": 4.7,
+            "end": 4.82
+          },
+          {
+            "word": "いる",
+            "start": 4.82,
+            "end": 5.02
+          }
+        ]
+      },
+      {
+        "start": 5.7,
+        "end": 9.58,
+        "text": "自己分析ができていない 優先順位が曖昧",
+        "words": [
+          {
+            "word": "自己",
+            "start": 5.7,
+            "end": 6.06
+          },
+          {
+            "word": "分",
+            "start": 6.06,
+            "end": 6.34
+          },
+          {
+            "word": "析",
+            "start": 6.34,
+            "end": 6.48
+          },
+          {
+            "word": "が",
+            "start": 6.48,
+            "end": 6.72
+          },
+          {
+            "word": "でき",
+            "start": 6.72,
+            "end": 6.84
+          },
+          {
+            "word": "て",
+            "start": 6.84,
+            "end": 7.06
+          },
+          {
+            "word": "い",
+            "start": 7.06,
+            "end": 7.16
+          },
+          {
+            "word": "ない",
+            "start": 7.16,
+            "end": 7.38
+          },
+          {
+            "word": " 優",
+            "start": 8.2,
+            "end": 8.46
+          },
+          {
+            "word": "先",
+            "start": 8.46,
+            "end": 8.68
+          },
+          {
+            "word": "順",
+            "start": 8.68,
+            "end": 8.88
+          },
+          {
+            "word": "位",
+            "start": 8.88,
+            "end": 9.04
+          },
+          {
+            "word": "が",
+            "start": 9.04,
+            "end": 9.2
+          },
+          {
+            "word": "曖",
+            "start": 9.2,
+            "end": 9.34
+          },
+          {
+            "word": "昧",
+            "start": 9.34,
+            "end": 9.58
+          }
+        ]
+      },
+      {
+        "start": 10.24,
+        "end": 15.16,
+        "text": "条件面だけで応募先を選ぶ 忙しすぎて面接に行けない",
+        "words": [
+          {
+            "word": "条",
+            "start": 10.24,
+            "end": 10.6
+          },
+          {
+            "word": "件",
+            "start": 10.6,
+            "end": 10.8
+          },
+          {
+            "word": "面",
+            "start": 10.8,
+            "end": 11.02
+          },
+          {
+            "word": "だけ",
+            "start": 11.02,
+            "end": 11.22
+          },
+          {
+            "word": "で",
+            "start": 11.22,
+            "end": 11.4
+          },
+          {
+            "word": "応",
+            "start": 11.4,
+            "end": 11.58
+          },
+          {
+            "word": "募",
+            "start": 11.58,
+            "end": 11.7
+          },
+          {
+            "word": "先",
+            "start": 11.7,
+            "end": 11.88
+          },
+          {
+            "word": "を",
+            "start": 11.88,
+            "end": 12.1
+          },
+          {
+            "word": "選",
+            "start": 12.1,
+            "end": 12.26
+          },
+          {
+            "word": "ぶ",
+            "start": 12.26,
+            "end": 12.6
+          },
+          {
+            "word": " 忙",
+            "start": 13.26,
+            "end": 13.5
+          },
+          {
+            "word": "し",
+            "start": 13.5,
+            "end": 13.78
+          },
+          {
+            "word": "す",
+            "start": 13.78,
+            "end": 13.94
+          },
+          {
+            "word": "ぎ",
+            "start": 13.94,
+            "end": 14.02
+          },
+          {
+            "word": "て",
+            "start": 14.02,
+            "end": 14.18
+          },
+          {
+            "word": "面",
+            "start": 14.18,
+            "end": 14.36
+          },
+          {
+            "word": "接",
+            "start": 14.36,
+            "end": 14.52
+          },
+          {
+            "word": "に",
+            "start": 14.52,
+            "end": 14.76
+          },
+          {
+            "word": "行",
+            "start": 14.76,
+            "end": 14.88
+          },
+          {
+            "word": "け",
+            "start": 14.88,
+            "end": 14.96
+          },
+          {
+            "word": "ない",
+            "start": 14.96,
+            "end": 15.16
+          }
+        ]
+      },
+      {
+        "start": 15.86,
+        "end": 21.62,
+        "text": "応募先の会社を調べてない 面接で話を盛りすぎてしまう",
+        "words": [
+          {
+            "word": "応",
+            "start": 15.86,
+            "end": 16.22
+          },
+          {
+            "word": "募",
+            "start": 16.22,
+            "end": 16.34
+          },
+          {
+            "word": "先",
+            "start": 16.34,
+            "end": 16.56
+          },
+          {
+            "word": "の",
+            "start": 16.56,
+            "end": 16.7
+          },
+          {
+            "word": "会",
+            "start": 16.7,
+            "end": 16.88
+          },
+          {
+            "word": "社",
+            "start": 16.88,
+            "end": 17.08
+          },
+          {
+            "word": "を",
+            "start": 17.08,
+            "end": 17.2
+          },
+          {
+            "word": "調",
+            "start": 17.2,
+            "end": 17.36
+          },
+          {
+            "word": "べ",
+            "start": 17.36,
+            "end": 17.52
+          },
+          {
+            "word": "て",
+            "start": 17.52,
+            "end": 17.62
+          },
+          {
+            "word": "ない",
+            "start": 17.62,
+            "end": 17.84
+          },
+          {
+            "word": " 面",
+            "start": 18.74,
+            "end": 18.96
+          },
+          {
+            "word": "接",
+            "start": 18.96,
+            "end": 19.12
+          },
+          {
+            "word": "で",
+            "start": 19.12,
+            "end": 19.32
+          },
+          {
+            "word": "話",
+            "start": 19.32,
+            "end": 19.5
+          },
+          {
+            "word": "を",
+            "start": 19.5,
+            "end": 19.82
+          },
+          {
+            "word": "盛",
+            "start": 19.82,
+            "end": 19.94
+          },
+          {
+            "word": "り",
+            "start": 19.94,
+            "end": 20.06
+          },
+          {
+            "word": "す",
+            "start": 20.06,
+            "end": 20.22
+          },
+          {
+            "word": "ぎ",
+            "start": 20.22,
+            "end": 20.3
+          },
+          {
+            "word": "て",
+            "start": 20.3,
+            "end": 20.4
+          },
+          {
+            "word": "しま",
+            "start": 20.4,
+            "end": 20.66
+          },
+          {
+            "word": "う",
+            "start": 20.66,
+            "end": 21.62
+          }
+        ]
+      },
+      {
+        "start": 21.62,
+        "end": 25.88,
+        "text": "死亡理由が言えない 給与だけで決めてしまう",
+        "words": [
+          {
+            "word": "死",
+            "start": 21.62,
+            "end": 21.84
+          },
+          {
+            "word": "亡",
+            "start": 21.84,
+            "end": 22.0
+          },
+          {
+            "word": "理",
+            "start": 22.0,
+            "end": 22.2
+          },
+          {
+            "word": "由",
+            "start": 22.2,
+            "end": 22.34
+          },
+          {
+            "word": "が",
+            "start": 22.34,
+            "end": 22.54
+          },
+          {
+            "word": "言",
+            "start": 22.54,
+            "end": 22.64
+          },
+          {
+            "word": "え",
+            "start": 22.64,
+            "end": 22.76
+          },
+          {
+            "word": "ない",
+            "start": 22.76,
+            "end": 23.1
+          },
+          {
+            "word": " 給",
+            "start": 23.8,
+            "end": 24.02
+          },
+          {
+            "word": "与",
+            "start": 24.02,
+            "end": 24.18
+          },
+          {
+            "word": "だけ",
+            "start": 24.18,
+            "end": 24.36
+          },
+          {
+            "word": "で",
+            "start": 24.36,
+            "end": 24.5
+          },
+          {
+            "word": "決",
+            "start": 24.5,
+            "end": 24.62
+          },
+          {
+            "word": "めて",
+            "start": 24.62,
+            "end": 24.78
+          },
+          {
+            "word": "しま",
+            "start": 24.78,
+            "end": 25.06
+          },
+          {
+            "word": "う",
+            "start": 25.06,
+            "end": 25.88
+          }
+        ]
+      },
+      {
+        "start": 25.88,
+        "end": 28.16,
+        "text": "自分で決めず周りの意見に流される",
+        "words": [
+          {
+            "word": "自",
+            "start": 25.88,
+            "end": 26.18
+          },
+          {
+            "word": "分",
+            "start": 26.18,
+            "end": 26.34
+          },
+          {
+            "word": "で",
+            "start": 26.34,
+            "end": 26.48
+          },
+          {
+            "word": "決",
+            "start": 26.48,
+            "end": 26.58
+          },
+          {
+            "word": "め",
+            "start": 26.58,
+            "end": 26.7
+          },
+          {
+            "word": "ず",
+            "start": 26.7,
+            "end": 26.78
+          },
+          {
+            "word": "周",
+            "start": 26.78,
+            "end": 26.96
+          },
+          {
+            "word": "り",
+            "start": 26.96,
+            "end": 27.14
+          },
+          {
+            "word": "の",
+            "start": 27.14,
+            "end": 27.24
+          },
+          {
+            "word": "意",
+            "start": 27.24,
+            "end": 27.36
+          },
+          {
+            "word": "見",
+            "start": 27.36,
+            "end": 27.46
+          },
+          {
+            "word": "に",
+            "start": 27.46,
+            "end": 27.64
+          },
+          {
+            "word": "流",
+            "start": 27.64,
+            "end": 27.74
+          },
+          {
+            "word": "さ",
+            "start": 27.74,
+            "end": 28.0
+          },
+          {
+            "word": "れる",
+            "start": 28.0,
+            "end": 28.16
+          }
+        ]
+      }
+    ],
+    "full_text": "転職活動が失敗する人実践 旧人大手など厳選しすぎている 自己分析ができていない 優先順位が曖昧 条件面だけで応募先を選ぶ 忙しすぎて面接に行けない 応募先の会社を調べてない 面接で話を盛りすぎてしまう 死亡理由が言えない 給与だけで決めてしまう 自分で決めず周りの意見に流される",
+    "words_per_minute": 307.8,
+    "keywords": [
+      "転職活動が失敗する人実践",
+      "旧人大手など厳選しすぎている",
+      "自己分析ができていない",
+      "優先順位が曖昧",
+      "条件面だけで応募先を選ぶ",
+      "忙しすぎて面接に行けない",
+      "応募先の会社を調べてない",
+      "面接で話を盛りすぎてしまう",
+      "死亡理由が言えない",
+      "給与だけで決めてしまう"
+    ],
+    "emotional_intensity": "high",
+    "pauses": [
+      {
+        "start": 5.02,
+        "end": 5.7,
+        "duration": 0.68
+      },
+      {
+        "start": 9.58,
+        "end": 10.24,
+        "duration": 0.66
+      },
+      {
+        "start": 15.16,
+        "end": 15.86,
+        "duration": 0.7
+      }
+    ]
+  },
+  "audio_scene": {
+    "bgm_segments": [
+      {
+        "start": 2.88,
+        "end": 4.41,
+        "energy": "medium"
+      },
+      {
+        "start": 8.54,
+        "end": 9.5,
+        "energy": "medium"
+      },
+      {
+        "start": 10.73,
+        "end": 11.89,
+        "energy": "medium"
+      },
+      {
+        "start": 11.94,
+        "end": 12.54,
+        "energy": "medium"
+      },
+      {
+        "start": 13.03,
+        "end": 13.7,
+        "energy": "medium"
+      },
+      {
+        "start": 19.39,
+        "end": 20.06,
+        "energy": "medium"
+      },
+      {
+        "start": 21.2,
+        "end": 23.2,
+        "energy": "low"
+      },
+      {
+        "start": 23.27,
+        "end": 24.54,
+        "energy": "medium"
+      },
+      {
+        "start": 24.57,
+        "end": 28.26,
+        "energy": "low"
+      }
+    ],
+    "sfx_events": [
+      {
+        "time": 0.325,
+        "type": "transition",
+        "energy": 0.815
+      },
+      {
+        "time": 0.743,
+        "type": "whoosh",
+        "energy": 0.599
+      },
+      {
+        "time": 1.533,
+        "type": "whoosh",
+        "energy": 0.538
+      },
+      {
+        "time": 6.246,
+        "type": "transition",
+        "energy": 0.901
+      },
+      {
+        "time": 8.615,
+        "type": "transition",
+        "energy": 0.771
+      },
+      {
+        "time": 10.542,
+        "type": "transition",
+        "energy": 0.769
+      },
+      {
+        "time": 13.05,
+        "type": "whoosh",
+        "energy": 0.288
+      },
+      {
+        "time": 15.766,
+        "type": "whoosh",
+        "energy": 0.283
+      },
+      {
+        "time": 16.602,
+        "type": "impact",
+        "energy": 0.577
+      },
+      {
+        "time": 18.158,
+        "type": "impact",
+        "energy": 0.258
+      },
+      {
+        "time": 21.223,
+        "type": "whoosh",
+        "energy": 0.287
+      },
+      {
+        "time": 21.943,
+        "type": "transition",
+        "energy": 0.995
+      },
+      {
+        "time": 23.615,
+        "type": "impact",
+        "energy": 0.342
+      }
+    ],
+    "beat_times": [
+      0.116,
+      0.441,
+      0.766,
+      1.161,
+      1.533,
+      1.858,
+      2.159,
+      2.485,
+      2.833,
+      3.181,
+      3.506,
+      3.855,
+      4.203,
+      4.551,
+      4.876,
+      5.224,
+      5.55,
+      5.898,
+      6.246,
+      6.594,
+      6.92,
+      7.245,
+      7.593,
+      7.941,
+      8.29,
+      8.638,
+      8.986,
+      9.311,
+      9.66,
+      9.985,
+      10.333,
+      10.658,
+      10.983,
+      11.331,
+      11.68,
+      12.028,
+      12.376,
+      12.725,
+      13.05,
+      13.375,
+      13.746,
+      14.118,
+      14.443,
+      14.768,
+      15.093,
+      15.441,
+      15.79,
+      16.138,
+      16.486,
+      16.811,
+      17.16,
+      17.508,
+      17.833,
+      18.181,
+      18.506,
+      18.855,
+      19.203,
+      19.528,
+      19.876,
+      20.225,
+      20.55,
+      20.898,
+      21.246,
+      21.595,
+      21.943,
+      22.268,
+      22.616,
+      22.941,
+      23.29,
+      23.615,
+      23.94,
+      24.288,
+      24.636,
+      24.985,
+      25.333,
+      25.681,
+      26.03,
+      26.355,
+      26.68,
+      27.028,
+      27.4,
+      27.725
+    ],
+    "dominant_tempo": 172.3,
+    "music_coverage": 0.434,
+    "energy_timeline": [
+      {
+        "time": 0.0,
+        "energy": 0.0
+      },
+      {
+        "time": 0.5,
+        "energy": 0.544
+      },
+      {
+        "time": 1.0,
+        "energy": 0.533
+      },
+      {
+        "time": 1.5,
+        "energy": 0.475
+      },
+      {
+        "time": 2.0,
+        "energy": 0.357
+      },
+      {
+        "time": 2.5,
+        "energy": 0.186
+      },
+      {
+        "time": 3.0,
+        "energy": 0.742
+      },
+      {
+        "time": 3.5,
+        "energy": 0.644
+      },
+      {
+        "time": 4.0,
+        "energy": 0.491
+      },
+      {
+        "time": 4.5,
+        "energy": 0.324
+      },
+      {
+        "time": 5.0,
+        "energy": 0.17
+      },
+      {
+        "time": 5.5,
+        "energy": 0.129
+      },
+      {
+        "time": 6.0,
+        "energy": 0.319
+      },
+      {
+        "time": 6.5,
+        "energy": 0.294
+      },
+      {
+        "time": 7.0,
+        "energy": 0.273
+      },
+      {
+        "time": 7.5,
+        "energy": 0.03
+      },
+      {
+        "time": 8.0,
+        "energy": 0.127
+      },
+      {
+        "time": 8.5,
+        "energy": 0.208
+      },
+      {
+        "time": 9.0,
+        "energy": 0.421
+      },
+      {
+        "time": 9.5,
+        "energy": 0.197
+      },
+      {
+        "time": 10.0,
+        "energy": 0.184
+      },
+      {
+        "time": 10.5,
+        "energy": 0.598
+      },
+      {
+        "time": 11.0,
+        "energy": 0.579
+      },
+      {
+        "time": 11.5,
+        "energy": 0.698
+      },
+      {
+        "time": 12.0,
+        "energy": 0.519
+      },
+      {
+        "time": 12.5,
+        "energy": 0.156
+      },
+      {
+        "time": 13.0,
+        "energy": 0.16
+      },
+      {
+        "time": 13.5,
+        "energy": 0.63
+      },
+      {
+        "time": 14.0,
+        "energy": 0.283
+      },
+      {
+        "time": 14.5,
+        "energy": 0.421
+      },
+      {
+        "time": 15.0,
+        "energy": 0.307
+      },
+      {
+        "time": 15.5,
+        "energy": 0.144
+      },
+      {
+        "time": 16.0,
+        "energy": 0.153
+      },
+      {
+        "time": 16.5,
+        "energy": 0.396
+      },
+      {
+        "time": 17.0,
+        "energy": 0.218
+      },
+      {
+        "time": 17.5,
+        "energy": 0.365
+      },
+      {
+        "time": 18.0,
+        "energy": 0.035
+      },
+      {
+        "time": 18.5,
+        "energy": 0.182
+      },
+      {
+        "time": 19.0,
+        "energy": 0.212
+      },
+      {
+        "time": 19.5,
+        "energy": 0.645
+      },
+      {
+        "time": 20.0,
+        "energy": 0.313
+      },
+      {
+        "time": 20.5,
+        "energy": 0.211
+      },
+      {
+        "time": 21.0,
+        "energy": 0.157
+      },
+      {
+        "time": 21.5,
+        "energy": 0.211
+      },
+      {
+        "time": 22.0,
+        "energy": 0.789
+      },
+      {
+        "time": 22.5,
+        "energy": 0.402
+      },
+      {
+        "time": 23.0,
+        "energy": 0.181
+      },
+      {
+        "time": 23.5,
+        "energy": 0.158
+      },
+      {
+        "time": 24.0,
+        "energy": 0.78
+      },
+      {
+        "time": 24.5,
+        "energy": 0.228
+      },
+      {
+        "time": 25.0,
+        "energy": 0.429
+      },
+      {
+        "time": 25.5,
+        "energy": 0.256
+      },
+      {
+        "time": 26.0,
+        "energy": 0.262
+      },
+      {
+        "time": 26.5,
+        "energy": 0.306
+      },
+      {
+        "time": 27.0,
+        "energy": 0.579
+      },
+      {
+        "time": 27.5,
+        "energy": 0.545
+      },
+      {
+        "time": 28.0,
+        "energy": 0.308
+      },
+      {
+        "time": 28.5,
+        "energy": 0.15
+      }
+    ]
+  },
+  "viral_structure": {
+    "hook_time": 0.0,
+    "hook_type": "statement",
+    "pattern_interrupts": [],
+    "loop_point": 25.92,
+    "information_density": "medium",
+    "tone": "entertainment"
+  },
+  "subtitle_visual": {
+    "font_size_px": 0,
+    "font_size_relative": 0.0,
+    "text_color_hex": "#ffffff",
+    "stroke_detected": false,
+    "stroke_width_px": 0,
+    "stroke_color_hex": "#000000",
+    "glow_detected": false,
+    "glow_color_hex": null,
+    "background_box_detected": false,
+    "background_box_color_hex": null,
+    "background_box_opacity": null,
+    "multicolor_lines": false,
+    "line_colors_hex": [],
+    "confidence": "low",
+    "analysis_mode": "agent_review_preferred",
+    "agent_review": {
+      "preferred_source": "heuristic_only",
+      "review_status": "skipped",
+      "reason": "no_subtitle_regions",
+      "samples_dir": "/workspace/team-info/outputs/viral-analysis/転職_20260403/転職活動が失敗する人10選 #転職 #雑学/subtitle_style_samples",
+      "sample_count": 0,
+      "manifest_path": null,
+      "review_template_path": null
+    }
+  }
+}

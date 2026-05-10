@@ -5,7 +5,7 @@
 - 後続フェーズが参照しやすい `viral_patterns.md` を作る
 
 ## 入力
-- One batch folder under `inputs/viral-analysis/output/[pattern]_YYYYMMDD/`
+- One batch folder under `outputs/viral-analysis/[pattern]_YYYYMMDD/`
 - All nested `analysis.json` files in that batch
 
 ## 出力

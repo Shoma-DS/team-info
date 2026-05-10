@@ -8,7 +8,7 @@ analyze-video: ショート動画3層解析 → analysis.json 生成
   3. 上書き再解析    → 既存の分析バッチ一覧から選択して全動画を再解析
 
 出力構造:
-  inputs/viral-analysis/output/
+  outputs/viral-analysis/
   └── パターン名_YYYYMMDD/
       ├── {動画名}/
       │   ├── analysis.json

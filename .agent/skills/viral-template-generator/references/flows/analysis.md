@@ -6,10 +6,10 @@
 
 ## 入力
 - Default inbox: `inputs/viral-analysis/未分析/`
-- Existing batches: `inputs/viral-analysis/output/`
+- Existing batches: `outputs/viral-analysis/`
 
 ## 出力
-- `inputs/viral-analysis/output/[pattern]_YYYYMMDD/[video-title]/analysis.json`
+- `outputs/viral-analysis/[pattern]_YYYYMMDD/[video-title]/analysis.json`
 - After success, move source videos to `inputs/viral-analysis/分析済み/[pattern]/`
 
 ## 開始前チェック
