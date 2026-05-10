@@ -1947,26 +1947,10 @@ async function pollImageGeneration() {
     imageGenerationJobId = imageGenerationJob.job_id;
     renderImageGenerationProgress(imageGenerationJob);
 
-    // サーバー側のジョブ完了イベントが遅れても、下書きに画像が入ったら即時反映する。
-    const reflected = await refreshDraftAfterImageGeneration(draftId, data.status === 'completed');
-    if (reflected) {
-      imageGenerationJob = {
-        ...imageGenerationJob,
-        status: 'completed',
-        progress: 100,
-        message: '画像生成完了。プレビューに反映しました。',
-      };
-      clearInterval(imageGenerationTimer);
-      imageGenerationTimer = null;
-      renderImageGenerationProgress(imageGenerationJob);
-      showToast('✓ 画像をプレビューに反映しました');
-      pendingAutoPostAfterImage = null;
-      return;
-    }
-
     if (data.status === 'failed') {
       clearInterval(imageGenerationTimer);
       imageGenerationTimer = null;
+      imageGenerationJobId = null;
       pendingAutoPostAfterImage = null;
       showToast(`画像生成失敗: ${data.message || '不明'}`, true);
       return;
@@ -1974,11 +1958,15 @@ async function pollImageGeneration() {
     if (data.status === 'cancelled') {
       clearInterval(imageGenerationTimer);
       imageGenerationTimer = null;
+      imageGenerationJobId = null;
       pendingAutoPostAfterImage = null;
       showToast('画像生成を停止しました');
       return;
     }
     if (data.status === 'completed') {
+      clearInterval(imageGenerationTimer);
+      imageGenerationTimer = null;
+      imageGenerationJobId = null;
       const applied = applyGeneratedImageUrlToDraft(draftId, data.image_url || imageGenerationJob.image_url || '');
       if (applied) {
         imageGenerationJob = {
@@ -1990,12 +1978,11 @@ async function pollImageGeneration() {
         renderImageGenerationProgress(imageGenerationJob);
         showToast('✓ 画像をプレビューに反映しました');
       }
-      clearInterval(imageGenerationTimer);
-      imageGenerationTimer = null;
     }
   } catch (e) {
     clearInterval(imageGenerationTimer);
     imageGenerationTimer = null;
+    imageGenerationJobId = null;
     showToast(`画像生成確認失敗: ${e.message}`, true);
   }
 }
@@ -2091,28 +2078,30 @@ async function pollImageRewrite() {
     if (data.status === 'completed') {
       clearInterval(imageRewriteTimer);
       imageRewriteTimer = null;
+      const finishedJob = { ...imageRewriteJob, status: 'completed', progress: 100 };
+      imageRewriteJob = null; // ポーリング停止を確実にする
+
       const draftId = data.draft_id || imageRewriteDraftId;
       const rewrittenPrompt = (data.prompt || '').trim();
+      
       if (rewrittenPrompt) {
         const textarea = document.getElementById('image-prompt-textarea');
         if (textarea) textarea.value = rewrittenPrompt;
       }
+      
       if (draftId && rewrittenPrompt) {
         applyRewrittenImagePrompt(draftId, rewrittenPrompt, data.image_prompt || null);
       }
+      
       if (draftId) await refreshDraftAfterImageGeneration(draftId, true);
-      if (draftId && rewrittenPrompt) {
-        applyRewrittenImagePrompt(draftId, rewrittenPrompt, data.image_prompt || null);
-      }
-      if (rewrittenPrompt) {
-        const textarea = document.getElementById('image-prompt-textarea');
-        if (textarea) textarea.value = rewrittenPrompt;
-      }
+      
       setImageRewriteBusy(false);
       const helpEl = document.getElementById('image-modal-help');
-      if (helpEl) helpEl.textContent = data.changed === false
-        ? `${labels.label}完了。ただし結果は元の内容と同じでした。指示を具体化して再実行してください。`
-        : `${labels.label}完了。結果は保存済みで、プレビューにも反映しました。`;
+      if (helpEl) {
+        helpEl.textContent = data.changed === false
+          ? `${labels.label}完了。ただし結果は元の内容と同じでした。指示を具体化して再実行してください。`
+          : `${labels.label}完了。結果は保存済みで、プレビューにも反映しました。`;
+      }
       imageRewriteDraftId = null;
       showToast(data.account_memory_error
         ? `✓ ${labels.label}完了。今後の注意保存は失敗: ${data.account_memory_error}`
@@ -2124,6 +2113,7 @@ async function pollImageRewrite() {
     } else if (data.status === 'cancelled') {
       clearInterval(imageRewriteTimer);
       imageRewriteTimer = null;
+      imageRewriteJob = null;
       setImageRewriteBusy(false);
       imageRewriteDraftId = null;
       const helpEl = document.getElementById('image-modal-help');
@@ -2132,6 +2122,7 @@ async function pollImageRewrite() {
     } else if (data.status === 'failed') {
       clearInterval(imageRewriteTimer);
       imageRewriteTimer = null;
+      imageRewriteJob = null;
       setImageRewriteBusy(false);
       imageRewriteDraftId = null;
       const helpEl = document.getElementById('image-modal-help');

@@ -145,6 +145,24 @@ def save_tokens_to_settings(account_cfg, access_token, refresh_token=None):
         print(f"⚠️  .env の更新に失敗しました: {e}", file=sys.stderr)
 
 
+def oauth2_setup_command(account_id):
+    return (
+        "python3 "
+        "\"$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/oauth2_setup.py\" "
+        f"--account {account_id}"
+    )
+
+
+def print_oauth2_reauth_message(account_id, reason):
+    print(
+        f"❌ X OAuth 2.0 認証に失敗しました: {reason}\n"
+        f"   X Developer Portal のOAuth設定、認可スコープ、または保存済みトークンが無効な可能性があります。\n"
+        f"   以下を実行して再認証してください:\n"
+        f"   {oauth2_setup_command(account_id)}",
+        file=sys.stderr,
+    )
+
+
 def refresh_oauth2_token(account_cfg):
     """リフレッシュトークンを使って新しいアクセストークンを取得する。
     成功時は (access_token, None)、失敗時は (None, error_message) を返す。"""
@@ -722,7 +740,14 @@ def main():
             )
             sys.exit(1)
         bookmarks_client = build_bookmarks_client(account_cfg, access_token=new_token)
-        profile = fetch_account_profile(bookmarks_client, account_cfg, user_auth=False)
+        try:
+            profile = fetch_account_profile(bookmarks_client, account_cfg, user_auth=False)
+        except tweepy.Unauthorized:
+            print_oauth2_reauth_message(
+                args.account,
+                "アクセストークン更新後も /2/users/me が401を返しました",
+            )
+            sys.exit(1)
     print(f"👤 @{profile['x_username']} (ID: {profile['x_user_id']})")
 
     account_file = ensure_account_file(
@@ -740,6 +765,9 @@ def main():
     print(f"📚 ブックマーク取得中... (最大{args.count}件)")
     try:
         bookmarks = fetch_bookmarks(bookmarks_client, args.count, account_cfg, profile["x_user_id"])
+    except tweepy.Unauthorized:
+        print_oauth2_reauth_message(args.account, "ブックマーク取得APIが401を返しました")
+        sys.exit(1)
     except RuntimeError as exc:
         print(f"❌ {exc}", file=sys.stderr)
         sys.exit(1)

@@ -32,7 +32,7 @@ echo "🚀 Xプレビューサーバーを起動します..."
 echo "🔗 固定URL: ${PUBLIC_URL}"
 
 # ------ 既存プロセスのクリーンアップ ------
-EXISTING_PID=$(lsof -ti tcp:${PORT} 2>/dev/null || true)
+EXISTING_PID=$(lsof -tiTCP:${PORT} -sTCP:LISTEN 2>/dev/null || true)
 if [ -n "$EXISTING_PID" ]; then
   echo "⚠️  ポート ${PORT} が使用中です。既存プロセス(PID: ${EXISTING_PID})を終了します..."
   kill "$EXISTING_PID" 2>/dev/null || true
