@@ -1,0 +1,14 @@
+[mcp_servers.chrome-devtools]
+args = [
+    "-y",
+    "chrome-devtools-mcp@latest",
+]
+command = "npx"
+
+[mcp_servers.chrome-devtools.env]
+CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS = "1"
+CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS = "1"
+
+[mcp_servers.voicevox]
+args = ["mcp-servers/voicevox/dist/index.js"]
+command = "node"
