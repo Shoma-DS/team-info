@@ -81,3 +81,5 @@ Windows では、WSL2 Ubuntu 側に Docker Engine + Compose v2 を入れて、`r
 ```powershell
 [System.Environment]::SetEnvironmentVariable("TEAM_INFO_WSL_DISTRO", "Ubuntu", "User")
 ```
+
+test
