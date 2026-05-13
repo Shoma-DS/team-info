@@ -89,6 +89,17 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/s
 - 添付フォルダは vault の `.obsidian/app.json` を読み、root 保存なら Claudian 側は空文字のままにする。
 - upstream の plugin build 手順は残すが、通常導入は release asset 取得を優先する。
 
+## 他フォルダから同じ Obsidian vault を使う
+
+- このPCの統合済み vault は `/Users/deguchishouma/Obsidian/agent-vault`。
+- team-info の互換パス `$TEAM_INFO_ROOT/personal/<account>/obsidian/claude-obsidian/` は、統合後は上記 vault への symlink になってよい。
+- 別リポジトリや任意フォルダで Codex / Claude Code を使う場合、そのフォルダの `AGENTS.md` または `CLAUDE.md` に次の方針を書く。
+  - 共有 Obsidian vault は `/Users/deguchishouma/Obsidian/agent-vault`。
+  - 作業開始時に必要なら `wiki/hot.md` を読み、索引が必要なら `wiki/index.md` を読む。
+  - 作業知見を保存する場合は、その作業フォルダに新しい vault を作らず、共有 vault の `wiki/` に保存する。
+  - 秘密情報、顧客情報、未公開データを保存する前はユーザー確認を取る。
+- Codex 側で claude-obsidian skills が見えない場合は、team-info から `bootstrap --setup-multi-agent` を実行して `~/.codex/skills/claude-obsidian` を共有 vault の `skills/` に向ける。ただしホーム配下へ symlink を作るため、事前にユーザー確認を取る。
+
 ## install がやること
 - `~/Library/Application Support/obsidian/obsidian.json` から active vault を見つける
 - `~/Library/Application Support/obsidian/obsidian.json` に `cli: true` を反映する

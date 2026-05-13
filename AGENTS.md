@@ -164,6 +164,29 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
 - ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
 - Git関連操作を行う場合は、必ず `.agent/skills/common/git-workflow/SKILL.md` を使う。
 
+## Codex Practical Operations Rule
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+- Codex / Claude Code を単なるチャット相手ではなく、フォルダ内で「読む・作る・直す・確認する・保存する」作業環境として扱う。
+- 反復できる作業は、入力、処理、出力、検証、失敗時の扱いを分けて整理する。
+- 2回以上繰り返す作業、API / Excel / Google Drive / ブラウザ確認 / Git など複数工程をまたぐ作業は、Skill 化候補として扱う。
+- Webアプリ、LP、ダッシュボード、管理画面を作った場合は、コードだけで完了にせず、可能な範囲でブラウザ表示、主要操作、空データ、モバイル幅を確認する。
+- 定期実行や自動化を設計するときは、空データで既存成果物を上書きしない、秘密情報をログに出さない、変更がない場合はコミットしない、失敗工程を報告する、外部送信や Git push は必要な確認を取る、という失敗時ルールを入れる。
+- 作業後に次回も使える知見が出た場合は、成果物だけでなく、手順、詰まり、再利用できる判断基準を Obsidian または該当 Skill に残す。
+- ツール優劣の断定や煽り文句は運用ルールにしない。採用するのは、team-info の既存ルールと矛盾しない再現可能な作業パターンだけにする。
+
+## Shared Obsidian Knowledge Rule
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+- このPCの共有 Obsidian 知識ベースの正本は `/Users/deguchishouma/Obsidian/agent-vault` とする。
+- team-info からは `personal/<account>/obsidian/claude-obsidian/` が互換パスとして使われるが、統合後の実体は上記 vault を指す。
+- 他のフォルダや別リポジトリで作業する場合も、ユーザーが「Obsidianを使って」「保存して」「前の知見を参照して」などと依頼したら、まず `/Users/deguchishouma/Obsidian/agent-vault/wiki/hot.md` と必要に応じて `wiki/index.md` を読む。
+- 他フォルダの作業知見を保存するときは、そのフォルダ内へ勝手に Obsidian vault を新設せず、原則として `/Users/deguchishouma/Obsidian/agent-vault/wiki/` に保存する。
+- 他フォルダ固有の秘密情報、顧客情報、未公開データを Obsidian に保存する前は、保存範囲を要約し、必要ならユーザー確認を取る。
+- 他フォルダに `AGENTS.md` や `CLAUDE.md` を置ける場合は、「共有 Obsidian vault は `/Users/deguchishouma/Obsidian/agent-vault`。作業開始時は `wiki/hot.md` を読み、保存時は同 vault に残す」と明記する。
+
 ## Code File Header Rule
 
 **このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**

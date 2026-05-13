@@ -161,6 +161,19 @@ live in `skills/`. If they are not auto-discovered, run this from team-info:
 python "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/obsidian-claudian/scripts/team_info_obsidian_claudian.py" bootstrap --setup-multi-agent
 ```
 
+## Cross-folder usage
+
+When working in another repository or folder, keep this vault as the shared
+memory layer instead of creating a new vault in that project.
+
+Add a short note to that project's `AGENTS.md` or `CLAUDE.md`:
+
+- Shared Obsidian vault: `{vault_path}`
+- Read `{vault_path}/wiki/hot.md` when prior context is useful.
+- Read `{vault_path}/wiki/index.md` when an index is needed.
+- Save durable workflow lessons into `{vault_path}/wiki/`.
+- Ask before saving secrets, customer data, or unpublished material.
+
 Keep runtime knowledge in this vault. Do not move machine-specific notes into
 shared team-info folders unless the user explicitly asks to share them.
 """
