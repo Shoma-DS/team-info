@@ -95,6 +95,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | vscode-extension-workflow | VS Code 系エディタの拡張機能を作る・改造する・ローカル反映する作業を、環境差分で迷わず進める | `.agent/skills/common/vscode-extension-workflow/SKILL.md` |
 | gdrive-copy | 出力ファイルを Google Drive へコピーする | `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` |
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
+| oyaji-narration-writer | 「おやじ」と呼ばれる静かな知識の案内人として、ですます調を使わず、教養系・睡眠導入系の原稿を耳で聞きやすい朗読原稿へ整える | `.agent/skills/common/oyaji-narration-writer/SKILL.md` |
 | gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/personal/deguchishouma/gws-sheets-html-dashboard/SKILL.md` |
 | gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする。`1S` 列へ書く場合は非重複の空欄を `1S予定` に補完する | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
 | gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選ぶ。平日候補と休日候補の仮予約を複数作成し、返信文生成と返答後の本予約化まで行う | `.agent/skills/personal/deguchishouma/gws-calendar-booking-reply/SKILL.md` |
@@ -213,6 +214,8 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 歌詞字幕・カラオケ動画を作りたい | `lyric-video-production` |
 | 台本から音声を生成したい | `voice-script-launcher` |
 | YouTube台本を書きたい | `script-writing-accounts-aware` |
+| おやじ話法で教養朗読原稿を書きたい | `oyaji-narration-writer` |
+| ですます調なしで睡眠導入向けナレーションを整えたい | `oyaji-narration-writer` |
 | Remotionの縦ショートに効果音を入れたい | `remotion-short-sound-design` |
 | 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
