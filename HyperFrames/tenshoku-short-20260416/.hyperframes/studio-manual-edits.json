@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "edits": [
+    {
+      "kind": "path-offset",
+      "target": {
+        "sourceFile": "index.html",
+        "selector": "#subtitle",
+        "id": "subtitle"
+      },
+      "x": 0,
+      "y": 371,
+      "updatedAt": "2026-05-14T01:10:43.266Z"
+    },
+    {
+      "kind": "path-offset",
+      "target": {
+        "sourceFile": "index.html",
+        "selector": "#section-title",
+        "id": "section-title"
+      },
+      "x": 0,
+      "y": 0,
+      "updatedAt": "2026-05-14T01:14:49.604Z"
+    },
+    {
+      "kind": "path-offset",
+      "target": {
+        "sourceFile": "index.html",
+        "selector": "#hook-image",
+        "id": "hook-image"
+      },
+      "x": 0,
+      "y": -121,
+      "updatedAt": "2026-05-14T03:58:05.530Z"
+    },
+    {
+      "kind": "path-offset",
+      "target": {
+        "sourceFile": "index.html",
+        "selector": "#hook-text",
+        "id": "hook-text"
+      },
+      "x": 0,
+      "y": -250,
+      "updatedAt": "2026-05-14T03:58:47.533Z"
+    },
+    {
+      "kind": "box-size",
+      "target": {
+        "sourceFile": "index.html",
+        "selector": "#hook-text",
+        "id": "hook-text"
+      },
+      "width": 1080,
+      "height": 307,
+      "updatedAt": "2026-05-14T03:59:09.009Z"
+    }
+  ]
+}

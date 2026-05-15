@@ -1,0 +1,22 @@
+{
+  "name": "team-info-hyperframes-tenshoku-short-20260416",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HyperFrames reproduction of the existing Remotion TenshokuShort20260416 video.",
+  "scripts": {
+    "compositions": "hyperframes compositions",
+    "doctor": "hyperframes doctor",
+    "inspect": "hyperframes inspect --at 0,8,12,31,52,72,79 --timeout 12000",
+    "lint": "hyperframes lint",
+    "preview": "hyperframes preview",
+    "preview:agents": "python scripts/ask_agents_bridge.py",
+    "render": "hyperframes render --quality draft --workers 1 --max-concurrent-renders 1 --output ../../outputs/hyperframes/tenshoku-short-20260416.mp4",
+    "render:high": "hyperframes render --quality high --workers 1 --max-concurrent-renders 1 --output ../../outputs/hyperframes/tenshoku-short-20260416-high.mp4",
+    "render:png": "hyperframes render --format png-sequence --workers 1 --output ../../outputs/hyperframes/tenshoku-short-20260416-frames"
+  },
+  "devDependencies": {
+    "hyperframes": "0.6.6",
+    "node-addon-api": "8.5.0",
+    "node-gyp": "12.1.0"
+  }
+}
