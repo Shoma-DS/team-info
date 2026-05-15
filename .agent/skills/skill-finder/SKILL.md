@@ -100,6 +100,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする。`1S` 列へ書く場合は非重複の空欄を `1S予定` に補完する | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
 | gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選ぶ。平日候補と休日候補の仮予約を複数作成し、返信文生成と返答後の本予約化まで行う | `.agent/skills/personal/deguchishouma/gws-calendar-booking-reply/SKILL.md` |
 | gws-appscript-webapp-deployer | gws CLI でローカルの `Code.gs` と `appsscript.json` を Apps Script Web アプリへ配備し、Apps Script API 有効化確認、OAuth 再認証、全文のデプロイ URL 回収と配備一覧 Markdown 更新まで行う | `.agent/skills/personal/deguchishouma/gws-appscript-webapp-deployer/SKILL.md` |
+| jmty-customer-status-sync | ジモティー顧客管理シートの `1S予定` / `面接予定` を Google カレンダーと Loom 証跡で確認し、`1S済み` / `面接済み` へ更新する。後日予定がある行は色付け対象外にする | `.agent/skills/personal/deguchishouma/jmty-customer-status-sync/SKILL.md` |
 | proline-gas-builder | NotebookLM MCP のプロラインフリーマニュアルを最優先の正本として確認し、`personal/deguchishouma/gas/proline/` 配下へ、友だち追加、ブロック、解除、フォーム送信、紹介者コード連携などの GAS を設計・実装し、デプロイ後は配備台帳も更新し、全文のデプロイ URL と完成形 URL 例まで返す | `.agent/skills/personal/deguchishouma/proline-gas-builder/SKILL.md` |
 | agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
 
@@ -117,7 +118,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 🌐 web-design/frontend-design/
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| frontend-design | 高品質なフロントエンドUIを制作する | `.agent/skills/web-design/frontend-design/SKILL.md` |
+| frontend-design | 高品質なフロントエンドUIを制作する。画像主導LPでは生成画像を主表示にし、CTAなど必要部分だけコード化する | `.agent/skills/web-design/frontend-design/SKILL.md` |
 | figma-lp-design | Figma MCP を使ってLPデザインをFigma上で直接制作する（ヒアリング→構成→デザイン→エクスポート） | `.agent/skills/web-design/figma-lp-design/SKILL.md` |
 | gsap-awwwards-website | GSAPスクロール演出付きLPを開発/保守する | `.agent/skills/web-design/frontend-design/gsap-awwwards-website/SKILL.md` |
 | clone-website | browser automation を使ってサイトを pixel-perfect に再構築する。global setup へ依存を載せず、bundled Next.js 16 テンプレを初期化して複製作業に入る | `.agent/skills/web-design/frontend-design/clone-website/SKILL.md` |

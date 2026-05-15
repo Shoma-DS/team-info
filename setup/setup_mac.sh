@@ -40,6 +40,8 @@ TEAM_INFO_ENV_FILE="$TEAM_INFO_ENV_DIR/env.sh"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 TEAM_INFO_LAUNCH_AGENT_PLIST="$LAUNCH_AGENTS_DIR/com.team-info.env.plist"
 CODEX_NPM_PACKAGE="@openai/codex"
+FREEBUFF_NPM_PACKAGE="freebuff"
+NPM_USER_PREFIX="$HOME/.local"
 
 append_line_if_missing() {
   local file="$1"
@@ -75,6 +77,11 @@ write_team_info_env_file() {
   mkdir -p "$TEAM_INFO_ENV_DIR"
   cat > "$TEAM_INFO_ENV_FILE" <<EOF
 export TEAM_INFO_ROOT="$TEAM_INFO_ROOT"
+
+case ":\$PATH:" in
+  *":\$HOME/.local/bin:"*) ;;
+  *) export PATH="\$HOME/.local/bin:\$PATH" ;;
+esac
 
 # チームツール起動エイリアス
 alias setup='bash "\$TEAM_INFO_ROOT/setup/setup_all.cmd"'
@@ -122,6 +129,57 @@ EOF
   launchctl bootout "$gui_domain" "$TEAM_INFO_LAUNCH_AGENT_PLIST" >/dev/null 2>&1 || true
   launchctl bootstrap "$gui_domain" "$TEAM_INFO_LAUNCH_AGENT_PLIST" >/dev/null 2>&1 || return 1
   launchctl kickstart -k "$gui_domain/com.team-info.env" >/dev/null 2>&1 || true
+}
+
+ensure_path_entry() {
+  local entry="$1"
+  case ":$PATH:" in
+    *":$entry:"*) ;;
+    *) export PATH="$entry:$PATH" ;;
+  esac
+}
+
+ensure_npm_global_install_target() {
+  local global_root
+
+  mkdir -p "$NPM_USER_PREFIX/bin"
+  ensure_path_entry "$NPM_USER_PREFIX/bin"
+
+  global_root="$(npm root -g 2>/dev/null || true)"
+  if [[ -z "$global_root" || ! -w "$global_root" ]]; then
+    export NPM_CONFIG_PREFIX="$NPM_USER_PREFIX"
+    warn "npm の global install 先に書き込めません: ${global_root:-unknown}"
+    info "sudo を使わず $NPM_CONFIG_PREFIX に npm CLI を入れます"
+  fi
+}
+
+install_npm_cli() {
+  local label="$1"
+  local package_name="$2"
+  local command_name="$3"
+  local installed_path
+
+  if ! command -v npm &>/dev/null; then
+    warn "npm が見つかりません。ターミナル再起動後に手動で実行してください:"
+    warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX\" npm install -g $package_name"
+    return
+  fi
+
+  if command -v "$command_name" &>/dev/null; then
+    info "$label を更新します..."
+  else
+    info "$label をグローバルに入れます..."
+  fi
+
+  ensure_npm_global_install_target
+  if npm install -g "$package_name"; then
+    hash -r 2>/dev/null || true
+    installed_path="$(command -v "$command_name" 2>/dev/null || true)"
+    success "$label インストール完了: ${installed_path:-path unknown}"
+  else
+    warn "$label のインストールに失敗しました。あとで次を実行してください:"
+    warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX\" npm install -g $package_name"
+  fi
 }
 
 get_python_user_bin() {
@@ -281,27 +339,22 @@ info "Node.js: $(node --version), npm: $(npm --version)"
 
 # ── 9. Codex CLI ───────────────────────────────────────────────────────────────
 step "9. Codex CLI"
-if command -v codex &>/dev/null; then
-  info "Codex CLI を更新します..."
-else
-  info "Codex CLI をグローバルに入れます..."
-fi
-if npm install -g "$CODEX_NPM_PACKAGE"; then
-  success "Codex CLI インストール完了: $(codex --version 2>/dev/null || echo 'version unknown')"
-else
-  warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CODEX_NPM_PACKAGE を実行してください。"
-fi
+install_npm_cli "Codex CLI" "$CODEX_NPM_PACKAGE" "codex"
 
-# ── 10. Git hooks ──────────────────────────────────────────────────────────────
-step "10. Git hooks"
+# ── 10. Freebuff CLI ───────────────────────────────────────────────────────────
+step "10. Freebuff CLI (無料AIエージェント)"
+install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"
+
+# ── 11. Git hooks ──────────────────────────────────────────────────────────────
+step "11. Git hooks"
 if git -C "$TEAM_INFO_ROOT" config core.hooksPath .githooks; then
   success "core.hooksPath を .githooks に設定しました"
 else
   warn "core.hooksPath の設定に失敗しました。手動で 'git config core.hooksPath .githooks' を実行してください。"
 fi
 
-# ── 11. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
-step "11. TEAM_INFO_ROOT"
+# ── 12. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
+step "12. TEAM_INFO_ROOT"
 export TEAM_INFO_ROOT
 write_team_info_env_file
 ensure_shell_loads_team_info_env
@@ -317,8 +370,8 @@ else
   warn "TEAM_INFO_ROOT の保存に失敗しました。必要なら手動で設定してください。"
 fi
 
-# ── 12. 遅延セットアップの案内 ───────────────────────────────────────────────
-step "12. 遅延セットアップの案内"
+# ── 13. 遅延セットアップの案内 ───────────────────────────────────────────────
+step "13. 遅延セットアップの案内"
 warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
 warn "  - Remotion / VOICEVOX / Docker runtime"
 warn "  - Canva 補助などの追加開発依存"
@@ -326,8 +379,8 @@ warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
 warn "  - shared-agent-assets の同期処理"
 warn "  - clone-website 用の Node 24 workspace 依存"
 
-# ── 13. Docker (任意) ─────────────────────────────────────────────────────
-step "13. Docker (任意)"
+# ── 14. Docker (任意) ─────────────────────────────────────────────────────
+step "14. Docker (任意)"
 if command -v docker &>/dev/null; then
   success "Docker インストール済み: $(docker --version)"
   warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
@@ -337,9 +390,9 @@ else
   warn "→ macOS では例: brew install docker docker-compose colima && colima start"
 fi
 
-# ── 14. セットアップ検証 ─────────────────────────────────────────────────────
+# ── 15. セットアップ検証 ─────────────────────────────────────────────────────
 VERIFY_STATUS=0
-step "14. セットアップ検証"
+step "15. セットアップ検証"
 VERIFY_SCRIPT="$SCRIPT_DIR/verify_setup.py"
 if [[ -f "$VERIFY_SCRIPT" ]]; then
   if "$PYTHON311" "$VERIFY_SCRIPT" --repo-root "$TEAM_INFO_ROOT"; then
@@ -372,12 +425,14 @@ echo "主要パス:"
 echo "  Python:        $PYTHON311"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
 echo "  Codex CLI:     $(command -v codex 2>/dev/null || echo '要: setup 再実行か手動インストール')"
+echo "  Freebuff CLI:  $(command -v freebuff 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
 echo "  TEAM_INFO_ENV: $TEAM_INFO_ENV_FILE"
 echo "  検証結果:      $([[ "$VERIFY_STATUS" -eq 0 ]] && echo '成功' || echo '要確認')"
 echo ""
 echo "次のステップ:"
 echo "  ・ターミナルを再起動して PATH を再読み込みしてください"
+echo "  ・課金なしでAIエージェントを使う場合は repo 内で freebuff を実行してください"
 echo "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
 echo "  ・Agent Reach は初回実行時に自動セットアップされます"
 echo "  ・Claudian は必要になったら /claudian を実行してください"

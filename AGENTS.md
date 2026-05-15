@@ -196,6 +196,17 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
 - コメントは 2-4 行程度を目安にし、入出力、主な責務、使いどころが分かるように書くこと。
 - コメント記法は言語に合わせる。例: JavaScript / TypeScript / GAS は `/** ... */` または `//`、Python は `#` を使う。
 
+## Windows Compatibility / Encoding Rule
+
+**このルールは Claude・Codex・Gemini など、すべての AI エージェントに適用される。**
+
+- Windows で実行される `.ps1` / `.cmd` / `.bat` / `.vbs` / `.reg` / `.wsl` / `Dockerfile` / CI 設定では、実行に関わる文字列、識別子、ファイル名、環境変数名、引数、ログの機械判定部分を原則 ASCII にする。
+- Windows で日本語や UTF-8 テキストを扱う作業は、可能な限り Windows PowerShell 5.1 ではなく PowerShell 7 (`pwsh`) を前提にする。setup では `pwsh` を導入する。
+- Windows PowerShell 5.1 で読む `.ps1` に非 ASCII が必要な場合は、UTF-8 BOM 付きで保存し、冒頭で `[Console]::OutputEncoding` と `$OutputEncoding` を UTF-8 に設定する。
+- Windows 向けスクリプトでは、罫線、絵文字、全角記号、スマートクォート、長音風ダッシュなど、表示専用の非 ASCII 装飾を使わない。見出しは `=== Step ===` のような ASCII にする。
+- Windows ユーザーへ渡すコマンド例は、パス・オプション・プレースホルダーを ASCII に寄せる。日本語説明はチャット本文や Markdown の本文に置き、コマンド本体へ混ぜない。
+- Windows で動く Python / Node / PowerShell からファイルを読む・書く場合は、可能な限り `encoding="utf-8"` や `-Encoding UTF8` を明示する。
+
 ## Command Path Rules
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
 - ユーザーにターミナルコマンドを渡すときは、可能な限りそのまま実行できる1行コマンドとして整え、macOS では `pbcopy` でクリップボード保存まで行う。クリップボード保存に失敗した場合や、秘密情報をユーザー自身が埋める必要がある場合は、チャット本文にもコピーしやすい形で提示する。

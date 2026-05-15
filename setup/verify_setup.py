@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 
-REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "gh", "rclone")
+REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "freebuff", "gh", "rclone")
 
 
 def _run(
@@ -134,6 +134,31 @@ def _check_python_toolchain(failures: list[str]) -> None:
         failures.append("setup 検証は Python 3.11 系で実行してください。")
 
 
+def _check_windows_utf8_tooling(failures: list[str]) -> None:
+    if sys.platform != "win32":
+        return
+
+    _print_heading("Windows UTF-8 tooling")
+    pwsh_path = shutil.which("pwsh")
+    if pwsh_path:
+        print(f"[OK] pwsh: {pwsh_path}")
+    else:
+        print("[NG] pwsh: command not found")
+        failures.append("PowerShell 7 (pwsh) is not installed or not on PATH.")
+
+    expected_env = {
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8",
+    }
+    for name, expected in expected_env.items():
+        current = os.environ.get(name, "")
+        if current.lower() == expected:
+            print(f"[OK] {name}: {current}")
+        else:
+            print(f"[NG] {name}: {current or '(empty)'}")
+            failures.append(f"{name} should be {expected}.")
+
+
 def _check_lazy_bootstrap_scripts(repo_root: Path, failures: list[str], warnings: list[str]) -> None:
     _print_heading("初回自動準備の入口")
     # 必須: core スキルが揃っていないと主要機能が動かない
@@ -244,6 +269,7 @@ def main() -> int:
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
     _check_python_toolchain(failures)
+    _check_windows_utf8_tooling(failures)
     _check_lazy_bootstrap_scripts(repo_root, failures, warnings)
     _check_optional_tools(warnings)
 

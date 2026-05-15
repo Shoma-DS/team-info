@@ -17,7 +17,8 @@
 | Python | 3.11.9 |
 | Python 補助 | `uv` |
 | Node.js | 22.17.1 (`nvm` / `nvm-windows`) |
-| CLI | `@openai/codex` |
+| CLI | `@openai/codex`, `freebuff` |
+| Windows UTF-8 | PowerShell 7 (`pwsh`), `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8` |
 | repo 設定 | `TEAM_INFO_ROOT`, `.githooks`, worked-before 記録 |
 
 ## core setup で入れないもの
@@ -64,6 +65,47 @@ bash "$TEAM_INFO_ROOT/setup/setup_mac.sh"
 ```powershell
 & "$env:TEAM_INFO_ROOT\setup\setup_windows.ps1"
 ```
+
+## 課金なしで AI エージェントを使う
+
+setup 後は、課金なしの AI コーディングエージェントとして `freebuff` を使えます。
+Codebuff 系の無料 CLI で、広告付きのためサブスクやクレジット設定なしで起動できます。
+
+```bash
+cd "$TEAM_INFO_ROOT"
+freebuff
+```
+
+Windows:
+
+```powershell
+Set-Location $env:TEAM_INFO_ROOT
+freebuff
+```
+
+既存の `codex` は Codex CLI を使う人向け、`freebuff` は未課金メンバー向けの入口として使い分けます。
+
+macOS で `/usr/local/lib/node_modules` に書き込めない場合、setup は自動で `$HOME/.local` を npm の退避先として使います。
+手動で直す場合は次を実行します。
+
+```bash
+mkdir -p "$HOME/.local" "$HOME/.local/bin" && NPM_CONFIG_PREFIX="$HOME/.local" npm install -g freebuff
+```
+
+Windows で npm の global install 先に書き込めない場合、setup は自動で `%USERPROFILE%\.local\npm` を退避先として使います。
+手動で直す場合は次を実行します。
+
+```powershell
+$env:NPM_CONFIG_PREFIX = "$env:USERPROFILE\.local\npm"; npm install -g freebuff
+```
+
+## Windows の日本語 / UTF-8 対策
+
+Windows では setup 時に PowerShell 7 (`pwsh`) を導入し、Python 系の文字化け対策として `PYTHONUTF8=1` と `PYTHONIOENCODING=utf-8` をユーザー環境変数へ保存します。
+
+- 初回 setup は従来どおり `.\setup\setup_all.cmd` で実行します
+- 2回目以降、`pwsh` が入っていれば `setup_all.cmd` は自動で PowerShell 7 を使います
+- 日本語を含む作業や UTF-8 のファイル操作は、Windows PowerShell 5.1 ではなく `pwsh` で行う前提にします
 
 ## skill ごとの初回準備
 
@@ -135,8 +177,9 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/shared-agent-assets/scripts/sync_shar
 
 `setup/verify_setup.py` は次を確認します。
 
-- `node`, `npm`, `codex`, `gh`
+- `node`, `npm`, `codex`, `freebuff`, `gh`
 - `rclone`
+- Windows では `pwsh`, `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`
 - `git lfs`
 - `gh auth status`
 - `origin` URL

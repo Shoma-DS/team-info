@@ -1,20 +1,25 @@
 ﻿# =============================================================================
-# team-info セットアップスクリプト (Windows PowerShell)
+# team-info setup script (Windows PowerShell)
 # =============================================================================
-# 使い方（管理者として PowerShell を開いて実行）:
+# Usage:
 #   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 #   & "C:\path\to\team-info\setup\setup_windows.ps1"
 # =============================================================================
 
 #Requires -Version 5.1
 $ErrorActionPreference = "Stop"
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+} catch {
+    # Keep setup running even on hosts where console encoding cannot be changed.
+}
 
-# ── カラー出力 ─────────────────────────────────────────────────────────────
 function Write-Info    { param($msg) Write-Host "[INFO]  $msg" -ForegroundColor Cyan }
 function Write-Ok      { param($msg) Write-Host "[OK]    $msg" -ForegroundColor Green }
 function Write-Warn    { param($msg) Write-Host "[WARN]  $msg" -ForegroundColor Yellow }
 function Write-Err     { param($msg) Write-Host "[ERROR] $msg" -ForegroundColor Red; exit 1 }
-function Write-Step    { param($msg) Write-Host "`n━━━ $msg ━━━" -ForegroundColor Magenta }
+function Write-Step    { param($msg) Write-Host "`n=== $msg ===" -ForegroundColor Magenta }
 
 function Invoke-NativeOrThrow {
     param(
@@ -24,11 +29,11 @@ function Invoke-NativeOrThrow {
 
     & $command
     if ($LASTEXITCODE -ne 0) {
-        throw "$label に失敗しました。終了コード: $LASTEXITCODE"
+        throw "$label failed. Exit code: $LASTEXITCODE"
     }
 }
 
-# ── プロジェクトルート (repo root にいるならカレント優先、違えばスクリプト基準) ──
+# Project root: prefer the current directory when it is the repo root.
 $ScriptDir      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptRepoRoot = Split-Path -Parent $ScriptDir
 $CurrentDir     = (Get-Location).Path
@@ -40,28 +45,30 @@ if ((Test-Path (Join-Path $CurrentDir "AGENTS.md")) -and (Test-Path (Join-Path $
 $NodeVersion    = "22.17.1"
 $PythonVersion  = "3.11.9"
 $CodexNpmPackage = "@openai/codex"
+$FreebuffNpmPackage = "freebuff"
+$NpmUserPrefix = Join-Path $env:USERPROFILE ".local\npm"
 
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Blue
-Write-Host "║       team-info セットアップ (Windows)               ║" -ForegroundColor Blue
-Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Blue
+Write-Host "======================================================" -ForegroundColor Blue
+Write-Host "       team-info setup (Windows)" -ForegroundColor Blue
+Write-Host "======================================================" -ForegroundColor Blue
 Write-Host ""
-Write-Info "プロジェクトルート: $TeamInfoRoot"
+Write-Info "Project root: $TeamInfoRoot"
 
-# ── ヘルパー: コマンド存在確認 ────────────────────────────────────────────
+# Helper: command lookup.
 function Test-Command { param($cmd) return [bool](Get-Command $cmd -ErrorAction SilentlyContinue) }
 
-# ── ヘルパー: winget インストール ─────────────────────────────────────────
+# Helper: winget install.
 function Install-WithWinget {
     param($id, $name)
-    Write-Info "$name をインストールします..."
-    Invoke-NativeOrThrow "$name の winget install" {
+    Write-Info "Installing $name..."
+    Invoke-NativeOrThrow "$name winget install" {
         winget install --id $id --silent --accept-package-agreements --accept-source-agreements
     }
-    # PATH 更新
+    # Refresh PATH.
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + `
                 [System.Environment]::GetEnvironmentVariable("Path","User")
-    Write-Ok "$name インストール完了"
+    Write-Ok "$name installed"
 }
 
 function Refresh-ProcessPath {
@@ -98,6 +105,75 @@ function Add-UserPathEntry {
     }
 }
 
+function Test-DirectoryWritable {
+    param($path)
+    if (-not $path) {
+        return $false
+    }
+
+    try {
+        if (-not (Test-Path $path)) {
+            New-Item -ItemType Directory -Force -Path $path | Out-Null
+        }
+
+        $testPath = Join-Path $path ".team-info-write-test"
+        [System.IO.File]::WriteAllText($testPath, "")
+        Remove-Item -Force $testPath
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Use-UserNpmPrefixIfNeeded {
+    $globalRoot = (& npm root -g 2>$null | Select-Object -First 1)
+    if ($globalRoot -and (Test-DirectoryWritable $globalRoot)) {
+        return
+    }
+
+    New-Item -ItemType Directory -Force -Path $NpmUserPrefix | Out-Null
+    $env:NPM_CONFIG_PREFIX = $NpmUserPrefix
+    Add-UserPathEntry $NpmUserPrefix
+    Write-Warn "npm global install target is not writable: $(if ($globalRoot) { $globalRoot } else { 'unknown' })"
+    Write-Info "Using user npm prefix: $NpmUserPrefix"
+}
+
+function Install-NpmCli {
+    param(
+        [string]$label,
+        [string]$packageName,
+        [string]$commandName
+    )
+
+    if (-not (Test-Command npm)) {
+        Write-Warn "npm was not found. Restart PowerShell, then run:"
+        Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $packageName"
+        return
+    }
+
+    if (Test-Command $commandName) {
+        Write-Info "Updating $label..."
+    } else {
+        Write-Info "Installing $label globally..."
+    }
+
+    try {
+        Use-UserNpmPrefixIfNeeded
+        Invoke-NativeOrThrow "$label npm install -g" {
+            npm install -g $packageName
+        }
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+        if ($command) {
+            Write-Ok "$label installed: $($command.Source)"
+        } else {
+            Write-Ok "$label installed"
+        }
+    } catch {
+        Write-Warn "$label install failed. Run this later:"
+        Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $packageName"
+    }
+}
+
 function Get-PythonUserScriptsDir {
     param($pythonExe)
     $userBase = (& $pythonExe -c "import site; print(site.USER_BASE)").Trim()
@@ -110,7 +186,7 @@ function Get-PythonUserScriptsDir {
 function Install-UvUser {
     param($pythonExe)
     $scriptsDir = Get-PythonUserScriptsDir $pythonExe
-    Invoke-NativeOrThrow "uv の pip install" {
+    Invoke-NativeOrThrow "uv pip install" {
         & $pythonExe -m pip install --user uv
     }
     if ($scriptsDir) {
@@ -214,26 +290,47 @@ function Resolve-NodeAndNpmCommand {
     return $null
 }
 
-# ── 1. winget 確認 ────────────────────────────────────────────────────────
-Write-Step "1. winget (パッケージマネージャ) 確認"
+# 1. winget check
+Write-Step "1. winget check"
 if (-not (Test-Command winget)) {
-    Write-Warn "winget が見つかりません。"
-    Write-Warn "→ Microsoft Store から 'アプリ インストーラー' をインストールしてください"
-    Write-Warn "→ または https://aka.ms/getwinget から取得してください"
-    Write-Err "winget が必要です。インストール後に再実行してください。"
+    Write-Warn "winget was not found."
+    Write-Warn "Install 'App Installer' from Microsoft Store."
+    Write-Warn "Or get winget from https://aka.ms/getwinget"
+    Write-Err "winget is required. Install it, then rerun setup."
 }
 Write-Ok "winget: $(winget --version)"
 
-# ── 2. Git / rclone ───────────────────────────────────────────────────────
+# 1b. PowerShell 7 and UTF-8 defaults
+Write-Step "1b. PowerShell 7 and UTF-8 defaults"
+Set-UserEnvVar "PYTHONUTF8" "1"
+Set-UserEnvVar "PYTHONIOENCODING" "utf-8"
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
+$PSDefaultParameterValues["*:Encoding"] = "utf8"
+
+if (Test-Command pwsh) {
+    Write-Ok "PowerShell 7 installed: $((& pwsh --version 2>$null | Select-Object -First 1))"
+} else {
+    Install-WithWinget "Microsoft.PowerShell" "PowerShell 7"
+    Refresh-ProcessPath
+    if (Test-Command pwsh) {
+        Write-Ok "PowerShell 7 installed: $((& pwsh --version 2>$null | Select-Object -First 1))"
+    } else {
+        Write-Warn "PowerShell 7 was installed but pwsh is not on PATH yet. Restart PowerShell after setup."
+    }
+}
+Write-Ok "UTF-8 env set: PYTHONUTF8=1, PYTHONIOENCODING=utf-8"
+
+# 2. Git / rclone
 Write-Step "2. Git / rclone"
 if (Test-Command git) {
-    Write-Ok "Git インストール済み: $(git --version)"
+    Write-Ok "Git installed: $(git --version)"
 } else {
     Install-WithWinget "Git.Git" "Git"
 }
 
 if (Test-Command rclone) {
-    Write-Ok "rclone インストール済み: $((& rclone version | Select-Object -First 1))"
+    Write-Ok "rclone installed: $((& rclone version | Select-Object -First 1))"
 } else {
     Install-WithWinget "Rclone.Rclone" "rclone"
 }
@@ -242,110 +339,110 @@ try {
     Invoke-NativeOrThrow "git lfs install" {
         git lfs install --skip-repo | Out-Null
     }
-    Write-Ok "git lfs を初期化しました"
+    Write-Ok "git lfs initialized"
 } catch {
-    Write-Warn "git lfs の初期化に失敗しました。必要なら 'git lfs install --skip-repo' を手動で実行してください。"
+    Write-Warn "git lfs init failed. Run manually if needed: git lfs install --skip-repo"
 }
 
-# ── 3. GitHub アクセス & リポジトリ接続 ─────────────────────────────────────
-Write-Step "3. GitHub アクセス & リポジトリ接続"
+# 3. GitHub access and repo connection
+Write-Step "3. GitHub access and repo connection"
 if (Test-Command gh) {
-    Write-Ok "GitHub CLI (gh) インストール済み: $(gh --version | Select-Object -First 1)"
+    Write-Ok "GitHub CLI (gh) installed: $(gh --version | Select-Object -First 1)"
 } else {
     Install-WithWinget "GitHub.cli" "GitHub CLI (gh)"
 }
 
-Write-Warn "GitHub の招待メールを承認済みである必要があります。"
-$confirmed = Read-Host "  招待メールを承認済みですか？ 承認済みなら y を入力してください [y/N]"
+Write-Warn "The GitHub invite must already be accepted."
+$confirmed = Read-Host "  Have you accepted the GitHub invite? Enter y if yes [y/N]"
 if ($confirmed -notmatch "^[Yy]$") {
-    Write-Err "先に招待を承認してください。不明な場合は sho に確認してください。"
+    Write-Err "Accept the invite first. Ask sho if unclear."
 }
 
 $authStatus = gh auth status 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Ok "GitHub CLI (gh) 認証済み"
+    Write-Ok "GitHub CLI (gh) authenticated"
 } else {
-    Write-Info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
+    Write-Info "Starting GitHub CLI (gh) auth. Log in from the browser..."
     & gh auth login --web -h github.com -p https -w
-    Write-Ok "GitHub CLI (gh) 認証完了"
+    Write-Ok "GitHub CLI (gh) auth complete"
 }
 
-Write-Info "リモートリポジトリの URL を設定します..."
+Write-Info "Setting remote repository URL..."
 & git remote set-url origin https://github.com/Shoma-DS/team-info.git
-Write-Ok "リモート URL 設定完了: https://github.com/Shoma-DS/team-info.git"
+Write-Ok "Remote URL set: https://github.com/Shoma-DS/team-info.git"
 
-# ── 4. Python ─────────────────────────────────────────────────────────────
+# 4. Python
 Write-Step "4. Python $PythonVersion"
 
-# pyenv-win インストール
+# Install pyenv-win.
 if (-not (Test-Command pyenv)) {
-    Write-Info "pyenv-win をインストールします..."
+    Write-Info "Installing pyenv-win..."
     $PyenvInstallScript = Join-Path $env:TEMP "team-info-pyenv-win-install.ps1"
     Invoke-WebRequest -UseBasicParsing `
         -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" `
         -OutFile $PyenvInstallScript
     & $PyenvInstallScript
-    # PATH 更新
+    # Refresh PATH.
     $env:PYENV  = "$env:USERPROFILE\.pyenv\pyenv-win"
     $env:Path   = "$env:PYENV\bin;$env:PYENV\shims;$env:Path"
     [System.Environment]::SetEnvironmentVariable("PYENV",  $env:PYENV,  "User")
     [System.Environment]::SetEnvironmentVariable("Path",
         "$env:PYENV\bin;$env:PYENV\shims;" + [System.Environment]::GetEnvironmentVariable("Path","User"),
         "User")
-    Write-Ok "pyenv-win インストール完了"
+    Write-Ok "pyenv-win installed"
 } else {
-    Write-Ok "pyenv-win インストール済み"
+    Write-Ok "pyenv-win installed"
     $env:PYENV = "$env:USERPROFILE\.pyenv\pyenv-win"
     $env:Path  = "$env:PYENV\bin;$env:PYENV\shims;$env:Path"
 }
 
-# Python インストール
+# Install Python.
 if ((pyenv versions 2>&1) -match $PythonVersion) {
-    Write-Ok "Python $PythonVersion インストール済み"
+    Write-Ok "Python $PythonVersion installed"
 } else {
-    Write-Info "Python $PythonVersion をインストールします..."
+    Write-Info "Installing Python $PythonVersion..."
     Invoke-NativeOrThrow "pyenv install $PythonVersion" {
         pyenv install $PythonVersion
     }
-    Write-Ok "Python $PythonVersion インストール完了"
+    Write-Ok "Python $PythonVersion installed"
 }
 
 $Python311 = "$env:USERPROFILE\.pyenv\pyenv-win\versions\$PythonVersion\python.exe"
-if (-not (Test-Path $Python311)) { Write-Err "Python $PythonVersion が見つかりません: $Python311" }
+if (-not (Test-Path $Python311)) { Write-Err "Python $PythonVersion was not found: $Python311" }
 Write-Info "Python: $Python311 ($(& $Python311 --version))"
 
-# ── 5. Python ランタイム方針 ─────────────────────────────────────────────
-Write-Step "5. Python ランタイム方針"
-Write-Ok "Python 3.11 を使う土台を作りました"
-Write-Warn "Remotion / Docker ランタイムや Python パッケージ群は、必要なスキルを初めて使うときに自動で準備する方針です。"
+# 5. Python runtime policy
+Write-Step "5. Python runtime policy"
+Write-Ok "Python 3.11 base is ready"
+Write-Warn "Remotion / Docker runtime and Python packages are prepared lazily by the relevant skill."
 
-# ── 6. uv ────────────────────────────────────────────────────────────────
+# 6. uv
 Write-Step "6. uv"
 $UvExe = $null
 if (Test-Command uv) {
     $uvCommand = Get-Command uv -ErrorAction SilentlyContinue
     $UvExe = $uvCommand.Source
-    Write-Ok "uv インストール済み"
+    Write-Ok "uv installed"
 } else {
-    Write-Info "uv を入れます..."
+    Write-Info "Installing uv..."
     $UvExe = Install-UvUser $Python311
     if ($UvExe) {
-        Write-Ok "uv インストール完了"
+        Write-Ok "uv installed"
     } else {
-        Write-Warn "uv の導入に失敗しました。Python 補助ツールはあとで確認してください。"
+        Write-Warn "uv install failed. Check Python helper tools later."
     }
 }
 
-# ── 7. TEAM_INFO_ROOT ─────────────────────────────────────────────────────
+# 7. TEAM_INFO_ROOT
 Write-Step "7. TEAM_INFO_ROOT"
 Set-UserEnvVar "TEAM_INFO_ROOT" $TeamInfoRoot
 $RuntimeScript = Join-Path $TeamInfoRoot ".agent\skills\common\scripts\team_info_runtime.py"
 if (Test-Path $RuntimeScript) {
     try {
         & $Python311 $RuntimeScript setup-local-machine --repo-root $TeamInfoRoot --shell powershell | Out-Null
-        Write-Ok "TEAM_INFO_ROOT を保存しました: $TeamInfoRoot"
+        Write-Ok "TEAM_INFO_ROOT saved: $TeamInfoRoot"
     } catch {
-        Write-Warn "TEAM_INFO_ROOT の保存に失敗しました: $_"
+        Write-Warn "TEAM_INFO_ROOT save failed: $_"
     }
 }
 
@@ -353,24 +450,24 @@ $AliasScript = Join-Path $TeamInfoRoot ".agent\skills\common\scripts\register_al
 if (Test-Path $AliasScript) {
     try {
         & $Python311 $AliasScript --root $TeamInfoRoot | Out-Null
-        Write-Ok "PowerShell 用の setup / x-post / remotion / renda を登録しました"
+        Write-Ok "Registered PowerShell commands: setup / x-post / remotion / renda"
     } catch {
-        Write-Warn "PowerShell エイリアス登録に失敗しました: $_"
+        Write-Warn "PowerShell command registration failed: $_"
     }
 }
 
-# ── 8. nvm-windows + Node.js ─────────────────────────────────────────────
+# 8. nvm-windows + Node.js
 Write-Step "8. nvm-windows + Node.js $NodeVersion"
 if (-not (Test-Command nvm)) {
-    Write-Info "nvm-windows をインストールします..."
-    Invoke-NativeOrThrow "nvm-windows の winget install" {
+    Write-Info "Installing nvm-windows..."
+    Invoke-NativeOrThrow "nvm-windows winget install" {
         winget install --id CoreyButler.NVMforWindows --silent `
               --accept-package-agreements --accept-source-agreements
     }
     Refresh-ProcessPath
-    Write-Ok "nvm-windows インストール完了"
+    Write-Ok "nvm-windows installed"
 } else {
-    Write-Ok "nvm-windows インストール済み"
+    Write-Ok "nvm-windows installed"
 }
 
 $NvmExe = Get-NvmExe
@@ -388,16 +485,16 @@ if ($NvmExe) {
 
     $installedNodes = & $NvmExe list 2>&1
     if ($installedNodes -match $NodeVersion) {
-        Write-Ok "Node.js $NodeVersion インストール済み"
+        Write-Ok "Node.js $NodeVersion installed"
     } else {
-        Write-Info "Node.js $NodeVersion をインストールします..."
-        Invoke-NativeOrThrow "Node.js $NodeVersion の install" {
+        Write-Info "Installing Node.js $NodeVersion..."
+        Invoke-NativeOrThrow "Node.js $NodeVersion install" {
             & $NvmExe install $NodeVersion
         }
-        Write-Ok "Node.js $NodeVersion インストール完了"
+        Write-Ok "Node.js $NodeVersion installed"
     }
 
-    Invoke-NativeOrThrow "Node.js $NodeVersion の use" {
+    Invoke-NativeOrThrow "Node.js $NodeVersion use" {
         & $NvmExe use $NodeVersion | Out-Null
     }
     Refresh-ProcessPath
@@ -412,120 +509,104 @@ if ($NvmExe) {
         if ($nodeVersionText -and $npmVersionText) {
             Write-Info "Node.js: $nodeVersionText, npm: $npmVersionText"
         } else {
-            Write-Warn "Node/npm のバージョン確認に失敗しました。PowerShell を再起動して確認してください。"
+            Write-Warn "Node/npm version check failed. Restart PowerShell and check again."
         }
     } else {
-        Write-Warn "node/npm が見つかりません。PowerShell を再起動してから再実行してください。"
+        Write-Warn "node/npm was not found. Restart PowerShell and rerun setup."
     }
 } else {
-    Write-Warn "nvm を見つけられませんでした。PowerShell を再起動してから再実行してください。"
+    Write-Warn "nvm was not found. Restart PowerShell and rerun setup."
 }
 
-# ── 9. Codex CLI ──────────────────────────────────────────────────────────
+# 9. Codex CLI
 Write-Step "9. Codex CLI"
-if (Test-Command npm) {
-    if (Test-Command codex) {
-        Write-Info "Codex CLI を更新します..."
-    } else {
-        Write-Info "Codex CLI をグローバルに入れます..."
-    }
+Install-NpmCli "Codex CLI" $CodexNpmPackage "codex"
 
-    try {
-        Invoke-NativeOrThrow "Codex CLI の npm install -g" {
-            npm install -g $CodexNpmPackage
-        }
-        $codexVersion = (& codex --version 2>$null | Select-Object -First 1)
-        if ($codexVersion) {
-            Write-Ok "Codex CLI インストール完了: $codexVersion"
-        } else {
-            Write-Ok "Codex CLI インストール完了"
-        }
-    } catch {
-        Write-Warn "Codex CLI のインストールに失敗しました。あとで npm install -g $CodexNpmPackage を実行してください。"
-    }
-} else {
-    Write-Warn "npm が見つかりません。PowerShell 再起動後に手動で実行してください:"
-    Write-Warn "  npm install -g $CodexNpmPackage"
-}
+# 10. Freebuff CLI
+Write-Step "10. Freebuff CLI (free AI agent)"
+Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff"
 
-# ── 10. Git hooks ─────────────────────────────────────────────────────────
-Write-Step "10. Git hooks"
+# 11. Git hooks
+Write-Step "11. Git hooks"
 try {
     git -C $TeamInfoRoot config core.hooksPath .githooks
-    Write-Ok "core.hooksPath を .githooks に設定しました"
+    Write-Ok "core.hooksPath set to .githooks"
 } catch {
-    Write-Warn "core.hooksPath の設定に失敗しました。手動で 'git config core.hooksPath .githooks' を実行してください。"
+    Write-Warn "core.hooksPath setup failed. Run manually: git config core.hooksPath .githooks"
 }
 
-# ── 11. 遅延セットアップの案内 ───────────────────────────────────────────
-Write-Step "11. 遅延セットアップの案内"
-Write-Warn "以下は setup では入れません。必要なスキルを初めて使うタイミングで準備します。"
+# 12. Lazy setup notice
+Write-Step "12. Lazy setup notice"
+Write-Warn "These are not installed by core setup. They are prepared when the relevant skill first runs."
 Write-Warn "  - Remotion / VOICEVOX / Docker runtime"
-Write-Warn "  - Canva 補助などの追加開発依存"
+Write-Warn "  - Extra dev dependencies such as Canva helpers"
 Write-Warn "  - Agent Reach / OpenClaw / Obsidian / Claudian"
-Write-Warn "  - shared-agent-assets の同期処理"
-Write-Warn "  - clone-website 用の Node 24 workspace 依存"
+Write-Warn "  - shared-agent-assets sync"
+Write-Warn "  - Node 24 workspace dependencies for clone-website"
 
-# ── 12. Docker (任意) ───────────────────────────────────────────────────
-Write-Step "12. Docker (任意)"
+# 13. Docker optional
+Write-Step "13. Docker optional"
 if (Test-Command docker) {
-    Write-Ok "Docker インストール済み: $(docker --version)"
-    Write-Warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
+    Write-Ok "Docker installed: $(docker --version)"
+    Write-Warn "Docker image build / pull is heavy, so it runs on first relevant skill use."
 } else {
-    Write-Warn "Docker が見つかりません。"
-    Write-Warn "→ Docker Desktop は必須ではありません。必要時に WSL2 Docker Engine + Compose v2 を準備してください。"
-    Write-Warn "→ & `"$env:TEAM_INFO_ROOT\setup\setup_wsl_docker_engine.ps1`" -Distro Ubuntu"
+    Write-Warn "Docker was not found."
+    Write-Warn "Docker Desktop is optional. Prepare WSL2 Docker Engine + Compose v2 when needed."
+    Write-Warn "& `"$env:TEAM_INFO_ROOT\setup\setup_wsl_docker_engine.ps1`" -Distro Ubuntu"
 }
 
-# ── 13. セットアップ検証 ─────────────────────────────────────────────────
+# 14. Verify setup
 $VerifyStatus = 0
-Write-Step "13. セットアップ検証"
+Write-Step "14. Verify setup"
 $VerifyScript = Join-Path $ScriptDir "verify_setup.py"
 if (Test-Path $VerifyScript) {
     try {
         & $Python311 $VerifyScript --repo-root $TeamInfoRoot
         if ($LASTEXITCODE -eq 0) {
-            Write-Ok "セットアップ検証完了"
+            Write-Ok "Setup verification complete"
         } else {
             $VerifyStatus = $LASTEXITCODE
-            Write-Warn "セットアップ検証で不足が見つかりました。ログを確認して不足分を埋めてください。"
+            Write-Warn "Setup verification found missing items. Check the log and fill gaps."
         }
     } catch {
         $VerifyStatus = 1
-        Write-Warn "セットアップ検証の実行に失敗しました: $_"
+        Write-Warn "Setup verification failed: $_"
     }
 } else {
     $VerifyStatus = 1
-    Write-Warn "検証スクリプトが見つかりません: $VerifyScript"
+    Write-Warn "Verification script was not found: $VerifyScript"
 }
 
-# ── 完了 ──────────────────────────────────────────────────────────────────
+# Done.
 Write-Host ""
 if ($VerifyStatus -eq 0) {
-    Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║       セットアップ完了！                             ║" -ForegroundColor Green
-    Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Green
+    Write-Host "======================================================" -ForegroundColor Green
+    Write-Host "       Setup completed" -ForegroundColor Green
+    Write-Host "======================================================" -ForegroundColor Green
 } else {
-    Write-Host "╔══════════════════════════════════════════════════════╗" -ForegroundColor Yellow
-    Write-Host "║   セットアップは終わりましたが要確認箇所があります   ║" -ForegroundColor Yellow
-    Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Yellow
+    Write-Host "======================================================" -ForegroundColor Yellow
+    Write-Host "       Setup finished with warnings" -ForegroundColor Yellow
+    Write-Host "======================================================" -ForegroundColor Yellow
 }
 Write-Host ""
-Write-Host "主要パス:"
+Write-Host "Key paths:"
 Write-Host "  Python:        $Python311"
-Write-Host "  Node.js:       $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { '要: PowerShell 再起動後に確認' })"
-Write-Host "  Codex CLI:     $(if (Get-Command codex -ErrorAction SilentlyContinue) { (Get-Command codex -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { '要: setup 再実行か手動インストール' })"
-Write-Host "  プロジェクト:  $TeamInfoRoot"
+Write-Host "  PowerShell 7:  $(if (Get-Command pwsh -ErrorAction SilentlyContinue) { (Get-Command pwsh -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'restart PowerShell and check again' })"
+Write-Host "  Node.js:       $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'restart PowerShell and check again' })"
+Write-Host "  Codex CLI:     $(if (Get-Command codex -ErrorAction SilentlyContinue) { (Get-Command codex -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
+Write-Host "  Freebuff CLI:  $(if (Get-Command freebuff -ErrorAction SilentlyContinue) { (Get-Command freebuff -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
+Write-Host "  Project:       $TeamInfoRoot"
 Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
-Write-Host "  検証結果:      $(if ($VerifyStatus -eq 0) { '成功' } else { '要確認' })"
+Write-Host "  Verify result: $(if ($VerifyStatus -eq 0) { 'passed' } else { 'needs review' })"
 Write-Host ""
-Write-Host "次のステップ:"
-Write-Host "  ・PowerShell を再起動して PATH と setup / x-post / remotion / renda を再読み込みしてください"
-Write-Host "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
-Write-Host "  ・Agent Reach は初回実行時に自動セットアップされます"
-Write-Host "  ・Claudian は必要になったら /claudian を実行してください"
-Write-Host "  ・Claude Code: code `"$TeamInfoRoot`""
+Write-Host "Next steps:"
+Write-Host "  - Restart PowerShell to reload PATH and setup / x-post / remotion / renda."
+Write-Host "  - Use pwsh for Windows work when Japanese or UTF-8 text is involved."
+Write-Host "  - To use a free AI agent, run freebuff in the repo."
+Write-Host "  - Remotion prepares Docker runtime on first relevant use."
+Write-Host "  - Agent Reach bootstraps on first use."
+Write-Host "  - Run /claudian when Claudian is needed."
+Write-Host "  - Claude Code: code `"$TeamInfoRoot`""
 Write-Host ""
 
 exit $VerifyStatus
-
