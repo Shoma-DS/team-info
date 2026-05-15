@@ -76,6 +76,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | lyric-video-production | 音声・歌詞からLRC生成→Remotionリリックアニメーション制作 | `.agent/skills/remotion/video-production/lyric-emotion-mapper/SKILL.md` |
 | voice-script-launcher | 台本ファイルから音声を一括生成する | `.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md` |
 | script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md` |
+| old-map-narration-style | 知識系朗読原稿を「火のそばで古い地図を開く老賢者の語り」へ変える。地理・歴史・社会・暮らしを、睡眠導入向けにやわらかく余韻ある話法で書く | `.agent/skills/remotion/video-production/old-map-narration-style/SKILL.md` |
 | remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
 | remotion-short-sound-design | 縦ショート動画に効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックする | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
 
