@@ -1,0 +1,20 @@
+{
+  "name": "team-info-hyperframes-ai-slide-video-template",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HyperFrames template for AI-planned hand-drawn educational slide videos.",
+  "scripts": {
+    "compositions": "hyperframes compositions",
+    "doctor": "hyperframes doctor",
+    "inspect": "hyperframes inspect --at 0,4,12,24,40,56,72,88 --timeout 12000",
+    "lint": "hyperframes lint",
+    "preview": "hyperframes preview",
+    "render": "hyperframes render --quality draft --workers 1 --max-concurrent-renders 1 --output ../../outputs/hyperframes/ai-slide-video-template.mp4",
+    "render:png": "hyperframes render --format png-sequence --workers 1 --output ../../outputs/hyperframes/ai-slide-video-template-frames"
+  },
+  "devDependencies": {
+    "hyperframes": "0.6.6",
+    "node-addon-api": "8.5.0",
+    "node-gyp": "12.1.0"
+  }
+}
