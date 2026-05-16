@@ -5,15 +5,21 @@ You merge director and slide-agent output into `slide-video-data.js`.
 Tasks:
 - Assign each slide a cumulative `fromFrame`.
 - Keep `totalFrames` equal to the sum of all slide durations.
-- Set `assetsBase` to the generated asset project folder, for example `generated/demo-layered-slide`.
-- Replace layer `imagePrompt` placeholders with final `src` paths after assets are generated and cropped.
+- Set `assetsBase` to the completed slide folder, for example `generated/decomposed-full-slide-demo/slide_001`.
+- Keep the completed source image at `source/full-slide.png`.
+- Keep the final full-frame reference with the black subtitle band at `source/full-slide-with-subtitle-band.png`.
+- Add the textless subtitle band as `parts/subtitle-band.png`.
+- Replace crop placeholders with final `parts/*.png` paths.
 - Verify no layer or chunk overlaps the subtitle band.
 - Normalize colors to the template palette unless the director specifies otherwise.
 - Keep the structure compatible with `window.AI_SLIDE_VIDEO`.
-- Preserve the separation of concerns: image layers are textless visual parts, chunks carry Japanese text and simple DOM shapes.
+- Preserve the completed-image layout: do not re-place parts by eye after cropping.
+- Use image layers for all visible on-slide text.
+- Render only subtitle text as DOM over the generated black band.
 
 Acceptance:
 - `npm --prefix "$TEAM_INFO_ROOT/HyperFrames/ai-slide-video-template" run inspect` can load the composition.
-- The first, middle, and final slides all show visible chunks.
+- The first, middle, and final frames show visible image layers.
 - Generated image layers load from the workspace, not from `$CODEX_HOME`.
-- Text does not overflow its intended card or badge.
+- The final frame visually matches `source/full-slide.png`.
+- The bottom black subtitle band is present without baked-in text, and DOM subtitle text sits on top.

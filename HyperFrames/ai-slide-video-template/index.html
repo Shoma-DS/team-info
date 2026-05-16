@@ -92,8 +92,8 @@
         opacity: var(--layer-opacity, 1);
         transform: translate(var(--layer-x, 0), var(--layer-y, 0)) scale(var(--layer-scale, 1)) rotate(var(--layer-rotate, 0deg));
         transform-origin: center;
-        clip-path: inset(0 var(--layer-clip-right, 0%) 0 0);
-        filter: drop-shadow(0 12px 0 rgba(23, 32, 51, 0.05));
+        clip-path: inset(var(--layer-clip-top, 0%) var(--layer-clip-right, 0%) var(--layer-clip-bottom, 0%) var(--layer-clip-left, 0%));
+        filter: none;
         will-change: transform, opacity, clip-path;
       }
 
@@ -109,7 +109,7 @@
         opacity: var(--chunk-opacity, 1);
         transform: translate(var(--chunk-x, 0), var(--chunk-y, 0)) scale(var(--chunk-scale, 1)) rotate(var(--chunk-rotate, 0deg));
         transform-origin: center;
-        clip-path: inset(0 var(--chunk-clip-right, 0%) 0 0);
+        clip-path: inset(var(--chunk-clip-top, 0%) var(--chunk-clip-right, 0%) var(--chunk-clip-bottom, 0%) var(--chunk-clip-left, 0%));
         filter: drop-shadow(0 8px 0 rgba(23, 32, 51, 0.05));
       }
 
@@ -235,12 +235,12 @@
         left: 0;
         right: 0;
         bottom: 0;
-        min-height: 126px;
+        min-height: 156px;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 22px 120px 26px;
-        background: var(--subtitle-bg, #050505);
+        background: transparent;
         color: var(--subtitle-text, #ffffff);
         font-size: 34px;
         font-weight: 800;
@@ -254,16 +254,16 @@
       id="root"
       data-composition-id="ai-slide-video-template"
       data-start="0"
-      data-duration="96"
+      data-duration="12"
       data-width="1920"
       data-height="1080"
       data-fps="30"
     >
       <div class="paper-noise"></div>
-      <h1 id="slide-title" class="clip" data-start="0" data-duration="96" data-track-index="1"></h1>
-      <div id="generated-layer" class="clip" data-start="0" data-duration="96" data-track-index="2"></div>
-      <div id="chunk-layer" class="clip" data-start="0" data-duration="96" data-track-index="3"></div>
-      <div id="subtitle-band" class="clip" data-start="0" data-duration="96" data-track-index="4"></div>
+      <h1 id="slide-title" class="clip" data-start="0" data-duration="12" data-track-index="1"></h1>
+      <div id="generated-layer" class="clip" data-start="0" data-duration="12" data-track-index="2"></div>
+      <div id="chunk-layer" class="clip" data-start="0" data-duration="12" data-track-index="3"></div>
+      <div id="subtitle-band" class="clip" data-start="0" data-duration="12" data-track-index="4"></div>
     </div>
 
     <script src="./slide-video-data.js"></script>
@@ -301,6 +301,19 @@
         return `${assetBase}/${src.replace(/^\.\//, "")}`;
       };
       const fontSizeFor = (chunk) => `${chunk.fontSize || (chunk.type === "connector" ? 38 : chunk.type === "list" ? 44 : 48)}px`;
+      const applyClipReveal = (element, prefix, item, progress) => {
+        const hidden = `${(1 - progress) * 100}%`;
+        const direction = item.direction || "left-to-right";
+        if (direction === "top-to-bottom") {
+          element.style.setProperty(`--${prefix}-clip-bottom`, hidden);
+        } else if (direction === "right-to-left") {
+          element.style.setProperty(`--${prefix}-clip-left`, hidden);
+        } else if (direction === "bottom-to-top") {
+          element.style.setProperty(`--${prefix}-clip-top`, hidden);
+        } else {
+          element.style.setProperty(`--${prefix}-clip-right`, hidden);
+        }
+      };
       const applyEnterMotion = (element, prefix, item, progress) => {
         if (item.enter === "fade") {
           return;
@@ -312,8 +325,10 @@
           element.style.setProperty(`--${prefix}-y`, `${(1 - progress) * 32}px`);
           element.style.setProperty(`--${prefix}-scale`, String(0.96 + progress * 0.04));
         } else if (item.enter === "draw") {
-          element.style.setProperty(`--${prefix}-clip-right`, `${(1 - progress) * 100}%`);
+          applyClipReveal(element, prefix, item, progress);
           element.style.setProperty(`--${prefix}-scale`, String(0.98 + progress * 0.02));
+        } else if (item.enter === "wipe") {
+          applyClipReveal(element, prefix, item, progress);
         } else if (item.enter === "slide") {
           const fromX = item.fromX ?? 40;
           const fromY = item.fromY ?? 0;
@@ -344,6 +359,9 @@
         element.style.height = `${imageLayer.h}px`;
         element.style.objectFit = imageLayer.fit || "contain";
         element.style.zIndex = imageLayer.zIndex || 0;
+        if (imageLayer.shadow === false) {
+          element.style.filter = "none";
+        }
         element.style.setProperty("--layer-opacity", String((imageLayer.opacity ?? 1) * progress));
         element.style.setProperty("--layer-rotate", `${imageLayer.rotate || 0}deg`);
         applyEnterMotion(element, "layer", imageLayer, progress);
@@ -368,7 +386,7 @@
         element.style.setProperty("--chunk-opacity", String(progress));
 
         if (chunk.enter === "write") {
-          element.style.setProperty("--chunk-clip-right", `${(1 - progress) * 100}%`);
+          applyClipReveal(element, "chunk", chunk, progress);
         }
 
         applyEnterMotion(element, "chunk", chunk, progress);

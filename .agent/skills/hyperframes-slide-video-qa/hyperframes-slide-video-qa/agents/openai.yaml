@@ -1,0 +1,3 @@
+interface:
+  display_name: "HyperFrames Slide Video QA"
+  short_description: "Validate decomposed handwritten slide videos for HyperFrames"

@@ -4,13 +4,13 @@
   "private": true,
   "description": "HyperFrames template for AI-planned hand-drawn educational slide videos.",
   "scripts": {
-    "compositions": "hyperframes compositions",
-    "doctor": "hyperframes doctor",
-    "inspect": "hyperframes inspect --at 0,4,12,24,40,56,72,88 --timeout 12000",
-    "lint": "hyperframes lint",
-    "preview": "hyperframes preview",
-    "render": "hyperframes render --quality draft --workers 1 --max-concurrent-renders 1 --output ../../outputs/hyperframes/ai-slide-video-template.mp4",
-    "render:png": "hyperframes render --format png-sequence --workers 1 --output ../../outputs/hyperframes/ai-slide-video-template-frames"
+    "compositions": "npx --prefix ../tenshoku-short-20260416 hyperframes compositions",
+    "doctor": "npx --prefix ../tenshoku-short-20260416 hyperframes doctor",
+    "inspect": "npx --prefix ../tenshoku-short-20260416 hyperframes inspect --at 0,2,4,6,8,10 --timeout 12000",
+    "lint": "npx --prefix ../tenshoku-short-20260416 hyperframes lint",
+    "preview": "npx --prefix ../tenshoku-short-20260416 hyperframes preview",
+    "render": "npx --prefix ../tenshoku-short-20260416 hyperframes render --quality draft --workers 1 --max-concurrent-renders 1 --output ../../outputs/hyperframes/ai-slide-video-template.mp4",
+    "render:png": "npx --prefix ../tenshoku-short-20260416 hyperframes render --format png-sequence --workers 1 --output ../../outputs/hyperframes/ai-slide-video-template-frames"
   },
   "devDependencies": {
     "hyperframes": "0.6.6",

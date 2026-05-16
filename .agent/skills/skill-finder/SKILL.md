@@ -173,6 +173,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
+### 🎬 hyperframes/（AIスライド動画・分解スライド検証系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| hyperframes-slide-video-qa | 完成スライドPNGを先に作ってからパーツ分解する HyperFrames 動画で、SVG禁止、黒字幕帯、マスク漏れ、未登場パーツの見え隠れ、スクショ確認まで検証する | `.agent/skills/hyperframes-slide-video-qa/hyperframes-slide-video-qa/SKILL.md` |
+
+---
+
 ### 🚀 viral-template-generator/（バズ動画系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
@@ -258,6 +265,8 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | nanobanana proでスライドや画像を作りたい | `image-prompt-generator` / `nanobanana-slide-planner` |
 | FigmaでLPをデザインしたい | `figma-lp-design` |
 | WebサイトやLPを作りたい | `frontend-design` / `gsap-awwwards-website` |
+| HyperFramesで完成スライドを先に作ってパーツ分解する動画を作りたい | `hyperframes-slide-video-qa` |
+| HyperFramesの分解スライドで黒矩形・マスク漏れ・次パーツの見え隠れを検証したい | `hyperframes-slide-video-qa` |
 | 既存サイトをそっくり Next.js で作り直したい | `clone-website` |
 | サイトを pixel-perfect に複製したい | `clone-website` |
 | LPの絵文字や仮アイコンを、ちょうどいいイラストの画像に差し替えたい | `themeisle-illustration-fetcher` |
