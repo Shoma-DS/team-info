@@ -271,6 +271,24 @@ body.auth-required .app { display: none; }
   white-space: nowrap;
 }
 
+.new-draft-btn {
+  margin: 10px 12px 0;
+  min-height: 38px;
+  border: 1px solid var(--border-strong);
+  background: var(--text-primary);
+  color: var(--bg);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+}
+.new-draft-btn:hover { filter: brightness(0.92); }
+
 /* 検索 */
 .search-wrap {
   position: relative;
@@ -1243,6 +1261,14 @@ button .ui-icon,
 .text-rewrite-modal .image-modal-instruction {
   min-height: 140px;
 }
+.generate-draft-modal {
+  max-width: 680px;
+}
+.generate-source-account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 .text-rewrite-current {
   margin-bottom: 0;
   max-height: 180px;
@@ -1717,6 +1743,24 @@ button .ui-icon,
   text-align: center;
 }
 .oembed-error { color: var(--danger); }
+.original-text-card {
+  background: rgba(255,255,255,0.018);
+}
+.original-avatar {
+  background: rgba(251,191,36,0.14);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,0.35);
+}
+.original-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: none;
+}
+.original-source-link:hover { text-decoration: underline; }
 
 .original-text-fallback {
   padding: 14px 16px;
@@ -1824,6 +1868,9 @@ button .ui-icon,
   }
   .image-path-attach-row,
   .reference-image-attach-row {
+    grid-template-columns: 1fr;
+  }
+  .generate-source-account-grid {
     grid-template-columns: 1fr;
   }
 

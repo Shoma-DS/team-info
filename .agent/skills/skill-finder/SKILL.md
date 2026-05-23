@@ -192,6 +192,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 |---------|------|------|
 | x-post-writer | アカウント情報・競合投稿・テンプレートを活用してXの投稿文を自動生成し、投稿の型を蓄積する | `.agent/skills/x-post-writer/SKILL.md` |
 | x-long-article-writer | セミナー台本・Obsidianノート・既存記事を、アカウント別トンマナに合わせてX長文記事・スレッド記事へ再構成しMarkdown保存する | `.agent/skills/x-long-article-writer/SKILL.md` |
+| x-long-article-draft-saver | Loom MCP の文字起こし、repo 内のセミナー台本、既存Xアカウント設定を参照し、5:2ヘッダー画像とX長文記事を作成して、Kimi WebBridgeでX Articlesへ下書き保存する | `.agent/skills/x-long-article-draft-saver/SKILL.md` |
 | x-vertical-infographic-creator | X投稿用の縦型9:16図解・インフォグラフィック画像を設計・日本語プロンプト化する。アカウントごとのキャラクター情報を管理し、scheduled_draft_pipeline.py と統合して画像プロンプトを自動生成する | `.agent/skills/x-vertical-infographic-creator/SKILL.md` |
 
 ---
@@ -258,6 +259,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | KPIから今月のスケジュールを組みたい | `monthly-kpi-planner` |
 | Git操作をしたい | `git-workflow` |
 | repo 全体のフォルダ構成を整理したい | `repo-information-architecture` |
+| Loom の文字起こしと台本からX長文記事を作り、5:2ヘッダー画像つきでX下書き保存したい | `x-long-article-draft-saver` |
 | 重複した役割のフォルダを減らしたい | `repo-information-architecture` |
 | 検索性を上げて AI の探索トークンを節約したい | `repo-information-architecture` |
 | LP用の画像プロンプトを作りたい | `image-prompt-generator` |

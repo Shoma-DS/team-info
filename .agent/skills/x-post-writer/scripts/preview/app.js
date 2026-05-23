@@ -76,6 +76,8 @@ let logoDetectionLoadingDraftId = null;
 let logoRegisterLoadingDraftId = null;
 let logoManualTarget = null;
 let logoShowHiddenDraftIds = new Set();
+let draftGenerationBusy = false;
+let convertToLongBusy = false;
 
 // グループ折りたたみ状態（未投稿: 開く / 投稿済み: 閉じる）
 const groupCollapsed = { draft: false, published: true };
@@ -604,6 +606,190 @@ async function selectAccountPreset(accountKey) {
   await loadDraftList();
 }
 
+function defaultGenerationAccountKey() {
+  const preset = getSelectedAccountPreset();
+  if (preset) return preset.id || preset.x_username || '';
+  const first = accountPresets.find(account => account.id || account.x_username);
+  return first ? (first.id || first.x_username || '') : '';
+}
+
+function renderGenerateAccountOptions(selectedKey = '') {
+  const options = accountPresets
+    .filter(account => account.id || account.x_username)
+    .map(account => {
+      const key = account.id || account.x_username;
+      const label = `${account.display_name || account.x_username || account.id} @${account.x_username || account.id}`;
+      return `<option value="${escAttr(key)}" ${key === selectedKey ? 'selected' : ''}>${esc(label)}</option>`;
+    })
+    .join('');
+  return options || '<option value="">アカウント未設定</option>';
+}
+
+function ensureGenerateDraftModal() {
+  let overlay = document.getElementById('generate-draft-modal');
+  if (overlay) return overlay;
+
+  overlay = document.createElement('div');
+  overlay.id = 'generate-draft-modal';
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'none';
+  overlay.innerHTML = `
+    <div class="modal image-modal generate-draft-modal" role="dialog" aria-modal="true" aria-labelledby="generate-draft-title" onclick="event.stopPropagation()">
+      <div class="thread-modal-header">
+        <div>
+          <div class="thread-step-label">新規作成</div>
+          <h3 class="image-modal-title" id="generate-draft-title">新規下書き生成</h3>
+        </div>
+        <button class="thread-close-btn" onclick="closeGenerateDraftModal()" aria-label="閉じる">${materialIcon('close')}</button>
+      </div>
+      <label class="image-modal-label">投稿先アカウント</label>
+      <select class="image-modal-input" id="generate-account-select"></select>
+      <label class="image-modal-label">元投稿の種類</label>
+      <select class="image-modal-input" id="generate-source-type" onchange="syncGenerateSourceFields()">
+        <option value="url">元投稿URLあり</option>
+        <option value="text">元投稿本文だけ</option>
+        <option value="none">元投稿なし</option>
+      </select>
+      <div class="generate-source-field" data-source-field="url">
+        <label class="image-modal-label">元投稿URL</label>
+        <input class="image-modal-input" id="generate-source-url" type="url" placeholder="https://x.com/user/status/123...">
+      </div>
+      <div class="generate-source-field" data-source-field="text">
+        <label class="image-modal-label">元投稿本文</label>
+        <textarea class="image-modal-instruction" id="generate-source-text" rows="5" placeholder="参考にしたい元投稿の本文を貼り付け"></textarea>
+        <div class="generate-source-account-grid">
+          <div>
+            <label class="image-modal-label">元投稿アカウントID</label>
+            <input class="image-modal-input" id="generate-source-author-username" type="text" placeholder="source_account">
+          </div>
+          <div>
+            <label class="image-modal-label">元投稿表示名</label>
+            <input class="image-modal-input" id="generate-source-author-name" type="text" placeholder="元投稿">
+          </div>
+        </div>
+      </div>
+      <label class="image-modal-label">生成指示</label>
+      <textarea class="image-modal-instruction" id="generate-instruction" rows="6" placeholder="どんな切り口で作るか。例: 初心者向けに、AI副業の具体例として、図解投稿にしやすい形で"></textarea>
+      <label class="image-modal-label">出力形式</label>
+      <select class="image-modal-input" id="generate-output-format">
+        <option value="thread">ツリー投稿</option>
+        <option value="long_single">長文単発投稿</option>
+      </select>
+      <p class="image-modal-help" id="generate-draft-help">生成後は既存下書きと同じ扱いになり、本文AI修正・画像プロンプト再生成・ツール検出・図解画像生成を使えます。</p>
+      <div class="image-modal-actions">
+        <button class="cancel-btn" onclick="closeGenerateDraftModal()">閉じる</button>
+        <button class="save-btn" id="generate-draft-submit-btn" onclick="generateDraftFromModal()">${materialIcon('auto_awesome', { filled: true })}生成して保存</button>
+      </div>
+    </div>`;
+  overlay.onclick = () => {
+    if (!draftGenerationBusy) closeGenerateDraftModal();
+  };
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+async function openGenerateDraftModal() {
+  if (accountPresets.length === 0) await loadAccounts();
+  const overlay = ensureGenerateDraftModal();
+  const accountKey = defaultGenerationAccountKey();
+  document.getElementById('generate-account-select').innerHTML = renderGenerateAccountOptions(accountKey);
+  document.getElementById('generate-source-type').value = 'url';
+  document.getElementById('generate-source-url').value = '';
+  document.getElementById('generate-source-text').value = '';
+  document.getElementById('generate-source-author-username').value = '';
+  document.getElementById('generate-source-author-name').value = '';
+  document.getElementById('generate-instruction').value = '';
+  document.getElementById('generate-output-format').value = 'thread';
+  document.getElementById('generate-draft-help').textContent = '生成後は既存下書きと同じ扱いになり、本文AI修正・画像プロンプト再生成・ツール検出・図解画像生成を使えます。';
+  setDraftGenerationBusy(false);
+  syncGenerateSourceFields();
+  overlay.style.display = 'flex';
+}
+
+function closeGenerateDraftModal() {
+  if (draftGenerationBusy) return;
+  const overlay = document.getElementById('generate-draft-modal');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function syncGenerateSourceFields() {
+  const mode = document.getElementById('generate-source-type')?.value || 'none';
+  document.querySelectorAll('#generate-draft-modal [data-source-field]').forEach(el => {
+    el.style.display = el.dataset.sourceField === mode ? '' : 'none';
+  });
+}
+
+function setDraftGenerationBusy(isBusy) {
+  draftGenerationBusy = !!isBusy;
+  const btn = document.getElementById('generate-draft-submit-btn');
+  if (!btn) return;
+  btn.disabled = draftGenerationBusy;
+  btn.classList.toggle('rewrite-loading', draftGenerationBusy);
+  btn.innerHTML = draftGenerationBusy
+    ? '<span class="inline-spinner" aria-hidden="true"></span><span>生成中...</span>'
+    : `${materialIcon('auto_awesome', { filled: true })}生成して保存`;
+}
+
+function getGenerateDraftPayload() {
+  const sourceType = document.getElementById('generate-source-type')?.value || 'none';
+  return {
+    account_id: document.getElementById('generate-account-select')?.value || '',
+    source_type: sourceType,
+    source_url: document.getElementById('generate-source-url')?.value?.trim() || '',
+    source_text: document.getElementById('generate-source-text')?.value?.trim() || '',
+    source_author_username: document.getElementById('generate-source-author-username')?.value?.trim() || '',
+    source_author_name: document.getElementById('generate-source-author-name')?.value?.trim() || '',
+    instruction: document.getElementById('generate-instruction')?.value?.trim() || '',
+    output_format: document.getElementById('generate-output-format')?.value || 'thread',
+  };
+}
+
+async function generateDraftFromModal() {
+  if (draftGenerationBusy) return;
+  const payload = getGenerateDraftPayload();
+  if (!payload.account_id) {
+    showToast('投稿先アカウントを選択してください', true);
+    return;
+  }
+  if (payload.source_type === 'url' && !payload.source_url) {
+    showToast('元投稿URLを入力してください', true);
+    return;
+  }
+  if (payload.source_type === 'text' && !payload.source_text) {
+    showToast('元投稿本文を入力してください', true);
+    return;
+  }
+  if (payload.source_type === 'none' && !payload.instruction) {
+    showToast('元投稿なしの場合は生成指示を入力してください', true);
+    return;
+  }
+
+  const helpEl = document.getElementById('generate-draft-help');
+  try {
+    setDraftGenerationBusy(true);
+    if (helpEl) helpEl.textContent = 'Codex App Serverで下書きを生成しています。完了までこのまま待ってください。';
+    const res = await apiFetch(`${API}/draft/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await readApiJson(res, '新規下書き生成API');
+    if (!data.ok) throw new Error(data.error || '不明');
+    setDraftGenerationBusy(false);
+    const draftId = data.draft_id || data.draft?.draft_id;
+    closeGenerateDraftModal();
+    await loadAccounts();
+    await loadDraftList();
+    if (draftId) await selectDraft(draftId);
+    showToast('✓ 新規下書きを生成しました');
+  } catch (e) {
+    if (helpEl) helpEl.textContent = `生成に失敗しました: ${e.message}`;
+    showToast(`新規下書き生成失敗: ${e.message}`, true);
+  } finally {
+    setDraftGenerationBusy(false);
+  }
+}
+
 // ── 下書き選択 ───────────────────────────────────────
 
 async function selectDraft(draftId) {
@@ -641,7 +827,7 @@ function renderPreview(draft) {
   const identity   = getDraftDisplayIdentity(draft);
   const previewUrl = `${publicUrl}?draft=${draft.draft_id}`;
   const original   = draft.original_tweet;
-  const hasOrig    = !!(original && original.tweet_url);
+  const hasOrig    = hasComparableOriginal(original);
 
   // ── ヘッダー ──
   const postedBar = isPosted
@@ -650,7 +836,7 @@ function renderPreview(draft) {
   const statusBtn = isPosted
     ? `<button class="revert-draft-btn" onclick="setStatus('${draft.draft_id}','draft')">${materialIcon('undo')}未投稿に戻す</button>`
     : `<button class="post-btn" onclick="onPostClick(false)"><span class="x-mark" aria-hidden="true">𝕏</span>投稿する</button>`;
-  const quotePostBtn = isPosted || !hasOrig
+  const quotePostBtn = isPosted || !original?.tweet_url
     ? ''
     : `<button class="post-btn quote-post-btn" onclick="onPostClick(true)"><span class="x-mark" aria-hidden="true">𝕏</span>引用リツイートする</button>`;
   const autoPostBtn = '';
@@ -659,6 +845,9 @@ function renderPreview(draft) {
     ? ''
     : `<button class="mark-posted-btn" id="mark-posted-btn" onclick="setStatus('${draft.draft_id}','published')">${materialIcon('task_alt', { filled: true })}投稿済みにする</button>`;
   const fullTextRewriteBtn = `<button class="image-source-copy-btn text-rewrite-header-btn" onclick="openDraftTextRewriteModal()">${materialIcon('auto_fix_high', { filled: true })}全文AI修正</button>`;
+  const convertToLongBtn = isThread && !isPosted
+    ? `<button class="image-source-copy-btn convert-long-btn" id="convert-long-btn" onclick="convertCurrentDraftToLong()">${materialIcon('notes')}長文単発に変換</button>`
+    : '';
   const draftIdStr = String(draft.draft_id);
   const serverObsidianSave = draft.obsidian_save?.saved ? draft.obsidian_save : null;
   if (serverObsidianSave) {
@@ -705,6 +894,7 @@ function renderPreview(draft) {
         <div class="header-action-row header-action-secondary">
           ${obsidianBtn}
           ${fullTextRewriteBtn}
+          ${convertToLongBtn}
           ${markPostedBtn}
         </div>
       </div>
@@ -733,11 +923,12 @@ function renderPreview(draft) {
   content.className = 'preview-content has-comparison';
 
   const origCards  = buildOriginalCards(original);
+  const originalAccountLabel = originalLabel(original);
   const labelBar   = `
     <div class="comparison-labels">
       <div class="comparison-label">
         <span class="comparison-label-tag original">元投稿</span>
-        @${esc(original.author_username)}${original.author_name ? ' · ' + esc(original.author_name) : ''}
+        ${originalAccountLabel}
       </div>
       <div class="comparison-label">
         <span class="comparison-label-tag draft">下書き</span>
@@ -766,10 +957,54 @@ function renderPreview(draft) {
   if (window.innerWidth <= 640) switchCompareCol('draft');
 }
 
-// ── 比較: 元投稿カード（oEmbed対応）────────────────
+// ── 比較: 元投稿カード（oEmbed / テキスト元投稿対応）────────────────
+
+function hasComparableOriginal(original) {
+  if (!original) return false;
+  if ((original.source_type || '') === 'text') return !!(original.text || '').trim();
+  return !!(original.tweet_url || (original.text || '').trim());
+}
+
+function originalLabel(original) {
+  if (!original) return '元投稿';
+  const username = (original.author_username || '').trim();
+  const name = (original.author_name || '').trim();
+  if (username && name) return `@${esc(username)} · ${esc(name)}`;
+  if (username) return `@${esc(username)}`;
+  return esc(name || '元投稿');
+}
+
+function buildOriginalTextCards(original) {
+  const parts = Array.isArray(original.thread_parts) && original.thread_parts.length
+    ? original.thread_parts
+    : [{ text: original.text || '', tweet_url: original.tweet_url || '' }];
+  const displayName = original.author_name || '元投稿';
+  const username = original.author_username || 'source_text';
+  const avatarInitial = (displayName || username || '元').charAt(0).toUpperCase();
+  return parts.map((part, index) => `
+    <div class="tweet-card original-text-card">
+      <div class="tweet-header">
+        <div class="avatar original-avatar">${esc(avatarInitial)}</div>
+        <div class="tweet-body">
+          <div class="tweet-user-info">
+            <span class="tweet-display-name">${esc(displayName)}</span>
+            <span class="tweet-handle">@${esc(username)}</span>
+          </div>
+          <div class="tweet-text">${formatText(part.text || original.text || '')}</div>
+          ${part.tweet_url ? `<a class="original-source-link" href="${escAttr(part.tweet_url)}" target="_blank">${materialIcon('open_in_new')}Xで開く</a>` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
 
 function buildOriginalCards(original) {
-  if (!original || !original.tweet_url) {
+  if (!original) {
+    return '<div class="original-unavailable">元投稿URLが不明です</div>';
+  }
+  if ((original.source_type || '') === 'text' || (!original.tweet_url && (original.text || '').trim())) {
+    return buildOriginalTextCards(original);
+  }
+  if (!original.tweet_url) {
     return '<div class="original-unavailable">元投稿URLが不明です</div>';
   }
 
@@ -2523,6 +2758,57 @@ async function rewriteDraftText() {
     return rewriteDraftTextAll();
   }
   return rewriteDraftTextPart();
+}
+
+async function convertCurrentDraftToLong() {
+  if (!currentDraft || convertToLongBusy) return;
+  if (!Array.isArray(currentDraft.parts) || currentDraft.parts.length <= 1) {
+    showToast('この下書きはすでに単発投稿です');
+    return;
+  }
+  const choice = await showChoiceModal({
+    title: '長文単発に変換',
+    message: '現在のツリー投稿を1本の長文単発投稿に変換します。画像・画像プロンプト・元投稿情報は維持します。',
+    primary: '変換する',
+    cancel: 'キャンセル',
+  });
+  if (choice !== 'primary') return;
+
+  const btn = document.getElementById('convert-long-btn');
+  const previousHtml = btn?.innerHTML || '';
+  try {
+    convertToLongBusy = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="inline-spinner" aria-hidden="true"></span><span>変換中...</span>';
+    }
+    const res = await apiFetch(`${API}/draft/convert-to-long`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft_id: currentDraft.draft_id }),
+    });
+    const data = await readApiJson(res, '長文単発変換API');
+    if (!data.ok) throw new Error(data.error || '不明');
+    currentDraft = data.draft;
+    const listItem = allDrafts.find(item => item.draft_id === currentDraft.draft_id);
+    if (listItem) {
+      listItem.parts = currentDraft.parts;
+      listItem.part_count = 1;
+      listItem.preview_content = currentDraft.parts?.[0]?.content || '';
+      listItem.has_image = !!currentDraft.has_image;
+    }
+    renderDraftList();
+    renderPreview(currentDraft);
+    showToast('✓ 長文単発投稿に変換しました');
+  } catch (e) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = previousHtml;
+    }
+    showToast(`長文単発変換失敗: ${e.message}`, true);
+  } finally {
+    convertToLongBusy = false;
+  }
 }
 
 function ensureCharacterSettingsModal() {

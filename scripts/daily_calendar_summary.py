@@ -28,6 +28,7 @@ Zoom ミーティングを作成（必要な場合）し、LINE 送信と合わ�
 import json
 import sys
 import urllib.parse
+import urllib.error
 import urllib.request
 import time
 import base64
@@ -675,6 +676,14 @@ def send_line_message(line_sender_url: str, user_id: str, content: str, shared_t
             return False, response_json.get("error") or "LINE 送信先がエラーを返しました"
         print(f"[LINE] 送信完了: uid={user_id}", file=sys.stderr, flush=True)
         return True, None
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")
+        title_match = re.search(r"<title>(.*?)</title>", body, flags=re.IGNORECASE | re.DOTALL)
+        response_title = ""
+        if title_match:
+            response_title = re.sub(r"\s+", " ", title_match.group(1)).strip()
+        suffix = f" / response_title={response_title}" if response_title else ""
+        return False, f"LINE 送信失敗: HTTP {e.code} {e.reason}{suffix}"
     except Exception as e:
         return False, f"LINE 送信失敗: {e}"
 

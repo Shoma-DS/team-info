@@ -35,6 +35,7 @@ from runtime_store import (
     save_character_setting,
     save_draft_metadata,
     slugify,
+    write_image_prompt_file,
 )
 from draft_manager import update_draft_image
 
@@ -541,6 +542,82 @@ def fetch_accounts() -> list[dict]:
     return sorted(presets.values(), key=lambda item: (item.get("x_username") or item.get("id") or "").lower())
 
 
+X_STATUS_URL_PATTERN = re.compile(
+    r"https?://(?:x|twitter)\.com/(?:i/web/status|i/status|([^/\s]+)/status)/(\d+)(?:\?\S*)?",
+    re.IGNORECASE,
+)
+
+
+def normalize_x_profile_image_url(url: str | None) -> str:
+    return str(url or "").replace("_normal.", "_400x400.")
+
+
+def parse_x_status_url(value: str) -> dict:
+    clean = str(value or "").strip()
+    match = X_STATUS_URL_PATTERN.search(clean)
+    if not match:
+        return {"tweet_url": clean, "tweet_id": "", "author_username": ""}
+    author = match.group(1) or ""
+    tweet_id = match.group(2) or ""
+    tweet_url = f"https://x.com/{author}/status/{tweet_id}" if author else f"https://x.com/i/web/status/{tweet_id}"
+    return {"tweet_url": tweet_url, "tweet_id": tweet_id, "author_username": author}
+
+
+def strip_html_text(html_text: str) -> str:
+    text = re.sub(r"(?is)<script\b.*?</script>", " ", html_text or "")
+    text = re.sub(r"(?is)<style\b.*?</style>", " ", text)
+    text = re.sub(r"(?i)<br\s*/?>", "\n", text)
+    text = re.sub(r"(?i)</p>|</div>|</blockquote>", "\n", text)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = html.unescape(text)
+    text = re.sub(r"\n\s*\n+", "\n\n", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    return text.strip()
+
+
+def fetch_tweet_text_from_oembed(tweet_url: str) -> str:
+    embed_html = get_oembed_html(tweet_url)
+    if not embed_html:
+        return ""
+    text = strip_html_text(embed_html)
+    text = re.sub(r"\s+—\s+[^—]+?\(@[^)]+\)\s+\w+\s+\d{1,2},\s+\d{4}.*$", "", text, flags=re.DOTALL)
+    return text.strip()
+
+
+def _original_source_from_metadata(metadata: dict) -> dict | None:
+    source = metadata.get("source") or metadata.get("original_source")
+    if not isinstance(source, dict):
+        return None
+
+    source_type = str(source.get("source_type") or "").strip().lower()
+    if source_type in {"none", "prompt", "instruction_only"}:
+        return None
+    if source_type not in {"url", "text"}:
+        return None
+
+    parsed = parse_x_status_url(source.get("tweet_url") or source.get("url") or "")
+    tweet_url = parsed["tweet_url"]
+    author_username = (
+        str(source.get("author_username") or "").strip().lstrip("@")
+        or parsed["author_username"]
+        or ("source_text" if source_type == "text" else "")
+    )
+    author_name = str(source.get("author_name") or "").strip() or ("元投稿" if source_type == "text" else "")
+    text = source.get("text")
+    thread_parts = source.get("thread_parts") if isinstance(source.get("thread_parts"), list) else []
+    return {
+        "source_type": source_type,
+        "tweet_id": str(source.get("tweet_id") or parsed["tweet_id"] or "").strip(),
+        "tweet_url": tweet_url if source_type == "url" else "",
+        "text": text if text is not None else "",
+        "author_username": author_username,
+        "author_name": author_name,
+        "thread_parts": thread_parts,
+        "media": source.get("media") if isinstance(source.get("media"), list) else [],
+        "urls": source.get("urls") if isinstance(source.get("urls"), list) else [],
+    }
+
+
 def _load_original_tweet(draft_id: str, seen: set[str] | None = None) -> dict | None:
     """draft-metadata と bookmarks_latest.json から元ツイート（スレッド含む）を返す。"""
     seen = seen or set()
@@ -552,6 +629,11 @@ def _load_original_tweet(draft_id: str, seen: set[str] | None = None) -> dict | 
     metadata = load_draft_metadata(draft_id)
     if not metadata:
         return None
+
+    manual_source = _original_source_from_metadata(metadata)
+    if manual_source is not None:
+        return manual_source
+
     tweet_id = str(metadata.get("bookmark_tweet_id") or "")
     author   = metadata.get("author_username") or ""
     if not tweet_id:
@@ -727,6 +809,106 @@ def update_part_contents(part_updates: list[dict]) -> bool:
                     return False
             conn.commit()
             return True
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def replace_draft_with_single_part(draft_id: str, content: str) -> bool:
+    clean_content = str(content or "").strip()
+    if not clean_content:
+        raise ValueError("長文単発の本文が空です")
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT image_url
+                FROM draft_parts
+                WHERE draft_id = %s AND COALESCE(image_url, '') <> ''
+                ORDER BY position
+                LIMIT 1
+            """, (draft_id,))
+            image_row = cur.fetchone()
+            image_url = image_row["image_url"] if image_row else ""
+
+            cur.execute("DELETE FROM draft_parts WHERE draft_id = %s", (draft_id,))
+            cur.execute(
+                "INSERT INTO draft_parts (draft_id, position, content, image_url) VALUES (%s, %s, %s, %s)",
+                (draft_id, 1, clean_content, image_url or None),
+            )
+            conn.commit()
+            return True
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def resolve_draft_account(account_key: str) -> dict:
+    clean_key = str(account_key or "").strip()
+    config_accounts = load_accounts_config()
+    if not clean_key and config_accounts:
+        clean_key = str(config_accounts[0].get("id") or config_accounts[0].get("x_username") or "").strip()
+    config_match = next(
+        (
+            item for item in config_accounts
+            if clean_key
+            and clean_key.lower() in {
+                str(item.get("id") or "").lower(),
+                str(item.get("x_username") or "").lower(),
+            }
+        ),
+        None,
+    )
+    lookup = str(config_match.get("x_username") if config_match else clean_key).strip()
+    if not lookup:
+        raise ValueError("投稿先アカウントを選択してください")
+
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT account_id, x_username, display_name, profile_image_url
+                FROM accounts
+                WHERE account_id::text = %s OR lower(x_username) = lower(%s)
+                LIMIT 1
+            """, (lookup, lookup))
+            row = cur.fetchone()
+            if not row:
+                raise ValueError(f"アカウント '{lookup}' がDBに見つかりません")
+            return {
+                "account_id": row["account_id"],
+                "account_key": str(config_match.get("id") if config_match else clean_key or row["x_username"]),
+                "x_username": row["x_username"] or "",
+                "display_name": row["display_name"] or row["x_username"] or "",
+                "profile_image_url": row["profile_image_url"] or "",
+            }
+    finally:
+        conn.close()
+
+
+def create_draft_for_account(account: dict, parts_text: list[str], memo: str = "") -> str:
+    normalized_parts = [str(part or "").strip() for part in parts_text if str(part or "").strip()]
+    if not normalized_parts:
+        raise ValueError("投稿本文が空です")
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "INSERT INTO drafts (account_id, memo) VALUES (%s, %s) RETURNING draft_id",
+                (account["account_id"], memo or None),
+            )
+            draft_id = str(cur.fetchone()["draft_id"])
+            for position, content in enumerate(normalized_parts, start=1):
+                cur.execute(
+                    "INSERT INTO draft_parts (draft_id, position, content) VALUES (%s, %s, %s)",
+                    (draft_id, position, content),
+                )
+            conn.commit()
+            return draft_id
     except Exception:
         conn.rollback()
         raise
@@ -1746,6 +1928,252 @@ def account_rules_for_draft(draft: dict) -> str:
         return ""
 
 
+def account_rules_for_username(x_username: str) -> str:
+    account_path = find_account_info_file(x_username)
+    if not account_path or not account_path.exists():
+        return ""
+    try:
+        return account_path.read_text(encoding="utf-8")[:16000]
+    except OSError:
+        return ""
+
+
+def infographic_rules_for_username(x_username: str) -> str:
+    skill_root = Path(__file__).resolve().parent.parent
+    common_rules_path = skill_root / "infographic-rules-common.md"
+    account_dir = skill_root / "accounts" / _normalize_x_handle(x_username)
+    account_rules_path = account_dir / "infographic-rules.md"
+    character_path = account_dir / "character-prompt.md"
+    chunks: list[str] = []
+    for path in (common_rules_path, account_rules_path, character_path):
+        if path.exists():
+            try:
+                chunks.append(path.read_text(encoding="utf-8")[:12000])
+            except OSError:
+                continue
+    return "\n\n".join(chunks)
+
+
+def parse_json_object_output(value: str) -> dict:
+    text = (value or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            raise RuntimeError("生成結果をJSONとして読めませんでした")
+        parsed = json.loads(text[start:end + 1])
+    if not isinstance(parsed, dict):
+        raise RuntimeError("生成結果JSONの形式が不正です")
+    return parsed
+
+
+def normalize_generated_parts(parts: list, output_format: str) -> list[str]:
+    normalized = [str(part or "").strip() for part in (parts or []) if str(part or "").strip()]
+    if not normalized:
+        raise RuntimeError("生成結果に投稿本文がありません")
+    if output_format == "long_single" and len(normalized) > 1:
+        return ["\n\n".join(normalized)]
+    return normalized
+
+
+def fallback_image_prompt(copy_text: str, parts: list[str], instruction: str) -> str:
+    body = "\n\n".join(parts)
+    return (
+        "3:4縦型のX向け日本語インフォグラフィック。"
+        "スマホで読める余白、見出し、3〜5個の短い要点で構成する。"
+        "投稿本文の結論と使えるポイントを図解化し、文字量を抑える。"
+        "キャラクター参照画像がある場合は右下20〜25%以内に小さく配置する。"
+        f"\n\n画像コピー: {copy_text or (parts[0][:32] if parts else '')}"
+        f"\n\n投稿本文:\n{body[:1600]}"
+        f"\n\n追加指示:\n{instruction[:800]}"
+    )
+
+
+def build_manual_source_payload(body: dict) -> dict:
+    source_type = str(body.get("source_type") or "none").strip().lower()
+    if source_type not in {"url", "text", "none"}:
+        source_type = "none"
+    source_url = str(body.get("source_url") or "").strip()
+    source_text = str(body.get("source_text") or "").strip()
+    author_username = str(body.get("source_author_username") or "").strip().lstrip("@")
+    author_name = str(body.get("source_author_name") or "").strip()
+
+    if source_type == "url":
+        parsed = parse_x_status_url(source_url)
+        if not source_text and parsed["tweet_url"]:
+            source_text = fetch_tweet_text_from_oembed(parsed["tweet_url"])
+        return {
+            "source_type": "url",
+            "tweet_url": parsed["tweet_url"] or source_url,
+            "tweet_id": parsed["tweet_id"],
+            "author_username": author_username or parsed["author_username"],
+            "author_name": author_name,
+            "text": source_text,
+            "thread_parts": [],
+            "urls": [source_url] if source_url else [],
+        }
+    if source_type == "text":
+        return {
+            "source_type": "text",
+            "tweet_url": "",
+            "tweet_id": "",
+            "author_username": author_username or "source_text",
+            "author_name": author_name or "元投稿",
+            "text": source_text,
+            "thread_parts": [],
+            "urls": [],
+        }
+    return {
+        "source_type": "none",
+        "tweet_url": "",
+        "tweet_id": "",
+        "author_username": "",
+        "author_name": "",
+        "text": "",
+        "thread_parts": [],
+        "urls": [],
+    }
+
+
+def build_manual_generation_prompt(account: dict, source: dict, instruction: str, output_format: str) -> str:
+    output_label = "長文単発投稿（1パーツ、最大25000字）" if output_format == "long_single" else "ツリー投稿（3〜4パーツ、各パーツ280字以内目安）"
+    account_rules = account_rules_for_username(account.get("x_username") or "")
+    infographic_rules = infographic_rules_for_username(account.get("x_username") or "")
+    source_block = (
+        f"source_type: {source.get('source_type')}\n"
+        f"tweet_url: {source.get('tweet_url') or '(なし)'}\n"
+        f"author: @{source.get('author_username') or ''} {source.get('author_name') or ''}\n"
+        f"text:\n{source.get('text') or '(なし)'}"
+    )
+    return f"""
+あなたは team-info の X 投稿下書き生成ワーカーです。
+出力はJSONのみ。説明、Markdown、コードブロックは禁止。
+
+目的:
+- 指定された材料から、投稿先アカウントのトンマナに合うX下書きを新規作成する。
+- 元投稿がある場合もコピペではなく、切り口・構造・論点だけを参考にして自分の言葉で作る。
+- 画像プロンプトは必ず1つ作る。既存のツール検出・図解画像生成で使うため、空文字にしない。
+
+JSON形式:
+{{"memo":"短い管理メモ","rationale":"生成理由を1〜2文","parts":["投稿本文"],"image_prompt":{{"copy":"画像内コピー","prompt":"日本語の縦型図解プロンプト"}}}}
+
+投稿先:
+- 表示名: {account.get("display_name") or ""}
+- Xユーザー名: @{account.get("x_username") or ""}
+
+出力形式:
+- {output_label}
+
+[アカウントルール]
+{account_rules or "(アカウント情報なし)"}
+
+[図解プロンプトルール]
+{infographic_rules or "(汎用的な縦型3:4インフォグラフィックで作る)"}
+
+[元投稿/材料]
+{source_block}
+
+[ユーザーの生成指示]
+{instruction or "(追加指示なし)"}
+
+必須:
+- parts は空にしない。
+- output_format が long_single の場合、parts は必ず1件だけにする。
+- output_format が thread の場合、parts は3〜4件を基本にする。
+- image_prompt.prompt は、3:4縦型、スマホ可読、見出し、3〜5要点、キャラクター右下20〜25%以内を含める。
+- ツール名・サービス名が本文や指示にある場合、画像プロンプトにも必要に応じて入れる。
+""".strip()
+
+
+def generate_manual_draft(body: dict, user_id: str | None = None) -> dict:
+    account = resolve_draft_account(body.get("account_id") or body.get("account") or body.get("x_username") or "")
+    source = build_manual_source_payload(body)
+    output_format = "long_single" if (body.get("output_format") or "thread") == "long_single" else "thread"
+    instruction = str(body.get("instruction") or "").strip()
+    if source["source_type"] == "url" and not source.get("tweet_url"):
+        raise ValueError("元投稿URLを入力してください")
+    if source["source_type"] == "text" and not source.get("text"):
+        raise ValueError("元投稿本文を入力してください")
+    if source["source_type"] == "none" and not instruction:
+        raise ValueError("元投稿なしの場合は生成指示を入力してください")
+
+    codex_path = shutil.which("codex")
+    if not codex_path:
+        raise RuntimeError("codex コマンドが見つかりません")
+    prompt = build_manual_generation_prompt(account, source, instruction, output_format)
+    result_text = run_codex_app_server_turn(
+        codex_path,
+        REPO_ROOT,
+        prompt,
+        timeout=300,
+        developer_instructions=(
+            "あなたはX投稿下書きのJSON生成だけを行う。ファイル編集、外部送信、"
+            "コマンド実行、画像生成APIの提案は禁止。"
+        ),
+        sandbox_policy={"type": "readOnly"},
+    )
+    generated = parse_json_object_output(result_text)
+    parts = normalize_generated_parts(generated.get("parts") or [], output_format)
+    image_prompt = generated.get("image_prompt") if isinstance(generated.get("image_prompt"), dict) else {}
+    copy_text = str(image_prompt.get("copy") or "").strip() or parts[0][:36]
+    prompt_text = str(image_prompt.get("prompt") or "").strip() or fallback_image_prompt(copy_text, parts, instruction)
+    memo = str(generated.get("memo") or "").strip() or (
+        f"manual from @{source.get('author_username')}" if source.get("source_type") != "none" else "manual prompt draft"
+    )
+
+    draft_id = create_draft_for_account(account, parts, memo=memo)
+    source_id = source.get("tweet_id") or source.get("source_type") or "manual"
+    prompt_file = write_image_prompt_file(
+        draft_id=draft_id,
+        position=1,
+        copy_text=copy_text,
+        prompt_text=prompt_text,
+        source_tweet_id=str(source_id),
+    )
+    character_reference_url = normalize_x_profile_image_url(account.get("profile_image_url"))
+    preview_url = f"{PUBLIC_URL}?draft={draft_id}"
+    metadata = {
+        "draft_id": draft_id,
+        "account_id": account.get("account_key") or "",
+        "x_username": account.get("x_username") or "",
+        "source_agent": "codex-manual-generate",
+        "source": source,
+        "manual_instruction": instruction,
+        "output_format": output_format,
+        "memo": memo,
+        "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "preview_url": preview_url,
+        "rationale": str(generated.get("rationale") or "").strip(),
+        "image_prompts": [
+            {
+                "position": 1,
+                "copy": copy_text,
+                "prompt": prompt_text,
+                "file_path": str(prompt_file),
+                "character_reference_url": character_reference_url,
+            }
+        ],
+        "character_reference": {
+            "type": "x_profile_image",
+            "url": character_reference_url,
+            "instruction": "このプロフィール画像のキャラクター外見を参照して、図解内の右下などに20〜25%以内で入れる。",
+        },
+    }
+    metadata_path = save_draft_metadata(draft_id, metadata)
+    return {
+        "draft_id": draft_id,
+        "preview_url": preview_url,
+        "metadata_path": str(metadata_path),
+        "parts": parts,
+        "image_prompt": metadata["image_prompts"][0],
+    }
+
+
 def _clean_text_rewrite_output(value: str) -> str:
     text = (value or "").strip()
     text = re.sub(r"^修正後本文\s*[:：]\s*", "", text)
@@ -1948,6 +2376,58 @@ draft_id: {draft_id}
             "content": rewritten["content"],
         })
     return ordered_parts
+
+
+def convert_draft_thread_to_long_with_codex(draft_id: str) -> str:
+    codex_path = shutil.which("codex")
+    if not codex_path:
+        raise RuntimeError("codex コマンドが見つかりません")
+
+    draft = fetch_draft(str(draft_id))
+    if not draft:
+        raise RuntimeError("下書きが見つかりません")
+    parts = draft.get("parts") or []
+    if len(parts) <= 1:
+        raise RuntimeError("この下書きはすでに単発投稿です")
+
+    account_rules = account_rules_for_draft(draft)
+    prompt = f"""
+あなたはX投稿本文の編集者です。
+複数パーツのツリー投稿を、1本の長文単発投稿に自然に再構成してください。
+画像プロンプト、画像URL、元投稿情報、メタデータは変更しません。
+出力は長文単発投稿の本文のみ。説明、見出し、Markdown、コードブロックは禁止。
+
+アカウント: {draft.get("display_name") or ""} @{draft.get("x_username") or ""}
+draft_id: {draft_id}
+
+[アカウントルール]
+{account_rules or "(アカウント情報なし)"}
+
+[現在のツリー投稿]
+{_draft_markdown_parts(parts)}
+
+必須条件:
+- ツリーの重複する導入・つなぎ文を整理し、1本で読める流れにする。
+- 元の主張、事実、固有名詞、URL、メンション、ハッシュタグは必要なく変更しない。
+- 画像プロンプトや画像の説明は出力しない。
+- 25,000字以内に収める。
+""".strip()
+
+    result = run_codex_app_server_turn(
+        codex_path,
+        REPO_ROOT,
+        prompt,
+        timeout=300,
+        developer_instructions=(
+            "あなたはX投稿本文の変換だけを行う。ファイル編集、外部送信、"
+            "コマンド実行、画像プロンプト変更、画像生成APIの提案は禁止。"
+        ),
+        sandbox_policy={"type": "readOnly"},
+    )
+    cleaned = _clean_text_rewrite_output(result)
+    if not cleaned:
+        raise RuntimeError("長文単発変換の結果が空です")
+    return cleaned
 
 
 def run_codex_app_server_turn(
@@ -5115,7 +5595,30 @@ class Handler(BaseHTTPRequestHandler):
 
         body = self.read_body()
 
-        if path == "/api/notify":
+        if path == "/api/draft/generate":
+            try:
+                result = generate_manual_draft(body, self.current_user_id())
+                draft = fetch_draft(result["draft_id"]) or {}
+                self.send_json({"ok": True, **result, "draft": draft})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/draft/convert-to-long":
+            draft_id = body.get("draft_id")
+            if not draft_id:
+                self.send_json({"error": "draft_id が必要です"}, 400)
+                return
+            try:
+                content = convert_draft_thread_to_long_with_codex(str(draft_id))
+                replace_draft_with_single_part(str(draft_id), content)
+                metadata = load_draft_metadata(str(draft_id)) or {}
+                metadata["output_format"] = "long_single"
+                metadata["converted_to_long_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
+                save_draft_metadata(str(draft_id), metadata)
+                draft = fetch_draft(str(draft_id)) or {}
+                self.send_json({"ok": True, "draft": draft, "content": content})
+            except Exception as e:
+                self.send_json({"ok": False, "error": str(e)}, 500)
+        elif path == "/api/notify":
             draft_id = body.get("draft_id")
             main_content = body.get("main_content", "")
             x_username = body.get("x_username", "")

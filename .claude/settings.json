@@ -56,13 +56,14 @@
       "Bash(git ls-files*)",
       "Bash(python3*)",
       "Bash(python*)",
-      "Bash(export *)"
+      "Bash(export *)",
+      "Bash(curl -s -X POST http://127.0.0.1:10086*)",
+      "Bash(bash ~/.claude/skills/kimi-webbridge/scripts/screenshot.sh*)"
     ],
     "ask": [
       "Bash(rm *)",
       "Bash(chmod *)",
       "Bash(chown *)",
-      "Bash(curl *)",
       "Bash(wget *)",
       "Bash(ssh *)",
       "Bash(scp *)",
