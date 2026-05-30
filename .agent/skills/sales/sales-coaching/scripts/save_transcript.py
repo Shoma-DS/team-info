@@ -13,7 +13,8 @@ from psycopg2 import sql
 from psycopg2.extras import Json, RealDictCursor
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
-COACHING_ROOT = REPO_ROOT / "personal" / "deguchishouma" / "sales" / "coaching"
+_coaching_root_env = os.environ.get("COACHING_ROOT")
+COACHING_ROOT = Path(_coaching_root_env) if _coaching_root_env else REPO_ROOT / "personal" / "deguchishouma" / "sales" / "coaching"
 ENV_PATH = REPO_ROOT / ".env"
 
 
