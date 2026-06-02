@@ -9,5 +9,23 @@
     "files.associations": {
         // composer.phar はPHARバイナリファイルなので、PHPとして解析しない
         "composer.phar": "plaintext"
+    },
+    "python.analysis.exclude": [
+        "**/node_modules",
+        "**/node_modules/*",
+        "**/Remotion/node_modules",
+        "**/personal/**",
+        "**/inputs/**",
+        "**/outputs/**",
+        "**/.git/**"
+    ],
+    "python.analysis.ignore": [
+        "**/node_modules",
+        "**/Remotion/node_modules",
+        "**/personal/**"
+    ],
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/.git": true
     }
 }
