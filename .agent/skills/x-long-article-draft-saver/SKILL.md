@@ -59,7 +59,7 @@ X Articles のヘッダー入力と本文メディア入力はUI上で近く、�
 原則:
 
 ```text
-personal/<account>/outputs/x-long-article-drafts/YYYY-MM-DD/<slug>/
+~/Desktop/X運用/x-long-article-drafts/YYYY-MM-DD/<slug>/
 ```
 
 作るファイル:
@@ -551,7 +551,7 @@ Kimi WebBridge の健康確認:
 成果物を Google Drive へコピーする場合は、次のコマンドをユーザーへ提示するだけにする。エージェント自身では実行しない。
 
 ```bash
-rclone copy "$TEAM_INFO_ROOT/personal/<account>/outputs/x-long-article-drafts/YYYY-MM-DD/<slug>/" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/X長文記事/<slug>/" --progress
+rclone copy "$HOME/Desktop/X運用/x-long-article-drafts/YYYY-MM-DD/<slug>/" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/X長文記事/<slug>/" --progress
 ```
 
 rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。

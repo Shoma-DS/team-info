@@ -110,7 +110,7 @@ _auto_post_jobs: dict[str, dict] = {}
 
 
 def image_generation_output_dir() -> Path:
-    return Path(os.environ.get("TEAM_INFO_ROOT", REPO_ROOT)) / "personal" / "deguchishouma" / "outputs" / "x-post-images"
+    return Path(os.environ.get("X_POST_RUNTIME_ROOT", str(Path.home() / "Desktop" / "X運用" / "runtime"))) / "x-post-images"
 
 
 def current_dev_mode_label() -> str:
