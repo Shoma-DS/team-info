@@ -66,6 +66,7 @@
 | `/ceo` | `.agent/skills/common/agent-org-ceo/SKILL.md` | オーナー配下の CEO と役割別メンバーで仕事を振り分ける |
 | `/remotion`| `.agent/skills/remotion/video-production/SKILL.md` | 動画制作（アコリエル・睡眠・リリック） |
 | `/jmty-weekly` | `personal/deguchishouma/scripts/jmty-banner-codex/prompts/weekly_jmty_banner_prompt.md` | ジモティー週次一括更新（地域ローテーション→投稿文→画像→Drive→シート反映） |
+| `/booking` | `.agent/skills/common/calendar-booking-reply/SKILL.md` | 候補日時からGoogleカレンダー予定を作成し、返信文を生成 |
 | `/web` | `.agent/skills/web-design/frontend-design/SKILL.md` | サイト制作・複製・イラスト取得 |
 | `/viral` | `.agent/skills/viral-template-generator/SKILL.md` | バズ動画解析・テンプレ自動生成 |
 | `/x` | `.agent/skills/x-post-writer/SKILL.md` | X投稿文自動生成 |
@@ -294,3 +295,12 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
 - ユーザーに選択肢や確認応答を求める場合は、質問を出す直前に必ず通知を鳴らす。
 - 通知付きの選択フローをスクリプト化する場合も、通知を先に鳴らしてから入力待ちに入る。
 - Git の push 判断でオーナー確認が必要なときは、ユーザーへ立場を聞かず、`team_info_runtime.py owner-status` の結果で機械側を判定して進める。
+
+## ブラウザ操作のモデル分担
+
+- Kimi WebBridge、agent-browser、Canva、実サイト確認などのブラウザ操作はトークン消費が大きいため、サブエージェントとモデル指定が使える環境では `codex-5.3spark` / `GPT-5.3 Codex Spark` 相当をブラウザ操作担当に優先指定する。
+- Spark担当はクリック、待機、ページ移動、スクリーンショット取得、単純な表示確認、反復的なブラウザ検証を担当し、Spark利用枠を積極的に消費する。
+- メインエージェントまたは高精度モデルは、作業計画、合否判断、公開可否、最終文言、設計判断、ファイル統合を担当する。ブラウザ操作を高精度モデル単体で長時間抱え込まない。
+- 画像生成、複雑な設計判断、最終品質判断が必要な作業は、Spark担当ではなくメインエージェントまたは適切な高精度・画像対応モデルに戻す。
+- git status/diff/add/commit/push などの定型的なGit操作も、サブエージェントとモデル指定が使える環境では `codex-5.3spark` / `GPT-5.3 Codex Spark` 相当に優先して任せ、メインエージェントは差分の妥当性、コミット範囲、公開不可情報の混入有無、最終判断を担当する。
+- モデル指定やサブエージェント呼び出しができない環境では、同じ役割分担を手順として分離し、スクリーンショット回数、snapshot回数、ページ移動回数を最小化する。

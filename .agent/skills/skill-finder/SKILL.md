@@ -98,6 +98,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | youtube-auto-upload | YouTubeに動画を自動アップロード・公開予約する | `.agent/skills/common/youtube-auto-upload/SKILL.md` |
 | gws-sheets-html-dashboard | gws CLI で Google スプレッドシートURLからシート一覧を見ながら対話的に要件を深掘りし、テンプレート保存とテンプレートグループ一括実行も使って HTML のグラフや簡易ダッシュボードを作る起点スキル | `.agent/skills/personal/deguchishouma/gws-sheets-html-dashboard/SKILL.md` |
 | gws-sheets-duplicate-checker | gws CLI で Google スプレッドシートのシート一覧を見ながら、重複判定列と書き込み先列を対話的に選び、初回を除いた重複だけをマークする。`1S` 列へ書く場合は非重複の空欄を `1S予定` に補完する | `.agent/skills/common/gws-sheets-duplicate-checker/SKILL.md` |
+| calendar-booking-reply | 候補日時メッセージから1件を選び、Googleカレンダーの空き確認と予定作成を行い、相手へ送る返信文をコードブロックで返す | `.agent/skills/common/calendar-booking-reply/SKILL.md` |
 | gws-calendar-booking-reply | gws CLI で Google カレンダーの空き状況を確認し、候補日時メッセージから最適な枠を選ぶ。平日候補と休日候補の仮予約を複数作成し、返信文生成と返答後の本予約化まで行う | `.agent/skills/personal/deguchishouma/gws-calendar-booking-reply/SKILL.md` |
 | gws-appscript-webapp-deployer | gws CLI でローカルの `Code.gs` と `appsscript.json` を Apps Script Web アプリへ配備し、Apps Script API 有効化確認、OAuth 再認証、全文のデプロイ URL 回収と配備一覧 Markdown 更新まで行う | `.agent/skills/personal/deguchishouma/gws-appscript-webapp-deployer/SKILL.md` |
 | jmty-customer-status-sync | ジモティー顧客管理シートの `1S予定` / `面接予定` を Google カレンダーと Loom 証跡で確認し、`1S済み` / `面接済み` へ更新する。後日予定がある行は色付け対象外にする | `.agent/skills/personal/deguchishouma/jmty-customer-status-sync/SKILL.md` |
@@ -243,6 +244,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 既存拡張をローカルで改造して読み込ませたい | `vscode-extension-workflow` |
 | gws CLI でスプレッドシートURLから対話的に条件を決めて HTML グラフを作りたい | `gws-sheets-html-dashboard` |
 | gws CLI でシートの重複行を調べて既存列や新規列へ `重複` を書きたい | `gws-sheets-duplicate-checker` |
+| 候補日時から1件選んでGoogleカレンダーに予定を入れ、返信文をコードブロックで返したい | `calendar-booking-reply` |
 | gws CLI で候補日時メッセージに合わせて予定を決めたい。平日候補と休日候補を仮押さえし、返信文を作って返答後に本予約だけ残したい | `gws-calendar-booking-reply` |
 | gws CLI で Apps Script をデプロイして Web アプリ URL を返したい | `gws-appscript-webapp-deployer` |
 | プロラインフリーのマニュアルを元に NotebookLM 参照つきで GAS を作りたい | `proline-gas-builder` |
