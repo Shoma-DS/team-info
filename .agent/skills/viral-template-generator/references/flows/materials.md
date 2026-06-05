@@ -15,6 +15,8 @@
 - Remotion 側で扱いやすい命名規則にする
 - 素材ごとに出典・ライセンス・検索語を `metadata.json` に残す
 - ライセンス不明の画像は自動採用せず、レビュー対象として扱う
+- 新しいショート動画では、過去ショートの画像素材を流用しない。過去動画の `materials/`、生成画像、ダウンロード済み画像、staticFile 参照をコピーして使うことは禁止する
+- 既存動画から再利用してよいのは、画像のサイズ感、構図の余白、切り替えテンポなどの編集設計だけ。画像ファイルは必ず台本ごとに新規生成または新規取得する
 
 ## 使えるスクリプト
 - `scripts/fetch_materials.py`
@@ -27,9 +29,10 @@
    - 人物実写: `--template-type person`
    - いらすとや中心: `--template-type irasutoya`
    - 転職・キャリア系: `--template-type career-listicle`
-4. `fetch_materials.py` で候補を取得し、`materials/` 直下へ slot 名で配置する
-5. `metadata.json` と不足スロットを確認し、ライセンス不明・低解像度・文脈ズレを手動確認する
-6. Remotion 側では `00_hook.*`, `02_s1_1.*` のような slot 名をそのまま参照する
+4. 素材スロットごとに、台本要点・検索語・取得/生成方法を決め、今回の動画専用素材として扱う
+5. `fetch_materials.py` で候補を取得し、`materials/` 直下へ slot 名で配置する
+6. `metadata.json` と不足スロットを確認し、ライセンス不明・低解像度・文脈ズレ・過去素材混入を手動確認する
+7. Remotion 側では `00_hook.*`, `02_s1_1.*` のような slot 名をそのまま参照する
 
 ## テンプレ差分
 - `profile.yaml` を読む
