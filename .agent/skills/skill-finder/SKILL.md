@@ -152,13 +152,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
-### 🎤 personal/deguchishouma/seminar/（セミナー制作系）
-| スキル名 | 概要 | パス |
-|---------|------|------|
-| seminar-script-creator | 伝えたいメッセージを受け取り、markmap→ZOOMセミナー台本→6審査員採点改善ループ→スライド番号対応→GPTimage2での画像化まで一気通貫で作成する | `.agent/skills/personal/deguchishouma/seminar-script-creator/SKILL.md` |
-
----
-
 ### 🎥 personal/deguchishouma/loom/（Loom整理系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
@@ -275,8 +268,6 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | LPの絵文字や仮アイコンを、ちょうどいいイラストの画像に差し替えたい | `themeisle-illustration-fetcher` |
 | Themeisle のイラストをダウンロードしてサイトに使いたい | `themeisle-illustration-fetcher` |
 | 日本語テイストのやわらかいイラストに差し替えたい | `tyoudoii-illust-fetcher` |
-| ZOOMセミナーのトークスクリプトを作りたい | `seminar-script-creator` |
-| セミナーの台本を採点して120点まで改善したい | `seminar-script-creator` |
 | Loom の `Meeting Recording - 日付` を面談名へ直したい | `loom-calendar-rename` |
 | CanvaやRemotionで台本からスライドショー動画を作りたい | `canva-slideshow-video` |
 | Canvaのテンプレや既存資料を維持して、新しいページを足したい | `canva-slide-design-extender` |

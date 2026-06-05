@@ -126,21 +126,25 @@ Loom動画IDが分かる場合:
 3. 複数候補が残る場合はユーザーへ確認する
 4. 確定後に `mcp__loom__get_video_details` を使う
 
-文字起こしが取れない場合は、Loom summary と repo 内台本で不足を補う。ただし、録画で話していない実績・数字・約束を捏造しない。
+文字起こしが取れない場合は、Loom summary と台本資料で不足を補う。ただし、録画で話していない実績・数字・約束を捏造しない。
 
-## repo内台本の探し方
+## 台本資料の探し方
 
-ユーザーがパスを指定していない場合は、まず `rg` で候補を探す。
+ユーザーがパスを指定していない場合は、まず team-info と AIセミナー別リポジトリで候補を探す。
 
 ```bash
 rg -n -i "AIセミナー|セミナー|1回目|第1回|第一回|2回目|第2回|公式LINE|アーカイブ|AirthMate" "$TEAM_INFO_ROOT" --glob '*.md' --glob '*.txt'
+if [ -n "${AI_SEMINAR_ROOT:-}" ]; then
+  rg -n -i "AIセミナー|セミナー|1回目|第1回|第一回|2回目|第2回|公式LINE|アーカイブ|AirthMate" "$AI_SEMINAR_ROOT" --glob '*.md' --glob '*.txt'
+fi
 ```
 
 候補になりやすい場所:
 
 - `personal/<account>/projects/`
 - `personal/<account>/outputs/`
-- `.agent/skills/personal/<account>/seminar-script-creator/`
+- `$AI_SEMINAR_ROOT/.agent/skills/personal/<account>/seminar-script-creator/`
+- `$AI_SEMINAR_ROOT/personal/<account>/outputs/`
 - `.agent/skills/x-long-article-draft-saver/`
 - `.agent/skills/x-post-writer/accounts/`
 
