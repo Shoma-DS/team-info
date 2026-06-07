@@ -114,7 +114,7 @@ def extract_meta(payload: object) -> dict:
 
 SECRET_PATTERNS = (
     re.compile(r"(sk-[A-Za-z0-9_\-]{16,})"),
-    re.compile(r"([0-9]+-[A-Za-z0-9_\-]+\.apps\.googleusercontent\.com)"),
+    re.compile(r"([A-Za-z0-9._\-]+\.apps\.googleusercontent\.com)"),
     re.compile(r"(GOCSPX-[A-Za-z0-9_\-]+)"),
     re.compile(r"((?:api[_-]?key|token|secret|password)\s*[:=]\s*)([^\s]+)", re.IGNORECASE),
 )
