@@ -39,7 +39,7 @@ export type ViralSubtitleEntry = {
 
 export type ViralTemplateProps = {
   totalFrames: number;
-  audioSrc: string;
+  audioSrc?: string;
   subtitles?: ViralSubtitleEntry[];
   hook: {
     text: string;
@@ -469,6 +469,7 @@ const CtaLayout: React.FC<{
   const frame = useCurrentFrame();
   const src = frame >= cta.switchFrame ? cta.imageSrc2 : cta.imageSrc1;
   const zoomScale = interpolate(frame, [0, cta.durationFrames], [1, 1.05]);
+  const isGeneratedJobChangeAsset = src.includes("viral/job_change_20260602/");
 
   if (!src) {
     return null;
@@ -479,8 +480,8 @@ const CtaLayout: React.FC<{
       <div
         style={{
           position: "absolute",
-          top: isHorizontal ? "15%" : "12%",
-          height: isHorizontal ? "70%" : "62%",
+          top: isHorizontal ? "15%" : isGeneratedJobChangeAsset ? "7%" : "12%",
+          height: isHorizontal ? "70%" : isGeneratedJobChangeAsset ? "55%" : "62%",
           width: "100%",
           display: "flex",
           justifyContent: "center",
@@ -491,7 +492,7 @@ const CtaLayout: React.FC<{
           src={src}
           style={{
             maxHeight: "100%",
-            maxWidth: isHorizontal ? "100%" : "92%",
+            maxWidth: isHorizontal ? "100%" : isGeneratedJobChangeAsset ? "80%" : "92%",
             objectFit: "contain",
             transform: `scale(${zoomScale})`,
           }}
@@ -546,9 +547,11 @@ export const ViralTemplate: React.FC<ViralTemplateProps> = ({
         </Sequence>
       )}
 
-      <Sequence name="Audio" durationInFrames={totalFrames}>
-        <Audio src={audioSrc} />
-      </Sequence>
+      {audioSrc && (
+        <Sequence name="Audio" durationInFrames={totalFrames}>
+          <Audio src={audioSrc} />
+        </Sequence>
+      )}
 
       {sfx.map((cue, index) => (
         <Sequence

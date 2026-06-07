@@ -75,10 +75,11 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | remotion-template-sleep-travel-short-digest | 寝ながらトラベル・短尺ダイジェスト動画。台本ごとに画像計画を作り、過去ショート素材を流用しない | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-short-digest/SKILL.md` |
 | lyric-video-production | 音声・歌詞からLRC生成→Remotionリリックアニメーション制作 | `.agent/skills/remotion/video-production/lyric-emotion-mapper/SKILL.md` |
 | voice-script-launcher | 台本ファイルから音声を一括生成する | `.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md` |
+| aoyama-ryusei-voice | 台本ファイルを VOICEVOX 青山龍星（aoyama_ryuusei_normal）固定で音声生成する | `.agent/skills/remotion/video-production/aoyama-ryusei-voice/SKILL.md` |
 | script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md` |
 | old-map-narration-style | 知識系朗読原稿を「火のそばで古い地図を開く老賢者の語り」へ変える。地理・歴史・社会・暮らしを、睡眠導入向けにやわらかく余韻ある話法で書く | `.agent/skills/remotion/video-production/old-map-narration-style/SKILL.md` |
 | remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
-| remotion-short-sound-design | 縦ショート動画に効果音を追加し、台本固有の新規画像素材、字幕/画像/場面転換のテンポ、改行品質をテンプレ別基準でチェックする | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
+| remotion-short-sound-design | 縦ショート動画に台本ごとの新規背景画像・挿絵・写真素材と効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックする | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
 
 ---
 
@@ -216,9 +217,11 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 寝ながらトラベルの動画を作りたい | `remotion-video-production`（起点）→ テンプレ選択 |
 | 歌詞字幕・カラオケ動画を作りたい | `lyric-video-production` |
 | 台本から音声を生成したい | `voice-script-launcher` |
+| 青山龍星の声で転職・キャリア系ショートの音声を生成したい | `aoyama-ryusei-voice` |
 | YouTube台本を書きたい | `script-writing-accounts-aware` |
 | Remotionの縦ショートに効果音を入れたい | `remotion-short-sound-design` |
 | 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
+| 縦ショートで台本に合わせた新しい背景画像・挿絵・写真素材を用意したい | `remotion-short-sound-design` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |
