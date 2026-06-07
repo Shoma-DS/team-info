@@ -104,6 +104,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | jmty-customer-status-sync | ジモティー顧客管理シートの `1S予定` / `面接予定` を Google カレンダーと Loom 証跡で確認し、`1S済み` / `面接済み` へ更新する。後日予定がある行は色付け対象外にする | `.agent/skills/personal/deguchishouma/jmty-customer-status-sync/SKILL.md` |
 | proline-gas-builder | NotebookLM MCP のプロラインフリーマニュアルを最優先の正本として確認し、`personal/deguchishouma/gas/proline/` 配下へ、友だち追加、ブロック、解除、フォーム送信、紹介者コード連携などの GAS を設計・実装し、デプロイ後は配備台帳も更新し、全文のデプロイ URL と完成形 URL 例まで返す | `.agent/skills/personal/deguchishouma/proline-gas-builder/SKILL.md` |
 | agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
+| agent-prompt-timeline | ユーザー指示の原文、作業要約、アクションを時系列で記録し、学習用Webサイト `prompt-timeline/` を更新する | `.agent/skills/agent-prompt-timeline/SKILL.md` |
 
 ---
 
