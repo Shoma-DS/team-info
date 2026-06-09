@@ -1,0 +1,4 @@
+interface:
+  display_name: "YouTube Shorts Style Video Maker"
+  short_description: "分析済みのYouTube Shorts勝ちパターンから同じ様式のRemotion/CapCut動画を作る"
+  default_prompt: "分析済みのYouTube Shorts制作コンテキストを使って、同じ様式のショート動画を作ってください。"
