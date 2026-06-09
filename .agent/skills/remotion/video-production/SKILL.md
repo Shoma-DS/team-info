@@ -21,6 +21,20 @@ description: Remotion動画制作の親スキル。チャンネル選択とテ�
 - 既存実装がこの原則に反している場合、新しい演出や素材追加の前に、まず同種レイヤーの1本化を検討する。
 - 生成・更新する **すべての `<Sequence>` に `name` を付ける。** `背景画像`、`字幕`、`音声 ナレーション` のように役割が即分かる名前にし、`Layer1` のような曖昧名は使わない。
 
+## CapCut自動連携ルール（全Remotion動画共通・必須）
+- Remotionで動画Compositionを新規追加または更新したら、lint/typecheck後に必ずCapCut同期を行う。
+- 標準コマンド:
+  ```powershell
+  npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+  ```
+- `sync:capcut` は `ViralTemplate` 系Compositionを自動検出し、`outputs/capcut/` に素材・字幕・`timeline.json`・cutcli用JSONを生成する。`cutcli` が入っているPCではCapCutドラフト生成まで進み、未導入PCでは生成用ファイルまで作って安全にスキップする。
+- `cutcli` 未導入でドラフト生成がスキップされた場合は失敗扱いにせず、「CapCutパッケージ生成済み / 実ドラフト生成はcutcli未導入のため未実行」と報告する。
+- `ViralTemplate` 以外の長尺・リリック・独自Compositionで `outputs/capcut/` に対象パッケージが出ない場合は、未対応であることを報告し、必要なら `ViralTemplate` 形式またはCapCut Exporter対応を追加する。
+- 準備だけ行いたい場合は次を使う:
+  ```powershell
+  npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut:prepare
+  ```
+
 ## ショート動画の画像素材ルール（全Remotion共通・必須）
 - 新しいショート動画では、過去に作ったショート動画の画像素材を流用しない。過去作の画像ファイル、過去作の生成画像セット、過去作の素材フォルダからのコピーは禁止する。
 - 再利用してよいのは、画像のサイズ感、余白、配置、アニメーション、字幕との重なり回避などのレイアウト設計だけとする。見た目の主役になる画像そのものは毎回新しく用意する。
@@ -81,3 +95,4 @@ description: Remotion動画制作の親スキル。チャンネル選択とテ�
 - 既に過去ターンで承認済みでも、**毎回**レンダリング直前に再確認する。
 - 承認がない場合は、実行せずにコピペ可能なレンダリングコマンドのみ提示する。
 - レンダリング出力先は必ず `outputs/<channel>/renders/` を使う。
+- レンダリングの有無に関わらず、Composition更新後は上記のCapCut同期を行い、同期結果を最終報告に含める。

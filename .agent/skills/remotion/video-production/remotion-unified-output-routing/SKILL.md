@@ -16,6 +16,7 @@ description: 出力先を `outputs/` 配下に統一し、sleep_travel・acoriel
   - Sleep Travel レンダー: `outputs/sleep_travel/renders/`
   - AcoRiel レンダー: `outputs/acoriel/renders/`
   - AcoRiel説明文: `outputs/acoriel/descriptions/`
+  - CapCut連携パッケージ: `outputs/capcut/`
   - ジモティー: `outputs/jmty/factory/` `outputs/jmty/remote/`
 - 旧出力先 `Remotion/output/` `Remotion/renders/` `Remotion/my-video/out/` `Remotion/my-video/outputs/` `outputs/acoriel_descriptions/` は使わない。
 - ユーザーが明示的に別パスを指定しない限り、出力コマンドは必ずカテゴリ付き `outputs/...` を指定する。
@@ -31,8 +32,21 @@ cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render "$TEAM_INFO_ROOT/R
 ```
 - VOICEVOX音声生成は `generate_voice.py` を使い、生成結果が `outputs/sleep_travel/audio/` に保存される前提で案内する。
 
+## CapCut連携コマンド（必須）
+- Remotion Compositionを新規追加・更新したら、レンダリングの有無に関わらず次を実行する。
+```powershell
+npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+```
+- `outputs/capcut/` はCapCut連携の統一出力先として扱う。
+- `cutcli` が入っているPCではCapCutドラフト生成まで進む。未導入PCでは素材・字幕・timeline・cutcli用JSONまで生成し、ドラフト生成だけ安全にスキップする。
+- 準備だけ行う場合:
+```powershell
+npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut:prepare
+```
+
 ## 問い合わせ対応ルール
 - 「どこに出力されたか？」と聞かれたら、まず `outputs/` 配下の該当カテゴリを案内する。
+- 「CapCut用はどこか？」と聞かれたら、`outputs/capcut/` と各パッケージ内の `captions.srt`、`timeline.json`、`cutcli/` を案内する。
 - 旧フォルダにファイルが残っている場合は `outputs/` 配下の適切なカテゴリへ移動して集約する。
 
 ## 禁止事項

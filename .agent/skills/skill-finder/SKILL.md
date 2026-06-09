@@ -70,16 +70,16 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 📹 remotion/video-production/
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| remotion-video-production | Remotionチャンネル・テンプレ選択の起点スキル。ショート動画では台本ごとに新規画像素材を用意し、過去作画像の流用を禁止する | `.agent/skills/remotion/video-production/SKILL.md` |
-| remotion-template-sleep-travel-long-knowledge-relax | 寝ながらトラベル・長尺知識リラックス動画 | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md` |
-| remotion-template-sleep-travel-short-digest | 寝ながらトラベル・短尺ダイジェスト動画。台本ごとに画像計画を作り、過去ショート素材を流用しない | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-short-digest/SKILL.md` |
-| lyric-video-production | 音声・歌詞からLRC生成→Remotionリリックアニメーション制作 | `.agent/skills/remotion/video-production/lyric-emotion-mapper/SKILL.md` |
+| remotion-video-production | Remotionチャンネル・テンプレ選択の起点スキル。ショート動画では台本ごとに新規画像素材を用意し、過去作画像の流用を禁止し、Composition更新後はCapCut同期まで行う | `.agent/skills/remotion/video-production/SKILL.md` |
+| remotion-template-sleep-travel-long-knowledge-relax | 寝ながらトラベル・長尺知識リラックス動画。Composition更新後はCapCut同期結果も報告する | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-long-knowledge-relax/SKILL.md` |
+| remotion-template-sleep-travel-short-digest | 寝ながらトラベル・短尺ダイジェスト動画。台本ごとに画像計画を作り、過去ショート素材を流用せず、CapCut同期まで行う | `.agent/skills/remotion/video-production/remotion-template-sleep-travel-short-digest/SKILL.md` |
+| lyric-video-production | 音声・歌詞からLRC生成→Remotionリリックアニメーション制作。Remotion反映後はCapCut同期も行う | `.agent/skills/remotion/video-production/lyric-emotion-mapper/SKILL.md` |
 | voice-script-launcher | 台本ファイルから音声を一括生成する | `.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md` |
 | aoyama-ryusei-voice | 台本ファイルを VOICEVOX 青山龍星（aoyama_ryuusei_normal）固定で音声生成する | `.agent/skills/remotion/video-production/aoyama-ryusei-voice/SKILL.md` |
 | script-writing-accounts-aware | アカウントごとのトーンで台本を作成する | `.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md` |
 | old-map-narration-style | 知識系朗読原稿を「火のそばで古い地図を開く老賢者の語り」へ変える。地理・歴史・社会・暮らしを、睡眠導入向けにやわらかく余韻ある話法で書く | `.agent/skills/remotion/video-production/old-map-narration-style/SKILL.md` |
-| remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
-| remotion-short-sound-design | 縦ショート動画に台本ごとの新規背景画像・挿絵・写真素材と効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックする | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
+| remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一し、CapCut連携パッケージは `outputs/capcut/` に集約する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
+| remotion-short-sound-design | 縦ショート動画に台本ごとの新規背景画像・挿絵・写真素材と効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックし、CapCut同期まで行う | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
 
 ---
 
@@ -164,7 +164,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 🎨 canva/（Canva連携系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| canva-slideshow-video | 台本から構造化 manifest を作り、Remotion で見せ方を出し分けるスライドショー動画を生成する | `.agent/skills/canva/canva-slideshow-video/SKILL.md` |
+| canva-slideshow-video | 台本から構造化 manifest を作り、Remotion で見せ方を出し分けるスライドショー動画を生成し、CapCut同期結果も報告する | `.agent/skills/canva/canva-slideshow-video/SKILL.md` |
 | canva-slide-design-extender | Canva のテンプレや既存デザインを崩さずに、新しいスライドを追加・増築する | `.agent/skills/canva/canva-slide-design-extender/SKILL.md` |
 
 ---
@@ -179,7 +179,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 🚀 viral-template-generator/（バズ動画系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| viral-template-generator | ショート動画を3層解析しRemotionバズ動画テンプレートを自動生成する。転職ショート等では台本ごとに新規画像素材を用意し、過去作画像を流用しない | `.agent/skills/viral-template-generator/SKILL.md` |
+| viral-template-generator | ショート動画を3層解析しRemotionバズ動画テンプレートを自動生成する。転職ショート等では台本ごとに新規画像素材を用意し、過去作画像を流用せず、Remotion組み込み後はCapCut同期まで行う | `.agent/skills/viral-template-generator/SKILL.md` |
 
 ---
 
@@ -222,6 +222,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Remotionの縦ショートに効果音を入れたい | `remotion-short-sound-design` |
 | 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
 | 縦ショートで台本に合わせた新しい背景画像・挿絵・写真素材を用意したい | `remotion-short-sound-design` |
+| Remotionで作った動画をCapCut用に連携・ドラフト生成したい | `remotion-video-production` / `remotion-unified-output-routing` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |

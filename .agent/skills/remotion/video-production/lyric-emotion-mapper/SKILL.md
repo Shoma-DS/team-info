@@ -450,6 +450,18 @@ bash "$TEAM_INFO_ROOT/Remotion/scripts/render_to_outputs.sh" AcoRielLyricCover <
 - `Remotion/my-video/out/` は保存先として使わない。
 - 既存の `out` / `renders` / `output` 出力がある場合は `outputs/` へ集約する。
 
+### 3-5. CapCut連携の自動同期（必須）
+
+Remotion反映とlint/typecheckが終わったら、レンダリングの有無に関わらずCapCut同期を行う。
+
+```powershell
+npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+```
+
+- `ViralTemplate` 系Compositionは `outputs/capcut/` に素材・字幕・`timeline.json`・cutcli用JSONが出る。
+- リリック独自CompositionがCapCut Exporter未対応で対象パッケージを出せない場合は、未対応として報告し、必要ならExporter対応を別タスクにする。
+- `cutcli` 未導入でドラフト生成がスキップされた場合は、生成用ファイルまで作成済みとして報告する。
+
 ---
 
 ## 使用方法（全体フロー）
@@ -459,7 +471,7 @@ Phase 0: アカウント選択 → テンプレ選択 → Whisper有無確認 �
 Phase 1: (Whisper=Yes の場合) transcribe_to_lrc.py で LRC + カラオケJSON 生成
 Phase 1.5: validate_lrc.py で歌詞の整合性チェック
 Phase 2: JSONの感情・アニメーション情報を編集
-Phase 3: 音源参照を設定（コピー禁止）→ Remotionプレビュー（ローカル確認）→ レンダリング（承認後のみ）
+Phase 3: 音源参照を設定（コピー禁止）→ Remotionプレビュー（ローカル確認）→ CapCut同期 → レンダリング（承認後のみ）
 ```
 
 ## ディレクトリ構成

@@ -23,11 +23,17 @@ description: ショート動画の解析、統合分析、台本、字幕、音�
 - `outputs/viral-analysis/`
 - `Remotion/my-video/public/viral/`
 - `Remotion/my-video/src/viral/`
+- `outputs/capcut/`
 
 ## コマンドルール
 - ユーザーにコマンドを渡すときは `"$TEAM_INFO_ROOT/..."` の絶対パスを使う
 - 実行ロジックは `.agent/skills/viral-template-generator/scripts/` を優先する
 - 解析やレンダリングのような長時間処理は、必要ならユーザー実行へ切り替える
+- Remotion組み込み後は、レンダリングの有無に関わらずCapCut同期を行う:
+  ```powershell
+  npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+  ```
+- `cutcli` 未導入でドラフト生成がスキップされた場合は、CapCutパッケージと生成用JSONまで作成済みとして報告する
 
 ## 共通 flow
 - 概要: `references/pipeline-overview.md`

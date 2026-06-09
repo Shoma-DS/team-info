@@ -22,6 +22,7 @@ Step 3: 素材フォルダの確認（台本ファイルが入っているか）
 Step 4: 背景画像を自動生成（Pixabay）
 Step 5: 音源化（VOICEVOX）
 Step 6: Remotion で動画レンダリング
+Step 7: CapCut連携を自動同期
 
 所要時間目安: 背景画像取得 約1〜3分 / 音源化 テキスト量による / レンダリング 数分〜数時間
 ```
@@ -164,6 +165,15 @@ cd $TEAM_INFO_ROOT/Remotion/my-video && npx remotion render src/index.ts \
   --output="$TEAM_INFO_ROOT/outputs/sleep_travel/renders/{テーマ}_slideshow.mp4"
 ```
 
+レンダリングの前後どちらでも、Remotion Composition更新後はCapCut同期を行う:
+
+```powershell
+npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+```
+
+- `CanvaSlideshow` 独自CompositionがCapCut Exporter未対応で `outputs/capcut/` に対象パッケージを出せない場合は、未対応として報告する。
+- `cutcli` 未導入でドラフト生成がスキップされた場合は、生成用ファイルまで作成済みとして報告する。
+
 ---
 
 ## ファイル構成
@@ -196,3 +206,4 @@ team-info/
 - 事例・数字・比較が出る段落は、`具体例` レイアウトとして独立させる前提で台本を書くと見やすい
 - BGM を追加する場合は `bgmSrc` prop を指定（`assets/channels/sleep_travel/bgm/焚き火ループ.mp3` など）
 - レンダリング出力先は必ず `outputs/sleep_travel/renders/` を使う
+- Remotion Compositionを追加・更新したら、最終報告前に `sync:capcut` の実行結果を含める

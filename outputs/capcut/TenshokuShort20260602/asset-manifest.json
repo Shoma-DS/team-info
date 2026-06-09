@@ -1,0 +1,62 @@
+[
+  {
+    "source": "audio/job_change_20260602/narration.mp3",
+    "packagePath": "assets/audio/job_change_20260602/narration.mp3",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\audio\\job_change_20260602\\narration.mp3",
+    "exists": true
+  },
+  {
+    "source": "audio/転職ショート_20260416/sfx/cute-motion1.mp3",
+    "packagePath": "assets/audio/転職ショート_20260416/sfx/cute-motion1.mp3",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\audio\\転職ショート_20260416\\sfx\\cute-motion1.mp3",
+    "exists": true
+  },
+  {
+    "source": "audio/転職ショート_20260416/sfx/logo-animation2.mp3",
+    "packagePath": "assets/audio/転職ショート_20260416/sfx/logo-animation2.mp3",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\audio\\転職ショート_20260416\\sfx\\logo-animation2.mp3",
+    "exists": true
+  },
+  {
+    "source": "audio/転職ショート_20260416/sfx/nyu3.mp3",
+    "packagePath": "assets/audio/転職ショート_20260416/sfx/nyu3.mp3",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\audio\\転職ショート_20260416\\sfx\\nyu3.mp3",
+    "exists": true
+  },
+  {
+    "source": "audio/転職ショート_20260416/sfx/papa1.mp3",
+    "packagePath": "assets/audio/転職ショート_20260416/sfx/papa1.mp3",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\audio\\転職ショート_20260416\\sfx\\papa1.mp3",
+    "exists": true
+  },
+  {
+    "source": "viral/job_change_20260602/cta_write_one.png",
+    "packagePath": "assets/viral/job_change_20260602/cta_write_one.png",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\viral\\job_change_20260602\\cta_write_one.png",
+    "exists": true
+  },
+  {
+    "source": "viral/job_change_20260602/hook_prepare.png",
+    "packagePath": "assets/viral/job_change_20260602/hook_prepare.png",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\viral\\job_change_20260602\\hook_prepare.png",
+    "exists": true
+  },
+  {
+    "source": "viral/job_change_20260602/s1_reason.png",
+    "packagePath": "assets/viral/job_change_20260602/s1_reason.png",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\viral\\job_change_20260602\\s1_reason.png",
+    "exists": true
+  },
+  {
+    "source": "viral/job_change_20260602/s2_achievement.png",
+    "packagePath": "assets/viral/job_change_20260602/s2_achievement.png",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\viral\\job_change_20260602\\s2_achievement.png",
+    "exists": true
+  },
+  {
+    "source": "viral/job_change_20260602/s3_conditions.png",
+    "packagePath": "assets/viral/job_change_20260602/s3_conditions.png",
+    "absoluteSource": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\Remotion\\my-video\\public\\viral\\job_change_20260602\\s3_conditions.png",
+    "exists": true
+  }
+]

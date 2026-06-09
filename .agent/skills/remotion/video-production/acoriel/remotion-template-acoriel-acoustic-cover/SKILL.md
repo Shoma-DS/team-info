@@ -237,7 +237,7 @@ Phase 3: Remotion実装
   └ 曲フォルダ作成 → JSON生成 → （MultiBG: 背景動画事前合成） → Root.tsx追記
 
 Phase 4: 確認・レンダリング・Drive保存
-  └ lint → remotion studio → レンダリング（承認後）→ Google Drive コピー
+  └ lint → CapCut同期 → remotion studio → レンダリング（承認後）→ Google Drive コピー
 ```
 
 ### Step 0-2: 素材の置き場所を案内
@@ -383,22 +383,28 @@ Phase 4: 確認・レンダリング・Drive保存
    - `MultiBG` の場合は、Step 4.3 の完了ログに表示された `prerenderedBgVideo: 'bg_prerendered_seed[N].mp4'` の値を props に設定する（`backgroundVideos` などは不要）。
    - 対応する曲フォルダのパスをpropsで渡す。
 7. `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" run lint` を実行し、エラーを解消する。
-8. lint 通過後、以下のコマンドをユーザーに提示してプレビューを依頼する（自分では起動しない）：
+8. lint 通過後、CapCut連携を自動同期する。
+   ```powershell
+   npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+   ```
+   - リリック/長尺独自CompositionがCapCut Exporter未対応で `outputs/capcut/` に対象パッケージを出せない場合は、未対応として報告する。
+   - `cutcli` 未導入でドラフト生成がスキップされた場合は、生成用ファイルまで作成済みとして報告する。
+9. 以下のコマンドをユーザーに提示してプレビューを依頼する（自分では起動しない）：
    ```bash
    cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion studio
    ```
    - サイドバーで対象 Composition を選んで確認するよう伝える。
    - プレビュー確認後、問題があれば報告するよう伝える。
-9. レンダリングは実行しない。以下のコピペ可能なコマンドをユーザーに提示するだけにする：
+10. レンダリングは実行しない。以下のコピペ可能なコマンドをユーザーに提示するだけにする：
    ```bash
    cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render --composition=AcoRiel-[曲名]-MultiBG --output="$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4"
    ```
    - 出力先: `outputs/acoriel/renders/[曲名].mp4`
-   - レンダリング完了後に Step 10 のコマンドも提示する。
-10. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
+   - レンダリング完了後に Step 11 のコマンドも提示する。
+11. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
     ```bash
     rclone copy "$TEAM_INFO_ROOT/outputs/acoriel/renders/[曲名].mp4" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/アコリエル/" --progress
     ```
     - コピー先: Google Drive `team-info/outputs/アコリエル/`（フォルダID: `1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t`）
     - rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
-11. 実施内容、編集ファイル、lint結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。
+12. 実施内容、編集ファイル、lint結果、CapCut同期結果、ローカル確認方法、残タスク（素材差し替えなど）を報告する。

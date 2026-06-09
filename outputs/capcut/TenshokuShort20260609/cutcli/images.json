@@ -1,0 +1,83 @@
+[
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\00_hook_interview.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 0,
+    "end": 10600000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\02_s1_kj.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 10600000,
+    "end": 15600000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\03_s1_monitor.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 15600000,
+    "end": 19600000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\00_hook_interview.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 19600000,
+    "end": 21800000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\04_s2_presentation.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 21800000,
+    "end": 27800000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\05_s2_worried_worker.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 27800000,
+    "end": 35000000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\06_s3_smiling_workers.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 35000000,
+    "end": 40600000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\07_s3_talk_workers.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 40600000,
+    "end": 43800000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "c:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\TenshokuShort20260609\\assets\\viral\\job_change_20260609\\irasutoya\\99_cta_motivated_workers.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 43800000,
+    "end": 47000000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  }
+]
