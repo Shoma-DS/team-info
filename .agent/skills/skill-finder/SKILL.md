@@ -40,6 +40,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | `note記事/` | 愛され女子あゆみ の note 記事 MD |
 | `gws-dashboard/` | gws CLI で取得したスプレッドシート可視化HTML |
 | `X長文記事/` | X長文記事・スレッド記事のMarkdown下書き |
+| `youtube-shorts-research/` | YouTube競合リサーチから作るRemotion/CapCut用コンテキスト・台本・編集指示 |
 
 新規チャンネル・新規用途の場合は上記に追加し、このテーブルも更新すること。
 
@@ -80,6 +81,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | old-map-narration-style | 知識系朗読原稿を「火のそばで古い地図を開く老賢者の語り」へ変える。地理・歴史・社会・暮らしを、睡眠導入向けにやわらかく余韻ある話法で書く | `.agent/skills/remotion/video-production/old-map-narration-style/SKILL.md` |
 | remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一し、CapCut連携パッケージは `outputs/capcut/` に集約する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
 | remotion-short-sound-design | 縦ショート動画に台本ごとの新規背景画像・挿絵・写真素材と効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックし、CapCut同期まで行う | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
+| youtube-shorts-research-to-remotion-capcut | GoogleスプレッドシートのYouTube競合動画リサーチ結果を分析し、勝ちパターンをRemotion生成とCapCut仕上げ編集へ渡す | `.agent/skills/remotion/video-production/youtube-shorts-research-to-remotion-capcut/SKILL.md` |
 
 ---
 
@@ -223,6 +225,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
 | 縦ショートで台本に合わせた新しい背景画像・挿絵・写真素材を用意したい | `remotion-short-sound-design` |
 | Remotionで作った動画をCapCut用に連携・ドラフト生成したい | `remotion-video-production` / `remotion-unified-output-routing` |
+| YouTube競合リサーチのスプレッドシートからRemotion→CapCut用の動画制作コンテキストを作りたい | `youtube-shorts-research-to-remotion-capcut` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |
