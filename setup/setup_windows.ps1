@@ -631,6 +631,20 @@ if ($NvmExe) {
 Write-Step "9. Codex CLI"
 Install-NpmCli "Codex CLI" $CodexNpmPackage "codex"
 
+# 9b. Codex custom prompts
+Write-Step "9b. Codex custom prompts"
+$CodexPromptsScript = Join-Path $TeamInfoRoot "scripts\sync_cross_cli_commands.py"
+if (Test-Path $CodexPromptsScript) {
+    try {
+        & $Python311 $CodexPromptsScript --repo-only
+        Write-Ok "Codex prompt sources synced in this repository: .codex\prompts"
+    } catch {
+        Write-Warn "Codex prompt source sync failed: $_"
+    }
+} else {
+    Write-Warn "Codex prompt sync script was not found: $CodexPromptsScript"
+}
+
 # 10. Freebuff CLI
 Write-Step "10. Freebuff CLI (free AI agent)"
 Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff"

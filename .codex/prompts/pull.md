@@ -1,5 +1,5 @@
 ---
-description: "pull コマンドを CEO 経由で起動する"
+description: "origin/main を fetch して pull --rebase する"
 argument-hint: "[EXTRA=\"free-form note\"]"
 ---
 
@@ -8,6 +8,5 @@ argument-hint: "[EXTRA=\"free-form note\"]"
 もし `AGENTS.md` が見つからない、または別リポジトリだと分かった場合は、その旨を短く伝えて停止してください。
 このリポジトリでは `AGENTS.md` が正本です。
 まず `AGENTS.md` を読み、`/pull` のルールを確認してください。
-次に `.agent/skills/common/agent-org-ceo/SKILL.md` を読み込み、そのスキルとして動作してください。
-CEO としてこの依頼を受け付け、`/pull` の意味に応じて必要な専門スキルへ委譲してください。
+このコマンドは `origin/main` の取り込み専用です。`git fetch` のあと `pull --rebase` を行ってください。
 ユーザーが追加の引数や補足を付けた場合は、それも考慮してください: $ARGUMENTS
