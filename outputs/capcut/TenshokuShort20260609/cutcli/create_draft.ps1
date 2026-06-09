@@ -1,7 +1,7 @@
 # This file creates a CapCut draft from the exported Remotion package.
 # Run it after installing cutcli and confirming CapCut's draft path.
 $ErrorActionPreference = "Stop"
-$cutcliDir = "c:\Users\abc_p\OneDrive\デスクトップ\teaminfo\outputs\capcut\TenshokuShort20260609\cutcli"
+$cutcliDir = "C:\Users\abc_p\OneDrive\デスクトップ\teaminfo\outputs\capcut\TenshokuShort20260609\cutcli"
 $draftJson = & cutcli draft create --width 1080 --height 1920
 $draft = $draftJson | ConvertFrom-Json
 $draftId = $draft.draftId

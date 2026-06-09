@@ -1,0 +1,74 @@
+[
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card01.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 0,
+    "end": 5250000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card02.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 5250000,
+    "end": 10500000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card03.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 10500000,
+    "end": 15750000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card04.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 15750000,
+    "end": 21000000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card05.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 21000000,
+    "end": 26250000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card06.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 26250000,
+    "end": 31500000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card07.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 31500000,
+    "end": 36750000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  },
+  {
+    "imageUrl": "C:\\Users\\abc_p\\OneDrive\\デスクトップ\\teaminfo\\outputs\\capcut\\MukusokuStyle20260610\\assets\\cards\\card08.png",
+    "width": 1080,
+    "height": 1920,
+    "start": 36750000,
+    "end": 42000000,
+    "inAnimationDuration": 120000,
+    "outAnimationDuration": 120000
+  }
+]

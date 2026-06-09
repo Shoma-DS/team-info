@@ -94,6 +94,13 @@ CapCutへ渡す編集指示は、Remotionで作った仮動画を前提に次を
 - `script.md`: ナレーション台本
 - `capcut-instructions.json`: CapCut仕上げ指示
 
+## 制作フェーズへの引き継ぎ
+分析済みの結果から同じ様式のショート動画を作るだけの依頼では、次のスキルへ引き継ぐ。
+
+- `.agent/skills/remotion/video-production/youtube-shorts-style-video-maker/SKILL.md`
+
+引き継ぐときは、上記の成果物パス、今回作る新作テーマ、禁止表現、素材方針を渡す。この分析スキル側でスプレッドシートを再分析し直す必要はない。
+
 ## Google Drive コピー
 生成物を作った場合、出力先は原則:
 

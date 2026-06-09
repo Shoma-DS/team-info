@@ -82,6 +82,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | remotion-unified-output-routing | 出力先を `outputs/` 配下へ統一し、CapCut連携パッケージは `outputs/capcut/` に集約する運用 | `.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md` |
 | remotion-short-sound-design | 縦ショート動画に台本ごとの新規背景画像・挿絵・写真素材と効果音を追加し、字幕/画像/場面転換のテンポと改行品質をテンプレ別基準でチェックし、CapCut同期まで行う | `.agent/skills/remotion/video-production/remotion-short-sound-design/SKILL.md` |
 | youtube-shorts-research-to-remotion-capcut | GoogleスプレッドシートのYouTube競合動画リサーチ結果を分析し、勝ちパターンをRemotion生成とCapCut仕上げ編集へ渡す | `.agent/skills/remotion/video-production/youtube-shorts-research-to-remotion-capcut/SKILL.md` |
+| youtube-shorts-style-video-maker | YouTube競合リサーチ分析済みの制作コンテキストから、同じ様式の縦型ShortsをRemotionで制作し、CapCut仕上げパッケージまで作る | `.agent/skills/remotion/video-production/youtube-shorts-style-video-maker/SKILL.md` |
 
 ---
 
@@ -226,6 +227,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 縦ショートで台本に合わせた新しい背景画像・挿絵・写真素材を用意したい | `remotion-short-sound-design` |
 | Remotionで作った動画をCapCut用に連携・ドラフト生成したい | `remotion-video-production` / `remotion-unified-output-routing` |
 | YouTube競合リサーチのスプレッドシートからRemotion→CapCut用の動画制作コンテキストを作りたい | `youtube-shorts-research-to-remotion-capcut` |
+| YouTube競合リサーチ分析済みの結果から、同じ様式のショート動画を作りたい | `youtube-shorts-style-video-maker` |
 | note記事（あゆみ）を書きたい | `note-article-ayumi` |
 | noteサムネイルを作りたい（あゆみ） | `note-thumbnail-ayumi` |
 | team-info をセットアップしたい | `team-info-setup` |
