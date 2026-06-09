@@ -10,7 +10,8 @@
 4. Check for too-short subtitle segments
 5. Validate TSX and duration updates
 6. Run final quality verification with the scoring criteria
-7. Render only when the user asks for the final output
+7. Run CapCut sync
+8. Render only when the user asks for the final output
 
 ## 標準ルール
 - 変更系のタイミング処理は dry-run を先に行う
@@ -20,6 +21,8 @@
 - 最終確認では `remotion-short-sound-design/references/templates/viral-short-vertical.md` の採点基準を必ず読む
 - 音声と字幕のズレ、字幕の行数/長さ、画像と字幕の重なり、画像サイズの小ささは render 前の必須チェックにする
 - 自動検証で warning / fail が出た場合、原因と対象フレームを直してから再検証する
+- render 前の最終状態で `npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut` を実行し、`outputs/capcut/` と cutcli 用JSONを最新化する
+- `cutcli` 未導入でドラフト生成がスキップされても、CapCutパッケージ生成済みなら同期は完了扱いにする
 
 ## 主なスクリプト
 - `scripts/jet_cut.py`

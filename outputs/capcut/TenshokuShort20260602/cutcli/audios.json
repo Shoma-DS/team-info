@@ -1,0 +1,51 @@
+[
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/job_change_20260602/narration.mp3",
+    "duration": 61433000,
+    "start": 0,
+    "end": 61433000,
+    "volume": 1
+  },
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/%E8%BB%A2%E8%81%B7%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88_20260416/sfx/logo-animation2.mp3",
+    "duration": 61433333,
+    "start": 0,
+    "end": 61433333,
+    "volume": 0.12
+  },
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/%E8%BB%A2%E8%81%B7%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88_20260416/sfx/cute-motion1.mp3",
+    "duration": 59133333,
+    "start": 2300000,
+    "end": 61433333,
+    "volume": 0.08
+  },
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/%E8%BB%A2%E8%81%B7%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88_20260416/sfx/papa1.mp3",
+    "duration": 56666667,
+    "start": 4767000,
+    "end": 61433667,
+    "volume": 0.06
+  },
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/%E8%BB%A2%E8%81%B7%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88_20260416/sfx/nyu3.mp3",
+    "duration": 39233333,
+    "start": 22200000,
+    "end": 61433333,
+    "volume": 0.06
+  },
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/%E8%BB%A2%E8%81%B7%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88_20260416/sfx/papa1.mp3",
+    "duration": 23533333,
+    "start": 37900000,
+    "end": 61433333,
+    "volume": 0.06
+  },
+  {
+    "audioUrl": "file:///C:/Users/abc_p/OneDrive/%E3%83%87%E3%82%B9%E3%82%AF%E3%83%88%E3%83%83%E3%83%97/teaminfo/outputs/capcut/TenshokuShort20260602/assets/audio/%E8%BB%A2%E8%81%B7%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88_20260416/sfx/cute-motion1.mp3",
+    "duration": 9333333,
+    "start": 52100000,
+    "end": 61433333,
+    "volume": 0.06
+  }
+]

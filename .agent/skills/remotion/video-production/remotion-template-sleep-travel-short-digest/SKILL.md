@@ -56,14 +56,20 @@ description: sleep_travelチャンネルのshort_digestテンプレート専用�
 - テロップの折り返しは BudouX ベースの共通ヘルパーで整形する
 8. 画像素材の参照先を確認し、過去ショートの画像パスが残っていないことを確認する。
 9. `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" run lint` を実行する。
-10. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render ... --output="$TEAM_INFO_ROOT/outputs/sleep_travel/renders/..."` コマンドを提示する。
+10. CapCut連携を自動同期する。
+   ```powershell
+   npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+   ```
+   - `outputs/capcut/` に対象パッケージ、`captions.srt`、`timeline.json`、cutcli用JSONが出たか確認する。
+   - `cutcli` 未導入でドラフト生成がスキップされた場合は、生成用ファイルまで作成済みとして報告する。
+11. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render ... --output="$TEAM_INFO_ROOT/outputs/sleep_travel/renders/..."` コマンドを提示する。
 - レンダリング前の確認文言は必ず `出力しますか？書き出しますか？` を使う。
 - 過去ターンで承認があっても、レンダリング直前に毎回確認する。
 - レンダリング出力先は必ず `outputs/sleep_travel/renders/` を使う。
-- レンダリング完了後に Step 11 のコマンドも提示する。
-11. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
+- レンダリング完了後に Step 12 のコマンドも提示する。
+12. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
    ```bash
    rclone copy "$TEAM_INFO_ROOT/outputs/sleep_travel/renders/[ファイル名].mp4" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/寝ながらトラベル/" --progress
    ```
    - rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
-12. 実施内容、編集ファイル、画像素材の新規作成/取得元、過去作流用なしの確認結果、lint結果を報告する。
+13. 実施内容、編集ファイル、画像素材の新規作成/取得元、過去作流用なしの確認結果、lint結果、CapCut同期結果を報告する。

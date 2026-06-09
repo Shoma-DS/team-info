@@ -25,6 +25,12 @@ description: Remotionの縦ショート動画に、台本ごとに背景画像�
 9. 効果音を `Remotion/my-video/public/audio/<project>/sfx/` に保存し、用途が分かる英数字名にする。
 10. Remotion 側は `visuals` と `sfx` のタイムライン配列で管理し、各 `<Sequence>` に `name` を付ける。
 11. `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" run typecheck` を実行し、代表 still を再取得して確認する。
+12. CapCut連携を自動同期する。
+    ```powershell
+    npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+    ```
+    - `outputs/capcut/` に対象パッケージとcutcli用JSONが出たか確認する。
+    - `cutcli` 未導入でドラフト生成がスキップされた場合は、生成用ファイルまで作成済みとして報告する。
 
 ## 画像設計ルール
 - 毎回、台本の意味から画像案を作る。既存テンプレ画像をそのまま反復しない。
@@ -106,4 +112,5 @@ curl -L -A "Mozilla/5.0" -e "https://soundeffect-lab.info/sound/anime/" \
 - ユーザーが「もっとこうして」と言った内容は、該当テンプレートの基準ファイルへ短く追記する。
 - 追記先が不明なら `references/templates/viral-short-vertical.md` に追加し、後で専用テンプレへ分割する。
 - 変更前後の still を残し、どの基準を満たすための変更か最終報告に含める。
+- 最終報告には `typecheck` / 代表still / CapCut同期結果を含める。
 

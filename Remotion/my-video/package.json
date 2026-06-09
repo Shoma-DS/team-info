@@ -9,6 +9,10 @@
     "typecheck": "tsc --noEmit",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && npm run typecheck",
+    "export:capcut": "node ./scripts/export_capcut_package.mjs",
+    "create:capcut-draft": "node ./scripts/create_cutcli_draft_from_package.mjs",
+    "sync:capcut": "node ./scripts/export_capcut_package.mjs --all && node ./scripts/create_cutcli_draft_from_package.mjs --all --run-if-available",
+    "sync:capcut:prepare": "node ./scripts/export_capcut_package.mjs --all && node ./scripts/create_cutcli_draft_from_package.mjs --all",
     "render:outputs": "bash ../scripts/render_to_outputs.sh",
     "patch:remotion-japanese": "node ./scripts/patch_remotion_japanese_support.mjs",
     "postinstall": "node ./scripts/patch_remotion_japanese_support.mjs"

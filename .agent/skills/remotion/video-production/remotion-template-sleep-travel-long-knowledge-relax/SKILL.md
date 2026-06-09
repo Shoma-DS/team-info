@@ -161,17 +161,23 @@ description: sleep_travelチャンネルのlong_knowledge_relaxテンプレー�
 - 白線のシンプルなオーディオスペクトラム表示
 9. 必要なら `Remotion/my-video/src/Root.tsx` にCompositionを追加する。
 10. `npm --prefix "$TEAM_INFO_ROOT/Remotion/my-video" run lint` を実行する。
-11. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render ... --output="$TEAM_INFO_ROOT/outputs/sleep_travel/renders/..."` コマンドを提示する。
+11. CapCut連携を自動同期する。
+   ```powershell
+   npm --prefix "$env:TEAM_INFO_ROOT\Remotion\my-video" run sync:capcut
+   ```
+   - 長尺独自CompositionがCapCut Exporter未対応で `outputs/capcut/` に対象パッケージを出せない場合は、未対応として報告する。
+   - `cutcli` 未導入でドラフト生成がスキップされた場合は、生成用ファイルまで作成済みとして報告する。
+12. レンダリングは勝手に実行しない。必要な場合はユーザー承認を取るか、コピペ可能な `cd "$TEAM_INFO_ROOT/Remotion/my-video" && npx remotion render ... --output="$TEAM_INFO_ROOT/outputs/sleep_travel/renders/..."` コマンドを提示する。
 - レンダリング前の確認文言は必ず `出力しますか？書き出しますか？` を使う。
 - 過去ターンで承認があっても、レンダリング直前に毎回確認する。
 - レンダリング出力先は必ず `outputs/sleep_travel/renders/` を使う。
-- レンダリング完了後に Step 12 のコマンドも提示する。
-12. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
+- レンダリング完了後に Step 13 のコマンドも提示する。
+13. レンダリング完了後、以下のコマンドで Google Drive にコピーする（コマンドをユーザーに提示するだけ・自分では実行しない）：
    ```bash
    rclone copy "$TEAM_INFO_ROOT/outputs/sleep_travel/renders/[ファイル名].mp4" "gdrive:1QKaUP9fvA46mINkpSR1b2wqrIBE6By0t/outputs/寝ながらトラベル/" --progress
    ```
    - rclone が未設定の場合は `.agent/skills/common/git-workflow/gdrive-copy/SKILL.md` の初回セットアップ手順を案内する。
-13. 実施内容、編集ファイル、使用した録音ナレーション、lint結果、未レンダリングの場合はレンダリング未実行であることを報告する。
+14. 実施内容、編集ファイル、使用した録音ナレーション、lint結果、CapCut同期結果、未レンダリングの場合はレンダリング未実行であることを報告する。
 
 ## 完了前チェックリスト
 - [ ] `channel_info.md` と `long_knowledge_relax.md` を読んだ
@@ -189,4 +195,5 @@ description: sleep_travelチャンネルのlong_knowledge_relaxテンプレー�
 - [ ] 白線オーディオスペクトラムが控えめに表示される
 - [ ] CTAが過剰でない
 - [ ] lintを実行し、結果を報告した
+- [ ] `sync:capcut` を実行し、CapCut同期結果を報告した
 - [ ] レンダリングを勝手に実行していない
