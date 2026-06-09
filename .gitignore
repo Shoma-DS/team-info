@@ -108,3 +108,4 @@ download.html
 .claude/eval/.local-config
 .claude/eval/.pending-review
 .claude/eval/.reviewing
+prompt-timeline/.record_event.lock
