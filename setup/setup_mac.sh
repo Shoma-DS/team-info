@@ -440,6 +440,19 @@ info "Node.js: $(node --version), npm: $(npm --version)"
 step "9. Codex CLI"
 install_npm_cli "Codex CLI" "$CODEX_NPM_PACKAGE" "codex"
 
+# ── 9b. Codex custom prompts ──────────────────────────────────────────────────
+step "9b. Codex custom prompts"
+CODEX_PROMPTS_SCRIPT="$TEAM_INFO_ROOT/scripts/sync_cross_cli_commands.py"
+if [[ -f "$CODEX_PROMPTS_SCRIPT" ]]; then
+  if "$PYTHON311" "$CODEX_PROMPTS_SCRIPT" --repo-only; then
+    success "Codex prompt sources をこのリポジトリの .codex/prompts に同期しました。"
+  else
+    warn "Codex prompt sources の同期に失敗しました。必要なら手動で scripts/sync_cross_cli_commands.py を実行してください。"
+  fi
+else
+  warn "Codex prompt 同期スクリプトが見つかりません: $CODEX_PROMPTS_SCRIPT"
+fi
+
 # ── 10. Freebuff CLI ───────────────────────────────────────────────────────────
 step "10. Freebuff CLI (無料AIエージェント)"
 install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"

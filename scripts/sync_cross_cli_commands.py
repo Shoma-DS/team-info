@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import json
+import argparse
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HOME = Path.home()
 
 
 COMMANDS: list[dict[str, str]] = [
@@ -261,32 +261,24 @@ def sync_repo_files() -> None:
         )
 
 
-def install_codex_prompts_to_home() -> list[Path]:
-    installed: list[Path] = []
-    target_dir = HOME / ".codex" / "prompts"
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    for command in COMMANDS:
-        source = ROOT / ".codex" / "prompts" / f'{command["name"]}.md'
-        target = target_dir / f'{command["name"]}.md'
-        content = source.read_text(encoding="utf-8")
-        write_if_changed(target, content)
-        installed.append(target)
-    return installed
-
-
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--repo-only",
+        action="store_true",
+        help="Sync only repository adapter files.",
+    )
+    args = parser.parse_args()
+
     sync_repo_files()
-    installed = install_codex_prompts_to_home()
 
     print("Synced Gemini project commands:")
     print(f"  {ROOT / '.gemini' / 'commands'}")
     print("Synced Codex prompt sources:")
     print(f"  {ROOT / '.codex' / 'prompts'}")
-    print("Installed Codex prompts to:")
-    for path in installed:
-        print(f"  {path}")
-    print("Restart Codex to load custom prompts. In Gemini CLI, run /commands reload if needed.")
+    print("Codex prompt sources stay in this repository. In Gemini CLI, run /commands reload if needed.")
+    if args.repo_only:
+        return 0
     return 0
 
 

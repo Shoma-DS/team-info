@@ -46,7 +46,7 @@
 ユーザーが `/コマンド名` を入力したときは、**必ず最初に** `.agent/skills/common/agent-org-ceo/SKILL.md` を読み込み、CEO が受付してから必要な専門スキルへ振り分けること。
 
 - Gemini CLI の native 実装は `.gemini/commands/*.toml` を使い、`/git` のようにそのまま呼び出す。
-- Codex の native 実装は `~/.codex/prompts/*.md` を使い、`/prompts:git` のように `prompts:` 名前空間で呼び出す。
+- Codex の repo 側 prompt 実装は `.codex/prompts/*.md` を使い、`/prompts:git` のように `prompts:` 名前空間で呼び出す。
 - どの CLI でも、コマンドの意味・正本ロジックはこの表と `AGENTS.md` / `.agent/skills/**/SKILL.md` に合わせること。
 - 表の「読み込むスキル」は、CEO が次に参照・委譲する専門スキルとして扱う。slash command の入口自体は常に CEO が受ける。
 - `.gemini/commands/` と `.codex/prompts/` は `AGENTS.md` から作るアダプタとして扱い、手でロジックを増やさない。
@@ -94,7 +94,7 @@ From now on, this repository uses only `.agent/skills` as the skills source.
 - 各サブフォルダの `CLAUDE.md` にそのフォルダの詳細文脈を記載する。
 - `.claude/commands/` と `.gemini/commands/` は互換用ラッパーとして扱い、新しい運用ロジックは `AGENTS.md` と `.agent/skills/**/SKILL.md` に実装する。
 - Gemini CLI の project context は `.gemini/settings.json` から `AGENTS.md` を直接読む。Gemini 専用の入口ファイルは作らない。
-- `.codex/prompts/` は Codex custom prompts の repo 側アダプタとして扱う。Codex の公式 custom prompts は `~/.codex/prompts` 配置のため、repo からの同期が必要になる前提で運用する。
+- `.codex/prompts/` は Codex custom prompts の repo 側アダプタとして扱う。team-info ではホームディレクトリではなく、このリポジトリ内の `.codex/prompts/` を正本として管理する。
 
 ## Session Start Rule（全エージェント共通・必須）
 
@@ -165,6 +165,7 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
 - ユーザーとの対話は原則日本語で行う。
 - ユーザーが明示しない限り `.gitignore` は変更しない。必要なら事前に許可を取る。
 - Git関連操作を行う場合は、必ず `.agent/skills/common/git-workflow/SKILL.md` を使う。
+- ユーザーが `/git` を使わずに「pushして」「PR作って」「反映して」「リモートに上げて」と依頼した場合も、`.agent/skills/common/git-workflow/SKILL.md` の `/git` 相当として扱う。`owner-status` が `other` のPCでは main へ直接 push せず、GitHub アカウント名入りの作業ブランチから PR を作る。
 
 ## Codex Practical Operations Rule
 
