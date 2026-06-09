@@ -188,6 +188,103 @@ get_python_user_bin() {
   printf '%s/bin\n' "$user_base"
 }
 
+get_git_config_value() {
+  local scope="$1"
+  local key="$2"
+
+  if [[ "$scope" == "global" ]]; then
+    git config --global --get "$key" 2>/dev/null || true
+  else
+    git -C "$TEAM_INFO_ROOT" config --get "$key" 2>/dev/null || true
+  fi
+}
+
+read_git_config_input() {
+  local label="$1"
+  local current_value="${2:-}"
+  local input_value
+
+  if [[ -n "$current_value" ]]; then
+    read -rp "  $label [$current_value]: " input_value
+    if [[ -z "${input_value// }" ]]; then
+      printf '%s\n' "$current_value"
+      return
+    fi
+    printf '%s\n' "$input_value"
+    return
+  fi
+
+  while true; do
+    read -rp "  $label: " input_value
+    if [[ -n "${input_value// }" ]]; then
+      printf '%s\n' "$input_value"
+      return
+    fi
+    warn "$label は必須です。"
+  done
+}
+
+set_git_config_value() {
+  local scope="$1"
+  local key="$2"
+  local value="$3"
+
+  if [[ "$scope" == "global" ]]; then
+    git config --global "$key" "$value"
+  else
+    git -C "$TEAM_INFO_ROOT" config "$key" "$value"
+  fi
+}
+
+configure_git_identity() {
+  local local_name local_email global_name global_email
+  local use_global default_name default_email git_name git_email set_global
+
+  step "3b. Git user identity"
+
+  local_name="$(get_git_config_value local user.name)"
+  local_email="$(get_git_config_value local user.email)"
+  global_name="$(get_git_config_value global user.name)"
+  global_email="$(get_git_config_value global user.email)"
+
+  if [[ -n "$local_name" && -n "$local_email" ]]; then
+    success "このリポジトリの Git user 設定済み: $local_name <$local_email>"
+    return
+  fi
+
+  if [[ -n "$global_name" && -n "$global_email" ]]; then
+    success "Git global user 設定済み: $global_name <$global_email>"
+    read -rp "  この global identity をこのリポジトリにも設定しますか？ yes なら y [Y/n]: " use_global
+    if [[ ! "$use_global" =~ ^[Nn]$ ]]; then
+      set_git_config_value local user.name "$global_name"
+      set_git_config_value local user.email "$global_email"
+      success "このリポジトリの Git user を設定しました: $global_name <$global_email>"
+      return
+    fi
+  fi
+
+  info "コミットに使う Git identity を入力してください。"
+  if [[ -n "$global_name" || -n "$global_email" ]]; then
+    info "現在の global identity: $global_name <$global_email>"
+  fi
+
+  default_name="${local_name:-$global_name}"
+  default_email="${local_email:-$global_email}"
+  git_name="$(read_git_config_input user.name "$default_name")"
+  git_email="$(read_git_config_input user.email "$default_email")"
+
+  read -rp "  今後のリポジトリ用に global にも保存しますか？ yes なら y [Y/n]: " set_global
+  if [[ ! "$set_global" =~ ^[Nn]$ ]]; then
+    set_git_config_value global user.name "$git_name"
+    set_git_config_value global user.email "$git_email"
+    success "Git global user を設定しました: $git_name <$git_email>"
+  fi
+
+  set_git_config_value local user.name "$git_name"
+  set_git_config_value local user.email "$git_email"
+  success "このリポジトリの Git user を設定しました: $git_name <$git_email>"
+}
+
 echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║       team-info セットアップ (macOS)                 ║"
@@ -233,6 +330,8 @@ for pkg in "${BREW_PACKAGES[@]}"; do
     success "$pkg インストール完了"
   fi
 done
+
+configure_git_identity
 
 if git lfs install --skip-repo &>/dev/null; then
   success "git lfs を初期化しました"

@@ -290,6 +290,113 @@ function Resolve-NodeAndNpmCommand {
     return $null
 }
 
+function Get-GitConfigValue {
+    param(
+        [string]$scope,
+        [string]$key
+    )
+
+    $args = @("config")
+    if ($scope -eq "global") {
+        $args += "--global"
+    }
+    $args += "--get"
+    $args += $key
+
+    $value = (& git @args 2>$null | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0) {
+        return ""
+    }
+    return ($value | Out-String).Trim()
+}
+
+function Read-GitConfigInput {
+    param(
+        [string]$label,
+        [string]$currentValue
+    )
+
+    if ($currentValue) {
+        $inputValue = Read-Host "  $label [$currentValue]"
+        if ([string]::IsNullOrWhiteSpace($inputValue)) {
+            return $currentValue
+        }
+        return $inputValue.Trim()
+    }
+
+    while ($true) {
+        $inputValue = Read-Host "  $label"
+        if (-not [string]::IsNullOrWhiteSpace($inputValue)) {
+            return $inputValue.Trim()
+        }
+        Write-Warn "$label is required."
+    }
+}
+
+function Set-GitConfigValue {
+    param(
+        [string]$scope,
+        [string]$key,
+        [string]$value
+    )
+
+    if ($scope -eq "global") {
+        & git config --global $key $value
+    } else {
+        & git config $key $value
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "git config $key failed"
+    }
+}
+
+function Configure-GitIdentity {
+    Write-Step "2b. Git user identity"
+
+    $localName = Get-GitConfigValue "local" "user.name"
+    $localEmail = Get-GitConfigValue "local" "user.email"
+    $globalName = Get-GitConfigValue "global" "user.name"
+    $globalEmail = Get-GitConfigValue "global" "user.email"
+
+    if ($localName -and $localEmail) {
+        Write-Ok "Git user configured for this repository: $localName <$localEmail>"
+        return
+    }
+
+    if ($globalName -and $globalEmail) {
+        Write-Ok "Git global user configured: $globalName <$globalEmail>"
+        $useGlobal = Read-Host "  Use this global identity for this repository too? Enter y if yes [Y/n]"
+        if ($useGlobal -notmatch "^[Nn]$") {
+            Set-GitConfigValue "local" "user.name" $globalName
+            Set-GitConfigValue "local" "user.email" $globalEmail
+            Write-Ok "Git user configured for this repository: $globalName <$globalEmail>"
+            return
+        }
+    }
+
+    Write-Info "Enter the Git identity used for commits."
+    if ($globalName -or $globalEmail) {
+        Write-Info "Current global identity: $globalName <$globalEmail>"
+    }
+
+    $defaultName = if ($localName) { $localName } else { $globalName }
+    $defaultEmail = if ($localEmail) { $localEmail } else { $globalEmail }
+    $gitName = Read-GitConfigInput "user.name" $defaultName
+    $gitEmail = Read-GitConfigInput "user.email" $defaultEmail
+
+    $setGlobal = Read-Host "  Save this identity globally for future repositories too? Enter y if yes [Y/n]"
+    if ($setGlobal -notmatch "^[Nn]$") {
+        Set-GitConfigValue "global" "user.name" $gitName
+        Set-GitConfigValue "global" "user.email" $gitEmail
+        Write-Ok "Git global user configured: $gitName <$gitEmail>"
+    }
+
+    Set-GitConfigValue "local" "user.name" $gitName
+    Set-GitConfigValue "local" "user.email" $gitEmail
+    Write-Ok "Git user configured for this repository: $gitName <$gitEmail>"
+}
+
 # 1. winget check
 Write-Step "1. winget check"
 if (-not (Test-Command winget)) {
@@ -328,6 +435,8 @@ if (Test-Command git) {
 } else {
     Install-WithWinget "Git.Git" "Git"
 }
+
+Configure-GitIdentity
 
 if (Test-Command rclone) {
     Write-Ok "rclone installed: $((& rclone version | Select-Object -First 1))"
