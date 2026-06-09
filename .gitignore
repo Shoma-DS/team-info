@@ -104,3 +104,7 @@ scripts/gas/hand-pain-tracker/
 scratch/
 projects/kpi-dashboard-2026-05/index.html
 download.html
+.claude/eval/dspy/optimized_program.json
+.claude/eval/.local-config
+.claude/eval/.pending-review
+.claude/eval/.reviewing

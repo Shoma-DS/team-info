@@ -96,10 +96,22 @@ class ZoomAccountContext:
 
 
 @dataclass(frozen=True)
+class LineAccountConfig:
+    key: str
+    label: str
+    sender_url_env: Optional[str]
+    sender_token_env: Optional[str]
+    title_keywords: tuple[str, ...]
+    is_default: bool
+
+
+@dataclass(frozen=True)
 class DailySummarySettings:
     webhook_config_path: pathlib.Path
     zoom_accounts: tuple[ZoomAccountConfig, ...]
     default_zoom_account_key: str
+    line_accounts: tuple[LineAccountConfig, ...]
+    default_line_account_key: str
 
 
 def resolve_personal_account_slug() -> str:
@@ -258,10 +270,80 @@ def load_daily_summary_settings() -> DailySummarySettings:
     if default_key is None:
         default_key = zoom_accounts[0].key
 
+    accounts_raw = payload.get("line_accounts")
+    if accounts_raw is None:
+        line_accounts = [
+            LineAccountConfig(
+                key="default",
+                label="既存公式LINE",
+                sender_url_env="PROLINE_MESSAGE_SENDER_URL",
+                sender_token_env="PROLINE_MESSAGE_SENDER_TOKEN",
+                title_keywords=(),
+                is_default=True,
+            )
+        ]
+        default_line_account_key = "default"
+    else:
+        if not isinstance(accounts_raw, list) or not accounts_raw:
+            raise ValueError("daily_summary_settings.json の `line_accounts` には1件以上の配列が必要です")
+
+        line_accounts: List[LineAccountConfig] = []
+        seen_line_keys: set[str] = set()
+        explicit_default_line_key: Optional[str] = None
+
+        for index, raw_account in enumerate(accounts_raw, start=1):
+            if not isinstance(raw_account, dict):
+                raise ValueError(f"line_accounts[{index}] は object である必要があります")
+
+            key = str(raw_account.get("key") or "").strip()
+            if not key:
+                raise ValueError(f"line_accounts[{index}].key は必須です")
+            if key in seen_line_keys:
+                raise ValueError(f"LINE アカウントキーが重複しています: {key}")
+            seen_line_keys.add(key)
+
+            label = str(raw_account.get("label") or key).strip() or key
+            sender_url_env = str(raw_account.get("sender_url_env") or "").strip()
+            if not sender_url_env:
+                raise ValueError(f"line_accounts[{index}].sender_url_env は必須です")
+
+            # title_keywords: タイトルへの部分一致でアカウントを振り分ける
+            raw_keywords = raw_account.get("title_keywords") or []
+            if not isinstance(raw_keywords, list):
+                raise ValueError(f"line_accounts[{index}].title_keywords は配列である必要があります")
+            title_keywords = tuple(kw.strip() for kw in raw_keywords if str(kw).strip())
+
+            is_default = bool(raw_account.get("default"))
+            if is_default:
+                if explicit_default_line_key is not None:
+                    raise ValueError("LINE の default アカウントは1件だけ指定できます")
+                explicit_default_line_key = key
+
+            line_accounts.append(LineAccountConfig(
+                key=key,
+                label=label,
+                sender_url_env=sender_url_env,
+                sender_token_env=(str(raw_account.get("sender_token_env")).strip() or None)
+                if raw_account.get("sender_token_env") is not None else None,
+                title_keywords=title_keywords,
+                is_default=is_default,
+            ))
+
+        default_line_account_key = explicit_default_line_key
+        if default_line_account_key is None:
+            for account in line_accounts:
+                if account.key == "default":
+                    default_line_account_key = account.key
+                    break
+        if default_line_account_key is None:
+            default_line_account_key = line_accounts[0].key
+
     return DailySummarySettings(
         webhook_config_path=resolve_settings_path(webhook_value, base_dir),
         zoom_accounts=tuple(zoom_accounts),
         default_zoom_account_key=default_key,
+        line_accounts=tuple(line_accounts),
+        default_line_account_key=default_line_account_key,
     )
 
 
@@ -283,6 +365,24 @@ def get_zoom_account_config(settings: DailySummarySettings, account_key: str) ->
         if account.key == account_key:
             return account
     raise KeyError(f"未知の Zoom アカウントキーです: {account_key}")
+
+
+def resolve_line_account_key(title: Optional[str], settings: DailySummarySettings) -> str:
+    title_str = title or ""
+    for account in settings.line_accounts:
+        if account.key == settings.default_line_account_key:
+            continue
+        for keyword in account.title_keywords:
+            if keyword in title_str:
+                return account.key
+    return settings.default_line_account_key
+
+
+def get_line_account_config(settings: DailySummarySettings, account_key: str) -> LineAccountConfig:
+    for account in settings.line_accounts:
+        if account.key == account_key:
+            return account
+    raise KeyError(f"未知の LINE アカウントキーです: {account_key}")
 
 
 def zoom_account_may_be_configured(config: ZoomAccountConfig) -> bool:
@@ -1660,8 +1760,6 @@ def main() -> None:
     all_day_titles = [e["title"] for e in events_raw if e.get("allDay")]
     timed_events   = [e for e in events_raw if not e.get("allDay")]
 
-    line_sender_url = resolve_first_env(*LINE_SENDER_URL_ENV_KEYS)
-    line_sender_token = resolve_first_env(*LINE_SENDER_TOKEN_ENV_KEYS)
     zoom_contexts: Dict[str, ZoomAccountContext] = {}
 
     # 各イベントに Zoom URL を付与し、必要なら LINE 送信する
@@ -1702,6 +1800,11 @@ def main() -> None:
             })
             print(f"[Event] 完了: {ev['title']}", file=sys.stderr, flush=True)
             continue
+        line_account_key = resolve_line_account_key(ev.get("title"), settings)
+        line_account_config = get_line_account_config(settings, line_account_key)
+        line_sender_url = resolve_first_env(line_account_config.sender_url_env) if line_account_config.sender_url_env else None
+        line_sender_token = resolve_first_env(line_account_config.sender_token_env) if line_account_config.sender_token_env else None
+
         initial_meeting_url = extract_meeting_url(ev.get("description"))
         meeting_url = None
         zoom_share_message = None
@@ -1762,6 +1865,7 @@ def main() -> None:
             "zoom_account_label": account_config.label,
             "line_user_id": line_user_id,
             "line_message_sent": line_message_sent,
+            "line_account_label": line_account_config.label,
         })
         print(f"[Event] 完了: {ev['title']}", file=sys.stderr, flush=True)
 
@@ -1819,7 +1923,8 @@ def main() -> None:
             if meeting_id:
                 block.append(f"ミーティングID: {meeting_id}")
             if ev.get("line_message_sent"):
-                block.append("LINE送信: 済み")
+                line_label = ev.get("line_account_label") or ""
+                block.append(f"LINE送信: 済み（{line_label}）" if line_label else "LINE送信: 済み")
             copy_text = ev.get("zoom_share_message") or build_zoom_share_message(
                 ev["title"],
                 ev["start"],

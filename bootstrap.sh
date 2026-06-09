@@ -15,6 +15,14 @@ setup() {
       echo "  . \"$_TEAM_INFO_BOOTSTRAP_ROOT\\bootstrap.ps1\""
       ;;
   esac
+
+  # --- AI エージェント環境セットアップ（prompt-optimizer）---
+  _SKILL_DIR="$HOME/.claude/skills/prompt-optimizer/scripts"
+  if [ -f "$_SKILL_DIR/setup-eval.sh" ]; then
+    echo ""
+    (cd "$_TEAM_INFO_BOOTSTRAP_ROOT" && bash "$_SKILL_DIR/setup-eval.sh")
+    (cd "$_TEAM_INFO_BOOTSTRAP_ROOT" && bash "$_SKILL_DIR/select-vault.sh")
+  fi
 }
 
 echo "✅ setup コマンドが使えるようになりました"
