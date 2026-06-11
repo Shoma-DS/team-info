@@ -67166,5 +67166,45 @@ window.PROMPT_TIMELINE_EVENTS = [
     "tags": [],
     "timestamp": "2026-06-11T18:43:59.986803Z",
     "timestamp_jst": "2026-06-12T03:43:59+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260611T184938Z-452322d7",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/Users/deguchishouma/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "01730e5f-2158-419a-9de2-e351e966a57b",
+      "transcript_path": "/Users/deguchishouma/.claude/projects/-Users-deguchishouma-team-info/01730e5f-2158-419a-9de2-e351e966a57b.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "続けて欲しい",
+    "prompt_preview": "続けて欲しい",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-11T18:49:38.870355Z",
+    "timestamp_jst": "2026-06-12T03:49:38+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260611T185144Z-844d30be",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/Users/deguchishouma/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "01730e5f-2158-419a-9de2-e351e966a57b",
+      "transcript_path": "/Users/deguchishouma/.claude/projects/-Users-deguchishouma-team-info/01730e5f-2158-419a-9de2-e351e966a57b.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "未コミット分をプッシュしてください",
+    "prompt_preview": "未コミット分をプッシュしてください",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-11T18:51:44.651958Z",
+    "timestamp_jst": "2026-06-12T03:51:44+09:00"
   }
 ];
