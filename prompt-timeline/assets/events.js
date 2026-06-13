@@ -67246,5 +67246,25 @@ window.PROMPT_TIMELINE_EVENTS = [
     "tags": [],
     "timestamp": "2026-06-11T18:56:51.012505Z",
     "timestamp_jst": "2026-06-12T03:56:51+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260613T230257Z-df29c631",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/home/user/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "9b69c2c8-cfb5-5123-b951-646136ad9a8b",
+      "transcript_path": "/root/.claude/projects/-home-user-team-info/9b69c2c8-cfb5-5123-b951-646136ad9a8b.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "You are Shoma's daily briefing assistant. Run every morning to send today's schedule to Discord.\n\nUse these credentials when running the script (do not log them):\n- DISCORD_DAILY_WEBHOOK: https://discord.com/api/webhooks/1489635669415297024/GHErD1DE20qHexSTtZuNYUJz4erjEUCnRra_LrJF7Sz394UjWfMC0Gp9VoIkvM5yGgVT\n- ZOOM_ACCOUNT_ID: pzAYiQC4Q56tLParidjnfw\n- ZOOM_CLIENT_ID: TSq7OyLiSfy44_7PZS9fg\n- ZOOM_CLIENT_SECRET: V93o7eSu2V3upnN1nfgXqHVm4DSY6hs7\n\nRead and follow this skill file exactly:\n.agent/skills/common/daily-calendar-summary/SKILL.md\n\nUse Claude Code for connector access, especially Google Calendar. Call the Google Calendar connector directly for Step 2, and do not detour into local Python package checks, token-file searches, AppleScript, or EventKit for calendar retrieval. Do not delegate this workflow to the Codex plugin.\n\nExecute all steps even if the calendar is empty.",
+    "prompt_preview": "You are Shoma's daily briefing assistant. Run every morning to send today's schedule to Discord.\n\nUse these credentials when running the script (do not log them):\n- DISCORD_DAILY_WEBHOOK: https://discord.com/api/webhooks/1489635669415297024/GHErD1DE20qHexSTtZuNYUJz4erjEUCnRra_LrJF7Sz394UjWfMC0Gp9VoIkvM5yGgVT\n- ZOOM_ACCOUNT_ID: pzAYiQC4Q56tLParidjnfw\n- ZOOM_CLIENT_ID: TSq7OyLiSfy44_7PZS9fg\n- ZOOM_CLIENT_SECRET: [REDACTED]\n\nRead and follow this skill file exactly:\n.agent/skills/common/daily-calendar-summary/SKILL.md\n\nUse Claude Code for connector access, especially Google Calendar. Call the Google Calendar connector directly for Step 2, and do not detour into local Python package checks, token-file searches, AppleScript, or EventKit for calendar retrieval. Do not delegate this workflow to the Codex plugin.\n\nExecute all steps even if the calendar is empty.",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-13T23:02:57.157902Z",
+    "timestamp_jst": "2026-06-14T08:02:57+09:00"
   }
 ];
