@@ -92,6 +92,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | git-workflow | Gitの運用フロー（ブランチ/コミット/PR と Git LFS 無料枠ガード） | `.agent/skills/common/git-workflow/SKILL.md` |
 | team-info-setup | team-info の初回セットアップや再セットアップを始める。core setup と lazy bootstrap 方針の入口 | `.agent/skills/common/team-info-setup/SKILL.md` |
 | agent-reach | team-info 向けに取り込んだ Agent-Reach。初回は自動 bootstrap しつつ、OpenClaw / Codex から Web・SNS・動画・RSS・GitHub を横断調査する | `.agent/skills/common/agent-reach/SKILL.md` |
+| codex-image-gen | Codex サブスクリプション（ChatGPT Plus）を使い GPT Image 2 で画像生成する。API キー不要。全エージェント共通の画像生成窓口 | `.agent/skills/common/codex-image-gen/SKILL.md` |
 | repo-adapted-tool-import | 外部リポジトリ、CLI、AI skill、MCP サーバーなどを team-info の運用に合わせて取り込む。現在の repo を優先して衝突を吸収する | `.agent/skills/common/team-info-setup/repo-adapted-tool-import/SKILL.md` |
 | obsidian-claudian | official Obsidian CLI、Claudian、各PCの `personal/<account>/obsidian/claude-obsidian/` を team-info 向けに導入・更新し、Codex / Claude Code 共通で使う個人用 Obsidian 知識ベースを整える | `.agent/skills/common/team-info-setup/obsidian-claudian/SKILL.md` |
 | shared-agent-assets | 複数 repo で共有するルール・スキル資産を team-info 流儀で同期する。`AGENTS.md` と `.agent/skills` を正本のまま維持する | `.agent/skills/common/team-info-setup/shared-agent-assets/SKILL.md` |
@@ -266,6 +267,9 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | Loom の文字起こしと台本、repo実例、アプリ画面からX長文記事を作り、5:2ヘッダー画像と本文内スクショ・図解つきでX下書き保存したい | `x-long-article-draft-saver` |
 | 重複した役割のフォルダを減らしたい | `repo-information-architecture` |
 | 検索性を上げて AI の探索トークンを節約したい | `repo-information-architecture` |
+| 画像を生成したい（Codex サブスクで API キー不要） | `codex-image-gen` |
+| GPT Image 2 で画像を作りたい | `codex-image-gen` |
+| バナー・サムネイル・アイキャッチを AI 生成したい | `codex-image-gen` |
 | LP用の画像プロンプトを作りたい | `image-prompt-generator` |
 | LPの新しいデザインバージョンを作りたい（原稿コピー＋セクション別プロンプト生成） | `lp-version-creator` |
 | nanobanana proでスライドや画像を作りたい | `image-prompt-generator` / `nanobanana-slide-planner` |

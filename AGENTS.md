@@ -70,6 +70,7 @@
 | `/web` | `.agent/skills/web-design/frontend-design/SKILL.md` | サイト制作・複製・イラスト取得 |
 | `/viral` | `.agent/skills/viral-template-generator/SKILL.md` | バズ動画解析・テンプレ自動生成 |
 | `/x` | `.agent/skills/x-post-writer/SKILL.md` | X投稿文自動生成 |
+| `/image` | `.agent/skills/common/codex-image-gen/SKILL.md` | Codex サブスクで GPT Image 2 画像生成（API キー不要） |
 
 ### Claude Code Native Features
 
@@ -155,8 +156,10 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
 - 要求タスクだけでなく、必要な付随作業や品質改善も実施または提案する。
 - 重要な変更やコマンド実行の前には、目的と影響を簡潔に説明する。
 - Claude Code の native 自動化機能（Hooks, `/loop`, `/schedule`）は、repo ルールを弱めない範囲でのみ使う。
-- Codex に画像生成を依頼された場合は、原則として Codex / ChatGPT サブスク内で使える画像生成機能で対応する。ユーザーが明示的に「APIで」「OpenAI APIで」「OPENAI_API_KEYを使って」などと指定しない限り、画像生成API、課金API、APIキー、`OPENAI_API_KEY`、`gpt-image-*` の直接呼び出し、画像生成用スクリプト作成を提案・実行しない。
-- Codex で画像生成モデルによる画像生成を依頼された場合、モデル生成に失敗したら、Pillow / HTML由来PNG / SVG / screenshot / ローカル合成で代替成果物を作らず、画像生成できなかったことを報告する。ユーザーが明示的に「モック」「下書き」「ローカル合成でよい」と許可した場合だけ、それらをモックとして扱い、AI画像生成ではないことを明記する。
+- 画像生成タスクが来たときは、まず `.agent/skills/common/codex-image-gen/SKILL.md` を読み、そのスキルの手順に従う。Claude・Codex・Gemini などすべてのエージェントが共通でこのスキルを使う。
+- 画像生成は Codex サブスクリプション（ChatGPT Plus）経由の GPT Image 2 を優先する。ユーザーが明示的に「APIで」「OpenAI APIで」「OPENAI_API_KEYを使って」と指定しない限り、`OPENAI_API_KEY`・課金API・`gpt-image-*` の直接呼び出し・画像生成用スクリプトの新規作成を提案・実行しない。
+- 実行手順: Codex.app 起動確認 → IPC ソケット特定 → `codex_image_gen.py` または `codex exec` で生成。Codex.app が停止中ならユーザーに起動を促す。自動起動はしない。
+- 画像生成に失敗した場合は、Pillow / HTML由来PNG / SVG / screenshot / ローカル合成で代替成果物を作らず、失敗を報告する。ユーザーが明示的に「モック・下書き・ローカル合成でよい」と許可した場合のみ代替物をモックとして扱い、AI画像生成ではないことを明記する。
 - 30秒以上かかる可能性が高いコマンド、待ち時間が長い解析・レンダリング・重いテスト・常駐プロセス起動は、原則としてエージェントが勝手に実行せず、ユーザー実行に切り替える。
 - 長時間コマンドをユーザーに依頼する場合は、目的を短く添えたうえで、コピーしやすい絶対パスのコマンドをそのまま渡し、実行完了の報告を待ってから次に進む。
 - Docker / VOICEVOX などの常駐系は、原則として必要なときだけ起動し、不要になったら停止してPC負荷を戻す運用を優先する。
