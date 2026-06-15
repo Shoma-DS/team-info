@@ -205,6 +205,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 
 ---
 
+### 📋 personal/kajimu03/（kajimu03 個人スキル）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| jmty-post | Kimi WebBridge 経由でジモティーに正社員（契約社員）求人を毎時1件・都道府県ランダムで自動投稿。web／AIプロンプト／AI動画／AIデータ／AIライター／AI SNS運用の6職種対応。launchd で毎時0分に自動実行 | `.agent/skills/personal/kajimu03/jmty-post/SKILL.md` |
+
+---
+
 ### 🍌 nanobanana-banner-gen/（バナー自動生成系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
@@ -293,3 +300,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スプレッドシートからバナー画像を自動生成したい | `nanobanana-banner-gen` |
 | YouTubeに動画をアップロードしたい | `youtube-auto-upload` |
 | 動画の公開予約をしたい | `youtube-auto-upload` |
+| ジモティーに求人を投稿したい（KAJICOM / 在宅AI職種） | `jmty-post` |
+| 毎時1件・都道府県ランダムでジモティーへ自動投稿したい | `jmty-post` |
+| Kimi WebBridge 経由でジモティーのフォームを自動入力・投稿したい | `jmty-post` |
+| AIプロンプト・AI動画・AI SNS運用などAI職種の求人を投稿したい | `jmty-post` |
