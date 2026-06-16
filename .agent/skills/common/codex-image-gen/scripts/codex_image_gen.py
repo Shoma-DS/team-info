@@ -15,9 +15,15 @@ VALID_SIZES = {"1024x1024", "1792x1024", "1024x1792"}
 
 def find_ipc_socket() -> str | None:
     uid = os.getuid()
-    pattern = f"/var/folders/*/T/codex-ipc/ipc-{uid}.sock"
-    matches = sorted(glob.glob(pattern))
-    return matches[0] if matches else None
+    # /var/folders/<x>/<hash>/T/codex-ipc/ipc-<uid>.sock (2 levels deep)
+    for pattern in [
+        f"/var/folders/*/*/T/codex-ipc/ipc-{uid}.sock",
+        f"/var/folders/*/T/codex-ipc/ipc-{uid}.sock",
+    ]:
+        matches = sorted(glob.glob(pattern))
+        if matches:
+            return matches[0]
+    return None
 
 
 def check_codex_app_running() -> bool:
