@@ -457,6 +457,20 @@ fi
 step "10. Freebuff CLI (無料AIエージェント)"
 install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"
 
+# ── 10b. Headroom (トークン圧縮プロキシ) ─────────────────────────────────────────
+step "10b. Headroom (トークン圧縮プロキシ)"
+HEADROOM_INSTALLER="$TEAM_INFO_ROOT/setup/headroom/install.sh"
+if [ -f "$HEADROOM_INSTALLER" ]; then
+  # 非致命: 失敗しても setup 全体は止めない（warn のみ）
+  if bash "$HEADROOM_INSTALLER" --python "$PYTHON311" --repo-root "$TEAM_INFO_ROOT"; then
+    success "Headroom を導入しました（claude / codex がプロキシ経由になります）"
+  else
+    warn "Headroom の導入に失敗しました（setup は続行）。ログ確認: setup/headroom/README.md"
+  fi
+else
+  warn "Headroom インストーラが見つかりません: $HEADROOM_INSTALLER"
+fi
+
 # ── 11. Git hooks ──────────────────────────────────────────────────────────────
 step "11. Git hooks"
 if git -C "$TEAM_INFO_ROOT" config core.hooksPath .githooks; then

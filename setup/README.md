@@ -18,6 +18,7 @@
 | Python 補助 | `uv` |
 | Node.js | 22.17.1 (`nvm` / `nvm-windows`) |
 | CLI | `@openai/codex`, `freebuff` |
+| AI proxy | Headroom token compression proxy (`claude` / `codex` routing; failure is non-fatal) |
 | Windows UTF-8 | PowerShell 7 (`pwsh`), `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8` |
 | repo 設定 | `TEAM_INFO_ROOT`, `.githooks`, worked-before 記録 |
 
@@ -98,6 +99,24 @@ Windows で npm の global install 先に書き込めない場合、setup は自
 ```powershell
 $env:NPM_CONFIG_PREFIX = "$env:USERPROFILE\.local\npm"; npm install -g freebuff
 ```
+
+## Headroom token compression proxy
+
+setup 後は、`claude` / `codex` がローカルの Headroom proxy 経由になります。macOS / Windows の通常 setup に組み込み済みで、失敗しても setup 全体は止めず warning として続行します。
+
+確認:
+
+```bash
+bash "$TEAM_INFO_ROOT/setup/headroom/check.sh"
+```
+
+Windows:
+
+```powershell
+& "$env:TEAM_INFO_ROOT\setup\headroom\check.ps1"
+```
+
+詳細、手動導入、ロールバックは `setup/headroom/README.md` を参照してください。
 
 ## Windows の日本語 / UTF-8 対策
 

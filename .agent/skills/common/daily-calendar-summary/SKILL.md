@@ -17,7 +17,7 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 - 新しいリンクを確定した後、同タイトル・同開始時刻で重複した古い Zoom scheduled meeting があれば削除する
 - Discord の詳細メッセージには Zoom リンク、ミーティング ID、LINE送信結果を記載する
 - Discordへ概要1件 + イベント詳細1件ずつ送信
-- 朝サマリー送信が成功した後、当日予定のうち「面接」「2回目」または90分以上の予定を抽出し、取得済みカレンダー情報を `calendar-interview-closing` へ渡して Loom 文字起こし取得とクロージング台本作成に移行する
+- 朝サマリー送信が成功した後、当日予定のうち「面接」「2回目」または90分以上の予定を抽出し、取得済みカレンダー情報を `calendar-interview-closing` へ渡して Loom 文字起こし取得とクロージング台本作成に移行する。後続の台本生成は別プロセスで非同期起動し、朝サマリー本体の成功・失敗判定から切り離す
 
 ## Codex 実行ポリシー
 
@@ -106,11 +106,12 @@ python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_d
 
 - `run_daily_summary.py` が GWS CLI で当日の予定を取得し、`daily_calendar_summary.py` へ JSON を渡す
 - 予定が0件の場合も実行すること（「予定なし」メッセージが送信される）
-- `daily_calendar_summary.py` が成功した後、取得済みの予定から次の候補だけを抽出し、`calendar-interview-closing` を `codex exec` で起動する
+- `daily_calendar_summary.py` が成功した後、取得済みの予定から次の候補だけを抽出し、`calendar-interview-closing` を `codex exec` で非同期起動する
   - `summary` または `description` に `面接`
   - `description` に `2回目`
   - `duration` が90分以上
 - `calendar-interview-closing` へは `/tmp/team-info-daily-summary/calendar-interview-closing-YYYY-MM-DD.json` を渡す。後続スキルはこの JSON を正本として使い、JSON が読めない場合以外は Google Calendar を再取得しない
+- 非同期実行ログは `~/.config/team-info/logs/calendar-interview-closing-YYYY-MM-DD.log` に追記する。台本生成が長引いても `daily-calendar-summary` の 1800 秒タイムアウト対象には含めない
 - 朝通知だけを検証したい場合は `--skip-interview-closing` を付ける
 - `daily_calendar_summary.py` は、Zoom を新規作成したイベントだけでなく、既存 URL を再利用するイベントでも GWS CLI で Google カレンダー説明欄を正規化し、旧式の Zoom / ProLine 案内文を消してから最新の送信用メッセージへ寄せる
 - Loom が会議リンクを拾いやすいように、Zoom URL は説明欄だけでなく Google カレンダーの `location` にも入れる。既存 `location` に会場名などがある場合は残したまま、先頭に Zoom URL を置く

@@ -649,6 +649,26 @@ if (Test-Path $CodexPromptsScript) {
 Write-Step "10. Freebuff CLI (free AI agent)"
 Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff"
 
+# 10b. Headroom (token compression proxy)
+Write-Step "10b. Headroom (token compression proxy)"
+$HeadroomInstaller = Join-Path $TeamInfoRoot "setup\headroom\install.ps1"
+if (Test-Path $HeadroomInstaller) {
+    # Non-fatal: keep setup running even if Headroom fails.
+    try {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $HeadroomInstaller `
+            -PythonExe $Python311 -RepoRoot $TeamInfoRoot
+        if ($LASTEXITCODE -eq 0) {
+            Write-Ok "Headroom installed (claude / codex now route through the proxy)"
+        } else {
+            Write-Warn "Headroom install failed (setup continues). See setup\headroom\README.md"
+        }
+    } catch {
+        Write-Warn "Headroom install error (setup continues): $_"
+    }
+} else {
+    Write-Warn "Headroom installer not found: $HeadroomInstaller"
+}
+
 # 11. Git hooks
 Write-Step "11. Git hooks"
 try {

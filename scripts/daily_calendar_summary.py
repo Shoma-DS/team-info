@@ -50,6 +50,7 @@ ZOOM_CREDS_PATH = pathlib.Path.home() / ".config" / "zoom" / "credentials.json"
 GWS_BIN = str(pathlib.Path("/usr/local/bin/gws")) if pathlib.Path("/usr/local/bin/gws").exists() else "gws"
 INTERVIEW_CLOSING_SKILL = REPO_ROOT / ".agent" / "skills" / "personal" / "deguchishouma" / "calendar-interview-closing" / "SKILL.md"
 INTERVIEW_CLOSING_PAYLOAD_DIR = pathlib.Path("/tmp") / "team-info-daily-summary"
+INTERVIEW_CLOSING_LOG_DIR = pathlib.Path.home() / ".config" / "team-info" / "logs"
 AUTO_GWS_CREDENTIALS_PATH = pathlib.Path.home() / ".config" / "team-info" / "gws_credentials_auto.json"
 _AUTO_GWS_CREDENTIALS_CHECKED = False
 _AUTO_GWS_CREDENTIALS_FILE: pathlib.Path | None = None
@@ -1713,15 +1714,29 @@ def run_interview_closing_skill(payload_path: pathlib.Path) -> int:
         "Default the current closing owner to 出口 when unspecified. Do not ask clarifying questions; "
         "if a Loom video is ambiguous, save a Loom未特定 note/script for that candidate and continue with the others."
     )
-    print(f"[InterviewClosing] 起動: {payload_path}", file=sys.stderr, flush=True)
-    process = subprocess.run(
-        [codex_bin, "exec", "-C", str(REPO_ROOT), prompt],
-        text=True,
-        cwd=REPO_ROOT,
-        env={**os.environ, "PYTHONUNBUFFERED": "1"},
-    )
-    print(f"[InterviewClosing] 終了 code={process.returncode}", file=sys.stderr, flush=True)
-    return process.returncode
+    date_part = payload_path.stem.removeprefix("calendar-interview-closing-")
+    log_path = INTERVIEW_CLOSING_LOG_DIR / f"calendar-interview-closing-{date_part}.log"
+    try:
+        INTERVIEW_CLOSING_LOG_DIR.mkdir(parents=True, exist_ok=True)
+        print(f"[InterviewClosing] 非同期起動: {payload_path} / log={log_path}", file=sys.stderr, flush=True)
+        with log_path.open("a", encoding="utf-8") as log_file, open(os.devnull, "r", encoding="utf-8") as devnull:
+            process = subprocess.Popen(
+                [codex_bin, "exec", "-C", str(REPO_ROOT), prompt],
+                stdin=devnull,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                text=True,
+                cwd=REPO_ROOT,
+                env={**os.environ, "PYTHONUNBUFFERED": "1"},
+                start_new_session=True,
+                close_fds=True,
+            )
+    except Exception as exc:
+        print(f"[InterviewClosing] 非同期起動失敗: {exc}", file=sys.stderr, flush=True)
+        return 1
+
+    print(f"[InterviewClosing] 起動済み pid={process.pid}", file=sys.stderr, flush=True)
+    return 0
 
 
 def handoff_interview_closing(date_str: str, events: List[dict], skip_discord_summary: bool, skip_handoff: bool) -> None:

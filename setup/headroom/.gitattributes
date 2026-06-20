@@ -1,0 +1,7 @@
+# Headroom のビルド済みバイナリは Git LFS で管理する（履歴肥大を防ぐ）
+artifacts/**/*.whl      filter=lfs diff=lfs merge=lfs -text
+artifacts/**/*.dylib    filter=lfs diff=lfs merge=lfs -text
+artifacts/**/*.dll      filter=lfs diff=lfs merge=lfs -text
+artifacts/**/*.so       filter=lfs diff=lfs merge=lfs -text
+artifacts/**/*.tar.gz   filter=lfs diff=lfs merge=lfs -text
+artifacts/**/*.zip      filter=lfs diff=lfs merge=lfs -text
