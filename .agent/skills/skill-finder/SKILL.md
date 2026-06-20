@@ -41,6 +41,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | `gws-dashboard/` | gws CLI で取得したスプレッドシート可視化HTML |
 | `X長文記事/` | X長文記事・スレッド記事のMarkdown下書き |
 | `youtube-shorts-research/` | YouTube競合リサーチから作るRemotion/CapCut用コンテキスト・台本・編集指示 |
+| `GPT画像スライド/` | GPT IMAGE2 で作成した文字入りラスターPNGスライド |
 
 新規チャンネル・新規用途の場合は上記に追加し、このテーブルも更新すること。
 
@@ -110,6 +111,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | proline-gas-builder | NotebookLM MCP のプロラインフリーマニュアルを最優先の正本として確認し、`personal/deguchishouma/gas/proline/` 配下へ、友だち追加、ブロック、解除、フォーム送信、紹介者コード連携などの GAS を設計・実装し、デプロイ後は配備台帳も更新し、全文のデプロイ URL と完成形 URL 例まで返す | `.agent/skills/personal/deguchishouma/proline-gas-builder/SKILL.md` |
 | agent-org-ceo | オーナー配下に CEO と役割別メンバーを置き、必要なスキルだけを読む形で token 消費を抑えながら仕事を振り分ける | `.agent/skills/common/agent-org-ceo/SKILL.md` |
 | agent-prompt-timeline | ユーザー指示の原文、作業要約、アクションを時系列で記録し、学習用Webサイト `prompt-timeline/` を更新する | `.agent/skills/agent-prompt-timeline/SKILL.md` |
+| screenshot-manual | スクリーンショットと操作指示から、初心者やスタッフ向けの手順書・操作マニュアルを作成する | `.agent/skills/screenshot-manual/SKILL.md` |
 
 ---
 
@@ -119,6 +121,13 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | image-prompt-generator | LP・スライド・SNS用の画像プロンプトをnanobanana pro形式で生成する | `.agent/skills/personal/deguchishouma/lp-design/image-prompt-generator/SKILL.md` |
 | lp-version-creator | LP原稿をコピーし、ビジュアルスタイル（文字仕様 or 参考画像）を元にセクション別nanobanana pro画像プロンプトを生成・保存する | `.agent/skills/personal/deguchishouma/lp-design/lp-version-creator/SKILL.md` |
 | nanobanana-slide-planner | 商品情報からnanobanana pro向けスライドプロンプトを生成する | `.agent/skills/personal/deguchishouma/presentation/nanobanana-slide-planner/SKILL.md` |
+
+---
+
+### 🖼️ personal/tsukinoayaka/presentation/（GPT IMAGE2ラスター画像スライド系）
+| スキル名 | 概要 | パス |
+|---------|------|------|
+| gpt-image2-raster-slide-maker | Codex APP の内蔵画像生成 / GPT IMAGE2 だけで、文字・背景・キャラクターを含む完成ラスターPNGスライドを作る。HTML、SVG、SVG中間ファイル、ブラウザレンダリング、ベクター生成を絶対に使わない | `.agent/skills/personal/tsukinoayaka/gpt-image2-raster-slide-maker/SKILL.md` |
 
 ---
 
@@ -222,6 +231,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | 歌詞字幕・カラオケ動画を作りたい | `lyric-video-production` |
 | 台本から音声を生成したい | `voice-script-launcher` |
 | 青山龍星の声で転職・キャリア系ショートの音声を生成したい | `aoyama-ryusei-voice` |
+| HTML/SVGを使わずGPT IMAGE2だけで文字入りPNGスライドを作りたい | `gpt-image2-raster-slide-maker` |
 | YouTube台本を書きたい | `script-writing-accounts-aware` |
 | Remotionの縦ショートに効果音を入れたい | `remotion-short-sound-design` |
 | 縦ショートの改行・余白・字幕位置・画像テンポをチェックしたい | `remotion-short-sound-design` |
@@ -293,3 +303,4 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | スプレッドシートからバナー画像を自動生成したい | `nanobanana-banner-gen` |
 | YouTubeに動画をアップロードしたい | `youtube-auto-upload` |
 | 動画の公開予約をしたい | `youtube-auto-upload` |
+| スクリーンショットから操作マニュアル・手順書を作りたい | `screenshot-manual` |
