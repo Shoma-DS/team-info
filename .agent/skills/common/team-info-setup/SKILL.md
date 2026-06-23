@@ -14,7 +14,7 @@ description: team-info の初回セットアップや再セットアップを始
 ## 目的
 - `/setup` から team-info の初回セットアップややり直しを始める。
 - 新しいパソコンか、過去に一度使ったパソコンかを見分ける。
-- `setup/setup_all.cmd` を入口にして、必要なら `setup-local-machine` までつなぐ。
+- OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1`) を入口にして、必要なら `setup-local-machine` までつなぐ。
 - setup 本体を最小構成に保ち、重い依存は skill ごとの初回利用に寄せる。
 
 ## 参照ファイル
@@ -26,7 +26,7 @@ description: team-info の初回セットアップや再セットアップを始
 1. まず `python3 .agent/skills/common/scripts/team_info_runtime.py worked-before-status` 相当で状態を確認する。
 2. 結果が `new` のときは、最初に `マニュアル/まずはこちらをお読みください.md` を読み、その流れに沿って案内する。
 3. 結果が `known` のときは、そのパソコンは既に一度 `team-info` を触った前提で扱う。ユーザーがやり直しを望むなら、そのまま setup を進めてよい。
-4. フルセットアップの入口は常に `setup/setup_all.cmd` とする。
+4. フルセットアップの入口は常に OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1`) とする。
    - 途中で **GitHub 招待の承認確認** と **GitHub CLI (gh) の認証** が行われる。
    - この入口は OS 別 setup の最後に `setup/verify_setup.py` まで走らせる前提で扱う。
    - setup の最後に `検証結果: 成功` と出て、終了コード 0 のときだけ「core setup がそろった」と判断する。
@@ -52,13 +52,13 @@ description: team-info の初回セットアップや再セットアップを始
 macOS:
 
 ```bash
-bash ./setup/setup_all.cmd
+bash ./setup/setup_mac.sh
 ```
 
 Windows:
 
 ```powershell
-.\setup\setup_all.cmd
+.\setup\setup_windows.ps1
 ```
 
 - この最初のコマンドだけは、`team-info` のリポジトリルートをカレントディレクトリにした状態で案内してよい。
@@ -75,13 +75,13 @@ sed -n '1,220p' "$TEAM_INFO_ROOT/setup/README.md"
 macOS:
 
 ```bash
-bash "$TEAM_INFO_ROOT/setup/setup_all.cmd"
+bash "$TEAM_INFO_ROOT/setup/setup_mac.sh"
 ```
 
 Windows:
 
 ```powershell
-& "$env:TEAM_INFO_ROOT\setup\setup_all.cmd"
+& "$env:TEAM_INFO_ROOT\setup\setup_windows.ps1"
 ```
 
 ### `TEAM_INFO_ROOT` の確認
@@ -144,5 +144,5 @@ gh auth login --web
 
 ## 承認ルール
 - `worked-before-status` の確認やマニュアルの読み込みは、そのまま実行してよい。
-- `setup/setup_all.cmd` の実行は、道具の追加、外部取得、環境変更を含むため、必ず日本語で承認を取り、リスクを数値で示してから進める。
+- OS 別 setup の実行は、道具の追加、外部取得、環境変更を含むため、必ず日本語で承認を取り、リスクを数値で示してから進める。
 - ユーザーが自分で実行したい場合は、上のコマンドをそのまま渡す。

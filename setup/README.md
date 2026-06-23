@@ -4,7 +4,7 @@
 
 ## いまの方針
 
-- `setup/setup_all.cmd` では、日常作業の土台だけを入れる
+- OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1`) では、日常作業の土台だけを入れる
 - 重い依存や用途限定の依存は、対応する skill を初めて使うときにだけ準備する
 - `setup/verify_setup.py` も、Docker image や npm 依存の総当たりではなく、core setup と lazy bootstrap の入口がそろっているかを確認する
 
@@ -35,18 +35,18 @@
 
 ## まずはこれを実行
 
-このリポジトリでは、入口を `setup/setup_all.cmd` に統一しています。
+このリポジトリでは、入口を OS 別 setup に統一しています。
 
 ### macOS
 
 ```bash
-bash ./setup/setup_all.cmd
+bash ./setup/setup_mac.sh
 ```
 
 ### Windows
 
 ```powershell
-.\setup\setup_all.cmd
+.\setup\setup_windows.ps1
 ```
 
 - この最初のコマンドだけは、repo root をカレントディレクトリにした状態で相対パス案内を使ってよい運用です
@@ -122,8 +122,8 @@ Windows:
 
 Windows では setup 時に PowerShell 7 (`pwsh`) を導入し、Python 系の文字化け対策として `PYTHONUTF8=1` と `PYTHONIOENCODING=utf-8` をユーザー環境変数へ保存します。
 
-- 初回 setup は従来どおり `.\setup\setup_all.cmd` で実行します
-- 2回目以降、`pwsh` が入っていれば `setup_all.cmd` は自動で PowerShell 7 を使います
+- 初回 setup は `.\setup\setup_windows.ps1` で実行します
+- 2回目以降も、PowerShell 7 (`pwsh`) が入っていれば UTF-8 の作業は `pwsh` を優先します
 - 日本語を含む作業や UTF-8 のファイル操作は、Windows PowerShell 5.1 ではなく `pwsh` で行う前提にします
 
 ## skill ごとの初回準備

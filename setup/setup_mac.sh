@@ -23,7 +23,7 @@ SCRIPT_REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 is_repo_root_dir() {
   local candidate="$1"
-  [[ -f "$candidate/AGENTS.md" && -f "$candidate/setup/setup_all.cmd" ]]
+  [[ -f "$candidate/AGENTS.md" && -f "$candidate/setup/setup_mac.sh" ]]
 }
 
 CURRENT_DIR="$(pwd -P)"
@@ -84,7 +84,7 @@ case ":\$PATH:" in
 esac
 
 # チームツール起動エイリアス
-alias setup='bash "\$TEAM_INFO_ROOT/setup/setup_all.cmd"'
+alias setup='bash "\$TEAM_INFO_ROOT/setup/setup_mac.sh"'
 alias x-post='bash "\$TEAM_INFO_ROOT/.agent/skills/x-post-writer/scripts/start_preview.sh"'
 alias remotion='npm --prefix "\$TEAM_INFO_ROOT/Remotion/my-video" run dev'
 alias remodex='npx remodex'

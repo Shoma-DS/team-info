@@ -7,6 +7,8 @@ import os
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 
@@ -188,6 +190,55 @@ def _check_lazy_bootstrap_scripts(repo_root: Path, failures: list[str], warnings
             print(f"[INFO] {label}: 未作成（初回スキル利用時に準備）")
 
 
+def _check_headroom_proxy(repo_root: Path, warnings: list[str]) -> None:
+    _print_heading("Headroom")
+
+    installer_name = "install.ps1" if sys.platform == "win32" else "install.sh"
+    checker_name = "check.ps1" if sys.platform == "win32" else "check.sh"
+    installer = repo_root / "setup" / "headroom" / installer_name
+    checker = repo_root / "setup" / "headroom" / checker_name
+
+    if installer.exists():
+        print(f"[OK] Headroom installer: {installer}")
+    else:
+        print(f"[WARN] Headroom installer: {installer}")
+        warnings.append(f"Headroom インストーラが見つかりません: {installer}")
+
+    if checker.exists():
+        print(f"[OK] Headroom check script: {checker}")
+    else:
+        print(f"[WARN] Headroom check script: {checker}")
+        warnings.append(f"Headroom 確認スクリプトが見つかりません: {checker}")
+
+    headroom_path = shutil.which("headroom")
+    if not headroom_path:
+        print("[WARN] headroom: コマンドが見つかりません")
+        warnings.append("Headroom は setup で導入を試しますが、現在の PATH からは見つかりません。")
+        return
+
+    print(f"[OK] headroom: {headroom_path}")
+    completed = _run(["headroom", "--version"])
+    if completed.returncode == 0:
+        print(f"[OK] headroom version: {_truncate(completed.stdout or completed.stderr)}")
+    else:
+        message = _truncate(completed.stderr or completed.stdout or "headroom --version の取得に失敗しました")
+        print(f"[WARN] headroom --version: {message}")
+        warnings.append("Headroom コマンドはありますが、バージョン確認に失敗しました。")
+
+    port = os.environ.get("HEADROOM_PORT", "8787")
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/readyz", timeout=2) as response:
+            body = response.read(120).decode("utf-8", errors="replace").strip()
+            if 200 <= response.status < 300:
+                print(f"[OK] Headroom readyz: {body or response.status}")
+            else:
+                print(f"[WARN] Headroom readyz: HTTP {response.status}")
+                warnings.append("Headroom のローカルプロキシが正常応答していません。")
+    except (OSError, urllib.error.URLError) as exc:
+        print(f"[WARN] Headroom readyz: {_truncate(str(exc))}")
+        warnings.append("Headroom のローカルプロキシ起動確認に失敗しました。必要なら setup/headroom/check.* を実行してください。")
+
+
 def _check_team_info_root(repo_root: Path, failures: list[str], warnings: list[str]) -> None:
     _print_heading("TEAM_INFO_ROOT")
     current = os.environ.get("TEAM_INFO_ROOT", "")
@@ -271,6 +322,7 @@ def main() -> int:
     _check_python_toolchain(failures)
     _check_windows_utf8_tooling(failures)
     _check_lazy_bootstrap_scripts(repo_root, failures, warnings)
+    _check_headroom_proxy(repo_root, warnings)
     _check_optional_tools(warnings)
 
     _print_heading("まとめ")

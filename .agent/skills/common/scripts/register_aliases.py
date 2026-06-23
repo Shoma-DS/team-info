@@ -10,7 +10,7 @@ import platform
 import sys
 
 ALIASES = [
-    ("setup",    'bash "{root}/setup/setup_all.cmd"'),
+    ("setup",    'bash "{root}/setup/setup_mac.sh"'),
     ("x-post",   'bash "{root}/.agent/skills/x-post-writer/scripts/start_preview.sh"'),
     ("remotion", 'npm --prefix "{root}/Remotion/my-video" run dev'),
     ("remodex",  'npx remodex'),

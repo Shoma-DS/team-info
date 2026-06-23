@@ -37,7 +37,7 @@ function Invoke-NativeOrThrow {
 $ScriptDir      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptRepoRoot = Split-Path -Parent $ScriptDir
 $CurrentDir     = (Get-Location).Path
-if ((Test-Path (Join-Path $CurrentDir "AGENTS.md")) -and (Test-Path (Join-Path $CurrentDir "setup\setup_all.cmd"))) {
+if ((Test-Path (Join-Path $CurrentDir "AGENTS.md")) -and (Test-Path (Join-Path $CurrentDir "setup\setup_windows.ps1"))) {
     $TeamInfoRoot = $CurrentDir
 } else {
     $TeamInfoRoot = $ScriptRepoRoot
