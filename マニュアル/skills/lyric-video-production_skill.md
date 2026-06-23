@@ -1,1 +1,1 @@
-../../.agent/skills/remotion/lyric-emotion-mapper/SKILL.md
+../../.agent/skills/remotion/video-production/lyric-emotion-mapper/SKILL.md

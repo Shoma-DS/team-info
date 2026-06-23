@@ -1,1 +1,1 @@
-../../.agent/skills/web-design/gsap-awwwards-website/SKILL.md
+../../.agent/skills/web-design/frontend-design/gsap-awwwards-website/SKILL.md

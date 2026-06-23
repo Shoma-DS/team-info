@@ -1,1 +1,1 @@
-../../.agent/skills/acoriel/acoriel-video-description/SKILL.md
+../../.agent/skills/remotion/video-production/acoriel/acoriel-video-description/SKILL.md

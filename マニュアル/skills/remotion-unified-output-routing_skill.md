@@ -1,1 +1,1 @@
-../../.agent/skills/remotion/remotion-unified-output-routing/SKILL.md
+../../.agent/skills/remotion/video-production/remotion-unified-output-routing/SKILL.md

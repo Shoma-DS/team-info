@@ -1,1 +1,1 @@
-../../.agent/skills/remotion/remotion-template-sleep-travel-short-digest/SKILL.md
+../../.agent/skills/remotion/video-production/remotion-template-sleep-travel-short-digest/SKILL.md

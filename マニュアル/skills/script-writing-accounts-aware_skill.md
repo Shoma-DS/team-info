@@ -1,1 +1,1 @@
-../../.agent/skills/remotion/script-writing-accounts-aware/SKILL.md
+../../.agent/skills/remotion/video-production/script-writing-accounts-aware/SKILL.md

@@ -1,1 +1,1 @@
-../../.agent/skills/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md
+../../.agent/skills/remotion/video-production/acoriel/remotion-template-acoriel-acoustic-cover/SKILL.md

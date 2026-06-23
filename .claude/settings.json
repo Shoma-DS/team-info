@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "TODAY=$(date +%Y-%m-%d); MARKER=\"$HOME/.claude/last-pull-date.txt\"; LAST=$(cat \"$MARKER\" 2>/dev/null || echo \"\"); if [ \"$TODAY\" = \"$LAST\" ]; then exit 0; fi; git -C \"$CLAUDE_PROJECT_DIR\" fetch origin 2>&1 && git -C \"$CLAUDE_PROJECT_DIR\" pull --rebase 2>&1 && echo \"$TODAY\" > \"$MARKER\" && printf '{\"systemMessage\":\"自動 /pull 完了（本日初回）\"}' || printf '{\"systemMessage\":\"⚠️ 自動 /pull 失敗 — 手動で pull してください\"}'",
+            "command": "ROOT=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; python \"$ROOT/.agent/skills/common/scripts/team_info_runtime.py\" session-start-pull --repo-root \"$ROOT\"",
             "timeout": 30,
             "statusMessage": "最新のコードを確認中..."
           }

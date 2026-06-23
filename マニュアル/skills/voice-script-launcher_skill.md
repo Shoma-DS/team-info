@@ -1,1 +1,1 @@
-../../.agent/skills/remotion/voice-script-launcher/SKILL.md
+../../.agent/skills/remotion/video-production/voice-script-launcher/SKILL.md

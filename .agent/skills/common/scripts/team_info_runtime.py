@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import re
 import shutil
@@ -193,6 +194,145 @@ def _run_git(repo_root: Path, *args: str) -> str:
         message = completed.stderr.strip() or completed.stdout.strip() or "git command failed"
         raise RuntimeError(message)
     return completed.stdout.strip()
+
+
+def _run_git_process(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            ["git", "-C", str(repo_root), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except OSError as exc:
+        raise RuntimeError("git command was not found.") from exc
+
+
+def _git_process_message(completed: subprocess.CompletedProcess[str]) -> str:
+    message = completed.stderr.strip() or completed.stdout.strip() or "git command failed"
+    return message.splitlines()[0]
+
+
+def _print_system_message(message: str) -> None:
+    print(json.dumps({"systemMessage": message}, ensure_ascii=False))
+
+
+def _session_pull_marker_path(marker_path: Path | None) -> Path:
+    return marker_path if marker_path is not None else Path.home() / ".claude" / "last-pull-date.txt"
+
+
+def _write_session_pull_marker(marker_path: Path, today: str) -> None:
+    marker_path.parent.mkdir(parents=True, exist_ok=True)
+    marker_path.write_text(f"{today}\n", encoding="utf-8")
+
+
+def _session_pull_already_ran(marker_path: Path, today: str) -> bool:
+    try:
+        return marker_path.exists() and marker_path.read_text(encoding="utf-8").strip() == today
+    except OSError:
+        return False
+
+
+def _try_write_session_pull_marker(marker_path: Path, today: str) -> None:
+    try:
+        _write_session_pull_marker(marker_path, today)
+    except OSError:
+        pass
+
+
+def _git_ref_exists(repo_root: Path, ref: str) -> bool:
+    return _run_git_process(repo_root, "rev-parse", "--verify", "--quiet", ref).returncode == 0
+
+
+def _git_rebase_in_progress(repo_root: Path) -> bool:
+    paths: list[Path] = []
+    for name in ("rebase-merge", "rebase-apply"):
+        completed = _run_git_process(repo_root, "rev-parse", "--git-path", name)
+        if completed.returncode != 0:
+            continue
+        raw_path = Path(completed.stdout.strip())
+        paths.append(raw_path if raw_path.is_absolute() else repo_root / raw_path)
+    return any(path.exists() for path in paths)
+
+
+def _session_start_pull(repo_root: Path, *, marker_path: Path | None) -> int:
+    marker = _session_pull_marker_path(marker_path)
+    today = datetime.date.today().isoformat()
+
+    if _session_pull_already_ran(marker, today):
+        return 0
+
+    fetch = _run_git_process(repo_root, "fetch", "origin")
+    if fetch.returncode != 0:
+        _print_system_message(
+            f"⚠️ 自動 /pull 失敗 — fetch できませんでした: {_git_process_message(fetch)}"
+        )
+        return 0
+
+    if _git_ref_exists(repo_root, "origin/main"):
+        behind_check = _run_git_process(
+            repo_root, "rev-list", "--left-right", "--count", "HEAD...origin/main"
+        )
+        if behind_check.returncode == 0:
+            counts = behind_check.stdout.strip().split()
+            if len(counts) == 2 and counts[1] == "0":
+                _try_write_session_pull_marker(marker, today)
+                _print_system_message("自動 /pull 確認済み（更新なし）")
+                return 0
+
+    status = _run_git_process(repo_root, "status", "--porcelain")
+    if status.returncode != 0:
+        _print_system_message(
+            f"⚠️ 自動 /pull 失敗 — 状態確認できませんでした: {_git_process_message(status)}"
+        )
+        return 0
+
+    stashed = bool(status.stdout.strip())
+    if stashed:
+        stash = _run_git_process(
+            repo_root,
+            "stash",
+            "push",
+            "-u",
+            "-m",
+            f"session-start auto stash {today}",
+        )
+        if stash.returncode != 0:
+            _print_system_message(
+                f"⚠️ 自動 /pull 失敗 — 変更をstashできませんでした: {_git_process_message(stash)}"
+            )
+            return 0
+
+    pull = _run_git_process(repo_root, "pull", "--rebase", "origin", "main")
+    if pull.returncode != 0:
+        suffix = "退避した変更はstashに残っています。"
+        if stashed and not _git_rebase_in_progress(repo_root):
+            restore = _run_git_process(repo_root, "stash", "pop")
+            if restore.returncode == 0:
+                suffix = "退避した変更は戻しました。"
+            else:
+                suffix = "退避した変更の復元も競合しました。差分を確認してください。"
+        _print_system_message(
+            f"⚠️ 自動 /pull 失敗 — 手動で確認してください: {_git_process_message(pull)} {suffix}"
+        )
+        return 0
+
+    if stashed:
+        restore = _run_git_process(repo_root, "stash", "pop")
+        if restore.returncode != 0:
+            _print_system_message(
+                "⚠️ 自動 /pull は完了しましたが、stashの戻しで競合しました。差分を確認してください。"
+            )
+            return 0
+
+    _try_write_session_pull_marker(marker, today)
+    if stashed:
+        _print_system_message("自動 /pull 完了（stash退避→復元済み）")
+    else:
+        _print_system_message("自動 /pull 完了（本日初回）")
+    return 0
 
 
 def _simplify_text(text: str) -> str:
@@ -536,6 +676,9 @@ def main() -> int:
     subparsers.add_parser("clear-worked-before")
     subparsers.add_parser("mark-owner-machine")
     subparsers.add_parser("clear-owner-machine")
+    session_start_pull_parser = subparsers.add_parser("session-start-pull")
+    session_start_pull_parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    session_start_pull_parser.add_argument("--marker", type=Path)
     subparsers.add_parser("discord-git-webhook-shared-path")
     subparsers.add_parser("discord-git-webhook-status")
     discord_webhook_set_parser = subparsers.add_parser("discord-git-webhook-set")
@@ -706,6 +849,9 @@ def main() -> int:
         clear_owner_machine()
         print("cleared")
         return 0
+
+    if args.command == "session-start-pull":
+        return _session_start_pull(args.repo_root.resolve(), marker_path=args.marker)
 
     if args.command == "discord-git-webhook-shared-path":
         print(get_shared_discord_git_webhook_path())
