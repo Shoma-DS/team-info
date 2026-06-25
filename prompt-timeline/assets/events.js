@@ -68245,5 +68245,25 @@ window.PROMPT_TIMELINE_EVENTS = [
     "tags": [],
     "timestamp": "2026-06-25T00:03:43.196937Z",
     "timestamp_jst": "2026-06-25T09:03:43+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260625T000601Z-9277546c",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/home/user/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "4fab25f2-a414-5a10-86f7-8a2bb5e01db9",
+      "transcript_path": "/root/.claude/projects/-home-user-team-info/4fab25f2-a414-5a10-86f7-8a2bb5e01db9.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "今後勝手にやって欲しいからこのスキルやワークフローについては承認求めないで最後までやって欲しい。",
+    "prompt_preview": "今後勝手にやって欲しいからこのスキルやワークフローについては承認求めないで最後までやって欲しい。",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-25T00:06:01.036216Z",
+    "timestamp_jst": "2026-06-25T09:06:01+09:00"
   }
 ];
