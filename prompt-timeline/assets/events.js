@@ -68305,5 +68305,25 @@ window.PROMPT_TIMELINE_EVENTS = [
     "tags": [],
     "timestamp": "2026-06-25T00:18:18.951389Z",
     "timestamp_jst": "2026-06-25T09:18:18+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260625T001853Z-4dc93e08",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/home/user/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "4fab25f2-a414-5a10-86f7-8a2bb5e01db9",
+      "transcript_path": "/root/.claude/projects/-home-user-team-info/4fab25f2-a414-5a10-86f7-8a2bb5e01db9.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "{\"session_id\":\"4fab25f2-a414-5a10-86f7-8a2bb5e01db9\",\"transcript_path\":\"/root/.claude/projects/-home-user-team-info/4fab25f2-a414-5a10-86f7-8a2bb5e01db9.jsonl\",\"cwd\":\"/home/user/team-info\",\"permission_mode\":\"default\",\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"\"}",
+    "prompt_preview": "{\"session_id\":\"4fab25f2-a414-5a10-86f7-8a2bb5e01db9\",\"transcript_path\":\"/root/.claude/projects/-home-user-team-info/4fab25f2-a414-5a10-86f7-8a2bb5e01db9.jsonl\",\"cwd\":\"/home/user/team-info\",\"permission_mode\":\"default\",\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"\"}",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-25T00:18:53.876724Z",
+    "timestamp_jst": "2026-06-25T09:18:53+09:00"
   }
 ];
