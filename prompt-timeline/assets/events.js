@@ -68265,5 +68265,45 @@ window.PROMPT_TIMELINE_EVENTS = [
     "tags": [],
     "timestamp": "2026-06-25T00:06:01.036216Z",
     "timestamp_jst": "2026-06-25T09:06:01+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260625T001358Z-e1828308",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/home/user/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "4fab25f2-a414-5a10-86f7-8a2bb5e01db9",
+      "transcript_path": "/root/.claude/projects/-home-user-team-info/4fab25f2-a414-5a10-86f7-8a2bb5e01db9.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "というかいつもローカルで実行して安定したのにこうしてリモートでやろうとするから安定しなくなった感じしてるけどなんでこうなってるの？",
+    "prompt_preview": "というかいつもローカルで実行して安定したのにこうしてリモートでやろうとするから安定しなくなった感じしてるけどなんでこうなってるの？",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-25T00:13:58.818814Z",
+    "timestamp_jst": "2026-06-25T09:13:58+09:00"
+  },
+  {
+    "actions": [],
+    "actor": "agent",
+    "id": "20260625T001818Z-6d89ac72",
+    "kind": "prompt",
+    "meta": {
+      "cwd": "/home/user/team-info",
+      "hook_event_name": "UserPromptSubmit",
+      "session_id": "4fab25f2-a414-5a10-86f7-8a2bb5e01db9",
+      "transcript_path": "/root/.claude/projects/-home-user-team-info/4fab25f2-a414-5a10-86f7-8a2bb5e01db9.jsonl"
+    },
+    "parent_id": "",
+    "prompt_original": "Continue from where you left off.",
+    "prompt_preview": "Continue from where you left off.",
+    "source": "claude-user-prompt",
+    "summary": "",
+    "tags": [],
+    "timestamp": "2026-06-25T00:18:18.951389Z",
+    "timestamp_jst": "2026-06-25T09:18:18+09:00"
   }
 ];
