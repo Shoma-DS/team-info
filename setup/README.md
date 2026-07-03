@@ -4,7 +4,7 @@
 
 ## 方針
 
-- OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1`) では、日常作業の土台だけを入れます。
+- OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1` / `setup/setup_git_bash.sh`) では、日常作業の土台だけを入れます。
 - 重い依存や用途限定の依存は、対応する skill を初めて使うときに準備します。
 - `setup/verify_setup.py` は、core setup と lazy bootstrap の入口がそろっているかを確認します。
 
@@ -18,6 +18,7 @@
 | Python 補助 | `uv` |
 | Node.js | 22.17.1 (`nvm` / `nvm-windows`) |
 | CLI | `@openai/codex`, `freebuff` |
+| Google Workspace | `@googleworkspace/cli` (`gws`) と OAuth 認証 |
 | AI proxy | Headroom token compression proxy (`claude` / `codex` routing; failure is non-fatal) |
 | Windows UTF-8 | PowerShell 7 (`pwsh`), `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8` |
 | repo 設定 | `TEAM_INFO_ROOT`, `.githooks`, worked-before 記録 |
@@ -50,6 +51,12 @@ Windows:
 .\setup\setup_windows.ps1
 ```
 
+Windows Git Bash:
+
+```bash
+bash ./setup/setup_git_bash.sh
+```
+
 最後に `setup/verify_setup.py` が走り、core setup と lazy bootstrap 入口の整合を確認します。
 
 ## 個別実行
@@ -64,6 +71,12 @@ Windows:
 
 ```powershell
 & "$env:TEAM_INFO_ROOT\setup\setup_windows.ps1"
+```
+
+Windows Git Bash:
+
+```bash
+bash "$TEAM_INFO_ROOT/setup/setup_git_bash.sh"
 ```
 
 ## 課金なしで AI エージェントを使う
@@ -83,6 +96,39 @@ freebuff
 
 macOS `/usr/local/lib/node_modules` に書き込めない場合、setup は自動で `$HOME/.local` を npm の退避先として使います。
 Windows で npm の global install 先に書き込めない場合、setup は自動で `%USERPROFILE%\.local\npm` を退避先として使います。
+
+## Google Workspace CLI / MCP 認証
+
+setup では `@googleworkspace/cli` を入れ、`gws auth status` を確認します。
+未認証、または GWS MCP / CLI で使う主要サービスのスコープが不足している可能性がある場合は、ブラウザ認証へ進みます。
+認証後は MCP からも同じ資格情報を読めるように、`~/.config/gws/credentials.json` を作り、`GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` を保存します。
+
+手動でやり直す場合:
+
+```bash
+gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
+mkdir -p "$HOME/.config/gws"
+gws auth export --unmasked > "$HOME/.config/gws/credentials.json"
+chmod 600 "$HOME/.config/gws/credentials.json"
+```
+
+Windows:
+
+```powershell
+gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
+$dir = Join-Path $env:USERPROFILE ".config\gws"; New-Item -ItemType Directory -Force -Path $dir | Out-Null
+gws auth export --unmasked | Set-Content -Path (Join-Path $dir "credentials.json") -Encoding UTF8
+[Environment]::SetEnvironmentVariable("GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND", "file", "User")
+```
+
+Windows Git Bash:
+
+```bash
+gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
+mkdir -p "$HOME/.config/gws"
+gws auth export --unmasked > "$HOME/.config/gws/credentials.json"
+chmod 600 "$HOME/.config/gws/credentials.json"
+```
 
 ## Headroom token compression proxy
 
@@ -166,6 +212,8 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/shared-agent-assets/s
 `setup/verify_setup.py` は次を確認します。
 
 - `node`, `npm`, `codex`, `freebuff`, `gh`
+- `gws` と `gws auth status`
+- GWS MCP 用の `~/.config/gws/credentials.json`
 - `rclone`
 - Windows では `pwsh`, `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`
 - `git lfs`

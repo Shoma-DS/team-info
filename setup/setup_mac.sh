@@ -41,6 +41,20 @@ LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 TEAM_INFO_LAUNCH_AGENT_PLIST="$LAUNCH_AGENTS_DIR/com.team-info.env.plist"
 CODEX_NPM_PACKAGE="@openai/codex"
 FREEBUFF_NPM_PACKAGE="freebuff"
+GWS_NPM_PACKAGE="@googleworkspace/cli"
+GWS_AUTH_SERVICES="drive,sheets,gmail,calendar,docs,slides,tasks,script"
+GWS_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gws"
+GWS_FILE_CREDENTIALS="$GWS_CONFIG_DIR/credentials.json"
+GWS_RECOMMENDED_SCOPE_MARKERS=(
+  "https://www.googleapis.com/auth/drive"
+  "https://www.googleapis.com/auth/spreadsheets"
+  "https://www.googleapis.com/auth/gmail"
+  "https://www.googleapis.com/auth/calendar"
+  "https://www.googleapis.com/auth/documents"
+  "https://www.googleapis.com/auth/presentations"
+  "https://www.googleapis.com/auth/tasks"
+  "https://www.googleapis.com/auth/script"
+)
 NPM_USER_PREFIX="$HOME/.local"
 
 append_line_if_missing() {
@@ -73,10 +87,43 @@ append_line_to_shell_rcs() {
   done < <(get_shell_rc_files)
 }
 
+ask_yes_no() {
+  local question="$1"
+  local default_answer="${2:-no}"
+  local suffix answer
+
+  if [[ "$default_answer" == "yes" ]]; then
+    suffix="[y/n、未入力なら y]"
+  else
+    suffix="[y/n、未入力なら n]"
+  fi
+
+  while true; do
+    read -rp "  $question $suffix: " answer
+    answer="$(printf '%s' "$answer" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+    case "$answer" in
+      "")
+        [[ "$default_answer" == "yes" ]]
+        return
+        ;;
+      y)
+        return 0
+        ;;
+      n)
+        return 1
+        ;;
+      *)
+        warn "y または n で入力してください。"
+        ;;
+    esac
+  done
+}
+
 write_team_info_env_file() {
   mkdir -p "$TEAM_INFO_ENV_DIR"
   cat > "$TEAM_INFO_ENV_FILE" <<EOF
 export TEAM_INFO_ROOT="$TEAM_INFO_ROOT"
+export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND="file"
 
 case ":\$PATH:" in
   *":\$HOME/.local/bin:"*) ;;
@@ -254,8 +301,7 @@ configure_git_identity() {
 
   if [[ -n "$global_name" && -n "$global_email" ]]; then
     success "Git global user 設定済み: $global_name <$global_email>"
-    read -rp "  この global identity をこのリポジトリにも設定しますか？ yes なら y [Y/n]: " use_global
-    if [[ ! "$use_global" =~ ^[Nn]$ ]]; then
+    if ask_yes_no "この global identity をこのリポジトリにも設定しますか？" yes; then
       set_git_config_value local user.name "$global_name"
       set_git_config_value local user.email "$global_email"
       success "このリポジトリの Git user を設定しました: $global_name <$global_email>"
@@ -273,8 +319,7 @@ configure_git_identity() {
   git_name="$(read_git_config_input user.name "$default_name")"
   git_email="$(read_git_config_input user.email "$default_email")"
 
-  read -rp "  今後のリポジトリ用に global にも保存しますか？ yes なら y [Y/n]: " set_global
-  if [[ ! "$set_global" =~ ^[Nn]$ ]]; then
+  if ask_yes_no "今後のリポジトリ用に global にも保存しますか？" yes; then
     set_git_config_value global user.name "$git_name"
     set_git_config_value global user.email "$git_email"
     success "Git global user を設定しました: $git_name <$git_email>"
@@ -283,6 +328,94 @@ configure_git_identity() {
   set_git_config_value local user.name "$git_name"
   set_git_config_value local user.email "$git_email"
   success "このリポジトリの Git user を設定しました: $git_name <$git_email>"
+}
+
+gws_auth_has_recommended_scopes() {
+  local status_text="$1"
+  local marker
+
+  for marker in "${GWS_RECOMMENDED_SCOPE_MARKERS[@]}"; do
+    if ! grep -Fq "$marker" <<<"$status_text"; then
+      return 1
+    fi
+  done
+
+  return 0
+}
+
+run_gws_auth_login() {
+  info "Google Workspace のブラウザ認証を開始します。ブラウザでログインし、権限を許可してください。"
+  gws auth login -s "$GWS_AUTH_SERVICES"
+}
+
+ensure_gws_mcp_file_auth() {
+  local tmp_credentials
+
+  if ! command -v gws &>/dev/null; then
+    return
+  fi
+
+  mkdir -p "$GWS_CONFIG_DIR"
+  chmod 700 "$GWS_CONFIG_DIR" 2>/dev/null || true
+  tmp_credentials="$(mktemp)"
+
+  if gws auth export --unmasked >"$tmp_credentials" 2>/dev/null && grep -Fq '"refresh_token"' "$tmp_credentials"; then
+    install -m 600 "$tmp_credentials" "$GWS_FILE_CREDENTIALS"
+    export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file
+    success "GWS MCP 用の file backend 認証を保存しました: $GWS_FILE_CREDENTIALS"
+  else
+    warn "GWS MCP 用の認証ファイル作成に失敗しました。あとで 'gws auth export --unmasked > \"$GWS_FILE_CREDENTIALS\"' を実行してください。"
+  fi
+
+  rm -f "$tmp_credentials"
+}
+
+ensure_gws_auth() {
+  local auth_status
+
+  step "10a. Google Workspace CLI / MCP 認証"
+  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws"
+
+  if ! command -v gws &>/dev/null; then
+    warn "gws コマンドが見つかりません。ターミナル再起動後に手動で実行してください:"
+    warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX\" npm install -g $GWS_NPM_PACKAGE"
+    warn "  gws auth login -s $GWS_AUTH_SERVICES"
+    return
+  fi
+
+  if auth_status="$(gws auth status 2>&1)"; then
+    if grep -Fq '"token_valid": true' <<<"$auth_status"; then
+      success "GWS CLI は認証済みです"
+      ensure_gws_mcp_file_auth
+      if gws_auth_has_recommended_scopes "$auth_status"; then
+        success "GWS MCP / CLI で使う主要スコープを確認しました"
+      else
+        warn "GWS MCP / CLI で使う主要スコープが不足している可能性があります。"
+        if ask_yes_no "Google Workspace を主要サービス用スコープで再認証しますか？" yes; then
+          if run_gws_auth_login; then
+            success "GWS CLI 認証を更新しました"
+            ensure_gws_mcp_file_auth
+          else
+            warn "GWS CLI 認証の更新に失敗しました。あとで手動実行してください: gws auth login -s $GWS_AUTH_SERVICES"
+          fi
+        fi
+      fi
+      return
+    fi
+  fi
+
+  warn "GWS CLI は未認証、または認証状態を確認できません。"
+  warn "GWS MCP / CLI で Google Drive、Sheets、Calendar などを使うために認証します。"
+  if ask_yes_no "Google Workspace のブラウザ認証を今すぐ行いますか？" yes; then
+    if run_gws_auth_login && gws auth status &>/dev/null; then
+      success "GWS CLI 認証完了"
+      ensure_gws_mcp_file_auth
+    else
+      warn "GWS CLI 認証を確認できませんでした。あとで手動実行してください: gws auth login -s $GWS_AUTH_SERVICES"
+    fi
+  else
+    warn "あとで次を実行してください: gws auth login -s $GWS_AUTH_SERVICES"
+  fi
 }
 
 echo -e "${BOLD}"
@@ -342,8 +475,7 @@ fi
 # ── 4. GitHub アクセス & リポジトリ接続 ──────────────────────────────────────────
 step "4. GitHub アクセス & リポジトリ接続"
 warn "GitHub の招待メールを承認済みである必要があります。"
-read -rp "  招待メールを承認済みですか？ 承認済みなら y を入力してください [y/N]: " confirmed
-if [[ ! "$confirmed" =~ ^[Yy]$ ]]; then
+if ! ask_yes_no "招待メールを承認済みですか？" no; then
   error "先に招待を承認してください。不明な場合は sho に確認してください。"
 fi
 
@@ -457,6 +589,8 @@ fi
 step "10. Freebuff CLI (無料AIエージェント)"
 install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"
 
+ensure_gws_auth
+
 # ── 10b. Headroom (トークン圧縮プロキシ) ─────────────────────────────────────────
 step "10b. Headroom (トークン圧縮プロキシ)"
 HEADROOM_INSTALLER="$TEAM_INFO_ROOT/setup/headroom/install.sh"
@@ -552,6 +686,7 @@ echo "  Python:        $PYTHON311"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
 echo "  Codex CLI:     $(command -v codex 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  Freebuff CLI:  $(command -v freebuff 2>/dev/null || echo '要: setup 再実行か手動インストール')"
+echo "  GWS CLI:       $(command -v gws 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
 echo "  TEAM_INFO_ENV: $TEAM_INFO_ENV_FILE"
 echo "  検証結果:      $([[ "$VERIFY_STATUS" -eq 0 ]] && echo '成功' || echo '要確認')"
@@ -559,6 +694,7 @@ echo ""
 echo "次のステップ:"
 echo "  ・ターミナルを再起動して PATH を再読み込みしてください"
 echo "  ・課金なしでAIエージェントを使う場合は repo 内で freebuff を実行してください"
+echo "  ・GWS MCP / CLI が未認証なら gws auth login -s $GWS_AUTH_SERVICES を実行してください"
 echo "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
 echo "  ・Agent Reach は初回実行時に自動セットアップされます"
 echo "  ・Claudian は必要になったら /claudian を実行してください"

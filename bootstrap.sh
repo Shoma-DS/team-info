@@ -10,8 +10,12 @@ setup() {
     Darwin|Linux)
       bash "$_TEAM_INFO_BOOTSTRAP_ROOT/setup/setup_mac.sh"
       ;;
+    MINGW*|MSYS*|CYGWIN*)
+      bash "$_TEAM_INFO_BOOTSTRAP_ROOT/setup/setup_git_bash.sh"
+      ;;
     *)
       echo "Windows の場合は PowerShell で実行してください:"
+      echo "  Git Bash: bash ./setup/setup_git_bash.sh"
       echo "  . \"$_TEAM_INFO_BOOTSTRAP_ROOT\\bootstrap.ps1\""
       ;;
   esac

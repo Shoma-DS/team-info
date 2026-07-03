@@ -133,7 +133,7 @@ python "$TEAM_INFO_ROOT/.agent/skills/common/scripts/register_aliases.py" --root
 |-------------|----------------|
 | Claude Code | `setup` 実行時、またはユーザー明示依頼時のみ `register_aliases.py` を実行 |
 | Gemini CLI / Codex / Antigravity など | `setup` 実行時、またはユーザー明示依頼時のみ `register_aliases.py` を実行 |
-| 新規環境 | まず OS 別 setup（`setup/setup_mac.sh` / `setup/setup_windows.ps1`）の流れを優先し、その中で登録する |
+| 新規環境 | まず OS 別 setup（`setup/setup_mac.sh` / `setup/setup_windows.ps1` / `setup/setup_git_bash.sh`）の流れを優先し、その中で登録する |
 
 ### bootstrap について
 
@@ -216,10 +216,10 @@ source "$TEAM_INFO_ROOT/bootstrap.sh"   # macOS / Linux
 ## Command Path Rules
 - ユーザーにコマンドを渡すときは、**必ず絶対パス**で書く。
 - ユーザーにターミナルコマンドを渡すときは、可能な限りそのまま実行できる1行コマンドとして整え、macOS では `pbcopy` でクリップボード保存まで行う。クリップボード保存に失敗した場合や、秘密情報をユーザー自身が埋める必要がある場合は、チャット本文にもコピーしやすい形で提示する。
-- ただし新しいパソコンで最初に案内する OS 別 setup だけは、ユーザーがリポジトリルートにいる前提で `./setup/setup_mac.sh` / `.\setup\setup_windows.ps1` の相対パス案内を許可する。
+- ただし新しいパソコンで最初に案内する OS 別 setup だけは、ユーザーがリポジトリルートにいる前提で `./setup/setup_mac.sh` / `.\setup\setup_windows.ps1` / `./setup/setup_git_bash.sh` の相対パス案内を許可する。
 - 固定の `/Users/...` は使わず、`TEAM_INFO_ROOT` から絶対パスを組み立てる。
 - `TEAM_INFO_ROOT` は、このリポジトリのチェックアウト先を指す各パソコンごとの環境変数とする。
-- 新しいパソコンでは、まず OS 別 setup（`setup/setup_mac.sh` / `setup/setup_windows.ps1`）の流れを優先する。
+- 新しいパソコンでは、まず OS 別 setup（`setup/setup_mac.sh` / `setup/setup_windows.ps1` / `setup/setup_git_bash.sh`）の流れを優先する。
 - `setup-local-machine` は、`TEAM_INFO_ROOT` の保存だけをやり直したいときの手動補助として使う。
 - このパソコンをオーナー機として使う場合だけ、`setup-local-machine` に `--owner` を付ける。
 - `cd Remotion/...` や `python .agent/...` のような相対パスのコマンドは、ユーザー向けには渡さない。

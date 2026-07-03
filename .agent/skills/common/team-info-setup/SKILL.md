@@ -14,7 +14,7 @@ description: team-info の初回セットアップや再セットアップを始
 ## 目的
 - `/setup` から team-info の初回セットアップややり直しを始める。
 - 新しいパソコンか、過去に一度使ったパソコンかを見分ける。
-- OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1`) を入口にして、必要なら `setup-local-machine` までつなぐ。
+- OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1` / `setup/setup_git_bash.sh`) を入口にして、必要なら `setup-local-machine` までつなぐ。
 - setup 本体を最小構成に保ち、重い依存は skill ごとの初回利用に寄せる。
 
 ## 参照ファイル
@@ -26,8 +26,8 @@ description: team-info の初回セットアップや再セットアップを始
 1. まず `python3 .agent/skills/common/scripts/team_info_runtime.py worked-before-status` 相当で状態を確認する。
 2. 結果が `new` のときは、最初に `マニュアル/まずはこちらをお読みください.md` を読み、その流れに沿って案内する。
 3. 結果が `known` のときは、そのパソコンは既に一度 `team-info` を触った前提で扱う。ユーザーがやり直しを望むなら、そのまま setup を進めてよい。
-4. フルセットアップの入口は常に OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1`) とする。
-   - 途中で **GitHub 招待の承認確認** と **GitHub CLI (gh) の認証** が行われる。
+4. フルセットアップの入口は常に OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1` / `setup/setup_git_bash.sh`) とする。
+   - 途中で **GitHub 招待の承認確認**、**GitHub CLI (gh) の認証**、**GWS CLI / MCP 用の Google Workspace 認証** が行われる。
    - この入口は OS 別 setup の最後に `setup/verify_setup.py` まで走らせる前提で扱う。
    - setup の最後に `検証結果: 成功` と出て、終了コード 0 のときだけ「core setup がそろった」と判断する。
    - setup 本体では Git / Python 3.11 / uv / Node 22 / Codex CLI / `TEAM_INFO_ROOT` までを基本対象とし、Remotion / Agent Reach / Claudian / clone-website などの重い依存はここで全部入れない。
@@ -61,6 +61,12 @@ Windows:
 .\setup\setup_windows.ps1
 ```
 
+Windows Git Bash:
+
+```bash
+bash ./setup/setup_git_bash.sh
+```
+
 - この最初のコマンドだけは、`team-info` のリポジトリルートをカレントディレクトリにした状態で案内してよい。
 - setup 側はカレントディレクトリが repo root なら、その値を `TEAM_INFO_ROOT` として保存する。
 
@@ -84,6 +90,12 @@ Windows:
 & "$env:TEAM_INFO_ROOT\setup\setup_windows.ps1"
 ```
 
+Windows Git Bash:
+
+```bash
+bash "$TEAM_INFO_ROOT/setup/setup_git_bash.sh"
+```
+
 ### `TEAM_INFO_ROOT` の確認
 
 macOS:
@@ -96,6 +108,12 @@ Windows:
 
 ```powershell
 echo $env:TEAM_INFO_ROOT
+```
+
+Windows Git Bash:
+
+```bash
+echo "$TEAM_INFO_ROOT"
 ```
 
 ### 作業場所だけを登録し直す
@@ -141,6 +159,21 @@ Windows:
 ```bash
 gh auth login --web
 ```
+
+### GWS CLI / MCP 認証のやり直し
+
+セットアップ後に Google Workspace 認証だけをやり直したい場合：
+
+```bash
+gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
+mkdir -p "$HOME/.config/gws"
+gws auth export --unmasked > "$HOME/.config/gws/credentials.json"
+chmod 600 "$HOME/.config/gws/credentials.json"
+```
+
+- setup は macOS / Windows PowerShell / Windows Git Bash の全入口で、`gws auth status` 後に MCP 用の `credentials.json` も作る。
+- Windows では `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` をユーザー環境変数へ保存する。
+- macOS / Git Bash では `~/.config/team-info/env.sh` から `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` を読み込む。
 
 ## 承認ルール
 - `worked-before-status` の確認やマニュアルの読み込みは、そのまま実行してよい。

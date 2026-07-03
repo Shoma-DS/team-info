@@ -33,6 +33,34 @@ function Invoke-NativeOrThrow {
     }
 }
 
+function Confirm-YesNo {
+    param(
+        [string]$Question,
+        [ValidateSet("Yes","No")]
+        [string]$Default = "No"
+    )
+
+    if ($Default -eq "Yes") {
+        $suffix = "[y/n, Enter=y]"
+    } else {
+        $suffix = "[y/n, Enter=n]"
+    }
+
+    while ($true) {
+        $answer = (Read-Host "  $Question $suffix").Trim().ToLowerInvariant()
+        if (-not $answer) {
+            return ($Default -eq "Yes")
+        }
+        if ($answer -eq "y") {
+            return $true
+        }
+        if ($answer -eq "n") {
+            return $false
+        }
+        Write-Warn "y または n で入力してください。"
+    }
+}
+
 # Project root: prefer the current directory when it is the repo root.
 $ScriptDir      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptRepoRoot = Split-Path -Parent $ScriptDir
@@ -46,6 +74,20 @@ $NodeVersion    = "22.17.1"
 $PythonVersion  = "3.11.9"
 $CodexNpmPackage = "@openai/codex"
 $FreebuffNpmPackage = "freebuff"
+$GwsNpmPackage = "@googleworkspace/cli"
+$GwsAuthServices = "drive,sheets,gmail,calendar,docs,slides,tasks,script"
+$GwsConfigDir = Join-Path $env:USERPROFILE ".config\gws"
+$GwsFileCredentials = Join-Path $GwsConfigDir "credentials.json"
+$GwsRecommendedScopeMarkers = @(
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/gmail",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/documents",
+    "https://www.googleapis.com/auth/presentations",
+    "https://www.googleapis.com/auth/tasks",
+    "https://www.googleapis.com/auth/script"
+)
 $NpmUserPrefix = Join-Path $env:USERPROFILE ".local\npm"
 
 Write-Host ""
@@ -366,8 +408,7 @@ function Configure-GitIdentity {
 
     if ($globalName -and $globalEmail) {
         Write-Ok "Git global user configured: $globalName <$globalEmail>"
-        $useGlobal = Read-Host "  Use this global identity for this repository too? Enter y if yes [Y/n]"
-        if ($useGlobal -notmatch "^[Nn]$") {
+        if (Confirm-YesNo "この global identity をこのリポジトリにも設定しますか？" "Yes") {
             Set-GitConfigValue "local" "user.name" $globalName
             Set-GitConfigValue "local" "user.email" $globalEmail
             Write-Ok "Git user configured for this repository: $globalName <$globalEmail>"
@@ -385,8 +426,7 @@ function Configure-GitIdentity {
     $gitName = Read-GitConfigInput "user.name" $defaultName
     $gitEmail = Read-GitConfigInput "user.email" $defaultEmail
 
-    $setGlobal = Read-Host "  Save this identity globally for future repositories too? Enter y if yes [Y/n]"
-    if ($setGlobal -notmatch "^[Nn]$") {
+    if (Confirm-YesNo "今後のリポジトリ用に global にも保存しますか？" "Yes") {
         Set-GitConfigValue "global" "user.name" $gitName
         Set-GitConfigValue "global" "user.email" $gitEmail
         Write-Ok "Git global user configured: $gitName <$gitEmail>"
@@ -395,6 +435,100 @@ function Configure-GitIdentity {
     Set-GitConfigValue "local" "user.name" $gitName
     Set-GitConfigValue "local" "user.email" $gitEmail
     Write-Ok "Git user configured for this repository: $gitName <$gitEmail>"
+}
+
+function Invoke-GwsAuthStatus {
+    $output = & gws auth status 2>&1
+    return [PSCustomObject]@{
+        ExitCode = $LASTEXITCODE
+        Text = ($output | Out-String)
+    }
+}
+
+function Test-GwsRecommendedScopes {
+    param([string]$StatusText)
+
+    foreach ($marker in $GwsRecommendedScopeMarkers) {
+        if ($StatusText -notlike "*$marker*") {
+            return $false
+        }
+    }
+
+    return $true
+}
+
+function Invoke-GwsAuthLogin {
+    Write-Info "Google Workspace のブラウザ認証を開始します。ブラウザでログインし、権限を許可してください。"
+    & gws auth login -s $GwsAuthServices 2>&1 | Out-Host
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Ensure-GwsMcpFileAuth {
+    if (-not (Test-Command gws)) {
+        return
+    }
+
+    New-Item -ItemType Directory -Force -Path $GwsConfigDir | Out-Null
+    $tmpFile = New-TemporaryFile
+    try {
+        & gws auth export --unmasked 2>$null | Set-Content -Path $tmpFile -Encoding UTF8
+        $content = Get-Content -Path $tmpFile -Raw -Encoding UTF8
+        if ($LASTEXITCODE -eq 0 -and $content -match '"refresh_token"') {
+            Copy-Item -Force -Path $tmpFile -Destination $GwsFileCredentials
+            Set-UserEnvVar "GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND" "file"
+            $env:GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND = "file"
+            Write-Ok "GWS MCP file backend auth saved: $GwsFileCredentials"
+        } else {
+            Write-Warn "GWS MCP auth file could not be created. Run later: gws auth export --unmasked > `"$GwsFileCredentials`""
+        }
+    } finally {
+        Remove-Item -Force -Path $tmpFile -ErrorAction SilentlyContinue
+    }
+}
+
+function Ensure-GwsAuth {
+    Write-Step "10a. Google Workspace CLI / MCP auth"
+    Install-NpmCli "Google Workspace CLI (gws)" $GwsNpmPackage "gws"
+
+    if (-not (Test-Command gws)) {
+        Write-Warn "gws command was not found. Restart PowerShell, then run:"
+        Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $GwsNpmPackage"
+        Write-Warn "  gws auth login -s $GwsAuthServices"
+        return
+    }
+
+    $status = Invoke-GwsAuthStatus
+    if (($status.ExitCode -eq 0) -and ($status.Text -match '"token_valid"\s*:\s*true')) {
+        Write-Ok "GWS CLI is authenticated"
+        Ensure-GwsMcpFileAuth
+        if (Test-GwsRecommendedScopes $status.Text) {
+            Write-Ok "GWS MCP / CLI recommended scopes found"
+        } else {
+            Write-Warn "GWS MCP / CLI recommended scopes may be incomplete."
+            if (Confirm-YesNo "Google Workspace を主要サービス用スコープで再認証しますか？" "Yes") {
+                if (Invoke-GwsAuthLogin) {
+                    Write-Ok "GWS CLI auth refreshed"
+                    Ensure-GwsMcpFileAuth
+                } else {
+                    Write-Warn "GWS CLI auth refresh failed. Run later: gws auth login -s $GwsAuthServices"
+                }
+            }
+        }
+        return
+    }
+
+    Write-Warn "GWS CLI is not authenticated or auth status could not be checked."
+    Write-Warn "GWS MCP / CLI uses this auth for Google Drive, Sheets, Calendar, and related services."
+    if (Confirm-YesNo "Google Workspace のブラウザ認証を今すぐ行いますか？" "Yes") {
+        if ((Invoke-GwsAuthLogin) -and ((Invoke-GwsAuthStatus).ExitCode -eq 0)) {
+            Write-Ok "GWS CLI auth complete"
+            Ensure-GwsMcpFileAuth
+        } else {
+            Write-Warn "GWS CLI auth could not be verified. Run later: gws auth login -s $GwsAuthServices"
+        }
+    } else {
+        Write-Warn "Run later: gws auth login -s $GwsAuthServices"
+    }
 }
 
 # 1. winget check
@@ -462,8 +596,7 @@ if (Test-Command gh) {
 }
 
 Write-Warn "The GitHub invite must already be accepted."
-$confirmed = Read-Host "  Have you accepted the GitHub invite? Enter y if yes [y/N]"
-if ($confirmed -notmatch "^[Yy]$") {
+if (-not (Confirm-YesNo "GitHub の招待メールを承認済みですか？" "No")) {
     Write-Err "Accept the invite first. Ask sho if unclear."
 }
 
@@ -649,6 +782,8 @@ if (Test-Path $CodexPromptsScript) {
 Write-Step "10. Freebuff CLI (free AI agent)"
 Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff"
 
+Ensure-GwsAuth
+
 # 10b. Headroom (token compression proxy)
 Write-Step "10b. Headroom (token compression proxy)"
 $HeadroomInstaller = Join-Path $TeamInfoRoot "setup\headroom\install.ps1"
@@ -738,6 +873,7 @@ Write-Host "  PowerShell 7:  $(if (Get-Command pwsh -ErrorAction SilentlyContinu
 Write-Host "  Node.js:       $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'restart PowerShell and check again' })"
 Write-Host "  Codex CLI:     $(if (Get-Command codex -ErrorAction SilentlyContinue) { (Get-Command codex -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
 Write-Host "  Freebuff CLI:  $(if (Get-Command freebuff -ErrorAction SilentlyContinue) { (Get-Command freebuff -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
+Write-Host "  GWS CLI:       $(if (Get-Command gws -ErrorAction SilentlyContinue) { (Get-Command gws -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
 Write-Host "  Project:       $TeamInfoRoot"
 Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
 Write-Host "  Verify result: $(if ($VerifyStatus -eq 0) { 'passed' } else { 'needs review' })"
@@ -746,6 +882,7 @@ Write-Host "Next steps:"
 Write-Host "  - Restart PowerShell to reload PATH and setup / x-post / remotion / renda."
 Write-Host "  - Use pwsh for Windows work when Japanese or UTF-8 text is involved."
 Write-Host "  - To use a free AI agent, run freebuff in the repo."
+Write-Host "  - If GWS MCP / CLI is not authenticated, run: gws auth login -s $GwsAuthServices"
 Write-Host "  - Remotion prepares Docker runtime on first relevant use."
 Write-Host "  - Agent Reach bootstraps on first use."
 Write-Host "  - Run /claudian when Claudian is needed."

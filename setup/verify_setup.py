@@ -12,7 +12,17 @@ import urllib.request
 from pathlib import Path
 
 
-REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "freebuff", "gh", "rclone")
+REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "freebuff", "gws", "gh", "rclone")
+GWS_RECOMMENDED_SCOPE_MARKERS = (
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/gmail",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/documents",
+    "https://www.googleapis.com/auth/presentations",
+    "https://www.googleapis.com/auth/tasks",
+    "https://www.googleapis.com/auth/script",
+)
 
 
 def _run(
@@ -83,6 +93,84 @@ def _check_gh_auth(failures: list[str]) -> None:
         message = _truncate(completed.stderr or completed.stdout or "未ログインです")
         print(f"[NG] gh auth: {message}")
         failures.append("GitHub CLI (gh) でログインしていません。'gh auth login' を実行してください。")
+
+
+def _check_gws_auth(failures: list[str], warnings: list[str]) -> None:
+    _print_heading("Google Workspace CLI (gws) 認証")
+    if shutil.which("gws") is None:
+        print("[NG] gws: コマンドが見つかりません")
+        failures.append("gws が見つかりません。'npm install -g @googleworkspace/cli' を実行してください。")
+        return
+
+    try:
+        completed = _run(["gws", "auth", "status"])
+    except OSError as exc:
+        print(f"[NG] gws auth: {_truncate(str(exc))}")
+        failures.append("GWS CLI の認証状態を確認できません。")
+        return
+
+    if completed.returncode != 0:
+        message = _truncate(completed.stderr or completed.stdout or "未ログインです")
+        print(f"[NG] gws auth: {message}")
+        failures.append("GWS CLI でログインしていません。'gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script' を実行してください。")
+        return
+
+    status_text = completed.stdout or completed.stderr
+    try:
+        status = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        status = {}
+
+    token_valid = status.get("token_valid")
+    if token_valid is False:
+        print("[NG] gws auth: token_valid=false")
+        failures.append("GWS CLI のトークンが無効です。gws auth login をやり直してください。")
+        return
+
+    user = status.get("user")
+    if user:
+        print(f"[OK] gws auth: ログイン済み ({user})")
+    else:
+        print("[OK] gws auth: ログイン済み")
+
+    missing_markers = [marker for marker in GWS_RECOMMENDED_SCOPE_MARKERS if marker not in status_text]
+    if missing_markers:
+        print("[WARN] gws scopes: GWS MCP / CLI の主要スコープが不足している可能性があります")
+        warnings.append("GWS CLI のスコープが不足する場合は 'gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script' で再認証してください。")
+    else:
+        print("[OK] gws scopes: 主要スコープ確認済み")
+
+
+def _check_gws_mcp_file_auth(failures: list[str], warnings: list[str]) -> None:
+    _print_heading("Google Workspace MCP 認証ファイル")
+    credentials_file = Path.home() / ".config" / "gws" / "credentials.json"
+
+    if not credentials_file.exists():
+        print(f"[NG] credentials.json: {credentials_file}")
+        failures.append("GWS MCP 用の credentials.json がありません。setup を再実行するか、gws auth export --unmasked で作成してください。")
+        return
+
+    try:
+        status = json.loads(credentials_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        print(f"[NG] credentials.json: {credentials_file}")
+        failures.append("GWS MCP 用の credentials.json を JSON として読めません。gws auth login 後に再生成してください。")
+        return
+
+    required_keys = {"client_id", "client_secret", "refresh_token"}
+    missing_keys = sorted(required_keys - set(status))
+    if missing_keys:
+        print(f"[NG] credentials.json: missing {', '.join(missing_keys)}")
+        failures.append("GWS MCP 用の credentials.json に必要な OAuth 情報が足りません。")
+    else:
+        print(f"[OK] credentials.json: {credentials_file}")
+
+    backend = os.environ.get("GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND", "")
+    if backend == "file":
+        print("[OK] GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND: file")
+    else:
+        print(f"[WARN] GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND: {backend or '(empty)'}")
+        warnings.append("GWS MCP 用には GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file を保存してください。")
 
 
 def _check_remote_url(repo_root: Path, failures: list[str]) -> None:
@@ -316,6 +404,8 @@ def main() -> int:
     _check_host_commands(failures)
     _check_git_lfs(failures)
     _check_gh_auth(failures)
+    _check_gws_auth(failures, warnings)
+    _check_gws_mcp_file_auth(failures, warnings)
     _check_remote_url(repo_root, failures)
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
