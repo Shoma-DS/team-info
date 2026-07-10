@@ -1,6 +1,6 @@
 ---
 name: daily-calendar-summary
-description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付与して LINE 送信と Discord への朝サマリー送信を行う。GWS CLI とローカル定期実行で毎朝8時に自動実行。
+description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付与して LINE 送信と Discord への朝サマリー送信を行う。GitHub Actions またはローカル定期実行で毎朝8時台に自動実行。
 ---
 
 # daily-calendar-summary スキル
@@ -19,7 +19,72 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 - Discordへ概要1件 + イベント詳細1件ずつ送信
 - 朝サマリー送信が成功した後、当日予定のうち「面接」「2回目」または90分以上の予定を抽出し、取得済みカレンダー情報を `calendar-interview-closing` へ渡して Loom 文字起こし取得とクロージング台本作成に移行する。後続の台本生成は別プロセスで非同期起動し、朝サマリー本体の成功・失敗判定から切り離す
 
-## Codex 実行ポリシー
+## GitHub Actions 実行ポリシー
+
+- 本番の定期実行は `.github/workflows/daily-calendar-summary.yml` を使える。スケジュールは `23:03 UTC`、つまり JST 8:03。
+- GitHub Actions の `schedule` は UTC 基準で、毎時ちょうどは混雑による遅延・ドロップが起きやすいため、8:00ぴったりではなく 8:03 にずらす。
+- Actions 版は `scripts/github_daily_calendar_summary.py` を使い、ローカルの `personal/<account>/`、`~/.config/team-info/env.sh`、`gwsmcp`、launchd、keyring には依存しない。
+- Actions 版の資格情報は GitHub repository secrets から環境変数として渡す。
+- 手動復旧では GitHub Actions の `Run workflow` から `future_only=true`、`force_resend=true`、`skip_discord_summary=true` を指定し、当日未終了分の LINE メッセージだけ強制再送できる。
+- Actions 版は Calendar private extendedProperties に `team-info.line-status` / `team-info.line-uid` / `team-info.line-sent-url` を保存し、通常実行では同じ uid と会議URLへの二重送信を避ける。`force_resend=true` のときだけこの記録を無視する。
+
+### GitHub Secrets
+
+必須:
+
+| Secret | 用途 |
+|--------|------|
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `GOOGLE_REFRESH_TOKEN` | Calendar read/update 用 refresh token |
+| `DISCORD_DAILY_WEBHOOK` | 朝サマリー・エラー通知の Discord Webhook |
+
+通常必要:
+
+| Secret | 用途 |
+|--------|------|
+| `GOOGLE_CALENDAR_ID` | 対象カレンダー。未設定なら `primary` |
+| `PROLINE_MESSAGE_SENDER_URL` | ProLine / LINE 送信用 Web App URL |
+| `PROLINE_MESSAGE_SENDER_TOKEN` | 送信Web Appが token を要求する場合 |
+| `ZOOM_ACCOUNT_ID` | Zoom Server-to-Server OAuth account ID |
+| `ZOOM_CLIENT_ID` | Zoom Server-to-Server OAuth client ID |
+| `ZOOM_CLIENT_SECRET` | Zoom Server-to-Server OAuth client secret |
+| `ZOOM_HOST_USER_ID` | Zoom会議ホスト。メールアドレスまたは Zoom userId 推奨 |
+
+複数アカウントが必要な場合:
+
+| Secret | 用途 |
+|--------|------|
+| `DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` | `title_prefixes` で Zoom 発行アカウントを振り分ける JSON 配列 |
+| `DAILY_SUMMARY_LINE_ACCOUNTS_JSON` | `title_prefixes` / `title_keywords` で LINE 送信先アカウントを振り分ける JSON 配列 |
+
+`DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` 例:
+
+```json
+[
+  {
+    "key": "default",
+    "label": "出口",
+    "default": true,
+    "account_id": "ZOOM_ACCOUNT_ID_VALUE",
+    "client_id": "ZOOM_CLIENT_ID_VALUE",
+    "client_secret": "ZOOM_CLIENT_SECRET_VALUE",
+    "host_user_id": "host@example.com",
+    "title_prefixes": []
+  },
+  {
+    "key": "sugashita",
+    "label": "菅下",
+    "account_id": "ZOOM_ACCOUNT_ID_VALUE",
+    "client_id": "ZOOM_CLIENT_ID_VALUE",
+    "client_secret": "ZOOM_CLIENT_SECRET_VALUE",
+    "host_user_id": "host@example.com",
+    "title_prefixes": ["★"]
+  }
+]
+```
+
+## Codex / ローカル実行ポリシー
 
 - Google Calendar の取得と更新は `GWS CLI` で行う
 - `gws calendar events list` と `gws calendar events patch` を使い、`googleapiclient` や `calendar_token.json` には依存しない
@@ -36,6 +101,8 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 
 | ファイル | 役割 |
 |---------|------|
+| `$TEAM_INFO_ROOT/.github/workflows/daily-calendar-summary.yml` | GitHub Actions で JST 8:03 に朝サマリーを実行し、手動復旧も受け付ける |
+| `$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py` | GitHub Secrets だけで Calendar 取得、Zoom作成、LINE送信、Discord通知を行う Actions 用スクリプト |
 | `$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_daily_summary.py` | GWS CLI で当日の予定を取得し `daily_calendar_summary.py` へ渡す |
 | `$TEAM_INFO_ROOT/scripts/daily_calendar_summary.py` | Zoom API + LINE送信 + Discord 送信 + GWS CLI による説明欄更新 |
 | `/tmp/team-info-daily-summary/calendar-interview-closing-YYYY-MM-DD.json` | 朝通知で取得済みの面接候補予定を `calendar-interview-closing` へ渡す一時JSON |
@@ -150,9 +217,17 @@ python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_d
 
 ## 定期実行設定
 
-**スケジュール**: 毎日 8:00 JST  
-**実行方式**: launchd / cron / Codex 側の定期ジョブ  
-**依存**: `gws` 認証済み、Zoom 認証済み、Discord Webhook 設定済み、LINE送信用 Web App URL 設定済み
+**GitHub Actions**: 毎日 8:03 JST
+**ローカル**: launchd / cron / Codex 側の定期ジョブで毎日 8:00 JST
+**依存**: Google Calendar 認証済み、Zoom 認証済み、Discord Webhook 設定済み、LINE送信用 Web App URL 設定済み
+
+### GitHub Actions 手動復旧
+
+GitHub の Actions タブで `Daily Calendar Summary` を選び、`Run workflow` を押す。
+
+- 今日の未終了予定だけ強制再送: `future_only=true`、`force_resend=true`、`skip_discord_summary=true`
+- 特定日を再処理: `date=YYYY-MM-DD`
+- 朝サマリーも再送: `skip_discord_summary=false`
 
 ### launchd / cron 実行コマンド例
 
