@@ -546,6 +546,7 @@ def send_discord(webhook_url: str, content: str) -> None:
         status, _, _ = request_json(
             webhook_url,
             method="POST",
+            headers={"User-Agent": "DiscordBot (https://github.com/Shoma-DS/team-info, 1.0)"},
             payload={"content": chunk},
         )
         if status not in (200, 204):
@@ -616,7 +617,7 @@ def process(args: argparse.Namespace) -> int:
                             {LINE_STATUS_KEY: "sent", LINE_UID_KEY: uid, LINE_SENT_URL_KEY: meeting_url},
                         )
                         patch_calendar_event(google_token, calendar_id, event, body)
-                        print(f"[LINE] sent title={event['title']} uid={uid} response={response_summary}")
+                        print(f"[LINE] sent start={event.get('start')} response={response_summary}")
                     else:
                         line_status = f"送信失敗（{line_account.label}）"
                         failures.append(f"{event['start']} {event['title']}: LINE送信失敗: {response_summary}")
