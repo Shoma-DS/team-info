@@ -57,6 +57,7 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 |--------|------|
 | `DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` | `title_prefixes` で Zoom 発行アカウントを振り分ける JSON 配列 |
 | `DAILY_SUMMARY_LINE_ACCOUNTS_JSON` | `title_prefixes` / `title_keywords` で LINE 送信先アカウントを振り分ける JSON 配列 |
+| `DAILY_SUMMARY_EXTRA_CALENDARS_JSON` | 追加で取得するカレンダーと抽出条件を指定する JSON 配列 |
 
 `DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` 例:
 
@@ -83,6 +84,21 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
   }
 ]
 ```
+
+`DAILY_SUMMARY_EXTRA_CALENDARS_JSON` 例:
+
+```json
+[
+  {
+    "calendar_id": "ayano.kitamura06@gmail.com",
+    "label": "喜多村綾乃",
+    "title_keywords": ["在宅ワーク面談"],
+    "google_meet_on_primary_overlap": true
+  }
+]
+```
+
+Actions 版では、追加カレンダーの `title_keywords` に一致した予定だけを処理対象にする。さらに、`★` 付き（菅下担当）以外の予定で時刻が重なる場合は、重なった2件目以降を Google Meet に寄せる。喜多村綾乃カレンダーの在宅ワーク面談が出口カレンダーと重なる場合も、このルールで喜多村側または後続側を Google Meet にする。
 
 ## Codex / ローカル実行ポリシー
 

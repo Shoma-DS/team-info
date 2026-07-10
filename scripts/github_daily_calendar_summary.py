@@ -17,6 +17,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -25,6 +26,7 @@ from zoneinfo import ZoneInfo
 
 HTTP_TIMEOUT_SEC = 30
 DEFAULT_TIMEZONE = "Asia/Tokyo"
+PRIMARY_SOURCE_LABEL = "株式会社Keystone出口"
 LINE_STATUS_KEY = "team-info.line-status"
 LINE_UID_KEY = "team-info.line-uid"
 LINE_SENT_URL_KEY = "team-info.line-sent-url"
@@ -62,6 +64,14 @@ class LineAccount:
     title_prefixes: tuple[str, ...] = ()
     title_keywords: tuple[str, ...] = ()
     default: bool = False
+
+
+@dataclass(frozen=True)
+class ExtraCalendar:
+    calendar_id: str
+    label: str
+    title_keywords: tuple[str, ...] = ()
+    google_meet_on_primary_overlap: bool = False
 
 
 def getenv(name: str, default: str = "") -> str:
@@ -158,7 +168,13 @@ def calendar_api_url(calendar_id: str, suffix: str = "") -> str:
     return f"https://www.googleapis.com/calendar/v3/calendars/{encoded}/events{suffix}"
 
 
-def fetch_events(token: str, calendar_id: str, date_str: str, tz: ZoneInfo) -> list[dict[str, Any]]:
+def fetch_events(
+    token: str,
+    calendar_id: str,
+    date_str: str,
+    tz: ZoneInfo,
+    source_label: str = "",
+) -> list[dict[str, Any]]:
     day_start = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=tz)
     day_end = day_start + timedelta(days=1)
     params = urllib.parse.urlencode(
@@ -177,10 +193,10 @@ def fetch_events(token: str, calendar_id: str, date_str: str, tz: ZoneInfo) -> l
     )
     if status != 200 or not isinstance(parsed, dict):
         raise SummaryError("Google Calendar events.list returned an unexpected response")
-    return [normalize_event(item, calendar_id, tz) for item in parsed.get("items", [])]
+    return [normalize_event(item, calendar_id, tz, source_label) for item in parsed.get("items", [])]
 
 
-def normalize_event(item: dict[str, Any], calendar_id: str, tz: ZoneInfo) -> dict[str, Any]:
+def normalize_event(item: dict[str, Any], calendar_id: str, tz: ZoneInfo, source_label: str = "") -> dict[str, Any]:
     start = item.get("start") or {}
     end = item.get("end") or {}
     title = item.get("summary") or "（タイトルなし）"
@@ -198,6 +214,7 @@ def normalize_event(item: dict[str, Any], calendar_id: str, tz: ZoneInfo) -> dic
             "description": description,
             "location": item.get("location") or "",
             "allDay": True,
+            "source_label": source_label,
             "raw": item,
         }
 
@@ -215,6 +232,7 @@ def normalize_event(item: dict[str, Any], calendar_id: str, tz: ZoneInfo) -> dic
         "description": description,
         "location": item.get("location") or "",
         "allDay": False,
+        "source_label": source_label,
         "raw": item,
     }
 
@@ -262,6 +280,18 @@ def extract_meeting_url(text: str | None) -> str | None:
 
 
 def extract_event_meeting_url(event: dict[str, Any]) -> str | None:
+    google_meet = extract_event_google_meet_url(event)
+    if google_meet:
+        return google_meet
+    private = ((event.get("raw") or {}).get("extendedProperties") or {}).get("private") or {}
+    for source in (event.get("location"), event.get("description"), private.get(MEETING_URL_KEY)):
+        url = extract_meeting_url(str(source or ""))
+        if url:
+            return url
+    return None
+
+
+def extract_event_google_meet_url(event: dict[str, Any]) -> str | None:
     raw = event.get("raw") or {}
     hangout = raw.get("hangoutLink")
     if hangout:
@@ -270,11 +300,6 @@ def extract_event_meeting_url(event: dict[str, Any]) -> str | None:
         uri = extract_meeting_url((entry or {}).get("uri"))
         if uri and (entry or {}).get("entryPointType") == "video":
             return uri
-    private = ((raw.get("extendedProperties") or {}).get("private") or {})
-    for source in (event.get("location"), event.get("description"), private.get(MEETING_URL_KEY)):
-        url = extract_meeting_url(str(source or ""))
-        if url:
-            return url
     return None
 
 
@@ -289,6 +314,14 @@ def meeting_provider_label(url: str | None) -> str:
     if "meet.google.com/" in (url or ""):
         return "Google Meet"
     return "Zoom"
+
+
+def display_event_title(event: dict[str, Any]) -> str:
+    title = str(event.get("title") or "（タイトルなし）")
+    source_label = str(event.get("source_label") or "").strip()
+    if source_label and source_label != PRIMARY_SOURCE_LABEL:
+        return f"{title}（{source_label}）"
+    return title
 
 
 def load_zoom_accounts() -> list[ZoomAccount]:
@@ -358,6 +391,30 @@ def load_line_accounts() -> list[LineAccount]:
             )
         )
     return [account for account in accounts if account.key and account.sender_url]
+
+
+def load_extra_calendars() -> list[ExtraCalendar]:
+    raw_calendars = parse_json_env("DAILY_SUMMARY_EXTRA_CALENDARS_JSON")
+    if raw_calendars is None:
+        return []
+    if not isinstance(raw_calendars, list):
+        raise SummaryError("DAILY_SUMMARY_EXTRA_CALENDARS_JSON must be an array")
+    calendars: list[ExtraCalendar] = []
+    for item in raw_calendars:
+        if not isinstance(item, dict):
+            raise SummaryError("Each extra calendar must be an object")
+        calendar_id = str(item.get("calendar_id") or item.get("id") or "").strip()
+        if not calendar_id:
+            raise SummaryError("Extra calendar requires calendar_id")
+        calendars.append(
+            ExtraCalendar(
+                calendar_id=calendar_id,
+                label=str(item.get("label") or calendar_id).strip(),
+                title_keywords=tuple(str(v) for v in item.get("title_keywords") or []),
+                google_meet_on_primary_overlap=bool(item.get("google_meet_on_primary_overlap")),
+            )
+        )
+    return calendars
 
 
 def choose_zoom_account(title: str, accounts: list[ZoomAccount]) -> ZoomAccount | None:
@@ -462,7 +519,7 @@ def strip_old_team_info_block(description: str) -> str:
 def patch_calendar_event(token: str, calendar_id: str, event: dict[str, Any], body: dict[str, Any]) -> None:
     event_id = urllib.parse.quote(str(event["event_id"]), safe="")
     status, parsed, _ = request_json(
-        calendar_api_url(calendar_id, f"/{event_id}"),
+        calendar_api_url(calendar_id, f"/{event_id}?conferenceDataVersion=1"),
         method="PATCH",
         headers=google_headers(token),
         payload=body,
@@ -487,7 +544,11 @@ def ensure_meeting_url(
     event: dict[str, Any],
     zoom_accounts: list[ZoomAccount],
     tz_name: str,
+    provider: str = "zoom",
 ) -> tuple[str | None, str | None]:
+    if provider == "google_meet":
+        return ensure_google_meet_url(token, calendar_id, event)
+
     existing = extract_event_meeting_url(event)
     if existing:
         return existing, extract_zoom_meeting_id(existing)
@@ -508,6 +569,41 @@ def ensure_meeting_url(
     body.update(merge_private_properties(event.get("raw") or {}, {MEETING_URL_KEY: meeting_url, MEETING_ID_KEY: meeting_id or ""}))
     patch_calendar_event(token, calendar_id, event, body)
     return meeting_url, meeting_id
+
+
+def ensure_google_meet_url(token: str, calendar_id: str, event: dict[str, Any]) -> tuple[str | None, str | None]:
+    existing_meet = extract_event_google_meet_url(event)
+    if existing_meet:
+        return existing_meet, None
+
+    request_id = f"team-info-{uuid.uuid4().hex}"
+    patch_calendar_event(
+        token,
+        calendar_id,
+        event,
+        {
+            "conferenceData": {
+                "createRequest": {
+                    "requestId": request_id,
+                    "conferenceSolutionKey": {"type": "hangoutsMeet"},
+                }
+            }
+        },
+    )
+    meeting_url = extract_event_google_meet_url(event) or extract_event_meeting_url(event)
+    if not meeting_url:
+        raise SummaryError(f"Google Meet creation failed for {event['title']}")
+    share_message = build_share_message(event, meeting_url, None)
+    new_description = build_description(event.get("description") or "", meeting_url, share_message, None)
+    existing_location = (event.get("location") or "").strip()
+    new_location = meeting_url if not existing_location else f"{meeting_url}\n{existing_location}"
+    body = {
+        "description": new_description,
+        "location": new_location,
+    }
+    body.update(merge_private_properties(event.get("raw") or {}, {MEETING_URL_KEY: meeting_url, MEETING_ID_KEY: ""}))
+    patch_calendar_event(token, calendar_id, event, body)
+    return meeting_url, None
 
 
 def was_line_sent(event: dict[str, Any], uid: str, meeting_url: str) -> bool:
@@ -572,6 +668,51 @@ def format_date_label(date_str: str) -> str:
     return f"{dt.month}月{dt.day}日"
 
 
+def event_time_window(event: dict[str, Any], tz: ZoneInfo) -> tuple[datetime, datetime] | None:
+    if event.get("allDay") or not event.get("start_iso"):
+        return None
+    start = datetime.fromisoformat(str(event["start_iso"]).replace("Z", "+00:00")).astimezone(tz)
+    end = start + timedelta(minutes=int(event.get("duration") or 60))
+    return start, end
+
+
+def events_overlap(left: dict[str, Any], right: dict[str, Any], tz: ZoneInfo) -> bool:
+    left_window = event_time_window(left, tz)
+    right_window = event_time_window(right, tz)
+    if not left_window or not right_window:
+        return False
+    left_start, left_end = left_window
+    right_start, right_end = right_window
+    return left_start < right_end and right_start < left_end
+
+
+def is_sugashita_event(event: dict[str, Any]) -> bool:
+    return "★" in str(event.get("title") or "")
+
+
+def assign_google_meet_for_overlaps(events: list[dict[str, Any]], tz: ZoneInfo) -> None:
+    """★付き以外の予定が重なる場合、先頭以外を Google Meet に寄せる。"""
+    seen_zoom_candidates: list[dict[str, Any]] = []
+    for event in sorted(
+        (event for event in events if not event.get("allDay") and not is_sugashita_event(event)),
+        key=lambda item: item.get("start_iso") or "",
+    ):
+        if event.get("force_google_meet") or extract_event_google_meet_url(event):
+            continue
+        overlaps_zoom_candidate = any(events_overlap(event, prior, tz) for prior in seen_zoom_candidates)
+        if overlaps_zoom_candidate:
+            event["force_google_meet"] = True
+        else:
+            seen_zoom_candidates.append(event)
+
+
+def matches_extra_calendar_filter(event: dict[str, Any], calendar: ExtraCalendar) -> bool:
+    if not calendar.title_keywords:
+        return True
+    target = f"{event.get('title') or ''}\n{event.get('description') or ''}"
+    return any(keyword in target for keyword in calendar.title_keywords)
+
+
 def process(args: argparse.Namespace) -> int:
     tz_name = getenv("DAILY_SUMMARY_TIMEZONE", DEFAULT_TIMEZONE)
     tz = ZoneInfo(tz_name)
@@ -581,7 +722,24 @@ def process(args: argparse.Namespace) -> int:
     google_token = google_access_token()
     zoom_accounts = load_zoom_accounts()
     line_accounts = load_line_accounts()
-    events = fetch_events(google_token, calendar_id, date_str, tz)
+    extra_calendars = load_extra_calendars()
+    primary_events = fetch_events(google_token, calendar_id, date_str, tz, PRIMARY_SOURCE_LABEL)
+    events = list(primary_events)
+    primary_timed = [event for event in primary_events if not event.get("allDay")]
+
+    for extra_calendar in extra_calendars:
+        extra_events = fetch_events(google_token, extra_calendar.calendar_id, date_str, tz, extra_calendar.label)
+        for event in extra_events:
+            if event.get("allDay") or not matches_extra_calendar_filter(event, extra_calendar):
+                continue
+            event["force_google_meet"] = (
+                extra_calendar.google_meet_on_primary_overlap
+                and any(events_overlap(event, primary_event, tz) for primary_event in primary_timed)
+            )
+            events.append(event)
+
+    events.sort(key=lambda event: event.get("start_iso") or "")
+    assign_google_meet_for_overlaps(events, tz)
 
     if args.future_only:
         now = datetime.now(tz)
@@ -593,18 +751,27 @@ def process(args: argparse.Namespace) -> int:
     processed: list[dict[str, Any]] = []
     failures: list[str] = []
     for event in events:
+        event_calendar_id = event.get("calendar_id") or calendar_id
         if event.get("allDay"):
             processed.append({**event, "meeting_url": None, "line_status": "all-day"})
             continue
         try:
-            meeting_url, meeting_id = ensure_meeting_url(google_token, calendar_id, event, zoom_accounts, tz_name)
+            provider = "google_meet" if event.get("force_google_meet") else "zoom"
+            meeting_url, meeting_id = ensure_meeting_url(
+                google_token,
+                event_calendar_id,
+                event,
+                zoom_accounts,
+                tz_name,
+                provider,
+            )
             uid = extract_line_user_id(event.get("description") or "", event.get("raw") or {})
             line_status = "対象なし"
             if uid and meeting_url:
                 line_account = choose_line_account(event["title"], line_accounts)
                 if not line_account:
                     line_status = "送信URL未設定"
-                    failures.append(f"{event['start']} {event['title']}: LINE送信URL未設定")
+                    failures.append(f"{event['start']} {display_event_title(event)}: LINE送信URL未設定")
                 elif was_line_sent(event, uid, meeting_url) and not args.force_resend:
                     line_status = f"送信済みスキップ（{line_account.label}）"
                 else:
@@ -616,17 +783,17 @@ def process(args: argparse.Namespace) -> int:
                             event.get("raw") or {},
                             {LINE_STATUS_KEY: "sent", LINE_UID_KEY: uid, LINE_SENT_URL_KEY: meeting_url},
                         )
-                        patch_calendar_event(google_token, calendar_id, event, body)
+                        patch_calendar_event(google_token, event_calendar_id, event, body)
                         print(f"[LINE] sent start={event.get('start')} response={response_summary}")
                     else:
                         line_status = f"送信失敗（{line_account.label}）"
-                        failures.append(f"{event['start']} {event['title']}: LINE送信失敗: {response_summary}")
+                        failures.append(f"{event['start']} {display_event_title(event)}: LINE送信失敗: {response_summary}")
             elif uid and not meeting_url:
                 line_status = "会議URLなし"
-                failures.append(f"{event['start']} {event['title']}: 会議URLなし")
+                failures.append(f"{event['start']} {display_event_title(event)}: 会議URLなし")
             processed.append({**event, "meeting_url": meeting_url, "line_status": line_status})
         except Exception as exc:
-            failures.append(f"{event.get('start') or '--:--'} {event.get('title')}: {exc}")
+            failures.append(f"{event.get('start') or '--:--'} {display_event_title(event)}: {exc}")
             processed.append({**event, "meeting_url": None, "line_status": "処理失敗"})
 
     if failures:
@@ -652,7 +819,7 @@ def build_summary_message(date_str: str, events: list[dict[str, Any]]) -> str:
         lines.append("")
         for index, event in enumerate(timed, start=1):
             icon = "🔗" if event.get("meeting_url") else "📅"
-            line = f"{icon} {index}. {event['title']}　{event.get('start')}〜{event.get('end')}"
+            line = f"{icon} {index}. {display_event_title(event)}　{event.get('start')}〜{event.get('end')}"
             if event.get("line_status") and event["line_status"] != "対象なし":
                 line += f" / LINE: {event['line_status']}"
             lines.append(line)
@@ -663,7 +830,7 @@ def build_summary_message(date_str: str, events: list[dict[str, Any]]) -> str:
 
 def build_detail_message(index: int, event: dict[str, Any]) -> str:
     lines = [
-        f"**{index}. {event['title']}**",
+        f"**{index}. {display_event_title(event)}**",
         f"{event.get('start')}〜{event.get('end')}",
     ]
     if event.get("meeting_url"):
@@ -683,7 +850,7 @@ def build_manual_result_message(date_str: str, events: list[dict[str, Any]], for
     for event in events:
         if event.get("allDay"):
             continue
-        lines.append(f"- {event.get('start')} {event['title']}: {event.get('line_status')}")
+        lines.append(f"- {event.get('start')} {display_event_title(event)}: {event.get('line_status')}")
     return "\n".join(lines)
 
 
@@ -699,7 +866,7 @@ def build_failure_message(date_str: str, failures: list[str], events: list[dict[
     for event in events:
         if event.get("allDay"):
             continue
-        lines.append(f"- {event.get('start')} {event['title']}: {event.get('line_status')}")
+        lines.append(f"- {event.get('start')} {display_event_title(event)}: {event.get('line_status')}")
     return "\n".join(lines)
 
 

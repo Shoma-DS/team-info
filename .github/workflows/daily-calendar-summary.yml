@@ -55,6 +55,7 @@ jobs:
       ZOOM_ACCOUNT_LABEL: ${{ secrets.ZOOM_ACCOUNT_LABEL }}
       DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON: ${{ secrets.DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON }}
       DAILY_SUMMARY_LINE_ACCOUNTS_JSON: ${{ secrets.DAILY_SUMMARY_LINE_ACCOUNTS_JSON }}
+      DAILY_SUMMARY_EXTRA_CALENDARS_JSON: ${{ secrets.DAILY_SUMMARY_EXTRA_CALENDARS_JSON }}
       INPUT_DATE: ${{ github.event.inputs.date }}
       INPUT_FUTURE_ONLY: ${{ github.event.inputs.future_only }}
       INPUT_FORCE_RESEND: ${{ github.event.inputs.force_resend }}
