@@ -163,7 +163,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 🤖 personal/deguchishouma/automation/（個人自動化運用系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| daily-summary-zoom-account-manager | 毎朝8時の daily-calendar-summary で使う Zoom URL 発行アカウントを追加・更新し、タイトル接頭辞の振り分け設定と資格情報テンプレートを整える | `.agent/skills/personal/deguchishouma/daily-summary-zoom-account-manager/SKILL.md` |
+| daily-calendar-summary | 毎朝8時の daily-calendar-summary で使う Zoom URL 発行アカウントを追加・更新し、タイトル接頭辞の振り分け設定と GitHub Secrets テンプレートを整える | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
 
 ---
 
@@ -247,7 +247,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | OpenClaw に team-info 版 Agent-Reach を入れたい | `agent-reach` |
 | 外部ツールや外部 repo を team-info 向けに取り込みたい | `repo-adapted-tool-import` |
 | 何かを導入するとき、今の repo 優先で書き換えて入れたい | `repo-adapted-tool-import` |
-| 毎朝8時の calendar summary に新しい Zoom 発行アカウントを追加したい | `daily-summary-zoom-account-manager` |
+| 毎朝8時の calendar summary に新しい Zoom 発行アカウントを追加したい | `daily-calendar-summary` |
 | official Obsidian CLI と Claudian を入れたい | `obsidian-claudian` |
 | Obsidian の active vault に Claudian を入れたい | `obsidian-claudian` |
 | 複数 repo で共有ルール・共有スキルを一元管理したい | `shared-agent-assets` |

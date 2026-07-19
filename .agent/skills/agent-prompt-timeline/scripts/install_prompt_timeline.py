@@ -141,7 +141,7 @@ def hook_command(source: str) -> str:
     return (
         'ROOT="${CLAUDE_PROJECT_DIR:-${CODEX_PROJECT_DIR:-$PWD}}"; '
         f'python "$ROOT/.agent/skills/{SKILL_NAME}/scripts/record_event.py" '
-        f"--kind prompt --source {source} --stdin-json"
+        f"--kind prompt --source {source} --stdin-json --no-rebuild --lock-timeout 1"
     )
 
 

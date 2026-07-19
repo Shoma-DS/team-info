@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "ROOT=\"${CLAUDE_PROJECT_DIR:-${CODEX_PROJECT_DIR:-$PWD}}\"; python \"$ROOT/.agent/skills/agent-prompt-timeline/scripts/record_event.py\" --kind prompt --source codex-user-prompt --stdin-json",
+            "command": "ROOT=\"${CLAUDE_PROJECT_DIR:-${CODEX_PROJECT_DIR:-$PWD}}\"; python \"$ROOT/.agent/skills/agent-prompt-timeline/scripts/record_event.py\" --kind prompt --source codex-user-prompt --stdin-json --no-rebuild --lock-timeout 1",
             "timeout": 5,
             "statusMessage": "プロンプトを時系列ログへ記録中..."
           }

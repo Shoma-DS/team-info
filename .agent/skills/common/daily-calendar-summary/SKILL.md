@@ -23,16 +23,17 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 
 - 本番の定期実行は `.github/workflows/daily-calendar-summary.yml` を使える。スケジュールは `23:03 UTC`、つまり JST 8:03。
 - GitHub Actions の `schedule` は UTC 基準で、毎時ちょうどは混雑による遅延・ドロップが起きやすいため、8:00ぴったりではなく 8:03 にずらす。
-- Actions 版は `scripts/github_daily_calendar_summary.py` を使い、ローカルの `personal/<account>/`、`~/.config/team-info/env.sh`、`gwsmcp`、launchd、keyring には依存しない。
-- Actions 版の資格情報は GitHub repository secrets から環境変数として渡す。
+- Actions / ローカル直実行版は `scripts/github_daily_calendar_summary.py` を使い、ローカルの `personal/<account>/`、`~/.config/team-info/env.sh`、`gwsmcp`、launchd、keyring には依存しない。
+- 資格情報は repo root の `.env` を正本にする。`.env` は gitignore 済みで、GitHub hosted Actions で動かす場合だけ同名の環境変数を別経路で注入する。
+- workflow では repository variable `DAILY_SUMMARY_ENV_FILE` を指定すると、`scripts/github_daily_calendar_summary.py --env-file <path>` としてそのファイルを読む。未指定なら `.env` / `.env.local` を自動探索する。
 - 手動復旧では GitHub Actions の `Run workflow` から `future_only=true`、`force_resend=true`、`skip_discord_summary=true` を指定し、当日未終了分の LINE メッセージだけ強制再送できる。
 - Actions 版は Calendar private extendedProperties に `team-info.line-status` / `team-info.line-uid` / `team-info.line-sent-url` を保存し、通常実行では同じ uid と会議URLへの二重送信を避ける。`force_resend=true` のときだけこの記録を無視する。
 
-### GitHub Secrets
+### .env 変数
 
 必須:
 
-| Secret | 用途 |
+| 変数 | 用途 |
 |--------|------|
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
@@ -41,7 +42,7 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 
 通常必要:
 
-| Secret | 用途 |
+| 変数 | 用途 |
 |--------|------|
 | `GOOGLE_CALENDAR_ID` | 対象カレンダー。未設定なら `primary` |
 | `PROLINE_MESSAGE_SENDER_URL` | ProLine / LINE 送信用 Web App URL |
@@ -50,14 +51,27 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 | `ZOOM_CLIENT_ID` | Zoom Server-to-Server OAuth client ID |
 | `ZOOM_CLIENT_SECRET` | Zoom Server-to-Server OAuth client secret |
 | `ZOOM_HOST_USER_ID` | Zoom会議ホスト。メールアドレスまたは Zoom userId 推奨 |
+| `ZOOM_ACCOUNT_LABEL` | Discord表示用のZoomアカウント名。未設定なら `default` |
 
 複数アカウントが必要な場合:
 
-| Secret | 用途 |
+| 変数 | 用途 |
 |--------|------|
 | `DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` | `title_prefixes` で Zoom 発行アカウントを振り分ける JSON 配列 |
+| `DAILY_SUMMARY_ZOOM_2_ACCOUNT_ID` | 追加Zoomアカウント用の account ID。`DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` から `account_id_env` で参照する |
+| `DAILY_SUMMARY_ZOOM_2_CLIENT_ID` | 追加Zoomアカウント用の client ID。`client_id_env` で参照する |
+| `DAILY_SUMMARY_ZOOM_2_CLIENT_SECRET` | 追加Zoomアカウント用の client secret。`client_secret_env` で参照する |
+| `DAILY_SUMMARY_ZOOM_2_HOST_USER_ID` | 追加Zoomアカウント用のホストユーザー。`host_user_id_env` で参照する |
 | `DAILY_SUMMARY_LINE_ACCOUNTS_JSON` | `title_prefixes` / `title_keywords` で LINE 送信先アカウントを振り分ける JSON 配列 |
 | `DAILY_SUMMARY_EXTRA_CALENDARS_JSON` | 追加で取得するカレンダーと抽出条件を指定する JSON 配列 |
+
+`scripts/github_daily_calendar_summary.py` は repo root の `.env` / `.env.local` を自動で読む。作業 checkout に `.env` がない場合は `~/team-info/.env` / `~/team-info/.env.local` も fallback として読む。別ファイルを使う場合は `--env-file /absolute/path/to/.env` を付ける。`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` がない場合は `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` も使える。`GOOGLE_REFRESH_TOKEN` が `.env` にない場合は `~/.config/team-info/gws_credentials_auto.json` を fallback とする。`DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` には値を直接入れてもよいが、秘密情報を分けたい場合は `account_id_env` / `client_id_env` / `client_secret_env` / `host_user_id_env` に環境変数名を書く。
+
+外部送信なしで `.env` の形だけ検査する:
+
+```bash
+python3 "$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py" --check-config
+```
 
 `DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` 例:
 
@@ -80,6 +94,32 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
     "client_id": "ZOOM_CLIENT_ID_VALUE",
     "client_secret": "ZOOM_CLIENT_SECRET_VALUE",
     "host_user_id": "host@example.com",
+    "title_prefixes": ["★"]
+  }
+]
+```
+
+秘密情報を個別の `.env` 変数に分ける例:
+
+```json
+[
+  {
+    "key": "default",
+    "label": "出口",
+    "default": true,
+    "account_id_env": "ZOOM_ACCOUNT_ID",
+    "client_id_env": "ZOOM_CLIENT_ID",
+    "client_secret_env": "ZOOM_CLIENT_SECRET",
+    "host_user_id_env": "ZOOM_HOST_USER_ID",
+    "title_prefixes": []
+  },
+  {
+    "key": "zoom2",
+    "label": "追加Zoom",
+    "account_id_env": "DAILY_SUMMARY_ZOOM_2_ACCOUNT_ID",
+    "client_id_env": "DAILY_SUMMARY_ZOOM_2_CLIENT_ID",
+    "client_secret_env": "DAILY_SUMMARY_ZOOM_2_CLIENT_SECRET",
+    "host_user_id_env": "DAILY_SUMMARY_ZOOM_2_HOST_USER_ID",
     "title_prefixes": ["★"]
   }
 ]
@@ -118,7 +158,8 @@ Actions 版では、追加カレンダーの `title_keywords` に一致した予
 | ファイル | 役割 |
 |---------|------|
 | `$TEAM_INFO_ROOT/.github/workflows/daily-calendar-summary.yml` | GitHub Actions で JST 8:03 に朝サマリーを実行し、手動復旧も受け付ける |
-| `$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py` | GitHub Secrets だけで Calendar 取得、Zoom作成、LINE送信、Discord通知を行う Actions 用スクリプト |
+| `$TEAM_INFO_ROOT/.env` | Google / Zoom / LINE / Discord の資格情報を置くローカル正本（gitignore済み） |
+| `$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py` | `.env` または同名環境変数で Calendar 取得、Zoom作成、LINE送信、Discord通知を行うスクリプト |
 | `$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_daily_summary.py` | GWS CLI で当日の予定を取得し `daily_calendar_summary.py` へ渡す |
 | `$TEAM_INFO_ROOT/scripts/daily_calendar_summary.py` | Zoom API + LINE送信 + Discord 送信 + GWS CLI による説明欄更新 |
 | `/tmp/team-info-daily-summary/calendar-interview-closing-YYYY-MM-DD.json` | 朝通知で取得済みの面接候補予定を `calendar-interview-closing` へ渡す一時JSON |

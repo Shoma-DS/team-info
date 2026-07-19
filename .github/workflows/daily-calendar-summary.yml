@@ -39,6 +39,8 @@ jobs:
     timeout-minutes: 30
     env:
       DAILY_SUMMARY_TIMEZONE: Asia/Tokyo
+      DAILY_SUMMARY_ENV_FILE: ${{ vars.DAILY_SUMMARY_ENV_FILE }}
+      DAILY_SUMMARY_ENV_OVERRIDE: ${{ vars.DAILY_SUMMARY_ENV_OVERRIDE }}
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
@@ -53,6 +55,10 @@ jobs:
       ZOOM_CLIENT_SECRET: ${{ secrets.ZOOM_CLIENT_SECRET }}
       ZOOM_HOST_USER_ID: ${{ secrets.ZOOM_HOST_USER_ID }}
       ZOOM_ACCOUNT_LABEL: ${{ secrets.ZOOM_ACCOUNT_LABEL }}
+      DAILY_SUMMARY_ZOOM_2_ACCOUNT_ID: ${{ secrets.DAILY_SUMMARY_ZOOM_2_ACCOUNT_ID }}
+      DAILY_SUMMARY_ZOOM_2_CLIENT_ID: ${{ secrets.DAILY_SUMMARY_ZOOM_2_CLIENT_ID }}
+      DAILY_SUMMARY_ZOOM_2_CLIENT_SECRET: ${{ secrets.DAILY_SUMMARY_ZOOM_2_CLIENT_SECRET }}
+      DAILY_SUMMARY_ZOOM_2_HOST_USER_ID: ${{ secrets.DAILY_SUMMARY_ZOOM_2_HOST_USER_ID }}
       DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON: ${{ secrets.DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON }}
       DAILY_SUMMARY_LINE_ACCOUNTS_JSON: ${{ secrets.DAILY_SUMMARY_LINE_ACCOUNTS_JSON }}
       DAILY_SUMMARY_EXTRA_CALENDARS_JSON: ${{ secrets.DAILY_SUMMARY_EXTRA_CALENDARS_JSON }}
@@ -72,6 +78,9 @@ jobs:
       - name: Run daily calendar summary
         run: |
           args=()
+          if [ -n "$DAILY_SUMMARY_ENV_FILE" ]; then
+            args+=(--env-file "$DAILY_SUMMARY_ENV_FILE")
+          fi
           if [ -n "$INPUT_DATE" ]; then
             args+=(--date "$INPUT_DATE")
           fi

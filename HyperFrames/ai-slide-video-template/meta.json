@@ -1,9 +1,0 @@
-{
-  "id": "ai-slide-video-template",
-  "name": "AI Slide Video Template",
-  "description": "Frame-based HyperFrames template for AI-planned handwritten slide videos.",
-  "width": 1920,
-  "height": 1080,
-  "fps": 30,
-  "durationFrames": 360
-}

@@ -153,9 +153,15 @@ def load_events() -> list[dict]:
 
 
 class FileLock:
-    def __init__(self, path: pathlib.Path, timeout_seconds: float = 5.0) -> None:
+    def __init__(
+        self,
+        path: pathlib.Path,
+        timeout_seconds: float = 2.0,
+        stale_seconds: float = 600.0,
+    ) -> None:
         self.path = path
         self.timeout_seconds = timeout_seconds
+        self.stale_seconds = stale_seconds
         self.fd: int | None = None
 
     def __enter__(self) -> "FileLock":
@@ -167,6 +173,8 @@ class FileLock:
                 os.write(self.fd, str(os.getpid()).encode("ascii", errors="ignore"))
                 return self
             except FileExistsError:
+                if self._clear_stale_lock():
+                    continue
                 if time.monotonic() >= deadline:
                     raise TimeoutError(f"Could not acquire lock: {self.path}")
                 time.sleep(0.05)
@@ -179,6 +187,41 @@ class FileLock:
             self.path.unlink()
         except FileNotFoundError:
             pass
+
+    def _clear_stale_lock(self) -> bool:
+        try:
+            stat = self.path.stat()
+            lock_age = time.time() - stat.st_mtime
+            raw_pid = self.path.read_text(encoding="utf-8", errors="ignore").strip()
+        except FileNotFoundError:
+            return True
+        except OSError:
+            return False
+
+        stale_by_age = lock_age >= self.stale_seconds
+        stale_by_pid = raw_pid.isdigit() and not is_pid_running(int(raw_pid))
+        if not stale_by_age and not stale_by_pid:
+            return False
+
+        try:
+            self.path.unlink()
+            return True
+        except FileNotFoundError:
+            return True
+        except OSError:
+            return False
+
+
+def is_pid_running(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 def latest_prompt_id(events: list[dict]) -> str:
@@ -264,6 +307,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stdin-json", action="store_true")
     parser.add_argument("--print-latest", action="store_true")
     parser.add_argument("--rebuild", action="store_true")
+    parser.add_argument("--no-rebuild", action="store_true")
+    parser.add_argument("--lock-timeout", type=float, default=2.0)
+    parser.add_argument("--stale-lock-seconds", type=float, default=600.0)
     return parser.parse_args()
 
 
@@ -277,8 +323,9 @@ def main() -> int:
     raw_stdin = read_stdin()
     payload = safe_json_loads(raw_stdin) if args.stdin_json and raw_stdin.strip() else {}
 
-    with FileLock(LOCK_PATH):
-        events = load_events()
+    with FileLock(LOCK_PATH, timeout_seconds=args.lock_timeout, stale_seconds=args.stale_lock_seconds):
+        needs_events = args.rebuild or (args.kind == "summary" and args.update_latest) or not args.no_rebuild
+        events = load_events() if needs_events else []
         if args.rebuild:
             write_events_js(events)
             print(str(EVENTS_JS_PATH))
@@ -291,8 +338,9 @@ def main() -> int:
             return 0
 
         append_event(event)
-        events.append(event)
-        write_events_js(events)
+        if not args.no_rebuild:
+            events.append(event)
+            write_events_js(events)
         print(event["id"])
     return 0
 

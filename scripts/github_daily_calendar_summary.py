@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """
-GitHub Actions から毎朝のカレンダー予定を取得し、会議リンクを整備して通知する。
-Google Calendar / Zoom / ProLine / Discord の資格情報は GitHub Secrets から環境変数で受け取る。
-ローカルの personal フォルダ、launchd、gwsmcp、keyring には依存しない。
+GitHub Actions またはローカルからカレンダー予定を取得し、会議リンクを整備して通知する。
+Google Calendar / Zoom / ProLine / Discord の資格情報は環境変数で受け取り、
+ローカル実行では repo root の .env / .env.local も自動で読み込む。
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import base64
 import json
 import os
+import pathlib
 import re
+import shutil
+import subprocess
 import sys
 import time
 import urllib.error
@@ -26,6 +30,18 @@ from zoneinfo import ZoneInfo
 
 HTTP_TIMEOUT_SEC = 30
 DEFAULT_TIMEZONE = "Asia/Tokyo"
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+HOME_TEAM_INFO_ROOT = pathlib.Path.home() / "team-info"
+DEFAULT_ENV_FILES = (
+    REPO_ROOT / ".env",
+    REPO_ROOT / ".env.local",
+    HOME_TEAM_INFO_ROOT / ".env",
+    HOME_TEAM_INFO_ROOT / ".env.local",
+)
+DEFAULT_GWS_CREDENTIALS_FILE = pathlib.Path.home() / ".config" / "team-info" / "gws_credentials_auto.json"
+DEFAULT_GWSMCP_OAUTH_CLIENT_FILE = pathlib.Path.home() / ".config" / "google-workspace-mcp" / "oauth-client.json"
+DEFAULT_GWSMCP_TOKENS_FILE = pathlib.Path.home() / ".config" / "google-workspace-mcp" / "tokens.json"
+CALENDAR_BACKEND = "direct"
 PRIMARY_SOURCE_LABEL = "株式会社Keystone出口"
 LINE_STATUS_KEY = "team-info.line-status"
 LINE_UID_KEY = "team-info.line-uid"
@@ -37,10 +53,233 @@ URL_PATTERNS = (
     r"https://[\w.-]*zoom\.us/j/[\w?=&%#.-]+",
     r"https://meet\.google\.com/[\w-]+",
 )
+LOADED_ENV_FILES: list[pathlib.Path] = []
+LOADED_SETTINGS_FILE: pathlib.Path | None = None
+GOOGLE_CREDENTIALS_CACHE: dict[str, str] | None = None
 
 
 class SummaryError(RuntimeError):
     pass
+
+
+def parse_env_file_value(raw_value: str) -> str:
+    value = raw_value.strip()
+    if not value:
+        return ""
+    if value[0] in ("'", '"') and value[-1:] == value[0]:
+        try:
+            parsed = ast.literal_eval(value)
+            if isinstance(parsed, str):
+                return parsed
+        except (SyntaxError, ValueError):
+            return value[1:-1]
+    return value
+
+
+def load_env_file(path: pathlib.Path, *, override: bool = False) -> None:
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.startswith("export "):
+            stripped = stripped[len("export "):].lstrip()
+        if "=" not in stripped:
+            continue
+        key, raw_value = stripped.split("=", 1)
+        key = key.strip()
+        if not key or not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", key):
+            continue
+        if not override and key in os.environ:
+            continue
+        os.environ[key] = parse_env_file_value(raw_value)
+    LOADED_ENV_FILES.append(path)
+
+
+def load_env_files(explicit_path: str = "") -> None:
+    paths: list[pathlib.Path]
+    if explicit_path:
+        paths = [pathlib.Path(explicit_path).expanduser()]
+    elif os.environ.get("DAILY_SUMMARY_ENV_FILE"):
+        paths = [pathlib.Path(os.environ["DAILY_SUMMARY_ENV_FILE"]).expanduser()]
+    else:
+        paths = list(DEFAULT_ENV_FILES)
+
+    override = os.environ.get("DAILY_SUMMARY_ENV_OVERRIDE", "").lower() in {"1", "true", "yes"}
+    seen: set[pathlib.Path] = set()
+    for path in paths:
+        resolved = path.resolve() if path.exists() else path
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        load_env_file(path, override=override)
+
+
+def getenv_any(*names: str, default: str = "") -> str:
+    for name in names:
+        value = getenv(name)
+        if value:
+            return value
+    return default
+
+
+def load_google_credentials_payload() -> dict[str, str]:
+    global GOOGLE_CREDENTIALS_CACHE
+    if GOOGLE_CREDENTIALS_CACHE is not None:
+        return GOOGLE_CREDENTIALS_CACHE
+
+    def normalize_single_file_payload(path: pathlib.Path) -> dict[str, str]:
+        if not path.exists():
+            return {}
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        if not isinstance(payload, dict):
+            return {}
+        return {
+            key: str(payload.get(key) or "").strip()
+            for key in ("client_id", "client_secret", "refresh_token")
+            if str(payload.get(key) or "").strip()
+        }
+
+    def normalize_gwsmcp_pair() -> dict[str, str]:
+        if not DEFAULT_GWSMCP_OAUTH_CLIENT_FILE.exists() or not DEFAULT_GWSMCP_TOKENS_FILE.exists():
+            return {}
+        try:
+            client_payload = json.loads(DEFAULT_GWSMCP_OAUTH_CLIENT_FILE.read_text(encoding="utf-8"))
+            token_payload = json.loads(DEFAULT_GWSMCP_TOKENS_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        if not isinstance(client_payload, dict) or not isinstance(token_payload, dict):
+            return {}
+        payload = {
+            "client_id": client_payload.get("client_id"),
+            "client_secret": client_payload.get("client_secret"),
+            "refresh_token": token_payload.get("refresh_token"),
+        }
+        return {
+            key: str(payload.get(key) or "").strip()
+            for key in ("client_id", "client_secret", "refresh_token")
+            if str(payload.get(key) or "").strip()
+        }
+
+    path_value = getenv_any("GOOGLE_CREDENTIALS_FILE", "GWS_CREDENTIALS_FILE")
+    if path_value:
+        GOOGLE_CREDENTIALS_CACHE = normalize_single_file_payload(pathlib.Path(path_value).expanduser())
+        return GOOGLE_CREDENTIALS_CACHE
+
+    for payload in (normalize_gwsmcp_pair(), normalize_single_file_payload(DEFAULT_GWS_CREDENTIALS_FILE)):
+        if all(payload.get(key) for key in ("client_id", "client_secret", "refresh_token")):
+            GOOGLE_CREDENTIALS_CACHE = payload
+            return GOOGLE_CREDENTIALS_CACHE
+
+    GOOGLE_CREDENTIALS_CACHE = {
+        key: str(payload.get(key) or "").strip()
+        for key in ("client_id", "client_secret", "refresh_token")
+        if str(payload.get(key) or "").strip()
+    }
+    return GOOGLE_CREDENTIALS_CACHE
+
+
+def google_config_value(field: str) -> str:
+    dedicated_env_names = {
+        "client_id": ("GOOGLE_CLIENT_ID",),
+        "client_secret": ("GOOGLE_CLIENT_SECRET",),
+        "refresh_token": ("GOOGLE_REFRESH_TOKEN",),
+    }[field]
+    value = getenv_any(*dedicated_env_names)
+    if value:
+        return value
+    file_value = load_google_credentials_payload().get(field, "")
+    if file_value:
+        return file_value
+    alias_env_names = {
+        "client_id": ("GOOGLE_OAUTH_CLIENT_ID",),
+        "client_secret": ("GOOGLE_OAUTH_CLIENT_SECRET",),
+        "refresh_token": ("GOOGLE_OAUTH_REFRESH_TOKEN",),
+    }[field]
+    return getenv_any(*alias_env_names)
+
+
+def require_google_config(field: str, display_name: str) -> str:
+    value = google_config_value(field)
+    if not value:
+        raise SummaryError(f"Required env/config is missing: {display_name}")
+    return value
+
+
+def load_webhook_from_file(path: pathlib.Path) -> str:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    if not isinstance(payload, dict):
+        return ""
+    return str(payload.get("url") or payload.get("webhook_url") or "").strip()
+
+
+def resolve_config_path(path_value: str, base_dir: pathlib.Path) -> pathlib.Path:
+    path = pathlib.Path(path_value).expanduser()
+    if path.is_absolute():
+        return path
+    return (base_dir / path).resolve()
+
+
+def find_default_daily_summary_settings_file() -> pathlib.Path | None:
+    candidates = list(REPO_ROOT.glob("personal/*/scripts/daily-calendar-summary/daily_summary_settings.json"))
+    if HOME_TEAM_INFO_ROOT != REPO_ROOT:
+        candidates.extend(HOME_TEAM_INFO_ROOT.glob("personal/*/scripts/daily-calendar-summary/daily_summary_settings.json"))
+    existing = [path for path in candidates if path.exists()]
+    if len(existing) == 1:
+        return existing[0]
+    return None
+
+
+def load_daily_summary_settings_payload() -> tuple[dict[str, Any] | None, pathlib.Path | None]:
+    global LOADED_SETTINGS_FILE
+    path_value = getenv("DAILY_SUMMARY_SETTINGS_FILE")
+    path = pathlib.Path(path_value).expanduser() if path_value else find_default_daily_summary_settings_file()
+    if not path or not path.exists():
+        return None, None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None, None
+    if not isinstance(payload, dict):
+        return None, None
+    LOADED_SETTINGS_FILE = path
+    return payload, path.parent
+
+
+def find_default_daily_webhook_file() -> pathlib.Path | None:
+    candidates = list(REPO_ROOT.glob("personal/*/discord/discord-daily-webhook.json"))
+    if HOME_TEAM_INFO_ROOT != REPO_ROOT:
+        candidates.extend(HOME_TEAM_INFO_ROOT.glob("personal/*/discord/discord-daily-webhook.json"))
+    existing = [path for path in candidates if path.exists()]
+    if len(existing) == 1:
+        return existing[0]
+    return None
+
+
+def discord_daily_webhook_url() -> str:
+    value = getenv_any("DISCORD_DAILY_WEBHOOK", "DISCORD_WEBHOOK_DAILY")
+    if value:
+        return value
+
+    path_value = getenv_any("DISCORD_DAILY_WEBHOOK_FILE", "DISCORD_WEBHOOK_DAILY_FILE")
+    path = pathlib.Path(path_value).expanduser() if path_value else find_default_daily_webhook_file()
+    if path:
+        return load_webhook_from_file(path)
+    return ""
+
+
+def require_discord_daily_webhook() -> str:
+    value = discord_daily_webhook_url()
+    if not value:
+        raise SummaryError("Required env/config is missing: DISCORD_DAILY_WEBHOOK")
+    return value
 
 
 @dataclass(frozen=True)
@@ -148,9 +387,9 @@ def google_access_token() -> str:
         "https://oauth2.googleapis.com/token",
         method="POST",
         form={
-            "client_id": require_env("GOOGLE_CLIENT_ID"),
-            "client_secret": require_env("GOOGLE_CLIENT_SECRET"),
-            "refresh_token": require_env("GOOGLE_REFRESH_TOKEN"),
+            "client_id": require_google_config("client_id", "GOOGLE_CLIENT_ID"),
+            "client_secret": require_google_config("client_secret", "GOOGLE_CLIENT_SECRET"),
+            "refresh_token": require_google_config("refresh_token", "GOOGLE_REFRESH_TOKEN"),
             "grant_type": "refresh_token",
         },
     )
@@ -161,6 +400,32 @@ def google_access_token() -> str:
 
 def google_headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+
+
+def resolve_calendar_backend() -> str:
+    configured = getenv("DAILY_SUMMARY_CALENDAR_BACKEND").lower()
+    if configured in {"gws", "direct"}:
+        return configured
+    return "gws" if shutil.which("gws") else "direct"
+
+
+def run_gws_calendar(method: str, params: dict[str, Any], body: dict[str, Any] | None = None) -> dict[str, Any]:
+    command = ["gws", "calendar", "events", method, "--params", json.dumps(params, ensure_ascii=False)]
+    if body is not None:
+        command.extend(["--json", json.dumps(body, ensure_ascii=False)])
+    result = subprocess.run(command, text=True, capture_output=True, timeout=120)
+    if result.returncode != 0:
+        detail = (result.stderr.strip() or result.stdout.strip() or "unknown error")[:800]
+        raise SummaryError(f"gws calendar events {method} failed: {detail}")
+    try:
+        parsed = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise SummaryError(f"gws calendar events {method} returned non-JSON output") from exc
+    if not isinstance(parsed, dict):
+        raise SummaryError(f"gws calendar events {method} returned unexpected output")
+    if isinstance(parsed.get("error"), dict):
+        raise SummaryError(f"gws calendar events {method} returned error: {compact_error_text(parsed.get('error'), result.stdout)}")
+    return parsed
 
 
 def calendar_api_url(calendar_id: str, suffix: str = "") -> str:
@@ -187,6 +452,18 @@ def fetch_events(
             "timeZone": str(tz),
         }
     )
+    if CALENDAR_BACKEND == "gws":
+        parsed = run_gws_calendar("list", {
+            "calendarId": calendar_id,
+            "timeMin": day_start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timeMax": day_end.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "singleEvents": True,
+            "orderBy": "startTime",
+            "maxResults": 80,
+            "timeZone": str(tz),
+        })
+        return [normalize_event(item, calendar_id, tz, source_label) for item in parsed.get("items", [])]
+
     status, parsed, _ = request_json(
         calendar_api_url(calendar_id, f"?{params}"),
         headers=google_headers(token),
@@ -324,28 +601,87 @@ def display_event_title(event: dict[str, Any]) -> str:
     return title
 
 
+def load_account_credentials(item: dict[str, Any], base_dir: pathlib.Path | None) -> dict[str, str]:
+    credentials_file = str(item.get("credentials_file") or "").strip()
+    if not credentials_file or base_dir is None:
+        return {}
+    path = resolve_config_path(credentials_file, base_dir)
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    return {
+        key: str(payload.get(key) or "").strip()
+        for key in ("account_id", "client_id", "client_secret")
+        if str(payload.get(key) or "").strip()
+    }
+
+
+def config_value(item: dict[str, Any], field: str, default: str = "", base_dir: pathlib.Path | None = None) -> str:
+    value = str(item.get(field) or "").strip()
+    if value:
+        return value
+    env_name = str(item.get(f"{field}_env") or "").strip()
+    if env_name:
+        value = getenv(env_name)
+        if value:
+            return value
+    credentials = load_account_credentials(item, base_dir)
+    if credentials.get(field):
+        return credentials[field]
+    return default
+
+
 def load_zoom_accounts() -> list[ZoomAccount]:
     raw_accounts = parse_json_env("DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON")
+    settings_base_dir: pathlib.Path | None = None
+    if raw_accounts is None:
+        settings_payload, settings_base_dir = load_daily_summary_settings_payload()
+        if settings_payload and isinstance(settings_payload.get("zoom_accounts"), list):
+            raw_accounts = settings_payload["zoom_accounts"]
     accounts: list[ZoomAccount] = []
     if raw_accounts is not None:
         if not isinstance(raw_accounts, list):
             raise SummaryError("DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON must be an array")
-        for item in raw_accounts:
+        for index, item in enumerate(raw_accounts, start=1):
             if not isinstance(item, dict):
                 raise SummaryError("Each zoom account must be an object")
-            accounts.append(
-                ZoomAccount(
-                    key=str(item.get("key") or "").strip(),
-                    label=str(item.get("label") or item.get("key") or "").strip(),
-                    account_id=str(item.get("account_id") or "").strip(),
-                    client_id=str(item.get("client_id") or "").strip(),
-                    client_secret=str(item.get("client_secret") or "").strip(),
-                    host_user_id=str(item.get("host_user_id") or "me").strip(),
-                    title_prefixes=tuple(str(v) for v in item.get("title_prefixes") or []),
-                    default=bool(item.get("default")),
-                )
+            account = ZoomAccount(
+                key=config_value(item, "key", base_dir=settings_base_dir),
+                label=config_value(item, "label", config_value(item, "key", base_dir=settings_base_dir), base_dir=settings_base_dir),
+                account_id=config_value(item, "account_id", base_dir=settings_base_dir),
+                client_id=config_value(item, "client_id", base_dir=settings_base_dir),
+                client_secret=config_value(item, "client_secret", base_dir=settings_base_dir),
+                host_user_id=config_value(item, "host_user_id", "me", base_dir=settings_base_dir) or "me",
+                title_prefixes=tuple(str(v) for v in item.get("title_prefixes") or []),
+                default=bool(item.get("default")),
             )
-    elif getenv("ZOOM_ACCOUNT_ID") and getenv("ZOOM_CLIENT_ID") and getenv("ZOOM_CLIENT_SECRET"):
+            missing = [
+                field
+                for field, value in (
+                    ("key", account.key),
+                    ("account_id", account.account_id),
+                    ("client_id", account.client_id),
+                    ("client_secret", account.client_secret),
+                )
+                if not value
+            ]
+            if missing:
+                raise SummaryError(
+                    f"Zoom account #{index} is missing {', '.join(missing)}. "
+                    "Set the value directly or use *_env keys in DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON."
+                )
+            accounts.append(account)
+    else:
+        default_secret_names = ("ZOOM_ACCOUNT_ID", "ZOOM_CLIENT_ID", "ZOOM_CLIENT_SECRET")
+        default_values = {name: getenv(name) for name in default_secret_names}
+        if any(default_values.values()) and not all(default_values.values()):
+            missing = [name for name, value in default_values.items() if not value]
+            raise SummaryError(f"Incomplete Zoom default secrets: missing {', '.join(missing)}")
+
+    if not accounts and getenv("ZOOM_ACCOUNT_ID") and getenv("ZOOM_CLIENT_ID") and getenv("ZOOM_CLIENT_SECRET"):
         accounts.append(
             ZoomAccount(
                 key="default",
@@ -357,7 +693,7 @@ def load_zoom_accounts() -> list[ZoomAccount]:
                 default=True,
             )
         )
-    return [account for account in accounts if account.key and account.account_id and account.client_id and account.client_secret]
+    return accounts
 
 
 def load_line_accounts() -> list[LineAccount]:
@@ -517,15 +853,23 @@ def strip_old_team_info_block(description: str) -> str:
 
 
 def patch_calendar_event(token: str, calendar_id: str, event: dict[str, Any], body: dict[str, Any]) -> None:
-    event_id = urllib.parse.quote(str(event["event_id"]), safe="")
-    status, parsed, _ = request_json(
-        calendar_api_url(calendar_id, f"/{event_id}?conferenceDataVersion=1"),
-        method="PATCH",
-        headers=google_headers(token),
-        payload=body,
-    )
-    if status != 200 or not isinstance(parsed, dict):
-        raise SummaryError(f"Calendar patch failed for {event['title']}")
+    raw_event_id = str(event["event_id"])
+    if CALENDAR_BACKEND == "gws":
+        parsed = run_gws_calendar("patch", {
+            "calendarId": calendar_id,
+            "eventId": raw_event_id,
+            "conferenceDataVersion": 1,
+        }, body)
+    else:
+        event_id = urllib.parse.quote(raw_event_id, safe="")
+        status, parsed, _ = request_json(
+            calendar_api_url(calendar_id, f"/{event_id}?conferenceDataVersion=1"),
+            method="PATCH",
+            headers=google_headers(token),
+            payload=body,
+        )
+        if status != 200 or not isinstance(parsed, dict):
+            raise SummaryError(f"Calendar patch failed for {event['title']}")
     event["raw"] = parsed
     event["description"] = parsed.get("description") or event.get("description") or ""
     event["location"] = parsed.get("location") or event.get("location") or ""
@@ -553,10 +897,14 @@ def ensure_meeting_url(
     if existing:
         return existing, extract_zoom_meeting_id(existing)
     if not event.get("start_iso"):
-        return None, None
+        raise SummaryError(f"Cannot create Zoom meeting without a start time: {event['title']}")
     account = choose_zoom_account(event["title"], zoom_accounts)
     if not account:
-        return None, None
+        raise SummaryError(
+            "Zoom account secrets are not configured. "
+            "Set ZOOM_ACCOUNT_ID / ZOOM_CLIENT_ID / ZOOM_CLIENT_SECRET, "
+            "or DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON."
+        )
     meeting_url, meeting_id = create_zoom_meeting(event, account, tz_name)
     share_message = build_share_message(event, meeting_url, meeting_id)
     new_description = build_description(event.get("description") or "", meeting_url, share_message, meeting_id)
@@ -714,12 +1062,14 @@ def matches_extra_calendar_filter(event: dict[str, Any], calendar: ExtraCalendar
 
 
 def process(args: argparse.Namespace) -> int:
+    global CALENDAR_BACKEND
+    CALENDAR_BACKEND = resolve_calendar_backend()
     tz_name = getenv("DAILY_SUMMARY_TIMEZONE", DEFAULT_TIMEZONE)
     tz = ZoneInfo(tz_name)
     date_str = args.date or datetime.now(tz).strftime("%Y-%m-%d")
     calendar_id = getenv("GOOGLE_CALENDAR_ID", "primary")
-    webhook_url = require_env("DISCORD_DAILY_WEBHOOK")
-    google_token = google_access_token()
+    webhook_url = require_discord_daily_webhook()
+    google_token = "" if CALENDAR_BACKEND == "gws" else google_access_token()
     zoom_accounts = load_zoom_accounts()
     line_accounts = load_line_accounts()
     extra_calendars = load_extra_calendars()
@@ -809,6 +1159,72 @@ def process(args: argparse.Namespace) -> int:
     return 0
 
 
+def check_config() -> int:
+    global CALENDAR_BACKEND
+    CALENDAR_BACKEND = resolve_calendar_backend()
+    missing = [
+        name
+        for name, value in (
+            ("GOOGLE_CLIENT_ID", google_config_value("client_id")),
+            ("GOOGLE_CLIENT_SECRET", google_config_value("client_secret")),
+            ("GOOGLE_REFRESH_TOKEN", google_config_value("refresh_token")),
+            ("DISCORD_DAILY_WEBHOOK", discord_daily_webhook_url()),
+        )
+        if not value
+    ]
+    if missing:
+        raise SummaryError("Missing required env: " + ", ".join(missing))
+
+    zoom_accounts = load_zoom_accounts()
+    if not zoom_accounts:
+        raise SummaryError(
+            "Zoom account config is missing. Set ZOOM_ACCOUNT_ID / ZOOM_CLIENT_ID / "
+            "ZOOM_CLIENT_SECRET, or DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON."
+        )
+
+    line_accounts = load_line_accounts()
+    extra_calendars = load_extra_calendars()
+    report = {
+        "ok": True,
+        "loaded_env_files": [str(path) for path in LOADED_ENV_FILES],
+        "loaded_settings_file": str(LOADED_SETTINGS_FILE) if LOADED_SETTINGS_FILE else "",
+        "google_credentials_file": str(DEFAULT_GWS_CREDENTIALS_FILE) if DEFAULT_GWS_CREDENTIALS_FILE.exists() else "",
+        "calendar_backend": CALENDAR_BACKEND,
+        "discord_webhook_source": "env-or-file" if discord_daily_webhook_url() else "",
+        "calendar_id": getenv("GOOGLE_CALENDAR_ID", "primary"),
+        "zoom_accounts": [
+            {
+                "key": account.key,
+                "label": account.label,
+                "default": account.default,
+                "title_prefixes": list(account.title_prefixes),
+            }
+            for account in zoom_accounts
+        ],
+        "line_accounts": [
+            {
+                "key": account.key,
+                "label": account.label,
+                "default": account.default,
+                "title_prefixes": list(account.title_prefixes),
+                "title_keywords": list(account.title_keywords),
+            }
+            for account in line_accounts
+        ],
+        "extra_calendars": [
+            {
+                "calendar_id": calendar.calendar_id,
+                "label": calendar.label,
+                "title_keywords": list(calendar.title_keywords),
+                "google_meet_on_primary_overlap": calendar.google_meet_on_primary_overlap,
+            }
+            for calendar in extra_calendars
+        ],
+    }
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0
+
+
 def build_summary_message(date_str: str, events: list[dict[str, Any]]) -> str:
     all_day = [event for event in events if event.get("allDay")]
     timed = [event for event in events if not event.get("allDay")]
@@ -876,12 +1292,17 @@ def main() -> None:
     parser.add_argument("--future-only", action="store_true", help="現在時刻以降の時刻付き予定だけ処理する")
     parser.add_argument("--force-resend", action="store_true", help="Calendar の送信済み記録を無視してLINEを再送する")
     parser.add_argument("--skip-discord-summary", action="store_true", help="朝サマリーではなく手動実行結果だけDiscordへ送る")
+    parser.add_argument("--env-file", default="", help=".env として読み込むファイル。未指定なら repo root の .env / .env.local")
+    parser.add_argument("--check-config", action="store_true", help="外部送信せず、.env と環境変数の設定だけ検査する")
     args = parser.parse_args()
+    load_env_files(args.env_file)
     try:
+        if args.check_config:
+            raise SystemExit(check_config())
         raise SystemExit(process(args))
     except SummaryError as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
-        webhook_url = getenv("DISCORD_DAILY_WEBHOOK")
+        webhook_url = discord_daily_webhook_url()
         if webhook_url:
             try:
                 send_discord(webhook_url, f"**daily-calendar-summary 起動エラー**\n```text\n{exc}\n```")
