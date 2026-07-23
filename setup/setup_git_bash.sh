@@ -42,6 +42,7 @@ TEAM_INFO_ROOT_WIN="$(cygpath -w "$TEAM_INFO_ROOT_POSIX")"
 NODE_VERSION="22.17.1"
 PYTHON_VERSION="3.11.9"
 CODEX_NPM_PACKAGE="@openai/codex"
+CODEX_WINDOWS_INSTALLER_URL="https://chatgpt.com/codex/install.ps1"
 FREEBUFF_NPM_PACKAGE="freebuff"
 GWS_NPM_PACKAGE="@googleworkspace/cli"
 GWS_AUTH_SERVICES="drive,sheets,gmail,calendar,docs,slides,tasks,script"
@@ -109,6 +110,12 @@ ensure_path_entry() {
   esac
 }
 
+prepend_path_entry() {
+  local entry="$1"
+  [[ -n "$entry" ]] || return
+  export PATH="$entry:$PATH"
+}
+
 add_windows_user_path_entry() {
   local entry="$1"
   local entry_escaped
@@ -154,6 +161,7 @@ refresh_known_windows_paths() {
   ensure_path_entry "$PYENV_POSIX/shims"
   ensure_path_entry "$APPDATA_POSIX/nvm"
   ensure_path_entry "$LOCALAPPDATA_POSIX/nvm"
+  ensure_path_entry "$LOCALAPPDATA_POSIX/Programs/OpenAI/Codex/bin"
   ensure_path_entry "$PROGRAMFILES_POSIX/nodejs"
   ensure_path_entry "$PROGRAMFILES_POSIX/GitHub CLI"
   ensure_path_entry "$PROGRAMFILES_POSIX/Rclone"
@@ -218,6 +226,13 @@ path_to_posix_maybe() {
   fi
 }
 
+get_npm_global_bin_dir() {
+  local prefix
+  prefix="$(npm prefix -g 2>/dev/null | tr -d '\r' || true)"
+  [[ -n "$prefix" ]] || return 1
+  path_to_posix_maybe "$prefix"
+}
+
 ensure_npm_global_install_target() {
   local global_root global_root_posix
   mkdir -p "$NPM_USER_PREFIX_POSIX"
@@ -237,30 +252,102 @@ install_npm_cli() {
   local label="$1"
   local package_name="$2"
   local command_name="$3"
-  local installed_path
+  local installed_path existing_path npm_bin_dir candidate
 
   if ! command_exists npm; then
     warn "npm が見つかりません。Git Bash を開き直してから手動で実行してください:"
     warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX_WIN\" npm install -g $package_name"
-    return
+    return 1
   fi
 
-  if command_exists "$command_name"; then
+  existing_path="$(command -v "$command_name" 2>/dev/null || command -v "$command_name.cmd" 2>/dev/null || true)"
+  if [[ -n "$existing_path" ]]; then
     info "$label を更新します..."
   else
     info "$label をグローバルに入れます..."
   fi
 
   ensure_npm_global_install_target
+  npm_bin_dir="$(get_npm_global_bin_dir || true)"
+  if [[ -n "$npm_bin_dir" ]]; then
+    prepend_path_entry "$npm_bin_dir"
+    add_windows_user_path_entry "$(cygpath -w "$npm_bin_dir")"
+  fi
+
   if npm install -g "$package_name"; then
     hash -r 2>/dev/null || true
     refresh_known_windows_paths
+    [[ -n "$npm_bin_dir" ]] && prepend_path_entry "$npm_bin_dir"
     installed_path="$(command -v "$command_name" 2>/dev/null || command -v "$command_name.cmd" 2>/dev/null || true)"
-    success "$label インストール完了: ${installed_path:-path unknown}"
+    if [[ -z "$installed_path" && -n "$npm_bin_dir" ]]; then
+      for candidate in "$npm_bin_dir/$command_name" "$npm_bin_dir/$command_name.cmd"; do
+        if [[ -f "$candidate" || -x "$candidate" ]]; then
+          installed_path="$candidate"
+          break
+        fi
+      done
+    fi
+    if [[ -n "$installed_path" ]]; then
+      success "$label インストール完了: $installed_path"
+      return 0
+    fi
+    warn "$label は npm install 済みですが、現在の PATH から $command_name が見つかりません。"
+    [[ -n "$npm_bin_dir" ]] && warn "npm global bin を PATH に追加してください: $(cygpath -w "$npm_bin_dir")"
+    return 1
   else
+    installed_path="$(command -v "$command_name" 2>/dev/null || command -v "$command_name.cmd" 2>/dev/null || true)"
+    if [[ -n "$installed_path" ]]; then
+      warn "$label の更新に失敗しましたが、既存コマンドは利用できます: $installed_path"
+      return 0
+    fi
     warn "$label のインストールに失敗しました。あとで次を実行してください:"
     warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX_WIN\" npm install -g $package_name"
+    return 1
   fi
+}
+
+verify_codex_cli() {
+  local installed_path version_output version_line
+
+  installed_path="$(command -v codex 2>/dev/null || command -v codex.exe 2>/dev/null || command -v codex.cmd 2>/dev/null || true)"
+  [[ -n "$installed_path" ]] || return 1
+
+  if version_output="$(codex --version 2>&1 | tr -d '\r')"; then
+    version_line="$(printf '%s\n' "$version_output" | tail -n 1)"
+    success "Codex CLI 利用可能: $installed_path (${version_line:-version unknown})"
+    return 0
+  fi
+
+  warn "codex --version の実行に失敗しました: $installed_path"
+  return 1
+}
+
+install_codex_cli() {
+  local codex_bin_win codex_bin_posix
+
+  codex_bin_win="$LOCALAPPDATA_WIN\\Programs\\OpenAI\\Codex\\bin"
+  codex_bin_posix="$LOCALAPPDATA_POSIX/Programs/OpenAI/Codex/bin"
+  prepend_path_entry "$codex_bin_posix"
+  add_windows_user_path_entry "$codex_bin_win"
+
+  if command_exists codex; then
+    info "Codex CLI を公式 standalone installer で更新します..."
+  else
+    info "Codex CLI を公式 standalone installer で入れます..."
+  fi
+
+  if ps_command "irm '$CODEX_WINDOWS_INSTALLER_URL' | iex"; then
+    refresh_known_windows_paths
+    prepend_path_entry "$codex_bin_posix"
+    if verify_codex_cli; then
+      return 0
+    fi
+    warn "standalone installer は完了しましたが、codex が PATH から確認できません。"
+  else
+    warn "Codex CLI standalone installer に失敗しました。npm fallback を試します。"
+  fi
+
+  install_npm_cli "Codex CLI" "$CODEX_NPM_PACKAGE" "codex"
 }
 
 get_python_user_scripts_dir() {
@@ -354,6 +441,30 @@ configure_git_identity() {
   success "このリポジトリの Git user を設定しました: $git_name <$git_email>"
 }
 
+gh_auth_status_ok() {
+  gh auth status --hostname github.com >/dev/null 2>&1
+}
+
+ensure_github_auth() {
+  if gh_auth_status_ok; then
+    success "GitHub CLI (gh) 認証済み"
+  else
+    info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
+    gh auth login --hostname github.com --git-protocol https --web
+    if gh_auth_status_ok; then
+      success "GitHub CLI (gh) 認証完了"
+    else
+      error "GitHub CLI (gh) の認証確認に失敗しました。'gh auth status --hostname github.com' を確認してください。"
+    fi
+  fi
+
+  if gh auth setup-git --hostname github.com >/dev/null 2>&1; then
+    success "GitHub CLI を Git の credential helper に設定しました"
+  else
+    warn "GitHub CLI の Git credential helper 設定に失敗しました。必要なら手動で 'gh auth setup-git --hostname github.com' を実行してください。"
+  fi
+}
+
 gws_auth_has_recommended_scopes() {
   local status_text="$1"
   local marker
@@ -396,7 +507,7 @@ ensure_gws_mcp_file_auth() {
 ensure_gws_auth() {
   local auth_status
   step "10a. Google Workspace CLI / MCP 認証"
-  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws"
+  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws" || true
 
   if ! command_exists gws; then
     warn "gws コマンドが見つかりません。Git Bash を開き直してから手動で実行してください:"
@@ -447,6 +558,11 @@ export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND="file"
 case ":\$PATH:" in
   *":$NPM_USER_PREFIX_POSIX:"*) ;;
   *) export PATH="$NPM_USER_PREFIX_POSIX:\$PATH" ;;
+esac
+
+case ":\$PATH:" in
+  *":$LOCALAPPDATA_POSIX/Programs/OpenAI/Codex/bin:"*) ;;
+  *) export PATH="$LOCALAPPDATA_POSIX/Programs/OpenAI/Codex/bin:\$PATH" ;;
 esac
 
 case ":\$PATH:" in
@@ -522,13 +638,7 @@ if ! ask_yes_no "GitHub の招待メールを承認済みですか？" no; then
   error "先に招待を承認してください。不明な場合は sho に確認してください。"
 fi
 
-if gh auth status >/dev/null 2>&1; then
-  success "GitHub CLI (gh) 認証済み"
-else
-  info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
-  gh auth login --web -h github.com -p https -w
-  success "GitHub CLI (gh) 認証完了"
-fi
+ensure_github_auth
 
 git -C "$TEAM_INFO_ROOT_POSIX" remote set-url origin https://github.com/Shoma-DS/team-info.git
 success "Remote URL set: https://github.com/Shoma-DS/team-info.git"
@@ -629,7 +739,9 @@ else
 fi
 
 step "9. Codex CLI"
-install_npm_cli "Codex CLI" "$CODEX_NPM_PACKAGE" "codex"
+if ! install_codex_cli; then
+  warn "Codex CLI が使える状態になっていません。上の npm / PATH メッセージを確認してください。"
+fi
 
 step "9b. Codex custom prompts"
 CODEX_PROMPTS_SCRIPT_WIN="$(cygpath -w "$TEAM_INFO_ROOT_POSIX/scripts/sync_cross_cli_commands.py")"
@@ -644,7 +756,9 @@ else
 fi
 
 step "10. Freebuff CLI"
-install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"
+if ! install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"; then
+  warn "Freebuff CLI が使える状態になっていません。必要ならあとで手動インストールしてください。"
+fi
 
 ensure_gws_auth
 

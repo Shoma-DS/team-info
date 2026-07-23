@@ -25,6 +25,12 @@ GWS_RECOMMENDED_SCOPE_MARKERS = (
 )
 
 
+def _codex_install_hint() -> str:
+    if sys.platform == "win32":
+        return 'powershell -ExecutionPolicy Bypass -c "irm https://chatgpt.com/codex/install.ps1 | iex"'
+    return "curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+
+
 def _run(
     command: list[str],
     *,
@@ -62,6 +68,25 @@ def _check_host_commands(failures: list[str]) -> None:
             failures.append(f"{command} が見つかりません。")
 
 
+def _check_codex_cli(failures: list[str]) -> None:
+    _print_heading("Codex CLI")
+    codex_path = shutil.which("codex")
+    if codex_path is None:
+        print("[NG] codex: コマンドが見つかりません")
+        failures.append(f"Codex CLI が見つかりません。setup を再実行するか、'{_codex_install_hint()}' を実行してください。")
+        return
+
+    completed = _run(["codex", "--version"])
+    if completed.returncode == 0:
+        print(f"[OK] codex: {codex_path}")
+        print(f"[OK] codex version: {_truncate(completed.stdout or completed.stderr)}")
+        return
+
+    message = _truncate(completed.stderr or completed.stdout or "codex --version の取得に失敗しました")
+    print(f"[NG] codex --version: {message}")
+    failures.append(f"Codex CLI は見つかりますが実行できません。setup を再実行するか、'{_codex_install_hint()}' をやり直してください。")
+
+
 def _check_git_lfs(failures: list[str]) -> None:
     _print_heading("Git LFS")
     if shutil.which("git") is None:
@@ -86,13 +111,13 @@ def _check_gh_auth(failures: list[str]) -> None:
         failures.append("gh が見つかりません。")
         return
 
-    completed = _run(["gh", "auth", "status"])
+    completed = _run(["gh", "auth", "status", "--hostname", "github.com"])
     if completed.returncode == 0:
         print("[OK] gh auth: ログイン済み")
     else:
         message = _truncate(completed.stderr or completed.stdout or "未ログインです")
         print(f"[NG] gh auth: {message}")
-        failures.append("GitHub CLI (gh) でログインしていません。'gh auth login' を実行してください。")
+        failures.append("GitHub CLI (gh) でログインしていません。'gh auth login --hostname github.com --git-protocol https --web' を実行してください。")
 
 
 def _check_gws_auth(failures: list[str], warnings: list[str]) -> None:
@@ -402,6 +427,7 @@ def main() -> int:
     print(f"repo: {repo_root}")
 
     _check_host_commands(failures)
+    _check_codex_cli(failures)
     _check_git_lfs(failures)
     _check_gh_auth(failures)
     _check_gws_auth(failures, warnings)

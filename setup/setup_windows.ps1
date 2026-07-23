@@ -73,6 +73,8 @@ if ((Test-Path (Join-Path $CurrentDir "AGENTS.md")) -and (Test-Path (Join-Path $
 $NodeVersion    = "22.17.1"
 $PythonVersion  = "3.11.9"
 $CodexNpmPackage = "@openai/codex"
+$CodexWindowsInstallerUrl = "https://chatgpt.com/codex/install.ps1"
+$CodexStandaloneBinDir = Join-Path $env:LOCALAPPDATA "Programs\OpenAI\Codex\bin"
 $FreebuffNpmPackage = "freebuff"
 $GwsNpmPackage = "@googleworkspace/cli"
 $GwsAuthServices = "drive,sheets,gmail,calendar,docs,slides,tasks,script"
@@ -147,6 +149,28 @@ function Add-UserPathEntry {
     }
 }
 
+function Prepend-ProcessPathEntry {
+    param($entry)
+    if (-not $entry) {
+        return
+    }
+    $env:Path = "$entry;$env:Path"
+}
+
+function Get-NpmCommand {
+    $cmd = Get-Command npm.cmd -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($cmd) {
+        return $cmd.Source
+    }
+
+    $cmd = Get-Command npm -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($cmd) {
+        return $cmd.Source
+    }
+
+    return $null
+}
+
 function Test-DirectoryWritable {
     param($path)
     if (-not $path) {
@@ -168,7 +192,12 @@ function Test-DirectoryWritable {
 }
 
 function Use-UserNpmPrefixIfNeeded {
-    $globalRoot = (& npm root -g 2>$null | Select-Object -First 1)
+    $npmCommand = Get-NpmCommand
+    if (-not $npmCommand) {
+        return
+    }
+
+    $globalRoot = (& $npmCommand root -g 2>$null | Select-Object -First 1)
     if ($globalRoot -and (Test-DirectoryWritable $globalRoot)) {
         return
     }
@@ -180,6 +209,20 @@ function Use-UserNpmPrefixIfNeeded {
     Write-Info "Using user npm prefix: $NpmUserPrefix"
 }
 
+function Get-NpmGlobalBinDir {
+    $npmCommand = Get-NpmCommand
+    if (-not $npmCommand) {
+        return $null
+    }
+
+    $prefix = (& $npmCommand prefix -g 2>$null | Select-Object -First 1)
+    if (($LASTEXITCODE -ne 0) -or (-not $prefix)) {
+        return $null
+    }
+
+    return $prefix.Trim()
+}
+
 function Install-NpmCli {
     param(
         [string]$label,
@@ -187,13 +230,15 @@ function Install-NpmCli {
         [string]$commandName
     )
 
-    if (-not (Test-Command npm)) {
+    $npmCommand = Get-NpmCommand
+    if (-not $npmCommand) {
         Write-Warn "npm was not found. Restart PowerShell, then run:"
         Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $packageName"
-        return
+        return $false
     }
 
-    if (Test-Command $commandName) {
+    $existingCommand = Get-Command $commandName -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($existingCommand) {
         Write-Info "Updating $label..."
     } else {
         Write-Info "Installing $label globally..."
@@ -201,19 +246,95 @@ function Install-NpmCli {
 
     try {
         Use-UserNpmPrefixIfNeeded
-        Invoke-NativeOrThrow "$label npm install -g" {
-            npm install -g $packageName
+        $npmBinDir = Get-NpmGlobalBinDir
+        if ($npmBinDir) {
+            Add-UserPathEntry $npmBinDir
+            Prepend-ProcessPathEntry $npmBinDir
         }
-        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+
+        Invoke-NativeOrThrow "$label npm install -g" {
+            & $npmCommand install -g $packageName
+        }
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($command) {
             Write-Ok "$label installed: $($command.Source)"
-        } else {
-            Write-Ok "$label installed"
+            return $true
         }
+
+        if ($npmBinDir) {
+            $cmdShim = Join-Path $npmBinDir "$commandName.cmd"
+            $exeShim = Join-Path $npmBinDir "$commandName.exe"
+            $psShim = Join-Path $npmBinDir "$commandName.ps1"
+            foreach ($candidate in @($cmdShim, $exeShim, $psShim)) {
+                if (Test-Path $candidate) {
+                    Write-Ok "$label installed: $candidate"
+                    return $true
+                }
+            }
+        }
+
+        Write-Warn "$label was installed by npm, but $commandName is not visible on PATH."
+        if ($npmBinDir) {
+            Write-Warn "Add npm global bin to PATH: $npmBinDir"
+        }
+        return $false
     } catch {
-        Write-Warn "$label install failed. Run this later:"
-        Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $packageName"
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($command) {
+            Write-Warn "$label update failed, but the existing command is usable: $($command.Source)"
+            return $true
+        } else {
+            Write-Warn "$label install failed. Run this later:"
+            Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $packageName"
+            return $false
+        }
     }
+}
+
+function Test-CodexCli {
+    $command = Get-Command codex -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $command) {
+        return $false
+    }
+
+    $versionOutput = & $command.Source --version 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $versionText = ($versionOutput | Out-String).Trim()
+        $versionSuffix = if ($versionText) { " ($versionText)" } else { "" }
+        Write-Ok "Codex CLI usable: $($command.Source)$versionSuffix"
+        return $true
+    }
+
+    Write-Warn "codex --version failed: $($command.Source)"
+    return $false
+}
+
+function Install-CodexCli {
+    Add-UserPathEntry $CodexStandaloneBinDir
+    Prepend-ProcessPathEntry $CodexStandaloneBinDir
+
+    if (Get-Command codex -ErrorAction SilentlyContinue) {
+        Write-Info "Updating Codex CLI with the official standalone installer..."
+    } else {
+        Write-Info "Installing Codex CLI with the official standalone installer..."
+    }
+
+    try {
+        Invoke-NativeOrThrow "Codex standalone install" {
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "irm '$CodexWindowsInstallerUrl' | iex"
+        }
+        Refresh-ProcessPath
+        Add-UserPathEntry $CodexStandaloneBinDir
+        Prepend-ProcessPathEntry $CodexStandaloneBinDir
+        if (Test-CodexCli) {
+            return $true
+        }
+        Write-Warn "Codex standalone installer completed, but codex is not visible on PATH."
+    } catch {
+        Write-Warn "Codex standalone installer failed. Falling back to npm."
+    }
+
+    return (Install-NpmCli "Codex CLI" $CodexNpmPackage "codex")
 }
 
 function Get-PythonUserScriptsDir {
@@ -292,12 +413,12 @@ function Resolve-NodeAndNpmCommand {
     )
 
     $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
-    $npmCommand = Get-Command npm -ErrorAction SilentlyContinue
+    $npmCommand = Get-NpmCommand
 
     if ($nodeCommand -and $npmCommand) {
         return [PSCustomObject]@{
             Node = $nodeCommand.Source
-            Npm = $npmCommand.Source
+            Npm = $npmCommand
         }
     }
 
@@ -437,6 +558,42 @@ function Configure-GitIdentity {
     Write-Ok "Git user configured for this repository: $gitName <$gitEmail>"
 }
 
+function Test-GhAuthStatus {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & gh auth status --hostname github.com 1>$null 2>$null
+        return ($LASTEXITCODE -eq 0)
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
+function Ensure-GhAuth {
+    if (Test-GhAuthStatus) {
+        Write-Ok "GitHub CLI (gh) authenticated"
+    } else {
+        Write-Info "Starting GitHub CLI (gh) auth. Log in from the browser..."
+        Invoke-NativeOrThrow "gh auth login" {
+            & gh auth login --hostname github.com --git-protocol https --web
+        }
+        if (Test-GhAuthStatus) {
+            Write-Ok "GitHub CLI (gh) auth complete"
+        } else {
+            Write-Err "GitHub CLI (gh) auth could not be verified. Run: gh auth status --hostname github.com"
+        }
+    }
+
+    try {
+        Invoke-NativeOrThrow "gh auth setup-git" {
+            & gh auth setup-git --hostname github.com | Out-Null
+        }
+        Write-Ok "GitHub CLI configured as the Git credential helper"
+    } catch {
+        Write-Warn "GitHub CLI credential helper setup failed. Run later: gh auth setup-git --hostname github.com"
+    }
+}
+
 function Invoke-GwsAuthStatus {
     $output = & gws auth status 2>&1
     return [PSCustomObject]@{
@@ -488,7 +645,7 @@ function Ensure-GwsMcpFileAuth {
 
 function Ensure-GwsAuth {
     Write-Step "10a. Google Workspace CLI / MCP auth"
-    Install-NpmCli "Google Workspace CLI (gws)" $GwsNpmPackage "gws"
+    [void](Install-NpmCli "Google Workspace CLI (gws)" $GwsNpmPackage "gws")
 
     if (-not (Test-Command gws)) {
         Write-Warn "gws command was not found. Restart PowerShell, then run:"
@@ -600,14 +757,7 @@ if (-not (Confirm-YesNo "GitHub の招待メールを承認済みですか？" "
     Write-Err "Accept the invite first. Ask sho if unclear."
 }
 
-$authStatus = gh auth status 2>&1
-if ($LASTEXITCODE -eq 0) {
-    Write-Ok "GitHub CLI (gh) authenticated"
-} else {
-    Write-Info "Starting GitHub CLI (gh) auth. Log in from the browser..."
-    & gh auth login --web -h github.com -p https -w
-    Write-Ok "GitHub CLI (gh) auth complete"
-}
+Ensure-GhAuth
 
 Write-Info "Setting remote repository URL..."
 & git remote set-url origin https://github.com/Shoma-DS/team-info.git
@@ -746,6 +896,10 @@ if ($NvmExe) {
 
     $nodeAndNpm = Resolve-NodeAndNpmCommand -nvmExe $NvmExe -nodeVersion $NodeVersion -nodeSymlink $NodeSymlink
     if ($nodeAndNpm) {
+        $npmDir = Split-Path -Parent $nodeAndNpm.Npm
+        if ($npmDir -and ($env:Path -notlike "*$npmDir*")) {
+            $env:Path = "$npmDir;$env:Path"
+        }
         $nodeVersionText = (& $nodeAndNpm.Node --version 2>$null | Select-Object -First 1)
         $npmVersionText = (& $nodeAndNpm.Npm --version 2>$null | Select-Object -First 1)
         if ($nodeVersionText -and $npmVersionText) {
@@ -762,7 +916,9 @@ if ($NvmExe) {
 
 # 9. Codex CLI
 Write-Step "9. Codex CLI"
-Install-NpmCli "Codex CLI" $CodexNpmPackage "codex"
+if (-not (Install-CodexCli)) {
+    Write-Warn "Codex CLI is not usable yet. Check the npm / PATH messages above."
+}
 
 # 9b. Codex custom prompts
 Write-Step "9b. Codex custom prompts"
@@ -780,7 +936,9 @@ if (Test-Path $CodexPromptsScript) {
 
 # 10. Freebuff CLI
 Write-Step "10. Freebuff CLI (free AI agent)"
-Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff"
+if (-not (Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff")) {
+    Write-Warn "Freebuff CLI is not usable yet. Install it manually later if needed."
+}
 
 Ensure-GwsAuth
 

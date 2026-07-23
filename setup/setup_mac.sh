@@ -40,6 +40,7 @@ TEAM_INFO_ENV_FILE="$TEAM_INFO_ENV_DIR/env.sh"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 TEAM_INFO_LAUNCH_AGENT_PLIST="$LAUNCH_AGENTS_DIR/com.team-info.env.plist"
 CODEX_NPM_PACKAGE="@openai/codex"
+CODEX_STANDALONE_INSTALLER_URL="https://chatgpt.com/codex/install.sh"
 FREEBUFF_NPM_PACKAGE="freebuff"
 GWS_NPM_PACKAGE="@googleworkspace/cli"
 GWS_AUTH_SERVICES="drive,sheets,gmail,calendar,docs,slides,tasks,script"
@@ -186,6 +187,19 @@ ensure_path_entry() {
   esac
 }
 
+prepend_path_entry() {
+  local entry="$1"
+  [[ -n "$entry" ]] || return
+  export PATH="$entry:$PATH"
+}
+
+get_npm_global_bin_dir() {
+  local prefix
+  prefix="$(npm prefix -g 2>/dev/null || true)"
+  [[ -n "$prefix" ]] || return 1
+  printf '%s/bin\n' "$prefix"
+}
+
 ensure_npm_global_install_target() {
   local global_root
 
@@ -204,29 +218,91 @@ install_npm_cli() {
   local label="$1"
   local package_name="$2"
   local command_name="$3"
-  local installed_path
+  local installed_path existing_path npm_bin_dir
 
   if ! command -v npm &>/dev/null; then
     warn "npm が見つかりません。ターミナル再起動後に手動で実行してください:"
     warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX\" npm install -g $package_name"
-    return
+    return 1
   fi
 
-  if command -v "$command_name" &>/dev/null; then
+  existing_path="$(command -v "$command_name" 2>/dev/null || true)"
+  if [[ -n "$existing_path" ]]; then
     info "$label を更新します..."
   else
     info "$label をグローバルに入れます..."
   fi
 
   ensure_npm_global_install_target
+  npm_bin_dir="$(get_npm_global_bin_dir || true)"
+  if [[ -n "$npm_bin_dir" ]]; then
+    prepend_path_entry "$npm_bin_dir"
+  fi
+
   if npm install -g "$package_name"; then
     hash -r 2>/dev/null || true
     installed_path="$(command -v "$command_name" 2>/dev/null || true)"
-    success "$label インストール完了: ${installed_path:-path unknown}"
+    if [[ -z "$installed_path" && -n "$npm_bin_dir" && -x "$npm_bin_dir/$command_name" ]]; then
+      prepend_path_entry "$npm_bin_dir"
+      hash -r 2>/dev/null || true
+      installed_path="$(command -v "$command_name" 2>/dev/null || true)"
+    fi
+    if [[ -n "$installed_path" ]]; then
+      success "$label インストール完了: $installed_path"
+      return 0
+    fi
+    warn "$label は npm install 済みですが、現在の PATH から $command_name が見つかりません。"
+    [[ -n "$npm_bin_dir" ]] && warn "npm global bin を PATH に追加してください: $npm_bin_dir"
+    return 1
   else
+    installed_path="$(command -v "$command_name" 2>/dev/null || true)"
+    if [[ -n "$installed_path" ]]; then
+      warn "$label の更新に失敗しましたが、既存コマンドは利用できます: $installed_path"
+      return 0
+    fi
     warn "$label のインストールに失敗しました。あとで次を実行してください:"
     warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX\" npm install -g $package_name"
+    return 1
   fi
+}
+
+verify_codex_cli() {
+  local installed_path version_output version_line
+
+  installed_path="$(command -v codex 2>/dev/null || true)"
+  [[ -n "$installed_path" ]] || return 1
+
+  if version_output="$(codex --version 2>&1)"; then
+    version_line="$(printf '%s\n' "$version_output" | tail -n 1)"
+    success "Codex CLI 利用可能: $installed_path (${version_line:-version unknown})"
+    return 0
+  fi
+
+  warn "codex --version の実行に失敗しました: $installed_path"
+  return 1
+}
+
+install_codex_cli() {
+  prepend_path_entry "$HOME/.local/bin"
+
+  if command -v codex &>/dev/null; then
+    info "Codex CLI を公式 standalone installer で更新します..."
+  else
+    info "Codex CLI を公式 standalone installer で入れます..."
+  fi
+
+  if curl -fsSL "$CODEX_STANDALONE_INSTALLER_URL" | sh; then
+    hash -r 2>/dev/null || true
+    prepend_path_entry "$HOME/.local/bin"
+    if verify_codex_cli; then
+      return 0
+    fi
+    warn "standalone installer は完了しましたが、codex が PATH から確認できません。"
+  else
+    warn "Codex CLI standalone installer に失敗しました。npm fallback を試します。"
+  fi
+
+  install_npm_cli "Codex CLI" "$CODEX_NPM_PACKAGE" "codex"
 }
 
 get_python_user_bin() {
@@ -330,6 +406,30 @@ configure_git_identity() {
   success "このリポジトリの Git user を設定しました: $git_name <$git_email>"
 }
 
+gh_auth_status_ok() {
+  gh auth status --hostname github.com >/dev/null 2>&1
+}
+
+ensure_github_auth() {
+  if gh_auth_status_ok; then
+    success "GitHub CLI (gh) 認証済み"
+  else
+    info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
+    gh auth login --hostname github.com --git-protocol https --web
+    if gh_auth_status_ok; then
+      success "GitHub CLI (gh) 認証完了"
+    else
+      error "GitHub CLI (gh) の認証確認に失敗しました。'gh auth status --hostname github.com' を確認してください。"
+    fi
+  fi
+
+  if gh auth setup-git --hostname github.com >/dev/null 2>&1; then
+    success "GitHub CLI を Git の credential helper に設定しました"
+  else
+    warn "GitHub CLI の Git credential helper 設定に失敗しました。必要なら手動で 'gh auth setup-git --hostname github.com' を実行してください。"
+  fi
+}
+
 gws_auth_has_recommended_scopes() {
   local status_text="$1"
   local marker
@@ -374,7 +474,7 @@ ensure_gws_auth() {
   local auth_status
 
   step "10a. Google Workspace CLI / MCP 認証"
-  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws"
+  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws" || true
 
   if ! command -v gws &>/dev/null; then
     warn "gws コマンドが見つかりません。ターミナル再起動後に手動で実行してください:"
@@ -479,13 +579,7 @@ if ! ask_yes_no "招待メールを承認済みですか？" no; then
   error "先に招待を承認してください。不明な場合は sho に確認してください。"
 fi
 
-if gh auth status &>/dev/null; then
-  success "GitHub CLI (gh) 認証済み"
-else
-  info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
-  gh auth login --web -h github.com -p https -w
-  success "GitHub CLI (gh) 認証完了"
-fi
+ensure_github_auth
 
 info "リモートリポジトリの URL を設定します..."
 git remote set-url origin https://github.com/Shoma-DS/team-info.git
@@ -570,7 +664,9 @@ info "Node.js: $(node --version), npm: $(npm --version)"
 
 # ── 9. Codex CLI ───────────────────────────────────────────────────────────────
 step "9. Codex CLI"
-install_npm_cli "Codex CLI" "$CODEX_NPM_PACKAGE" "codex"
+if ! install_codex_cli; then
+  warn "Codex CLI が使える状態になっていません。上の npm / PATH メッセージを確認してください。"
+fi
 
 # ── 9b. Codex custom prompts ──────────────────────────────────────────────────
 step "9b. Codex custom prompts"
@@ -587,7 +683,9 @@ fi
 
 # ── 10. Freebuff CLI ───────────────────────────────────────────────────────────
 step "10. Freebuff CLI (無料AIエージェント)"
-install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"
+if ! install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"; then
+  warn "Freebuff CLI が使える状態になっていません。必要ならあとで手動インストールしてください。"
+fi
 
 ensure_gws_auth
 
