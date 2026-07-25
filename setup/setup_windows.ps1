@@ -594,6 +594,26 @@ function Ensure-GhAuth {
     }
 }
 
+function Test-GitHubRepoAccess {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & git -C $TeamInfoRoot ls-remote --exit-code origin HEAD 1>$null 2>$null
+        return ($LASTEXITCODE -eq 0)
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
+function Ensure-GitHubRepoAccess {
+    if (Test-GitHubRepoAccess) {
+        Write-Ok "GitHub repository access verified"
+        return
+    }
+
+    Write-Err "Cannot access https://github.com/Shoma-DS/team-info.git. Accept the GitHub invite, then rerun setup. Ask sho if unclear."
+}
+
 function Invoke-GwsAuthStatus {
     $output = & gws auth status 2>&1
     return [PSCustomObject]@{
@@ -752,16 +772,12 @@ if (Test-Command gh) {
     Install-WithWinget "GitHub.cli" "GitHub CLI (gh)"
 }
 
-Write-Warn "The GitHub invite must already be accepted."
-if (-not (Confirm-YesNo "GitHub の招待メールを承認済みですか？" "No")) {
-    Write-Err "Accept the invite first. Ask sho if unclear."
-}
-
 Ensure-GhAuth
 
 Write-Info "Setting remote repository URL..."
-& git remote set-url origin https://github.com/Shoma-DS/team-info.git
+& git -C $TeamInfoRoot remote set-url origin https://github.com/Shoma-DS/team-info.git
 Write-Ok "Remote URL set: https://github.com/Shoma-DS/team-info.git"
+Ensure-GitHubRepoAccess
 
 # 4. Python
 Write-Step "4. Python $PythonVersion"

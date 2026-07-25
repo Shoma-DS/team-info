@@ -465,6 +465,18 @@ ensure_github_auth() {
   fi
 }
 
+github_repo_access_ok() {
+  git -C "$TEAM_INFO_ROOT_POSIX" ls-remote --exit-code origin HEAD >/dev/null 2>&1
+}
+
+ensure_github_repo_access() {
+  if github_repo_access_ok; then
+    success "GitHub リポジトリアクセス確認完了"
+  else
+    error "https://github.com/Shoma-DS/team-info.git にアクセスできません。GitHub の招待を承認してから setup を再実行してください。不明な場合は sho に確認してください。"
+  fi
+}
+
 gws_auth_has_recommended_scopes() {
   local status_text="$1"
   local marker
@@ -633,15 +645,11 @@ else
   install_with_winget "GitHub.cli" "GitHub CLI (gh)"
 fi
 
-warn "GitHub の招待メールを承認済みである必要があります。"
-if ! ask_yes_no "GitHub の招待メールを承認済みですか？" no; then
-  error "先に招待を承認してください。不明な場合は sho に確認してください。"
-fi
-
 ensure_github_auth
 
 git -C "$TEAM_INFO_ROOT_POSIX" remote set-url origin https://github.com/Shoma-DS/team-info.git
 success "Remote URL set: https://github.com/Shoma-DS/team-info.git"
+ensure_github_repo_access
 
 step "4. pyenv-win + Python $PYTHON_VERSION"
 if [[ ! -d "$PYENV_POSIX" ]]; then
