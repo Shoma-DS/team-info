@@ -78,8 +78,6 @@ $CodexStandaloneBinDir = Join-Path $env:LOCALAPPDATA "Programs\OpenAI\Codex\bin"
 $FreebuffNpmPackage = "freebuff"
 $GwsNpmPackage = "@googleworkspace/cli"
 $GwsAuthServices = "drive,sheets,gmail,calendar,docs,slides,tasks,script"
-$GwsConfigDir = Join-Path $env:USERPROFILE ".config\gws"
-$GwsFileCredentials = Join-Path $GwsConfigDir "credentials.json"
 $GwsRecommendedScopeMarkers = @(
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -570,18 +568,31 @@ function Test-GhAuthStatus {
 }
 
 function Ensure-GhAuth {
-    if (Test-GhAuthStatus) {
-        Write-Ok "GitHub CLI (gh) authenticated"
-    } else {
-        Write-Info "Starting GitHub CLI (gh) auth. Log in from the browser..."
-        Invoke-NativeOrThrow "gh auth login" {
-            & gh auth login --hostname github.com --git-protocol https --web
+    $maxAttempts = 3
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        if (Test-GhAuthStatus) {
+            Write-Ok "GitHub CLI (gh) authenticated"
+            break
         }
+
+        Write-Info "Starting GitHub CLI (gh) auth (attempt $attempt/$maxAttempts). Log in from the browser..."
+        try {
+            Invoke-NativeOrThrow "gh auth login" {
+                & gh auth login --hostname github.com --git-protocol https --web
+            }
+        } catch {
+            Write-Warn "gh auth login failed: $($_.Exception.Message)"
+        }
+
         if (Test-GhAuthStatus) {
             Write-Ok "GitHub CLI (gh) auth complete"
-        } else {
+            break
+        }
+
+        if ($attempt -eq $maxAttempts) {
             Write-Err "GitHub CLI (gh) auth could not be verified. Run: gh auth status --hostname github.com"
         }
+        Write-Warn "GitHub CLI (gh) auth could not be verified. Trying login again."
     }
 
     try {
@@ -606,12 +617,31 @@ function Test-GitHubRepoAccess {
 }
 
 function Ensure-GitHubRepoAccess {
-    if (Test-GitHubRepoAccess) {
-        Write-Ok "GitHub repository access verified"
-        return
-    }
+    $maxAttempts = 3
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        if (Test-GitHubRepoAccess) {
+            Write-Ok "GitHub repository access verified"
+            return
+        }
 
-    Write-Err "Cannot access https://github.com/Shoma-DS/team-info.git. Accept the GitHub invite, then rerun setup. Ask sho if unclear."
+        Write-Warn "Cannot access https://github.com/Shoma-DS/team-info.git. The GitHub invite may not be accepted yet, or auth may be stale."
+        if ($attempt -eq $maxAttempts) {
+            Write-Err "Cannot access https://github.com/Shoma-DS/team-info.git. Accept the GitHub invite, then rerun setup. Ask sho if unclear."
+        }
+
+        if (Confirm-YesNo "GitHub の招待承認状況を確認し、gh auth login をやり直して再試行しますか？" "Yes") {
+            try {
+                Invoke-NativeOrThrow "gh auth login" {
+                    & gh auth login --hostname github.com --git-protocol https --web
+                }
+                & gh auth setup-git --hostname github.com | Out-Null
+            } catch {
+                Write-Warn "gh auth login failed: $($_.Exception.Message)"
+            }
+        } else {
+            Write-Err "Cannot access https://github.com/Shoma-DS/team-info.git. Accept the GitHub invite, then rerun setup. Ask sho if unclear."
+        }
+    }
 }
 
 function Invoke-GwsAuthStatus {
@@ -640,31 +670,8 @@ function Invoke-GwsAuthLogin {
     return ($LASTEXITCODE -eq 0)
 }
 
-function Ensure-GwsMcpFileAuth {
-    if (-not (Test-Command gws)) {
-        return
-    }
-
-    New-Item -ItemType Directory -Force -Path $GwsConfigDir | Out-Null
-    $tmpFile = New-TemporaryFile
-    try {
-        & gws auth export --unmasked 2>$null | Set-Content -Path $tmpFile -Encoding UTF8
-        $content = Get-Content -Path $tmpFile -Raw -Encoding UTF8
-        if ($LASTEXITCODE -eq 0 -and $content -match '"refresh_token"') {
-            Copy-Item -Force -Path $tmpFile -Destination $GwsFileCredentials
-            Set-UserEnvVar "GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND" "file"
-            $env:GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND = "file"
-            Write-Ok "GWS MCP file backend auth saved: $GwsFileCredentials"
-        } else {
-            Write-Warn "GWS MCP auth file could not be created. Run later: gws auth export --unmasked > `"$GwsFileCredentials`""
-        }
-    } finally {
-        Remove-Item -Force -Path $tmpFile -ErrorAction SilentlyContinue
-    }
-}
-
 function Ensure-GwsAuth {
-    Write-Step "10a. Google Workspace CLI / MCP auth"
+    Write-Step "10a. Google Workspace CLI auth"
     [void](Install-NpmCli "Google Workspace CLI (gws)" $GwsNpmPackage "gws")
 
     if (-not (Test-Command gws)) {
@@ -677,15 +684,13 @@ function Ensure-GwsAuth {
     $status = Invoke-GwsAuthStatus
     if (($status.ExitCode -eq 0) -and ($status.Text -match '"token_valid"\s*:\s*true')) {
         Write-Ok "GWS CLI is authenticated"
-        Ensure-GwsMcpFileAuth
         if (Test-GwsRecommendedScopes $status.Text) {
-            Write-Ok "GWS MCP / CLI recommended scopes found"
+            Write-Ok "GWS CLI recommended scopes found"
         } else {
-            Write-Warn "GWS MCP / CLI recommended scopes may be incomplete."
+            Write-Warn "GWS CLI recommended scopes may be incomplete."
             if (Confirm-YesNo "Google Workspace を主要サービス用スコープで再認証しますか？" "Yes") {
                 if (Invoke-GwsAuthLogin) {
                     Write-Ok "GWS CLI auth refreshed"
-                    Ensure-GwsMcpFileAuth
                 } else {
                     Write-Warn "GWS CLI auth refresh failed. Run later: gws auth login -s $GwsAuthServices"
                 }
@@ -695,11 +700,10 @@ function Ensure-GwsAuth {
     }
 
     Write-Warn "GWS CLI is not authenticated or auth status could not be checked."
-    Write-Warn "GWS MCP / CLI uses this auth for Google Drive, Sheets, Calendar, and related services."
+    Write-Warn "GWS CLI uses this auth for Google Drive, Sheets, Calendar, and related services."
     if (Confirm-YesNo "Google Workspace のブラウザ認証を今すぐ行いますか？" "Yes") {
         if ((Invoke-GwsAuthLogin) -and ((Invoke-GwsAuthStatus).ExitCode -eq 0)) {
             Write-Ok "GWS CLI auth complete"
-            Ensure-GwsMcpFileAuth
         } else {
             Write-Warn "GWS CLI auth could not be verified. Run later: gws auth login -s $GwsAuthServices"
         }
@@ -1056,7 +1060,7 @@ Write-Host "Next steps:"
 Write-Host "  - Restart PowerShell to reload PATH and setup / x-post / remotion / renda."
 Write-Host "  - Use pwsh for Windows work when Japanese or UTF-8 text is involved."
 Write-Host "  - To use a free AI agent, run freebuff in the repo."
-Write-Host "  - If GWS MCP / CLI is not authenticated, run: gws auth login -s $GwsAuthServices"
+Write-Host "  - If GWS CLI is not authenticated, run: gws auth login -s $GwsAuthServices"
 Write-Host "  - Remotion prepares Docker runtime on first relevant use."
 Write-Host "  - Agent Reach bootstraps on first use."
 Write-Host "  - Run /claudian when Claudian is needed."

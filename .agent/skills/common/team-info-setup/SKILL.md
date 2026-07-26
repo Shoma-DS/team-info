@@ -27,7 +27,7 @@ description: team-info の初回セットアップや再セットアップを始
 2. 結果が `new` のときは、最初に `マニュアル/まずはこちらをお読みください.md` を読み、その流れに沿って案内する。
 3. 結果が `known` のときは、そのパソコンは既に一度 `team-info` を触った前提で扱う。ユーザーがやり直しを望むなら、そのまま setup を進めてよい。
 4. フルセットアップの入口は常に OS 別 setup (`setup/setup_mac.sh` / `setup/setup_windows.ps1` / `setup/setup_git_bash.sh`) とする。
-   - 途中で **GitHub 招待の承認確認**、**GitHub CLI (gh) の認証**、**GWS CLI / MCP 用の Google Workspace 認証** が行われる。
+   - 途中で **GitHub 招待の承認確認**、**GitHub CLI (gh) の認証**、**GWS CLI 用の Google Workspace 認証** が行われる。
    - この入口は OS 別 setup の最後に `setup/verify_setup.py` まで走らせる前提で扱う。
    - setup の最後に `検証結果: 成功` と出て、終了コード 0 のときだけ「core setup がそろった」と判断する。
    - setup 本体では Git / Python 3.11 / uv / Node 22 / Codex CLI / `TEAM_INFO_ROOT` までを基本対象とし、Remotion / Agent Reach / Claudian / clone-website などの重い依存はここで全部入れない。
@@ -160,20 +160,16 @@ Windows:
 gh auth login --web
 ```
 
-### GWS CLI / MCP 認証のやり直し
+### GWS CLI 認証のやり直し
 
 セットアップ後に Google Workspace 認証だけをやり直したい場合：
 
 ```bash
 gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
-mkdir -p "$HOME/.config/gws"
-gws auth export --unmasked > "$HOME/.config/gws/credentials.json"
-chmod 600 "$HOME/.config/gws/credentials.json"
 ```
 
-- setup は macOS / Windows PowerShell / Windows Git Bash の全入口で、`gws auth status` 後に MCP 用の `credentials.json` も作る。
-- Windows では `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` をユーザー環境変数へ保存する。
-- macOS / Git Bash では `~/.config/team-info/env.sh` から `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` を読み込む。
+- setup は macOS / Windows PowerShell / Windows Git Bash の全入口で `gws auth status` を確認し、未認証や主要スコープ不足があればブラウザ認証を行う。
+- Google Workspace 連携は GWS CLI 単体で完結し、MCP サーバー向けの追加認証ファイルは作らない。
 
 ## 承認ルール
 - `worked-before-status` の確認やマニュアルの読み込みは、そのまま実行してよい。

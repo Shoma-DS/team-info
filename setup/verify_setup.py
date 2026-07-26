@@ -160,42 +160,10 @@ def _check_gws_auth(failures: list[str], warnings: list[str]) -> None:
 
     missing_markers = [marker for marker in GWS_RECOMMENDED_SCOPE_MARKERS if marker not in status_text]
     if missing_markers:
-        print("[WARN] gws scopes: GWS MCP / CLI の主要スコープが不足している可能性があります")
+        print("[WARN] gws scopes: GWS CLI の主要スコープが不足している可能性があります")
         warnings.append("GWS CLI のスコープが不足する場合は 'gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script' で再認証してください。")
     else:
         print("[OK] gws scopes: 主要スコープ確認済み")
-
-
-def _check_gws_mcp_file_auth(failures: list[str], warnings: list[str]) -> None:
-    _print_heading("Google Workspace MCP 認証ファイル")
-    credentials_file = Path.home() / ".config" / "gws" / "credentials.json"
-
-    if not credentials_file.exists():
-        print(f"[NG] credentials.json: {credentials_file}")
-        failures.append("GWS MCP 用の credentials.json がありません。setup を再実行するか、gws auth export --unmasked で作成してください。")
-        return
-
-    try:
-        status = json.loads(credentials_file.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        print(f"[NG] credentials.json: {credentials_file}")
-        failures.append("GWS MCP 用の credentials.json を JSON として読めません。gws auth login 後に再生成してください。")
-        return
-
-    required_keys = {"client_id", "client_secret", "refresh_token"}
-    missing_keys = sorted(required_keys - set(status))
-    if missing_keys:
-        print(f"[NG] credentials.json: missing {', '.join(missing_keys)}")
-        failures.append("GWS MCP 用の credentials.json に必要な OAuth 情報が足りません。")
-    else:
-        print(f"[OK] credentials.json: {credentials_file}")
-
-    backend = os.environ.get("GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND", "")
-    if backend == "file":
-        print("[OK] GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND: file")
-    else:
-        print(f"[WARN] GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND: {backend or '(empty)'}")
-        warnings.append("GWS MCP 用には GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file を保存してください。")
 
 
 def _check_remote_url(repo_root: Path, failures: list[str]) -> None:
@@ -431,7 +399,6 @@ def main() -> int:
     _check_git_lfs(failures)
     _check_gh_auth(failures)
     _check_gws_auth(failures, warnings)
-    _check_gws_mcp_file_auth(failures, warnings)
     _check_remote_url(repo_root, failures)
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)

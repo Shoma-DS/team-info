@@ -97,38 +97,18 @@ freebuff
 macOS `/usr/local/lib/node_modules` に書き込めない場合、setup は自動で `$HOME/.local` を npm の退避先として使います。
 Windows で npm の global install 先に書き込めない場合、setup は自動で `%USERPROFILE%\.local\npm` を退避先として使います。
 
-## Google Workspace CLI / MCP 認証
+## Google Workspace CLI 認証
 
 setup では `@googleworkspace/cli` を入れ、`gws auth status` を確認します。
-未認証、または GWS MCP / CLI で使う主要サービスのスコープが不足している可能性がある場合は、ブラウザ認証へ進みます。
-認証後は MCP からも同じ資格情報を読めるように、`~/.config/gws/credentials.json` を作り、`GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` を保存します。
+未認証、または GWS CLI で使う主要サービスのスコープが不足している可能性がある場合は、ブラウザ認証へ進みます。
 
 手動でやり直す場合:
 
 ```bash
 gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
-mkdir -p "$HOME/.config/gws"
-gws auth export --unmasked > "$HOME/.config/gws/credentials.json"
-chmod 600 "$HOME/.config/gws/credentials.json"
 ```
 
-Windows:
-
-```powershell
-gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
-$dir = Join-Path $env:USERPROFILE ".config\gws"; New-Item -ItemType Directory -Force -Path $dir | Out-Null
-gws auth export --unmasked | Set-Content -Path (Join-Path $dir "credentials.json") -Encoding UTF8
-[Environment]::SetEnvironmentVariable("GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND", "file", "User")
-```
-
-Windows Git Bash:
-
-```bash
-gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
-mkdir -p "$HOME/.config/gws"
-gws auth export --unmasked > "$HOME/.config/gws/credentials.json"
-chmod 600 "$HOME/.config/gws/credentials.json"
-```
+Windows / Windows Git Bash も同じコマンドです。
 
 ## Headroom token compression proxy
 
@@ -213,7 +193,6 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/shared-agent-assets/s
 
 - `node`, `npm`, `codex`, `freebuff`, `gh`
 - `gws` と `gws auth status`
-- GWS MCP 用の `~/.config/gws/credentials.json`
 - `rclone`
 - Windows では `pwsh`, `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`
 - `git lfs`

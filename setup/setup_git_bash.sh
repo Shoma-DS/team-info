@@ -83,9 +83,6 @@ LOCALAPPDATA_POSIX="$(cygpath -u "$LOCALAPPDATA_WIN")"
 PROGRAMFILES_POSIX="$(cygpath -u "$PROGRAMFILES_WIN")"
 NPM_USER_PREFIX_WIN="$USERPROFILE_WIN\\.local\\npm"
 NPM_USER_PREFIX_POSIX="$USERPROFILE_POSIX/.local/npm"
-GWS_CONFIG_DIR_POSIX="$USERPROFILE_POSIX/.config/gws"
-GWS_FILE_CREDENTIALS_POSIX="$GWS_CONFIG_DIR_POSIX/credentials.json"
-GWS_FILE_CREDENTIALS_WIN="$USERPROFILE_WIN\\.config\\gws\\credentials.json"
 PYENV_WIN="$USERPROFILE_WIN\\.pyenv\\pyenv-win"
 PYENV_POSIX="$USERPROFILE_POSIX/.pyenv/pyenv-win"
 PYTHON311_POSIX="$PYENV_POSIX/versions/$PYTHON_VERSION/python.exe"
@@ -446,17 +443,29 @@ gh_auth_status_ok() {
 }
 
 ensure_github_auth() {
-  if gh_auth_status_ok; then
-    success "GitHub CLI (gh) 認証済み"
-  else
-    info "GitHub CLI (gh) の認証を開始します。ブラウザでログインしてください..."
-    gh auth login --hostname github.com --git-protocol https --web
+  local attempt=1
+  local max_attempts=3
+
+  while (( attempt <= max_attempts )); do
+    if gh_auth_status_ok; then
+      success "GitHub CLI (gh) 認証済み"
+      break
+    fi
+
+    info "GitHub CLI (gh) の認証を開始します（試行 $attempt/$max_attempts）。ブラウザでログインしてください..."
+    gh auth login --hostname github.com --git-protocol https --web || true
+
     if gh_auth_status_ok; then
       success "GitHub CLI (gh) 認証完了"
-    else
+      break
+    fi
+
+    if (( attempt == max_attempts )); then
       error "GitHub CLI (gh) の認証確認に失敗しました。'gh auth status --hostname github.com' を確認してください。"
     fi
-  fi
+    warn "GitHub CLI (gh) の認証を確認できませんでした。もう一度ログインを試します。"
+    attempt=$((attempt + 1))
+  done
 
   if gh auth setup-git --hostname github.com >/dev/null 2>&1; then
     success "GitHub CLI を Git の credential helper に設定しました"
@@ -470,11 +479,28 @@ github_repo_access_ok() {
 }
 
 ensure_github_repo_access() {
-  if github_repo_access_ok; then
-    success "GitHub リポジトリアクセス確認完了"
-  else
-    error "https://github.com/Shoma-DS/team-info.git にアクセスできません。GitHub の招待を承認してから setup を再実行してください。不明な場合は sho に確認してください。"
-  fi
+  local attempt=1
+  local max_attempts=3
+
+  while (( attempt <= max_attempts )); do
+    if github_repo_access_ok; then
+      success "GitHub リポジトリアクセス確認完了"
+      return
+    fi
+
+    warn "https://github.com/Shoma-DS/team-info.git にアクセスできません。GitHub の招待を承認していない、または認証が古い可能性があります。"
+    if (( attempt == max_attempts )); then
+      error "https://github.com/Shoma-DS/team-info.git にアクセスできません。GitHub の招待を承認してから setup を再実行してください。不明な場合は sho に確認してください。"
+    fi
+
+    if ask_yes_no "GitHub の招待承認状況を確認し、gh auth login をやり直して再試行しますか？" yes; then
+      gh auth login --hostname github.com --git-protocol https --web || true
+      gh auth setup-git --hostname github.com >/dev/null 2>&1 || true
+    else
+      error "https://github.com/Shoma-DS/team-info.git にアクセスできません。GitHub の招待を承認してから setup を再実行してください。不明な場合は sho に確認してください。"
+    fi
+    attempt=$((attempt + 1))
+  done
 }
 
 gws_auth_has_recommended_scopes() {
@@ -493,32 +519,9 @@ run_gws_auth_login() {
   gws auth login -s "$GWS_AUTH_SERVICES"
 }
 
-ensure_gws_mcp_file_auth() {
-  local tmp_credentials
-
-  if ! command_exists gws; then
-    return
-  fi
-
-  mkdir -p "$GWS_CONFIG_DIR_POSIX"
-  chmod 700 "$GWS_CONFIG_DIR_POSIX" 2>/dev/null || true
-  tmp_credentials="$(mktemp)"
-
-  if gws auth export --unmasked >"$tmp_credentials" 2>/dev/null && grep -Fq '"refresh_token"' "$tmp_credentials"; then
-    install -m 600 "$tmp_credentials" "$GWS_FILE_CREDENTIALS_POSIX"
-    export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file
-    set_windows_user_env "GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND" "file"
-    success "GWS MCP 用の file backend 認証を保存しました: $GWS_FILE_CREDENTIALS_WIN"
-  else
-    warn "GWS MCP 用の認証ファイル作成に失敗しました。あとで 'gws auth export --unmasked > \"$GWS_FILE_CREDENTIALS_WIN\"' を実行してください。"
-  fi
-
-  rm -f "$tmp_credentials"
-}
-
 ensure_gws_auth() {
   local auth_status
-  step "10a. Google Workspace CLI / MCP 認証"
+  step "10a. Google Workspace CLI 認証"
   install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws" || true
 
   if ! command_exists gws; then
@@ -531,14 +534,13 @@ ensure_gws_auth() {
   if auth_status="$(gws auth status 2>&1)"; then
     if grep -Fq '"token_valid": true' <<<"$auth_status"; then
       success "GWS CLI は認証済みです"
-      ensure_gws_mcp_file_auth
       if gws_auth_has_recommended_scopes "$auth_status"; then
-        success "GWS MCP / CLI で使う主要スコープを確認しました"
+        success "GWS CLI で使う主要スコープを確認しました"
       else
-        warn "GWS MCP / CLI で使う主要スコープが不足している可能性があります。"
+        warn "GWS CLI で使う主要スコープが不足している可能性があります。"
         if ask_yes_no "Google Workspace を主要サービス用スコープで再認証しますか？" yes; then
           if run_gws_auth_login; then
-            ensure_gws_mcp_file_auth
+            success "GWS CLI 認証を更新しました"
           else
             warn "GWS CLI 認証の更新に失敗しました。"
           fi
@@ -552,7 +554,6 @@ ensure_gws_auth() {
   if ask_yes_no "Google Workspace のブラウザ認証を今すぐ行いますか？" yes; then
     if run_gws_auth_login && gws auth status >/dev/null 2>&1; then
       success "GWS CLI 認証完了"
-      ensure_gws_mcp_file_auth
     else
       warn "GWS CLI 認証を確認できませんでした。あとで手動実行してください: gws auth login -s $GWS_AUTH_SERVICES"
     fi
@@ -565,7 +566,6 @@ write_git_bash_env_file() {
   mkdir -p "$TEAM_INFO_ENV_DIR"
   cat > "$TEAM_INFO_ENV_FILE" <<EOF
 export TEAM_INFO_ROOT="$TEAM_INFO_ROOT_POSIX"
-export GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND="file"
 
 case ":\$PATH:" in
   *":$NPM_USER_PREFIX_POSIX:"*) ;;
@@ -836,7 +836,7 @@ echo ""
 echo "Next steps:"
 echo "  - Git Bash を開き直して PATH と alias を読み直してください"
 echo "  - setup / x-post / remotion / remodex / renda は Git Bash でも使えます"
-echo "  - GWS MCP / CLI が未認証なら gws auth login -s $GWS_AUTH_SERVICES を実行してください"
+echo "  - GWS CLI が未認証なら gws auth login -s $GWS_AUTH_SERVICES を実行してください"
 echo "  - Windows の日本語/UTF-8 作業では pwsh も利用できます"
 echo ""
 
