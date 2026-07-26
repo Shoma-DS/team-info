@@ -824,7 +824,19 @@ fi
 
 echo ""
 if [[ "$VERIFY_STATUS" -eq 0 ]]; then
-  echo -e "${GREEN}${BOLD}Setup completed${RESET}"
+  echo -e "${GREEN}${BOLD}"
+  echo "*******************************************************"
+  echo ""
+  echo "  ####   ###   #   #  ####   #      #####  #####  #####"
+  echo " #      #   #  ## ##  #   #  #      #        #    #    "
+  echo " #      #   #  # # #  ####   #      ####     #    #### "
+  echo " #      #   #  #   #  #      #      #        #    #    "
+  echo "  ####   ###   #   #  #      #####  #####    #    #####"
+  echo ""
+  echo "        Setup completed! Great job!"
+  echo ""
+  echo "*******************************************************"
+  echo -e "${RESET}"
 else
   echo -e "${YELLOW}${BOLD}Setup finished with warnings${RESET}"
 fi

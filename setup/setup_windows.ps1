@@ -1042,9 +1042,17 @@ if (Test-Path $VerifyScript) {
 # Done.
 Write-Host ""
 if ($VerifyStatus -eq 0) {
-    Write-Host "======================================================" -ForegroundColor Green
-    Write-Host "       Setup completed" -ForegroundColor Green
-    Write-Host "======================================================" -ForegroundColor Green
+    Write-Host "*******************************************************" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  ####   ###   #   #  ####   #      #####  #####  #####" -ForegroundColor Green
+    Write-Host " #      #   #  ## ##  #   #  #      #        #    #    " -ForegroundColor Green
+    Write-Host " #      #   #  # # #  ####   #      ####     #    #### " -ForegroundColor Green
+    Write-Host " #      #   #  #   #  #      #      #        #    #    " -ForegroundColor Green
+    Write-Host "  ####   ###   #   #  #      #####  #####    #    #####" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "        Setup completed! Great job!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "*******************************************************" -ForegroundColor Green
 } else {
     Write-Host "======================================================" -ForegroundColor Yellow
     Write-Host "       Setup finished with warnings" -ForegroundColor Yellow
