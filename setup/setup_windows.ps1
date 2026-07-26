@@ -319,7 +319,7 @@ function Install-CodexCli {
 
     try {
         Invoke-NativeOrThrow "Codex standalone install" {
-            powershell -NoProfile -ExecutionPolicy Bypass -Command "irm '$CodexWindowsInstallerUrl' | iex"
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "`$env:CODEX_NON_INTERACTIVE = '1'; irm '$CodexWindowsInstallerUrl' | iex"
         }
         Refresh-ProcessPath
         Add-UserPathEntry $CodexStandaloneBinDir
@@ -665,8 +665,14 @@ function Test-GwsRecommendedScopes {
 }
 
 function Invoke-GwsAuthLogin {
-    Write-Info "Google Workspace のブラウザ認証を開始します。ブラウザでログインし、権限を許可してください。"
-    & gws auth login -s $GwsAuthServices 2>&1 | Out-Host
+    Write-Info "Google Workspace のブラウザ認証を開始します。認証用URLを検出したら自動でブラウザを開きます..."
+    & gws auth login -s $GwsAuthServices 2>&1 | ForEach-Object {
+        $line = $_.ToString()
+        Write-Host $line
+        if ($line -match '^https://accounts\.google\.com/o/oauth2/auth') {
+            Start-Process $line | Out-Null
+        }
+    }
     return ($LASTEXITCODE -eq 0)
 }
 
@@ -1066,5 +1072,11 @@ Write-Host "  - Agent Reach bootstraps on first use."
 Write-Host "  - Run /claudian when Claudian is needed."
 Write-Host "  - Claude Code: code `"$TeamInfoRoot`""
 Write-Host ""
+
+if (Get-Command codex -ErrorAction SilentlyContinue) {
+    if (Confirm-YesNo "Codex を今すぐ起動しますか？" "No") {
+        & codex
+    }
+}
 
 exit $VerifyStatus

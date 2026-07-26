@@ -288,7 +288,7 @@ install_codex_cli() {
     info "Codex CLI を公式 standalone installer で入れます..."
   fi
 
-  if curl -fsSL "$CODEX_STANDALONE_INSTALLER_URL" | sh; then
+  if curl -fsSL "$CODEX_STANDALONE_INSTALLER_URL" | CODEX_NON_INTERACTIVE=1 sh; then
     hash -r 2>/dev/null || true
     prepend_path_entry "$HOME/.local/bin"
     if verify_codex_cli; then
@@ -482,8 +482,14 @@ gws_auth_has_recommended_scopes() {
 }
 
 run_gws_auth_login() {
-  info "Google Workspace のブラウザ認証を開始します。ブラウザでログインし、権限を許可してください。"
-  gws auth login -s "$GWS_AUTH_SERVICES"
+  info "Google Workspace のブラウザ認証を開始します。認証用URLを検出したら自動でブラウザを開きます..."
+  gws auth login -s "$GWS_AUTH_SERVICES" 2>&1 | while IFS= read -r line; do
+    printf '%s\n' "$line"
+    if [[ "$line" == https://accounts.google.com/o/oauth2/auth* ]]; then
+      open "$line" >/dev/null 2>&1 &
+    fi
+  done
+  return "${PIPESTATUS[0]}"
 }
 
 ensure_gws_auth() {
@@ -807,5 +813,11 @@ echo "  ・Agent Reach は初回実行時に自動セットアップされます
 echo "  ・Claudian は必要になったら /claudian を実行してください"
 echo "  ・Claude Code: code $TEAM_INFO_ROOT"
 echo ""
+
+if command -v codex &>/dev/null; then
+  if ask_yes_no "Codex を今すぐ起動しますか？" no; then
+    exec codex
+  fi
+fi
 
 exit "$VERIFY_STATUS"

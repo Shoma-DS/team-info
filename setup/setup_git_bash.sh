@@ -333,7 +333,7 @@ install_codex_cli() {
     info "Codex CLI を公式 standalone installer で入れます..."
   fi
 
-  if ps_command "irm '$CODEX_WINDOWS_INSTALLER_URL' | iex"; then
+  if ps_command "\$env:CODEX_NON_INTERACTIVE = '1'; irm '$CODEX_WINDOWS_INSTALLER_URL' | iex"; then
     refresh_known_windows_paths
     prepend_path_entry "$codex_bin_posix"
     if verify_codex_cli; then
@@ -515,8 +515,14 @@ gws_auth_has_recommended_scopes() {
 }
 
 run_gws_auth_login() {
-  info "Google Workspace のブラウザ認証を開始します。ブラウザでログインし、権限を許可してください。"
-  gws auth login -s "$GWS_AUTH_SERVICES"
+  info "Google Workspace のブラウザ認証を開始します。認証用URLを検出したら自動でブラウザを開きます..."
+  gws auth login -s "$GWS_AUTH_SERVICES" 2>&1 | while IFS= read -r line; do
+    printf '%s\n' "$line"
+    if [[ "$line" == https://accounts.google.com/o/oauth2/auth* ]]; then
+      ps_command "Start-Process '$(ps_escape "$line")'" >/dev/null 2>&1 &
+    fi
+  done
+  return "${PIPESTATUS[0]}"
 }
 
 ensure_gws_auth() {
@@ -839,5 +845,11 @@ echo "  - setup / x-post / remotion / remodex / renda は Git Bash でも使え�
 echo "  - GWS CLI が未認証なら gws auth login -s $GWS_AUTH_SERVICES を実行してください"
 echo "  - Windows の日本語/UTF-8 作業では pwsh も利用できます"
 echo ""
+
+if command_exists codex; then
+  if ask_yes_no "Codex を今すぐ起動しますか？" no; then
+    exec codex
+  fi
+fi
 
 exit "$VERIFY_STATUS"
