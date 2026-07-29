@@ -42,18 +42,6 @@ TEAM_INFO_LAUNCH_AGENT_PLIST="$LAUNCH_AGENTS_DIR/com.team-info.env.plist"
 CODEX_NPM_PACKAGE="@openai/codex"
 CODEX_STANDALONE_INSTALLER_URL="https://chatgpt.com/codex/install.sh"
 FREEBUFF_NPM_PACKAGE="freebuff"
-GWS_NPM_PACKAGE="@googleworkspace/cli"
-GWS_AUTH_SERVICES="drive,sheets,gmail,calendar,docs,slides,tasks,script"
-GWS_RECOMMENDED_SCOPE_MARKERS=(
-  "https://www.googleapis.com/auth/drive"
-  "https://www.googleapis.com/auth/spreadsheets"
-  "https://www.googleapis.com/auth/gmail"
-  "https://www.googleapis.com/auth/calendar"
-  "https://www.googleapis.com/auth/documents"
-  "https://www.googleapis.com/auth/presentations"
-  "https://www.googleapis.com/auth/tasks"
-  "https://www.googleapis.com/auth/script"
-)
 NPM_USER_PREFIX="$HOME/.local"
 
 append_line_if_missing() {
@@ -468,75 +456,6 @@ ensure_github_repo_access() {
   done
 }
 
-gws_auth_has_recommended_scopes() {
-  local status_text="$1"
-  local marker
-
-  for marker in "${GWS_RECOMMENDED_SCOPE_MARKERS[@]}"; do
-    if ! grep -Fq "$marker" <<<"$status_text"; then
-      return 1
-    fi
-  done
-
-  return 0
-}
-
-run_gws_auth_login() {
-  info "Google Workspace のブラウザ認証を開始します。認証用URLを検出したら自動でブラウザを開きます..."
-  gws auth login -s "$GWS_AUTH_SERVICES" 2>&1 | while IFS= read -r line; do
-    printf '%s\n' "$line"
-    if [[ "$line" == https://accounts.google.com/o/oauth2/auth* ]]; then
-      open "$line" >/dev/null 2>&1 &
-    fi
-  done
-  return "${PIPESTATUS[0]}"
-}
-
-ensure_gws_auth() {
-  local auth_status
-
-  step "10a. Google Workspace CLI 認証"
-  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws" || true
-
-  if ! command -v gws &>/dev/null; then
-    warn "gws コマンドが見つかりません。ターミナル再起動後に手動で実行してください:"
-    warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX\" npm install -g $GWS_NPM_PACKAGE"
-    warn "  gws auth login -s $GWS_AUTH_SERVICES"
-    return
-  fi
-
-  if auth_status="$(gws auth status 2>&1)"; then
-    if grep -Fq '"token_valid": true' <<<"$auth_status"; then
-      success "GWS CLI は認証済みです"
-      if gws_auth_has_recommended_scopes "$auth_status"; then
-        success "GWS CLI で使う主要スコープを確認しました"
-      else
-        warn "GWS CLI で使う主要スコープが不足している可能性があります。"
-        if ask_yes_no "Google Workspace を主要サービス用スコープで再認証しますか？" yes; then
-          if run_gws_auth_login; then
-            success "GWS CLI 認証を更新しました"
-          else
-            warn "GWS CLI 認証の更新に失敗しました。あとで手動実行してください: gws auth login -s $GWS_AUTH_SERVICES"
-          fi
-        fi
-      fi
-      return
-    fi
-  fi
-
-  warn "GWS CLI は未認証、または認証状態を確認できません。"
-  warn "GWS CLI で Google Drive、Sheets、Calendar などを使うために認証します。"
-  if ask_yes_no "Google Workspace のブラウザ認証を今すぐ行いますか？" yes; then
-    if run_gws_auth_login && gws auth status &>/dev/null; then
-      success "GWS CLI 認証完了"
-    else
-      warn "GWS CLI 認証を確認できませんでした。あとで手動実行してください: gws auth login -s $GWS_AUTH_SERVICES"
-    fi
-  else
-    warn "あとで次を実行してください: gws auth login -s $GWS_AUTH_SERVICES"
-  fi
-}
-
 echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║       team-info セットアップ (macOS)                 ║"
@@ -702,10 +621,8 @@ if ! install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"; then
   warn "Freebuff CLI が使える状態になっていません。必要ならあとで手動インストールしてください。"
 fi
 
-ensure_gws_auth
-
-# ── 10b. Headroom (トークン圧縮プロキシ) ─────────────────────────────────────────
-step "10b. Headroom (トークン圧縮プロキシ)"
+# ── 10a. Headroom (トークン圧縮プロキシ) ─────────────────────────────────────────
+step "10a. Headroom (トークン圧縮プロキシ)"
 HEADROOM_INSTALLER="$TEAM_INFO_ROOT/setup/headroom/install.sh"
 if [ -f "$HEADROOM_INSTALLER" ]; then
   # 非致命: 失敗しても setup 全体は止めない（warn のみ）
@@ -807,7 +724,6 @@ echo "  Python:        $PYTHON311"
 echo "  Node.js:       $(command -v node 2>/dev/null || echo '要: ターミナル再起動後に確認')"
 echo "  Codex CLI:     $(command -v codex 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  Freebuff CLI:  $(command -v freebuff 2>/dev/null || echo '要: setup 再実行か手動インストール')"
-echo "  GWS CLI:       $(command -v gws 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  プロジェクト:  $TEAM_INFO_ROOT"
 echo "  TEAM_INFO_ENV: $TEAM_INFO_ENV_FILE"
 echo "  検証結果:      $([[ "$VERIFY_STATUS" -eq 0 ]] && echo '成功' || echo '要確認')"
@@ -815,7 +731,6 @@ echo ""
 echo "次のステップ:"
 echo "  ・ターミナルを再起動して PATH を再読み込みしてください"
 echo "  ・課金なしでAIエージェントを使う場合は repo 内で freebuff を実行してください"
-echo "  ・GWS CLI が未認証なら gws auth login -s $GWS_AUTH_SERVICES を実行してください"
 echo "  ・Remotion 系は初回実行時に Docker runtime を自動準備します"
 echo "  ・Agent Reach は初回実行時に自動セットアップされます"
 echo "  ・Claudian は必要になったら /claudian を実行してください"

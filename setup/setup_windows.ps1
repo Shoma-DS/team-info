@@ -76,18 +76,6 @@ $CodexNpmPackage = "@openai/codex"
 $CodexWindowsInstallerUrl = "https://chatgpt.com/codex/install.ps1"
 $CodexStandaloneBinDir = Join-Path $env:LOCALAPPDATA "Programs\OpenAI\Codex\bin"
 $FreebuffNpmPackage = "freebuff"
-$GwsNpmPackage = "@googleworkspace/cli"
-$GwsAuthServices = "drive,sheets,gmail,calendar,docs,slides,tasks,script"
-$GwsRecommendedScopeMarkers = @(
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/gmail",
-    "https://www.googleapis.com/auth/calendar",
-    "https://www.googleapis.com/auth/documents",
-    "https://www.googleapis.com/auth/presentations",
-    "https://www.googleapis.com/auth/tasks",
-    "https://www.googleapis.com/auth/script"
-)
 $NpmUserPrefix = Join-Path $env:USERPROFILE ".local\npm"
 
 Write-Host ""
@@ -644,80 +632,6 @@ function Ensure-GitHubRepoAccess {
     }
 }
 
-function Invoke-GwsAuthStatus {
-    $output = & gws auth status 2>&1
-    return [PSCustomObject]@{
-        ExitCode = $LASTEXITCODE
-        Text = ($output | Out-String)
-    }
-}
-
-function Test-GwsRecommendedScopes {
-    param([string]$StatusText)
-
-    foreach ($marker in $GwsRecommendedScopeMarkers) {
-        if ($StatusText -notlike "*$marker*") {
-            return $false
-        }
-    }
-
-    return $true
-}
-
-function Invoke-GwsAuthLogin {
-    Write-Info "Google Workspace のブラウザ認証を開始します。認証用URLを検出したら自動でブラウザを開きます..."
-    & gws auth login -s $GwsAuthServices 2>&1 | ForEach-Object {
-        $line = $_.ToString()
-        Write-Host $line
-        if ($line -match '^https://accounts\.google\.com/o/oauth2/auth') {
-            Start-Process $line | Out-Null
-        }
-    }
-    return ($LASTEXITCODE -eq 0)
-}
-
-function Ensure-GwsAuth {
-    Write-Step "10a. Google Workspace CLI auth"
-    [void](Install-NpmCli "Google Workspace CLI (gws)" $GwsNpmPackage "gws")
-
-    if (-not (Test-Command gws)) {
-        Write-Warn "gws command was not found. Restart PowerShell, then run:"
-        Write-Warn "  `$env:NPM_CONFIG_PREFIX = `"$NpmUserPrefix`"; npm install -g $GwsNpmPackage"
-        Write-Warn "  gws auth login -s $GwsAuthServices"
-        return
-    }
-
-    $status = Invoke-GwsAuthStatus
-    if (($status.ExitCode -eq 0) -and ($status.Text -match '"token_valid"\s*:\s*true')) {
-        Write-Ok "GWS CLI is authenticated"
-        if (Test-GwsRecommendedScopes $status.Text) {
-            Write-Ok "GWS CLI recommended scopes found"
-        } else {
-            Write-Warn "GWS CLI recommended scopes may be incomplete."
-            if (Confirm-YesNo "Google Workspace を主要サービス用スコープで再認証しますか？" "Yes") {
-                if (Invoke-GwsAuthLogin) {
-                    Write-Ok "GWS CLI auth refreshed"
-                } else {
-                    Write-Warn "GWS CLI auth refresh failed. Run later: gws auth login -s $GwsAuthServices"
-                }
-            }
-        }
-        return
-    }
-
-    Write-Warn "GWS CLI is not authenticated or auth status could not be checked."
-    Write-Warn "GWS CLI uses this auth for Google Drive, Sheets, Calendar, and related services."
-    if (Confirm-YesNo "Google Workspace のブラウザ認証を今すぐ行いますか？" "Yes") {
-        if ((Invoke-GwsAuthLogin) -and ((Invoke-GwsAuthStatus).ExitCode -eq 0)) {
-            Write-Ok "GWS CLI auth complete"
-        } else {
-            Write-Warn "GWS CLI auth could not be verified. Run later: gws auth login -s $GwsAuthServices"
-        }
-    } else {
-        Write-Warn "Run later: gws auth login -s $GwsAuthServices"
-    }
-}
-
 # 1. winget check
 Write-Step "1. winget check"
 if (-not (Test-Command winget)) {
@@ -966,10 +880,8 @@ if (-not (Install-NpmCli "Freebuff CLI" $FreebuffNpmPackage "freebuff")) {
     Write-Warn "Freebuff CLI is not usable yet. Install it manually later if needed."
 }
 
-Ensure-GwsAuth
-
-# 10b. Headroom (token compression proxy)
-Write-Step "10b. Headroom (token compression proxy)"
+# 10a. Headroom (token compression proxy)
+Write-Step "10a. Headroom (token compression proxy)"
 $HeadroomInstaller = Join-Path $TeamInfoRoot "setup\headroom\install.ps1"
 if (Test-Path $HeadroomInstaller) {
     # Non-fatal: keep setup running even if Headroom fails.
@@ -1065,7 +977,6 @@ Write-Host "  PowerShell 7:  $(if (Get-Command pwsh -ErrorAction SilentlyContinu
 Write-Host "  Node.js:       $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'restart PowerShell and check again' })"
 Write-Host "  Codex CLI:     $(if (Get-Command codex -ErrorAction SilentlyContinue) { (Get-Command codex -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
 Write-Host "  Freebuff CLI:  $(if (Get-Command freebuff -ErrorAction SilentlyContinue) { (Get-Command freebuff -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
-Write-Host "  GWS CLI:       $(if (Get-Command gws -ErrorAction SilentlyContinue) { (Get-Command gws -ErrorAction SilentlyContinue | ForEach-Object Source | Select-Object -First 1) } else { 'rerun setup or install manually' })"
 Write-Host "  Project:       $TeamInfoRoot"
 Write-Host "  TEAM_INFO_ROOT: $env:TEAM_INFO_ROOT"
 Write-Host "  Verify result: $(if ($VerifyStatus -eq 0) { 'passed' } else { 'needs review' })"
@@ -1074,7 +985,6 @@ Write-Host "Next steps:"
 Write-Host "  - Restart PowerShell to reload PATH and setup / x-post / remotion / renda."
 Write-Host "  - Use pwsh for Windows work when Japanese or UTF-8 text is involved."
 Write-Host "  - To use a free AI agent, run freebuff in the repo."
-Write-Host "  - If GWS CLI is not authenticated, run: gws auth login -s $GwsAuthServices"
 Write-Host "  - Remotion prepares Docker runtime on first relevant use."
 Write-Host "  - Agent Reach bootstraps on first use."
 Write-Host "  - Run /claudian when Claudian is needed."

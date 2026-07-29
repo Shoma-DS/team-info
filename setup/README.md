@@ -18,7 +18,6 @@
 | Python 補助 | `uv` |
 | Node.js | 22.17.1 (`nvm` / `nvm-windows`) |
 | CLI | `@openai/codex`, `freebuff` |
-| Google Workspace | `@googleworkspace/cli` (`gws`) と OAuth 認証 |
 | AI proxy | Headroom token compression proxy (`claude` / `codex` routing; failure is non-fatal) |
 | Windows UTF-8 | PowerShell 7 (`pwsh`), `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8` |
 | repo 設定 | `TEAM_INFO_ROOT`, `.githooks`, worked-before 記録 |
@@ -96,19 +95,6 @@ freebuff
 
 macOS `/usr/local/lib/node_modules` に書き込めない場合、setup は自動で `$HOME/.local` を npm の退避先として使います。
 Windows で npm の global install 先に書き込めない場合、setup は自動で `%USERPROFILE%\.local\npm` を退避先として使います。
-
-## Google Workspace CLI 認証
-
-setup では `@googleworkspace/cli` を入れ、`gws auth status` を確認します。
-未認証、または GWS CLI で使う主要サービスのスコープが不足している可能性がある場合は、ブラウザ認証へ進みます。
-
-手動でやり直す場合:
-
-```bash
-gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script
-```
-
-Windows / Windows Git Bash も同じコマンドです。
 
 ## Headroom token compression proxy
 
@@ -192,7 +178,6 @@ bash "$TEAM_INFO_ROOT/.agent/skills/common/team-info-setup/shared-agent-assets/s
 `setup/verify_setup.py` は次を確認します。
 
 - `node`, `npm`, `codex`, `freebuff`, `gh`
-- `gws` と `gws auth status`
 - `rclone`
 - Windows では `pwsh`, `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`
 - `git lfs`
