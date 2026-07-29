@@ -44,18 +44,6 @@ PYTHON_VERSION="3.11.9"
 CODEX_NPM_PACKAGE="@openai/codex"
 CODEX_WINDOWS_INSTALLER_URL="https://chatgpt.com/codex/install.ps1"
 FREEBUFF_NPM_PACKAGE="freebuff"
-GWS_NPM_PACKAGE="@googleworkspace/cli"
-GWS_AUTH_SERVICES="drive,sheets,gmail,calendar,docs,slides,tasks,script"
-GWS_RECOMMENDED_SCOPE_MARKERS=(
-  "https://www.googleapis.com/auth/drive"
-  "https://www.googleapis.com/auth/spreadsheets"
-  "https://www.googleapis.com/auth/gmail"
-  "https://www.googleapis.com/auth/calendar"
-  "https://www.googleapis.com/auth/documents"
-  "https://www.googleapis.com/auth/presentations"
-  "https://www.googleapis.com/auth/tasks"
-  "https://www.googleapis.com/auth/script"
-)
 
 TEAM_INFO_ENV_DIR="$HOME/.config/team-info"
 TEAM_INFO_ENV_FILE="$TEAM_INFO_ENV_DIR/env.sh"
@@ -503,71 +491,6 @@ ensure_github_repo_access() {
   done
 }
 
-gws_auth_has_recommended_scopes() {
-  local status_text="$1"
-  local marker
-  for marker in "${GWS_RECOMMENDED_SCOPE_MARKERS[@]}"; do
-    if ! grep -Fq "$marker" <<<"$status_text"; then
-      return 1
-    fi
-  done
-  return 0
-}
-
-run_gws_auth_login() {
-  info "Google Workspace のブラウザ認証を開始します。認証用URLを検出したら自動でブラウザを開きます..."
-  gws auth login -s "$GWS_AUTH_SERVICES" 2>&1 | while IFS= read -r line; do
-    printf '%s\n' "$line"
-    if [[ "$line" == https://accounts.google.com/o/oauth2/auth* ]]; then
-      ps_command "Start-Process '$(ps_escape "$line")'" >/dev/null 2>&1 &
-    fi
-  done
-  return "${PIPESTATUS[0]}"
-}
-
-ensure_gws_auth() {
-  local auth_status
-  step "10a. Google Workspace CLI 認証"
-  install_npm_cli "Google Workspace CLI (gws)" "$GWS_NPM_PACKAGE" "gws" || true
-
-  if ! command_exists gws; then
-    warn "gws コマンドが見つかりません。Git Bash を開き直してから手動で実行してください:"
-    warn "  NPM_CONFIG_PREFIX=\"$NPM_USER_PREFIX_WIN\" npm install -g $GWS_NPM_PACKAGE"
-    warn "  gws auth login -s $GWS_AUTH_SERVICES"
-    return
-  fi
-
-  if auth_status="$(gws auth status 2>&1)"; then
-    if grep -Fq '"token_valid": true' <<<"$auth_status"; then
-      success "GWS CLI は認証済みです"
-      if gws_auth_has_recommended_scopes "$auth_status"; then
-        success "GWS CLI で使う主要スコープを確認しました"
-      else
-        warn "GWS CLI で使う主要スコープが不足している可能性があります。"
-        if ask_yes_no "Google Workspace を主要サービス用スコープで再認証しますか？" yes; then
-          if run_gws_auth_login; then
-            success "GWS CLI 認証を更新しました"
-          else
-            warn "GWS CLI 認証の更新に失敗しました。"
-          fi
-        fi
-      fi
-      return
-    fi
-  fi
-
-  warn "GWS CLI は未認証、または認証状態を確認できません。"
-  if ask_yes_no "Google Workspace のブラウザ認証を今すぐ行いますか？" yes; then
-    if run_gws_auth_login && gws auth status >/dev/null 2>&1; then
-      success "GWS CLI 認証完了"
-    else
-      warn "GWS CLI 認証を確認できませんでした。あとで手動実行してください: gws auth login -s $GWS_AUTH_SERVICES"
-    fi
-  else
-    warn "あとで次を実行してください: gws auth login -s $GWS_AUTH_SERVICES"
-  fi
-}
-
 write_git_bash_env_file() {
   mkdir -p "$TEAM_INFO_ENV_DIR"
   cat > "$TEAM_INFO_ENV_FILE" <<EOF
@@ -774,9 +697,7 @@ if ! install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"; then
   warn "Freebuff CLI が使える状態になっていません。必要ならあとで手動インストールしてください。"
 fi
 
-ensure_gws_auth
-
-step "10b. Headroom"
+step "10a. Headroom"
 HEADROOM_INSTALLER_WIN="$(cygpath -w "$TEAM_INFO_ROOT_POSIX/setup/headroom/install.ps1")"
 if [[ -f "$TEAM_INFO_ROOT_POSIX/setup/headroom/install.ps1" ]]; then
   if powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HEADROOM_INSTALLER_WIN" -PythonExe "$PYTHON311_WIN" -RepoRoot "$TEAM_INFO_ROOT_WIN"; then
@@ -845,7 +766,6 @@ echo "  Python:        $PYTHON311_WIN"
 echo "  Node.js:       $(command -v node 2>/dev/null || command -v node.exe 2>/dev/null || echo '要: Git Bash 再起動後に確認')"
 echo "  Codex CLI:     $(command -v codex 2>/dev/null || command -v codex.cmd 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  Freebuff CLI:  $(command -v freebuff 2>/dev/null || command -v freebuff.cmd 2>/dev/null || echo '要: setup 再実行か手動インストール')"
-echo "  GWS CLI:       $(command -v gws 2>/dev/null || command -v gws.cmd 2>/dev/null || echo '要: setup 再実行か手動インストール')"
 echo "  Project bash:  $TEAM_INFO_ROOT_POSIX"
 echo "  Project win:   $TEAM_INFO_ROOT_WIN"
 echo "  Bash env:      $TEAM_INFO_ENV_FILE"
@@ -854,7 +774,6 @@ echo ""
 echo "Next steps:"
 echo "  - Git Bash を開き直して PATH と alias を読み直してください"
 echo "  - setup / x-post / remotion / remodex / renda は Git Bash でも使えます"
-echo "  - GWS CLI が未認証なら gws auth login -s $GWS_AUTH_SERVICES を実行してください"
 echo "  - Windows の日本語/UTF-8 作業では pwsh も利用できます"
 echo ""
 

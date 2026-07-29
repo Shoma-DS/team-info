@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import shutil
 import subprocess
@@ -12,17 +11,7 @@ import urllib.request
 from pathlib import Path
 
 
-REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "freebuff", "gws", "gh", "rclone")
-GWS_RECOMMENDED_SCOPE_MARKERS = (
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/gmail",
-    "https://www.googleapis.com/auth/calendar",
-    "https://www.googleapis.com/auth/documents",
-    "https://www.googleapis.com/auth/presentations",
-    "https://www.googleapis.com/auth/tasks",
-    "https://www.googleapis.com/auth/script",
-)
+REQUIRED_HOST_COMMANDS = ("node", "npm", "codex", "freebuff", "gh", "rclone")
 
 
 def _codex_install_hint() -> str:
@@ -118,52 +107,6 @@ def _check_gh_auth(failures: list[str]) -> None:
         message = _truncate(completed.stderr or completed.stdout or "未ログインです")
         print(f"[NG] gh auth: {message}")
         failures.append("GitHub CLI (gh) でログインしていません。'gh auth login --hostname github.com --git-protocol https --web' を実行してください。")
-
-
-def _check_gws_auth(failures: list[str], warnings: list[str]) -> None:
-    _print_heading("Google Workspace CLI (gws) 認証")
-    if shutil.which("gws") is None:
-        print("[NG] gws: コマンドが見つかりません")
-        failures.append("gws が見つかりません。'npm install -g @googleworkspace/cli' を実行してください。")
-        return
-
-    try:
-        completed = _run(["gws", "auth", "status"])
-    except OSError as exc:
-        print(f"[NG] gws auth: {_truncate(str(exc))}")
-        failures.append("GWS CLI の認証状態を確認できません。")
-        return
-
-    if completed.returncode != 0:
-        message = _truncate(completed.stderr or completed.stdout or "未ログインです")
-        print(f"[NG] gws auth: {message}")
-        failures.append("GWS CLI でログインしていません。'gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script' を実行してください。")
-        return
-
-    status_text = completed.stdout or completed.stderr
-    try:
-        status = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        status = {}
-
-    token_valid = status.get("token_valid")
-    if token_valid is False:
-        print("[NG] gws auth: token_valid=false")
-        failures.append("GWS CLI のトークンが無効です。gws auth login をやり直してください。")
-        return
-
-    user = status.get("user")
-    if user:
-        print(f"[OK] gws auth: ログイン済み ({user})")
-    else:
-        print("[OK] gws auth: ログイン済み")
-
-    missing_markers = [marker for marker in GWS_RECOMMENDED_SCOPE_MARKERS if marker not in status_text]
-    if missing_markers:
-        print("[WARN] gws scopes: GWS CLI の主要スコープが不足している可能性があります")
-        warnings.append("GWS CLI のスコープが不足する場合は 'gws auth login -s drive,sheets,gmail,calendar,docs,slides,tasks,script' で再認証してください。")
-    else:
-        print("[OK] gws scopes: 主要スコープ確認済み")
 
 
 def _check_remote_url(repo_root: Path, failures: list[str]) -> None:
@@ -398,7 +341,6 @@ def main() -> int:
     _check_codex_cli(failures)
     _check_git_lfs(failures)
     _check_gh_auth(failures)
-    _check_gws_auth(failures, warnings)
     _check_remote_url(repo_root, failures)
     _check_repo_git_hooks(repo_root, failures)
     _check_team_info_root(repo_root, failures, warnings)
