@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-GitHub Actions またはローカルからカレンダー予定を取得し、会議リンクを整備して通知する。
-Google Calendar / Zoom / ProLine / Discord の資格情報は環境変数で受け取り、
-ローカル実行では repo root の .env / .env.local も自動で読み込む。
+launchd から GWS CLI でカレンダー予定を取得し、会議リンクと通知を整備する。
+Google Calendar 認証は GWS に一本化し、Zoom / ProLine / Discord の設定だけを
+repo root の .env / .env.local または同名の環境変数から読み込む。
 """
 
 from __future__ import annotations
@@ -38,10 +38,7 @@ DEFAULT_ENV_FILES = (
     HOME_TEAM_INFO_ROOT / ".env",
     HOME_TEAM_INFO_ROOT / ".env.local",
 )
-DEFAULT_GWS_CREDENTIALS_FILE = pathlib.Path.home() / ".config" / "team-info" / "gws_credentials_auto.json"
-DEFAULT_GWSMCP_OAUTH_CLIENT_FILE = pathlib.Path.home() / ".config" / "google-workspace-mcp" / "oauth-client.json"
-DEFAULT_GWSMCP_TOKENS_FILE = pathlib.Path.home() / ".config" / "google-workspace-mcp" / "tokens.json"
-CALENDAR_BACKEND = "direct"
+CALENDAR_BACKEND = "gws"
 PRIMARY_SOURCE_LABEL = "株式会社Keystone出口"
 LINE_STATUS_KEY = "team-info.line-status"
 LINE_UID_KEY = "team-info.line-uid"
@@ -55,7 +52,9 @@ URL_PATTERNS = (
 )
 LOADED_ENV_FILES: list[pathlib.Path] = []
 LOADED_SETTINGS_FILE: pathlib.Path | None = None
-GOOGLE_CREDENTIALS_CACHE: dict[str, str] | None = None
+# シフト確認など社内限定の予定は会議URL発行対象から外し、
+# 同時刻の面談予定が Google Meet に押し出されないようにする（Zoom優先度の事故防止）。
+SKIP_MEETING_TITLE_KEYWORDS: tuple[str, ...] = ()
 
 
 class SummaryError(RuntimeError):
@@ -124,92 +123,6 @@ def getenv_any(*names: str, default: str = "") -> str:
     return default
 
 
-def load_google_credentials_payload() -> dict[str, str]:
-    global GOOGLE_CREDENTIALS_CACHE
-    if GOOGLE_CREDENTIALS_CACHE is not None:
-        return GOOGLE_CREDENTIALS_CACHE
-
-    def normalize_single_file_payload(path: pathlib.Path) -> dict[str, str]:
-        if not path.exists():
-            return {}
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            return {}
-        if not isinstance(payload, dict):
-            return {}
-        return {
-            key: str(payload.get(key) or "").strip()
-            for key in ("client_id", "client_secret", "refresh_token")
-            if str(payload.get(key) or "").strip()
-        }
-
-    def normalize_gwsmcp_pair() -> dict[str, str]:
-        if not DEFAULT_GWSMCP_OAUTH_CLIENT_FILE.exists() or not DEFAULT_GWSMCP_TOKENS_FILE.exists():
-            return {}
-        try:
-            client_payload = json.loads(DEFAULT_GWSMCP_OAUTH_CLIENT_FILE.read_text(encoding="utf-8"))
-            token_payload = json.loads(DEFAULT_GWSMCP_TOKENS_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            return {}
-        if not isinstance(client_payload, dict) or not isinstance(token_payload, dict):
-            return {}
-        payload = {
-            "client_id": client_payload.get("client_id"),
-            "client_secret": client_payload.get("client_secret"),
-            "refresh_token": token_payload.get("refresh_token"),
-        }
-        return {
-            key: str(payload.get(key) or "").strip()
-            for key in ("client_id", "client_secret", "refresh_token")
-            if str(payload.get(key) or "").strip()
-        }
-
-    path_value = getenv_any("GOOGLE_CREDENTIALS_FILE", "GWS_CREDENTIALS_FILE")
-    if path_value:
-        GOOGLE_CREDENTIALS_CACHE = normalize_single_file_payload(pathlib.Path(path_value).expanduser())
-        return GOOGLE_CREDENTIALS_CACHE
-
-    for payload in (normalize_gwsmcp_pair(), normalize_single_file_payload(DEFAULT_GWS_CREDENTIALS_FILE)):
-        if all(payload.get(key) for key in ("client_id", "client_secret", "refresh_token")):
-            GOOGLE_CREDENTIALS_CACHE = payload
-            return GOOGLE_CREDENTIALS_CACHE
-
-    GOOGLE_CREDENTIALS_CACHE = {
-        key: str(payload.get(key) or "").strip()
-        for key in ("client_id", "client_secret", "refresh_token")
-        if str(payload.get(key) or "").strip()
-    }
-    return GOOGLE_CREDENTIALS_CACHE
-
-
-def google_config_value(field: str) -> str:
-    dedicated_env_names = {
-        "client_id": ("GOOGLE_CLIENT_ID",),
-        "client_secret": ("GOOGLE_CLIENT_SECRET",),
-        "refresh_token": ("GOOGLE_REFRESH_TOKEN",),
-    }[field]
-    value = getenv_any(*dedicated_env_names)
-    if value:
-        return value
-    file_value = load_google_credentials_payload().get(field, "")
-    if file_value:
-        return file_value
-    alias_env_names = {
-        "client_id": ("GOOGLE_OAUTH_CLIENT_ID",),
-        "client_secret": ("GOOGLE_OAUTH_CLIENT_SECRET",),
-        "refresh_token": ("GOOGLE_OAUTH_REFRESH_TOKEN",),
-    }[field]
-    return getenv_any(*alias_env_names)
-
-
-def require_google_config(field: str, display_name: str) -> str:
-    value = google_config_value(field)
-    if not value:
-        raise SummaryError(f"Required env/config is missing: {display_name}")
-    return value
-
-
 def load_webhook_from_file(path: pathlib.Path) -> str:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -251,6 +164,24 @@ def load_daily_summary_settings_payload() -> tuple[dict[str, Any] | None, pathli
         return None, None
     LOADED_SETTINGS_FILE = path
     return payload, path.parent
+
+
+def load_skip_meeting_title_keywords() -> tuple[str, ...]:
+    raw_keywords = parse_json_env("DAILY_SUMMARY_SKIP_MEETING_TITLE_KEYWORDS_JSON")
+    if raw_keywords is None:
+        settings_payload, _ = load_daily_summary_settings_payload()
+        if settings_payload and isinstance(settings_payload.get("skip_meeting_title_keywords"), list):
+            raw_keywords = settings_payload["skip_meeting_title_keywords"]
+    if raw_keywords is None:
+        return ()
+    if not isinstance(raw_keywords, list):
+        raise SummaryError("skip_meeting_title_keywords must be an array")
+    return tuple(str(v).strip() for v in raw_keywords if str(v).strip())
+
+
+def is_skip_meeting_event(event: dict[str, Any]) -> bool:
+    title = str(event.get("title") or "")
+    return any(keyword in title for keyword in SKIP_MEETING_TITLE_KEYWORDS)
 
 
 def find_default_daily_webhook_file() -> pathlib.Path | None:
@@ -382,31 +313,10 @@ def compact_error_text(parsed: Any, text: str) -> str:
     return text[:500]
 
 
-def google_access_token() -> str:
-    status, parsed, _ = request_json(
-        "https://oauth2.googleapis.com/token",
-        method="POST",
-        form={
-            "client_id": require_google_config("client_id", "GOOGLE_CLIENT_ID"),
-            "client_secret": require_google_config("client_secret", "GOOGLE_CLIENT_SECRET"),
-            "refresh_token": require_google_config("refresh_token", "GOOGLE_REFRESH_TOKEN"),
-            "grant_type": "refresh_token",
-        },
-    )
-    if status != 200 or not isinstance(parsed, dict) or not parsed.get("access_token"):
-        raise SummaryError("Google OAuth token refresh did not return an access token")
-    return str(parsed["access_token"])
-
-
-def google_headers(token: str) -> dict[str, str]:
-    return {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-
-
 def resolve_calendar_backend() -> str:
-    configured = getenv("DAILY_SUMMARY_CALENDAR_BACKEND").lower()
-    if configured in {"gws", "direct"}:
-        return configured
-    return "gws" if shutil.which("gws") else "direct"
+    if not shutil.which("gws"):
+        raise SummaryError("gws CLI is required for Google Calendar access")
+    return "gws"
 
 
 def run_gws_calendar(method: str, params: dict[str, Any], body: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -428,13 +338,7 @@ def run_gws_calendar(method: str, params: dict[str, Any], body: dict[str, Any] |
     return parsed
 
 
-def calendar_api_url(calendar_id: str, suffix: str = "") -> str:
-    encoded = urllib.parse.quote(calendar_id, safe="")
-    return f"https://www.googleapis.com/calendar/v3/calendars/{encoded}/events{suffix}"
-
-
 def fetch_events(
-    token: str,
     calendar_id: str,
     date_str: str,
     tz: ZoneInfo,
@@ -442,34 +346,15 @@ def fetch_events(
 ) -> list[dict[str, Any]]:
     day_start = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=tz)
     day_end = day_start + timedelta(days=1)
-    params = urllib.parse.urlencode(
-        {
-            "timeMin": day_start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "timeMax": day_end.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "singleEvents": "true",
-            "orderBy": "startTime",
-            "maxResults": "80",
-            "timeZone": str(tz),
-        }
-    )
-    if CALENDAR_BACKEND == "gws":
-        parsed = run_gws_calendar("list", {
-            "calendarId": calendar_id,
-            "timeMin": day_start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "timeMax": day_end.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "singleEvents": True,
-            "orderBy": "startTime",
-            "maxResults": 80,
-            "timeZone": str(tz),
-        })
-        return [normalize_event(item, calendar_id, tz, source_label) for item in parsed.get("items", [])]
-
-    status, parsed, _ = request_json(
-        calendar_api_url(calendar_id, f"?{params}"),
-        headers=google_headers(token),
-    )
-    if status != 200 or not isinstance(parsed, dict):
-        raise SummaryError("Google Calendar events.list returned an unexpected response")
+    parsed = run_gws_calendar("list", {
+        "calendarId": calendar_id,
+        "timeMin": day_start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "timeMax": day_end.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "singleEvents": True,
+        "orderBy": "startTime",
+        "maxResults": 80,
+        "timeZone": str(tz),
+    })
     return [normalize_event(item, calendar_id, tz, source_label) for item in parsed.get("items", [])]
 
 
@@ -852,24 +737,13 @@ def strip_old_team_info_block(description: str) -> str:
     return "\n".join(kept).strip()
 
 
-def patch_calendar_event(token: str, calendar_id: str, event: dict[str, Any], body: dict[str, Any]) -> None:
+def patch_calendar_event(calendar_id: str, event: dict[str, Any], body: dict[str, Any]) -> None:
     raw_event_id = str(event["event_id"])
-    if CALENDAR_BACKEND == "gws":
-        parsed = run_gws_calendar("patch", {
-            "calendarId": calendar_id,
-            "eventId": raw_event_id,
-            "conferenceDataVersion": 1,
-        }, body)
-    else:
-        event_id = urllib.parse.quote(raw_event_id, safe="")
-        status, parsed, _ = request_json(
-            calendar_api_url(calendar_id, f"/{event_id}?conferenceDataVersion=1"),
-            method="PATCH",
-            headers=google_headers(token),
-            payload=body,
-        )
-        if status != 200 or not isinstance(parsed, dict):
-            raise SummaryError(f"Calendar patch failed for {event['title']}")
+    parsed = run_gws_calendar("patch", {
+        "calendarId": calendar_id,
+        "eventId": raw_event_id,
+        "conferenceDataVersion": 1,
+    }, body)
     event["raw"] = parsed
     event["description"] = parsed.get("description") or event.get("description") or ""
     event["location"] = parsed.get("location") or event.get("location") or ""
@@ -883,7 +757,6 @@ def merge_private_properties(raw_event: dict[str, Any], updates: dict[str, str])
 
 
 def ensure_meeting_url(
-    token: str,
     calendar_id: str,
     event: dict[str, Any],
     zoom_accounts: list[ZoomAccount],
@@ -891,7 +764,7 @@ def ensure_meeting_url(
     provider: str = "zoom",
 ) -> tuple[str | None, str | None]:
     if provider == "google_meet":
-        return ensure_google_meet_url(token, calendar_id, event)
+        return ensure_google_meet_url(calendar_id, event)
 
     existing = extract_event_meeting_url(event)
     if existing:
@@ -915,18 +788,17 @@ def ensure_meeting_url(
         "location": new_location,
     }
     body.update(merge_private_properties(event.get("raw") or {}, {MEETING_URL_KEY: meeting_url, MEETING_ID_KEY: meeting_id or ""}))
-    patch_calendar_event(token, calendar_id, event, body)
+    patch_calendar_event(calendar_id, event, body)
     return meeting_url, meeting_id
 
 
-def ensure_google_meet_url(token: str, calendar_id: str, event: dict[str, Any]) -> tuple[str | None, str | None]:
+def ensure_google_meet_url(calendar_id: str, event: dict[str, Any]) -> tuple[str | None, str | None]:
     existing_meet = extract_event_google_meet_url(event)
     if existing_meet:
         return existing_meet, None
 
     request_id = f"team-info-{uuid.uuid4().hex}"
     patch_calendar_event(
-        token,
         calendar_id,
         event,
         {
@@ -950,7 +822,7 @@ def ensure_google_meet_url(token: str, calendar_id: str, event: dict[str, Any]) 
         "location": new_location,
     }
     body.update(merge_private_properties(event.get("raw") or {}, {MEETING_URL_KEY: meeting_url, MEETING_ID_KEY: ""}))
-    patch_calendar_event(token, calendar_id, event, body)
+    patch_calendar_event(calendar_id, event, body)
     return meeting_url, None
 
 
@@ -973,7 +845,7 @@ def send_line(account: LineAccount, uid: str, message: str) -> tuple[bool, str]:
     status, parsed, text = request_json(
         account.sender_url,
         method="POST",
-        headers={"User-Agent": "team-info github-actions daily summary"},
+        headers={"User-Agent": "team-info launchd daily summary"},
         payload=payload,
     )
     if status < 200 or status >= 300:
@@ -1042,7 +914,10 @@ def assign_google_meet_for_overlaps(events: list[dict[str, Any]], tz: ZoneInfo) 
     """★付き以外の予定が重なる場合、先頭以外を Google Meet に寄せる。"""
     seen_zoom_candidates: list[dict[str, Any]] = []
     for event in sorted(
-        (event for event in events if not event.get("allDay") and not is_sugashita_event(event)),
+        (
+            event for event in events
+            if not event.get("allDay") and not is_sugashita_event(event) and not is_skip_meeting_event(event)
+        ),
         key=lambda item: item.get("start_iso") or "",
     ):
         if event.get("force_google_meet") or extract_event_google_meet_url(event):
@@ -1062,23 +937,23 @@ def matches_extra_calendar_filter(event: dict[str, Any], calendar: ExtraCalendar
 
 
 def process(args: argparse.Namespace) -> int:
-    global CALENDAR_BACKEND
+    global CALENDAR_BACKEND, SKIP_MEETING_TITLE_KEYWORDS
     CALENDAR_BACKEND = resolve_calendar_backend()
+    SKIP_MEETING_TITLE_KEYWORDS = load_skip_meeting_title_keywords()
     tz_name = getenv("DAILY_SUMMARY_TIMEZONE", DEFAULT_TIMEZONE)
     tz = ZoneInfo(tz_name)
     date_str = args.date or datetime.now(tz).strftime("%Y-%m-%d")
     calendar_id = getenv("GOOGLE_CALENDAR_ID", "primary")
     webhook_url = require_discord_daily_webhook()
-    google_token = "" if CALENDAR_BACKEND == "gws" else google_access_token()
     zoom_accounts = load_zoom_accounts()
     line_accounts = load_line_accounts()
     extra_calendars = load_extra_calendars()
-    primary_events = fetch_events(google_token, calendar_id, date_str, tz, PRIMARY_SOURCE_LABEL)
+    primary_events = fetch_events(calendar_id, date_str, tz, PRIMARY_SOURCE_LABEL)
     events = list(primary_events)
     primary_timed = [event for event in primary_events if not event.get("allDay")]
 
     for extra_calendar in extra_calendars:
-        extra_events = fetch_events(google_token, extra_calendar.calendar_id, date_str, tz, extra_calendar.label)
+        extra_events = fetch_events(extra_calendar.calendar_id, date_str, tz, extra_calendar.label)
         for event in extra_events:
             if event.get("allDay") or not matches_extra_calendar_filter(event, extra_calendar):
                 continue
@@ -1105,10 +980,12 @@ def process(args: argparse.Namespace) -> int:
         if event.get("allDay"):
             processed.append({**event, "meeting_url": None, "line_status": "all-day"})
             continue
+        if is_skip_meeting_event(event):
+            processed.append({**event, "meeting_url": None, "line_status": "対象外（社内予定）"})
+            continue
         try:
             provider = "google_meet" if event.get("force_google_meet") else "zoom"
             meeting_url, meeting_id = ensure_meeting_url(
-                google_token,
                 event_calendar_id,
                 event,
                 zoom_accounts,
@@ -1133,7 +1010,7 @@ def process(args: argparse.Namespace) -> int:
                             event.get("raw") or {},
                             {LINE_STATUS_KEY: "sent", LINE_UID_KEY: uid, LINE_SENT_URL_KEY: meeting_url},
                         )
-                        patch_calendar_event(google_token, event_calendar_id, event, body)
+                        patch_calendar_event(event_calendar_id, event, body)
                         print(f"[LINE] sent start={event.get('start')} response={response_summary}")
                     else:
                         line_status = f"送信失敗（{line_account.label}）"
@@ -1160,14 +1037,12 @@ def process(args: argparse.Namespace) -> int:
 
 
 def check_config() -> int:
-    global CALENDAR_BACKEND
+    global CALENDAR_BACKEND, SKIP_MEETING_TITLE_KEYWORDS
     CALENDAR_BACKEND = resolve_calendar_backend()
+    SKIP_MEETING_TITLE_KEYWORDS = load_skip_meeting_title_keywords()
     missing = [
         name
         for name, value in (
-            ("GOOGLE_CLIENT_ID", google_config_value("client_id")),
-            ("GOOGLE_CLIENT_SECRET", google_config_value("client_secret")),
-            ("GOOGLE_REFRESH_TOKEN", google_config_value("refresh_token")),
             ("DISCORD_DAILY_WEBHOOK", discord_daily_webhook_url()),
         )
         if not value
@@ -1188,7 +1063,7 @@ def check_config() -> int:
         "ok": True,
         "loaded_env_files": [str(path) for path in LOADED_ENV_FILES],
         "loaded_settings_file": str(LOADED_SETTINGS_FILE) if LOADED_SETTINGS_FILE else "",
-        "google_credentials_file": str(DEFAULT_GWS_CREDENTIALS_FILE) if DEFAULT_GWS_CREDENTIALS_FILE.exists() else "",
+        "gws_binary": shutil.which("gws") or "",
         "calendar_backend": CALENDAR_BACKEND,
         "discord_webhook_source": "env-or-file" if discord_daily_webhook_url() else "",
         "calendar_id": getenv("GOOGLE_CALENDAR_ID", "primary"),
@@ -1220,6 +1095,7 @@ def check_config() -> int:
             }
             for calendar in extra_calendars
         ],
+        "skip_meeting_title_keywords": list(SKIP_MEETING_TITLE_KEYWORDS),
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0

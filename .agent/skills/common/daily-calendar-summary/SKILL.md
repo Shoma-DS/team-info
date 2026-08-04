@@ -1,6 +1,6 @@
 ---
 name: daily-calendar-summary
-description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付与して LINE 送信と Discord への朝サマリー送信を行う。GitHub Actions またはローカル定期実行で毎朝8時台に自動実行。
+description: 当日のGoogleカレンダー予定をGWS CLIで取得し、Zoom URLを付与してLINE送信とDiscordへの朝サマリー送信を行う。macOSのlaunchdで毎朝8時にローカル実行する。
 ---
 
 # daily-calendar-summary スキル
@@ -19,15 +19,13 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 - Discordへ概要1件 + イベント詳細1件ずつ送信
 - 朝サマリー送信が成功した後、当日予定のうち「面接」「2回目」または90分以上の予定を抽出し、取得済みカレンダー情報を `calendar-interview-closing` へ渡して Loom 文字起こし取得とクロージング台本作成に移行する。後続の台本生成は別プロセスで非同期起動し、朝サマリー本体の成功・失敗判定から切り離す
 
-## GitHub Actions 実行ポリシー
+## ローカル実行ポリシー
 
-- 本番の定期実行は `.github/workflows/daily-calendar-summary.yml` を使える。スケジュールは `23:03 UTC`、つまり JST 8:03。
-- GitHub Actions の `schedule` は UTC 基準で、毎時ちょうどは混雑による遅延・ドロップが起きやすいため、8:00ぴったりではなく 8:03 にずらす。
-- Actions / ローカル直実行版は `scripts/github_daily_calendar_summary.py` を使い、ローカルの `personal/<account>/`、`~/.config/team-info/env.sh`、`gwsmcp`、launchd、keyring には依存しない。
-- 資格情報は repo root の `.env` を正本にする。`.env` は gitignore 済みで、GitHub hosted Actions で動かす場合だけ同名の環境変数を別経路で注入する。
-- workflow では repository variable `DAILY_SUMMARY_ENV_FILE` を指定すると、`scripts/github_daily_calendar_summary.py --env-file <path>` としてそのファイルを読む。未指定なら `.env` / `.env.local` を自動探索する。
-- 手動復旧では GitHub Actions の `Run workflow` から `future_only=true`、`force_resend=true`、`skip_discord_summary=true` を指定し、当日未終了分の LINE メッセージだけ強制再送できる。
-- Actions 版は Calendar private extendedProperties に `team-info.line-status` / `team-info.line-uid` / `team-info.line-sent-url` を保存し、通常実行では同じ uid と会議URLへの二重送信を避ける。`force_resend=true` のときだけこの記録を無視する。
+- 本番の定期実行は macOS の `launchd` を使い、JST 8:00 にローカルで実行する。
+- 実行ファイルは `scripts/gws_daily_calendar_summary.py` に統一する。
+- Google Calendar の認証は `gws auth` の保存済み認証だけを使う。GitHub Actions、GitHub Secrets、`.env` の `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` は使わない。
+- Zoom / LINE / Discord の資格情報は repo root の `.env` を正本にする。`.env` は gitignore 済み。
+- Calendar private extendedProperties に `team-info.line-status` / `team-info.line-uid` / `team-info.line-sent-url` を保存し、通常実行では同じ uid と会議URLへの二重送信を避ける。`--force-resend` のときだけこの記録を無視する。
 
 ### .env 変数
 
@@ -35,9 +33,6 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 
 | 変数 | 用途 |
 |--------|------|
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `GOOGLE_REFRESH_TOKEN` | Calendar read/update 用 refresh token |
 | `DISCORD_DAILY_WEBHOOK` | 朝サマリー・エラー通知の Discord Webhook |
 
 通常必要:
@@ -64,13 +59,14 @@ description: 当日のGoogleカレンダー予定を取得し、Zoom URL を付�
 | `DAILY_SUMMARY_ZOOM_2_HOST_USER_ID` | 追加Zoomアカウント用のホストユーザー。`host_user_id_env` で参照する |
 | `DAILY_SUMMARY_LINE_ACCOUNTS_JSON` | `title_prefixes` / `title_keywords` で LINE 送信先アカウントを振り分ける JSON 配列 |
 | `DAILY_SUMMARY_EXTRA_CALENDARS_JSON` | 追加で取得するカレンダーと抽出条件を指定する JSON 配列 |
+| `DAILY_SUMMARY_SKIP_MEETING_TITLE_KEYWORDS_JSON` | 会議URL発行を完全にスキップするタイトルキーワードの JSON 配列（未指定なら `daily_summary_settings.json` の `skip_meeting_title_keywords` を使う） |
 
-`scripts/github_daily_calendar_summary.py` は repo root の `.env` / `.env.local` を自動で読む。作業 checkout に `.env` がない場合は `~/team-info/.env` / `~/team-info/.env.local` も fallback として読む。別ファイルを使う場合は `--env-file /absolute/path/to/.env` を付ける。`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` がない場合は `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` も使える。`GOOGLE_REFRESH_TOKEN` が `.env` にない場合は `~/.config/team-info/gws_credentials_auto.json` を fallback とする。`DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` には値を直接入れてもよいが、秘密情報を分けたい場合は `account_id_env` / `client_id_env` / `client_secret_env` / `host_user_id_env` に環境変数名を書く。
+`scripts/gws_daily_calendar_summary.py` は repo root の `.env` / `.env.local` を自動で読む。作業 checkout に `.env` がない場合は `~/team-info/.env` / `~/team-info/.env.local` も fallback として読む。別ファイルを使う場合は `--env-file /absolute/path/to/.env` を付ける。Google Calendar 認証は `.env` から読まず、GWS CLI の認証だけを使う。`DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` には値を直接入れてもよいが、秘密情報を分けたい場合は `account_id_env` / `client_id_env` / `client_secret_env` / `host_user_id_env` に環境変数名を書く。
 
 外部送信なしで `.env` の形だけ検査する:
 
 ```bash
-python3 "$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py" --check-config
+python3 "$TEAM_INFO_ROOT/scripts/gws_daily_calendar_summary.py" --check-config
 ```
 
 `DAILY_SUMMARY_ZOOM_ACCOUNTS_JSON` 例:
@@ -138,7 +134,13 @@ python3 "$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py" --check-confi
 ]
 ```
 
-Actions 版では、追加カレンダーの `title_keywords` に一致した予定だけを処理対象にする。さらに、`★` 付き（菅下担当）以外の予定で時刻が重なる場合は、重なった2件目以降を Google Meet に寄せる。喜多村綾乃カレンダーの在宅ワーク面談が出口カレンダーと重なる場合も、このルールで喜多村側または後続側を Google Meet にする。
+ローカル実行では、追加カレンダーの `title_keywords` に一致した予定だけを処理対象にする。さらに、`★` 付き（菅下担当）以外の予定で時刻が重なる場合は、重なった2件目以降を Google Meet に寄せる。喜多村綾乃カレンダーの在宅ワーク面談が出口カレンダーと重なる場合も、このルールで喜多村側または後続側を Google Meet にする。
+
+## 会議URL発行の優先度ルール
+
+- タイトルに `skip_meeting_title_keywords`（`daily_summary_settings.json` または `DAILY_SUMMARY_SKIP_MEETING_TITLE_KEYWORDS_JSON` 環境変数で指定）に一致する語を含む予定は、Zoom / Google Meet のどちらも発行しない完全な対象外として扱う。現在の初期設定では「シフトOK」を含むタイトル（社内シフト確認など、外部に会議URLを送る必要がない予定）を除外している。
+- 除外対象の予定は「時刻重複時に先頭を Zoom にする」判定の候補からも外れる。除外しないと、社内予定が重複時間帯の先頭を占有してしまい、本来 Zoom にすべき面談・面接がその分だけ Google Meet に押し出される「優先度ズレ」が起きる。新しい除外キーワードを追加する場合は `daily_summary_settings.json` の `skip_meeting_title_keywords` 配列に追記する。
+- `ensure_meeting_url` は Zoom 判定時でも、そのイベントに **既存の会議URL（Google Calendar 公式の Google Meet 会議データ = `conferenceData` / `hangoutLink` を含む）があれば無条件でそれを再利用**し、新規に Zoom を発行しない。誤って Google Meet が発行された予定を Zoom に切り替えたい場合は、まず該当イベントの `conferenceData` を `null` で PATCH して削除し（`conferenceDataVersion=1` 必須、`gws` CLI はスキーマ検証で `conferenceData: null` を拒否するため、Calendar REST API を直接叩く必要がある）、`description` / `location` に残る `[team-info] 会議情報` ブロックも取り除いてから再実行する。除外キーワードの追加だけでは、既に発行済みの誤った会議URLは自動修正されない。
 
 ## Codex / ローカル実行ポリシー
 
@@ -146,7 +148,7 @@ Actions 版では、追加カレンダーの `title_keywords` に一致した予
 - `gws calendar events list` と `gws calendar events patch` を使い、`googleapiclient` や `calendar_token.json` には依存しない
 - 認証方式は固定せず、実行時は `file` / `keyring` のうち有効な `gws` 認証を自動選択する
 - `file` backend が壊れていても `keyring` backend が有効なら、`gws auth export --unmasked` でローカル専用の OAuth 資格情報ファイルを自動再生成して継続する
-- Codex / launchd / cron からローカル実行できる形を正本とし、Claude のコネクタや Remote Trigger には依存しない
+- `launchd` からのローカル実行を唯一の定期実行経路とし、GitHub Actions、Claude のコネクタ、Remote Trigger には依存しない
 - `gws` が失敗した場合は Discord に誤った予定を送らず、認証エラーなら再認証コマンドをコードブロック付きで、それ以外は原因と対処法を送って終了する
 - LINE 送信先は Google カレンダー説明欄に含まれる `uid` から取得する
 - 説明欄では `uid` だけでなく `ユーザーID` 表記も `uid` と同義として扱う
@@ -157,9 +159,8 @@ Actions 版では、追加カレンダーの `title_keywords` に一致した予
 
 | ファイル | 役割 |
 |---------|------|
-| `$TEAM_INFO_ROOT/.github/workflows/daily-calendar-summary.yml` | GitHub Actions で JST 8:03 に朝サマリーを実行し、手動復旧も受け付ける |
-| `$TEAM_INFO_ROOT/.env` | Google / Zoom / LINE / Discord の資格情報を置くローカル正本（gitignore済み） |
-| `$TEAM_INFO_ROOT/scripts/github_daily_calendar_summary.py` | `.env` または同名環境変数で Calendar 取得、Zoom作成、LINE送信、Discord通知を行うスクリプト |
+| `$TEAM_INFO_ROOT/.env` | Zoom / LINE / Discord の資格情報を置くローカル正本（gitignore済み）。Google Calendar認証は置かない |
+| `$TEAM_INFO_ROOT/scripts/gws_daily_calendar_summary.py` | GWS CLIでCalendar取得・更新を行い、Zoom作成、LINE送信、Discord通知まで処理するローカル実行スクリプト |
 | `$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_daily_summary.py` | GWS CLI で当日の予定を取得し `daily_calendar_summary.py` へ渡す |
 | `$TEAM_INFO_ROOT/scripts/daily_calendar_summary.py` | Zoom API + LINE送信 + Discord 送信 + GWS CLI による説明欄更新 |
 | `/tmp/team-info-daily-summary/calendar-interview-closing-YYYY-MM-DD.json` | 朝通知で取得済みの面接候補予定を `calendar-interview-closing` へ渡す一時JSON |
@@ -219,16 +220,16 @@ Actions 版では、追加カレンダーの `title_keywords` に一致した予
 
 ### Step 3: Pythonスクリプトを直接実行する
 
-以下のように `run_daily_summary.py` を実行する。Zoom は原則 `daily_summary_settings.json` に書いた資格情報ファイルを使う。
+以下のようにGWS専用スクリプトを実行する。Zoomは原則 `daily_summary_settings.json` に書いた資格情報ファイルを使う。
 
 ```bash
 DISCORD_DAILY_WEBHOOK="WEBHOOK_URL_HERE" \
 PROLINE_MESSAGE_SENDER_URL="WEB_APP_URL_HERE" \
 PROLINE_MESSAGE_SENDER_TOKEN="TOKEN_IF_NEEDED" \
-python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_daily_summary.py"
+python3 "$TEAM_INFO_ROOT/scripts/gws_daily_calendar_summary.py"
 ```
 
-- `run_daily_summary.py` が GWS CLI で当日の予定を取得し、`daily_calendar_summary.py` へ JSON を渡す
+- `gws_daily_calendar_summary.py` がGWS CLIで当日の予定を取得し、会議URL整備、LINE送信、Discord通知まで処理する
 - 予定が0件の場合も実行すること（「予定なし」メッセージが送信される）
 - `daily_calendar_summary.py` が成功した後、取得済みの予定から次の候補だけを抽出し、`calendar-interview-closing` を `codex exec` で非同期起動する
   - `summary` または `description` に `面接`
@@ -254,7 +255,7 @@ python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_d
 手動再実行コマンド:
 
 ```bash
-python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_daily_summary.py" --date 2026-05-02 --future-only
+python3 "$TEAM_INFO_ROOT/scripts/gws_daily_calendar_summary.py" --date 2026-05-02 --future-only --skip-discord-summary
 ```
 
 ## Discordメッセージの構成
@@ -274,22 +275,13 @@ python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_d
 
 ## 定期実行設定
 
-**GitHub Actions**: 毎日 8:03 JST
-**ローカル**: launchd / cron / Codex 側の定期ジョブで毎日 8:00 JST
+**ローカル**: `launchd` の `com.team-info.daily-summary` で毎日 8:00 JST
 **依存**: Google Calendar 認証済み、Zoom 認証済み、Discord Webhook 設定済み、LINE送信用 Web App URL 設定済み
 
-### GitHub Actions 手動復旧
-
-GitHub の Actions タブで `Daily Calendar Summary` を選び、`Run workflow` を押す。
-
-- 今日の未終了予定だけ強制再送: `future_only=true`、`force_resend=true`、`skip_discord_summary=true`
-- 特定日を再処理: `date=YYYY-MM-DD`
-- 朝サマリーも再送: `skip_discord_summary=false`
-
-### launchd / cron 実行コマンド例
+### launchd 実行コマンド
 
 ```bash
-python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_daily_summary.py"
+python3 "$TEAM_INFO_ROOT/scripts/gws_daily_calendar_summary.py"
 ```
 
 ## トラブルシューティング
@@ -299,6 +291,9 @@ python3 "$TEAM_INFO_ROOT/personal/<account>/scripts/daily-calendar-summary/run_d
 | `HTTP Error 403` on Discord | Webhook URL が無効 | `personal/<account>/discord/discord-daily-webhook.json` の URL を更新 |
 | `[Zoom] 認証失敗` | credentials.json の期限切れ | Zoom App で Server-to-Server OAuth を再発行 |
 | `LINE送信失敗` | `uid` / `ユーザーID` 不正 / Web App URL 未設定 / GAS 側エラー | Google カレンダー説明欄の `uid` または `ユーザーID` と `PROLINE_MESSAGE_SENDER_URL` を確認し、必要なら GAS の応答を確認 |
-| `gws` で認証エラー | backend 不一致 / 保存済み資格情報なし | まず `gws auth status` を確認し、`keyring` が有効なら定期実行で `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file` を固定しない。`file` も必要なら `GOOGLE_WORKSPACE_CLI_KEYRING_BACKEND=file gws auth login -s sheets,drive,calendar` を実行 |
+| `gws` で認証エラー | 保存済み資格情報が失効または未作成 | `/usr/local/bin/gws auth status` を確認し、`/usr/local/bin/gws auth login -s sheets,drive,calendar` で再認証する。`.env` やGitHub SecretsのGoogle更新トークンへ切り替えない |
 | イベントが取得できない | calendarId 誤り / `gws` 未認証 | `primary` と `gws auth status` を確認 |
 | スクリプトが見つからない | パス誤り | `$TEAM_INFO_ROOT` が正しく設定されているか確認 |
+| 社内予定（シフト確認など）に Zoom が発行され、同時刻の本来の面談が Google Meet に押し出される | `skip_meeting_title_keywords` 未設定でタイトルが除外対象になっていない | `daily_summary_settings.json` の `skip_meeting_title_keywords` に対象タイトルの一部キーワードを追加。既に誤発行済みの場合は上記「会議URL発行の優先度ルール」の手順で `conferenceData` 削除・Zoom会議削除・description/location クリーンアップを行ってから再実行 |
+| `PROLINE_MESSAGE_SENDER_URL` が未設定で LINE が全く送られない | `.env` 自体が消失している、または fallback 先の `~/team-info/.env` に該当変数がない | `--check-config` で `line_accounts` が空でないか確認。空なら Google Drive 上の Apps Script プロジェクト（例:「プロライン＿ZOOMメッセージ」）の最新デプロイ Web App URL を `gws script projects deployments list` で確認し、`$TEAM_INFO_ROOT/.env` に `PROLINE_MESSAGE_SENDER_URL=...` として設定する |
+| `invalid_grant: Token has been expired or revoked` が数日おきに再発する | Google Cloud Console の OAuth 同意画面が Publishing status = Testing のままで、refresh token が7日で自動失効する | `https://console.cloud.google.com/apis/credentials/consent?project=<project-id>` を開き、Publishing status を確認。Testing なら「アプリを公開」で本番環境に切り替える（Calendar/Gmail程度のスコープなら審査なしで即時反映）。`gws auth status` の `project_id` で対象プロジェクトを特定できる |

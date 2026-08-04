@@ -144,7 +144,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 | macos-intel-compatibility | macOS Intel環境の互換性パッチ対応 | `.agent/skills/common/macos-intel-compatibility/SKILL.md` |
 | note-article-ayumi | 「愛され女子あゆみ」のnote記事を作成する | `.agent/skills/common/note-article-ayumi/SKILL.md` |
 | note-thumbnail-ayumi | 「愛され女子あゆみ」のnoteサムネイル（1280×670px）を生成する | `.agent/skills/common/note-thumbnail-ayumi/SKILL.md` |
-| daily-calendar-summary | 当日のGoogleカレンダー予定を取得しZoom URLを付与してLINE送信とDiscordへの朝サマリー送信を行う | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
+| daily-calendar-summary | GWS CLIで当日のGoogleカレンダー予定を取得し、Zoom URL付与・LINE送信・Discord朝サマリーをlaunchdで毎朝8時にローカル実行する | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
 | md-to-docx | Markdownファイルを Word(.docx) に変換する。見出し・太字・箇条書き・水平線に対応 | `.agent/skills/common/md-to-docx/SKILL.md` |
 | insta-company-secretary-log | insta-company の秘書ログを作成し、社長メモ・ToDo・引き継ぎ事項を整理する | `.agent/skills/common/insta-company-secretary-log/SKILL.md` |
 | insta-company-research-brief | Instagram 運用向けの競合・バズ・トレンド調査ログを作る | `.agent/skills/common/insta-company-research-brief/SKILL.md` |
@@ -163,7 +163,7 @@ rclone copy "$TEAM_INFO_ROOT/[出力ファイルパス]" "gdrive:1QKaUP9fvA46mIN
 ### 🤖 personal/deguchishouma/automation/（個人自動化運用系）
 | スキル名 | 概要 | パス |
 |---------|------|------|
-| daily-calendar-summary | 毎朝8時の daily-calendar-summary で使う Zoom URL 発行アカウントを追加・更新し、タイトル接頭辞の振り分け設定と GitHub Secrets テンプレートを整える | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
+| daily-calendar-summary | 毎朝8時のローカル処理で使うZoom URL発行アカウントとタイトル接頭辞を整え、GWS認証とlaunchd設定を管理する | `.agent/skills/common/daily-calendar-summary/SKILL.md` |
 
 ---
 
