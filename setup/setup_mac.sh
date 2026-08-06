@@ -44,6 +44,71 @@ CODEX_STANDALONE_INSTALLER_URL="https://chatgpt.com/codex/install.sh"
 FREEBUFF_NPM_PACKAGE="freebuff"
 NPM_USER_PREFIX="$HOME/.local"
 
+# ── セットアップチェックリスト (PC ごとにローカル保存・git 管理対象外) ─────────
+# STEP_IDS がチェックリスト項目の正本。項目の追加・削除は次回実行時に
+# checklist_reconcile がローカルのチェックリストへ自動反映する。
+CHECKLIST_DIR="$HOME/.config/team-info"
+CHECKLIST_FILE="$CHECKLIST_DIR/setup_checklist.txt"
+STEP_IDS=(
+  xcode_clt homebrew brew_packages git_setup github_access
+  pyenv_python uv nvm_node codex_cli freebuff_cli
+  headroom git_hooks team_info_root docker
+)
+
+checklist_get() {
+  local id="$1"
+  [[ -f "$CHECKLIST_FILE" ]] || return 1
+  grep -Fqx "${id}=done" "$CHECKLIST_FILE" 2>/dev/null
+}
+
+checklist_set_done() {
+  local id="$1"
+  mkdir -p "$CHECKLIST_DIR"
+  touch "$CHECKLIST_FILE"
+  if grep -q "^${id}=" "$CHECKLIST_FILE" 2>/dev/null; then
+    sed -i '' "s/^${id}=.*/${id}=done/" "$CHECKLIST_FILE"
+  else
+    printf '%s=done\n' "$id" >> "$CHECKLIST_FILE"
+  fi
+}
+
+checklist_reconcile() {
+  mkdir -p "$CHECKLIST_DIR"
+  touch "$CHECKLIST_FILE"
+
+  local id tmp added=0 removed=0
+  local before_ids
+  before_ids="$(grep -o '^[a-z_]*=' "$CHECKLIST_FILE" 2>/dev/null | tr -d '=' || true)"
+
+  for id in "${STEP_IDS[@]}"; do
+    if ! grep -q "^${id}=" "$CHECKLIST_FILE" 2>/dev/null; then
+      printf '%s=pending\n' "$id" >> "$CHECKLIST_FILE"
+      added=$((added + 1))
+    fi
+  done
+
+  tmp="$(mktemp "$CHECKLIST_DIR/setup_checklist.XXXXXX")"
+  {
+    echo "# team-info setup checklist (auto-managed, machine-local, git管理外)"
+    echo "# last reconciled: $(date '+%Y-%m-%d %H:%M:%S')"
+    for id in "${STEP_IDS[@]}"; do
+      grep "^${id}=" "$CHECKLIST_FILE" | tail -1
+    done
+  } > "$tmp"
+  mv "$tmp" "$CHECKLIST_FILE"
+
+  while IFS= read -r id; do
+    [[ -n "$id" ]] || continue
+    if ! printf '%s\n' "${STEP_IDS[@]}" | grep -Fqx "$id"; then
+      removed=$((removed + 1))
+    fi
+  done <<< "$before_ids"
+
+  if [[ "$added" -gt 0 || "$removed" -gt 0 ]]; then
+    info "チェックリストを更新しました（新規 $added 件・削除 $removed 件）: $CHECKLIST_FILE"
+  fi
+}
+
 append_line_if_missing() {
   local file="$1"
   local line="$2"
@@ -463,61 +528,107 @@ echo "╚═══════════════════════�
 echo -e "${RESET}"
 info "プロジェクトルート: $TEAM_INFO_ROOT"
 
+# ── 0. セットアップモード ─────────────────────────────────────────────────────
+step "0. セットアップモード"
+echo "  1) 新規セットアップ（このマシンでは初めて。全項目を実行します）"
+echo "  2) 更新のみ（前回セットアップ済み。完了済みを飛ばし、未導入項目だけ実行します）"
+SETUP_MODE="new"
+while true; do
+  read -rp "  選択してください [1/2、未入力なら 1]: " mode_choice
+  mode_choice="$(printf '%s' "$mode_choice" | tr -d '[:space:]')"
+  case "$mode_choice" in
+    ""|1) SETUP_MODE="new"; break ;;
+    2) SETUP_MODE="update"; break ;;
+    *) warn "1 か 2 で入力してください。" ;;
+  esac
+done
+
+checklist_reconcile
+if [[ "$SETUP_MODE" == "update" ]]; then
+  info "更新のみモード: 完了済みの項目を飛ばします。"
+  info "チェックリスト: $CHECKLIST_FILE"
+else
+  info "新規セットアップモード: 全項目を確認します。"
+fi
+
 # ── 1. Xcode Command Line Tools ───────────────────────────────────────────────
 step "1. Xcode Command Line Tools"
-if xcode-select -p &>/dev/null; then
-  success "Xcode CLT インストール済み"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get xcode_clt; then
+  success "完了済みのためスキップ: Xcode CLT"
 else
-  warn "Xcode CLT が見つかりません。インストールを開始します..."
-  xcode-select --install
-  echo "  インストールダイアログが表示されたら完了後にこのスクリプトを再実行してください。"
-  exit 0
+  if xcode-select -p &>/dev/null; then
+    success "Xcode CLT インストール済み"
+  else
+    warn "Xcode CLT が見つかりません。インストールを開始します..."
+    xcode-select --install
+    echo "  インストールダイアログが表示されたら完了後にこのスクリプトを再実行してください。"
+    exit 0
+  fi
+  checklist_set_done xcode_clt
 fi
 
 # ── 2. Homebrew ────────────────────────────────────────────────────────────────
 step "2. Homebrew"
-if command -v brew &>/dev/null; then
-  success "Homebrew インストール済み: $(brew --version | head -1)"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get homebrew; then
+  success "完了済みのためスキップ: Homebrew"
 else
-  info "Homebrew をインストールします..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  # Apple Silicon の場合 PATH 追加
-  if [[ -f /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-    append_line_if_missing "$HOME/.zprofile" 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+  if command -v brew &>/dev/null; then
+    success "Homebrew インストール済み: $(brew --version | head -1)"
+  else
+    info "Homebrew をインストールします..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Apple Silicon の場合 PATH 追加
+    if [[ -f /opt/homebrew/bin/brew ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+      append_line_if_missing "$HOME/.zprofile" 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+    fi
+    success "Homebrew インストール完了"
   fi
-  success "Homebrew インストール完了"
+  checklist_set_done homebrew
 fi
 
 # ── 3. 基本ツール (brew) ───────────────────────────────────────────────────────
 step "3. 基本ツール (git, git-lfs, gh, rclone)"
-BREW_PACKAGES=(git git-lfs gh rclone)
-for pkg in "${BREW_PACKAGES[@]}"; do
-  if brew list "$pkg" &>/dev/null; then
-    success "$pkg インストール済み"
-  else
-    info "$pkg をインストールします..."
-    brew install "$pkg"
-    success "$pkg インストール完了"
-  fi
-done
-
-configure_git_identity
-
-if git lfs install --skip-repo &>/dev/null; then
-  success "git lfs を初期化しました"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get brew_packages; then
+  success "完了済みのためスキップ: 基本ツール"
 else
-  warn "git lfs の初期化に失敗しました。必要なら手動で 'git lfs install --skip-repo' を実行してください。"
+  BREW_PACKAGES=(git git-lfs gh rclone)
+  for pkg in "${BREW_PACKAGES[@]}"; do
+    if brew list "$pkg" &>/dev/null; then
+      success "$pkg インストール済み"
+    else
+      info "$pkg をインストールします..."
+      brew install "$pkg"
+      success "$pkg インストール完了"
+    fi
+  done
+  checklist_set_done brew_packages
+fi
+
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get git_setup; then
+  success "完了済みのためスキップ: Git identity / git-lfs"
+else
+  configure_git_identity
+  if git lfs install --skip-repo &>/dev/null; then
+    success "git lfs を初期化しました"
+    checklist_set_done git_setup
+  else
+    warn "git lfs の初期化に失敗しました。必要なら手動で 'git lfs install --skip-repo' を実行してください。"
+  fi
 fi
 
 # ── 4. GitHub アクセス & リポジトリ接続 ──────────────────────────────────────────
 step "4. GitHub アクセス & リポジトリ接続"
-ensure_github_auth
-
-info "リモートリポジトリの URL を設定します..."
-git -C "$TEAM_INFO_ROOT" remote set-url origin https://github.com/Shoma-DS/team-info.git
-success "リモート URL 設定完了: https://github.com/Shoma-DS/team-info.git"
-ensure_github_repo_access
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get github_access; then
+  success "完了済みのためスキップ: GitHub アクセス"
+else
+  ensure_github_auth
+  info "リモートリポジトリの URL を設定します..."
+  git -C "$TEAM_INFO_ROOT" remote set-url origin https://github.com/Shoma-DS/team-info.git
+  success "リモート URL 設定完了: https://github.com/Shoma-DS/team-info.git"
+  ensure_github_repo_access
+  checklist_set_done github_access
+fi
 
 # ── 5. pyenv + Python ─────────────────────────────────────────────────────────
 step "5. pyenv + Python $PYTHON_VERSION"
@@ -552,6 +663,7 @@ fi
 PYTHON311="$(pyenv root)/versions/$(pyenv versions --bare | grep "^$PYTHON_VERSION" | tail -1)/bin/python3"
 [[ -x "$PYTHON311" ]] || error "Python $PYTHON_VERSION の実行ファイルが見つかりません: $PYTHON311"
 info "Python: $PYTHON311 ($(${PYTHON311} --version))"
+checklist_set_done pyenv_python
 
 # ── 6. Python ランタイム方針 ───────────────────────────────────────────────
 step "6. Python ランタイム方針"
@@ -570,6 +682,7 @@ else
   "$PYTHON311" -m pip install --user uv
   success "uv インストール完了"
 fi
+checklist_set_done uv
 
 # ── 8. nvm + Node.js ──────────────────────────────────────────────────────────
 step "8. nvm + Node.js $NODE_VERSION"
@@ -595,11 +708,18 @@ fi
 
 nvm use "$NODE_VERSION"
 info "Node.js: $(node --version), npm: $(npm --version)"
+checklist_set_done nvm_node
 
 # ── 9. Codex CLI ───────────────────────────────────────────────────────────────
 step "9. Codex CLI"
-if ! install_codex_cli; then
-  warn "Codex CLI が使える状態になっていません。上の npm / PATH メッセージを確認してください。"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get codex_cli; then
+  success "完了済みのためスキップ: Codex CLI"
+else
+  if install_codex_cli; then
+    checklist_set_done codex_cli
+  else
+    warn "Codex CLI が使える状態になっていません。上の npm / PATH メッセージを確認してください。"
+  fi
 fi
 
 # ── 9b. Codex custom prompts ──────────────────────────────────────────────────
@@ -617,30 +737,46 @@ fi
 
 # ── 10. Freebuff CLI ───────────────────────────────────────────────────────────
 step "10. Freebuff CLI (無料AIエージェント)"
-if ! install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"; then
-  warn "Freebuff CLI が使える状態になっていません。必要ならあとで手動インストールしてください。"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get freebuff_cli; then
+  success "完了済みのためスキップ: Freebuff CLI"
+else
+  if install_npm_cli "Freebuff CLI" "$FREEBUFF_NPM_PACKAGE" "freebuff"; then
+    checklist_set_done freebuff_cli
+  else
+    warn "Freebuff CLI が使える状態になっていません。必要ならあとで手動インストールしてください。"
+  fi
 fi
 
 # ── 10a. Headroom (トークン圧縮プロキシ) ─────────────────────────────────────────
 step "10a. Headroom (トークン圧縮プロキシ)"
-HEADROOM_INSTALLER="$TEAM_INFO_ROOT/setup/headroom/install.sh"
-if [ -f "$HEADROOM_INSTALLER" ]; then
-  # 非致命: 失敗しても setup 全体は止めない（warn のみ）
-  if bash "$HEADROOM_INSTALLER" --python "$PYTHON311" --repo-root "$TEAM_INFO_ROOT"; then
-    success "Headroom を導入しました（claude / codex がプロキシ経由になります）"
-  else
-    warn "Headroom の導入に失敗しました（setup は続行）。ログ確認: setup/headroom/README.md"
-  fi
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get headroom; then
+  success "完了済みのためスキップ: Headroom"
 else
-  warn "Headroom インストーラが見つかりません: $HEADROOM_INSTALLER"
+  HEADROOM_INSTALLER="$TEAM_INFO_ROOT/setup/headroom/install.sh"
+  if [ -f "$HEADROOM_INSTALLER" ]; then
+    # 非致命: 失敗しても setup 全体は止めない（warn のみ）
+    if bash "$HEADROOM_INSTALLER" --python "$PYTHON311" --repo-root "$TEAM_INFO_ROOT"; then
+      success "Headroom を導入しました（claude / codex がプロキシ経由になります）"
+      checklist_set_done headroom
+    else
+      warn "Headroom の導入に失敗しました（setup は続行）。ログ確認: setup/headroom/README.md"
+    fi
+  else
+    warn "Headroom インストーラが見つかりません: $HEADROOM_INSTALLER"
+  fi
 fi
 
 # ── 11. Git hooks ──────────────────────────────────────────────────────────────
 step "11. Git hooks"
-if git -C "$TEAM_INFO_ROOT" config core.hooksPath .githooks; then
-  success "core.hooksPath を .githooks に設定しました"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get git_hooks; then
+  success "完了済みのためスキップ: Git hooks"
 else
-  warn "core.hooksPath の設定に失敗しました。手動で 'git config core.hooksPath .githooks' を実行してください。"
+  if git -C "$TEAM_INFO_ROOT" config core.hooksPath .githooks; then
+    success "core.hooksPath を .githooks に設定しました"
+    checklist_set_done git_hooks
+  else
+    warn "core.hooksPath の設定に失敗しました。手動で 'git config core.hooksPath .githooks' を実行してください。"
+  fi
 fi
 
 # ── 12. TEAM_INFO_ROOT ─────────────────────────────────────────────────────────
@@ -656,6 +792,7 @@ fi
 if "$PYTHON311" "$TEAM_INFO_ROOT/.agent/skills/common/scripts/team_info_runtime.py" \
   setup-local-machine --repo-root "$TEAM_INFO_ROOT" --shell sh >/dev/null; then
   success "TEAM_INFO_ROOT を保存しました: $TEAM_INFO_ROOT"
+  checklist_set_done team_info_root
 else
   warn "TEAM_INFO_ROOT の保存に失敗しました。必要なら手動で設定してください。"
 fi
@@ -671,13 +808,18 @@ warn "  - clone-website 用の Node 24 workspace 依存"
 
 # ── 14. Docker (任意) ─────────────────────────────────────────────────────
 step "14. Docker (任意)"
-if command -v docker &>/dev/null; then
-  success "Docker インストール済み: $(docker --version)"
-  warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
+if [[ "$SETUP_MODE" == "update" ]] && checklist_get docker; then
+  success "完了済みのためスキップ: Docker"
 else
-  warn "Docker が見つかりません。"
-  warn "→ Docker Desktop は必須ではありません。必要時に Docker Engine + Compose v2 を準備してください。"
-  warn "→ macOS では例: brew install docker docker-compose colima && colima start"
+  if command -v docker &>/dev/null; then
+    success "Docker インストール済み: $(docker --version)"
+    warn "Docker イメージの build / pull は重いため、必要なスキルの初回実行時に行います。"
+    checklist_set_done docker
+  else
+    warn "Docker が見つかりません。"
+    warn "→ Docker Desktop は必須ではありません。必要時に Docker Engine + Compose v2 を準備してください。"
+    warn "→ macOS では例: brew install docker docker-compose colima && colima start"
+  fi
 fi
 
 # ── 15. セットアップ検証 ─────────────────────────────────────────────────────
